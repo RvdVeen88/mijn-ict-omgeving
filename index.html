@@ -123,6 +123,7 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .werkbalk{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .schakel{display:inline-flex;background:var(--vlak);border-radius:0 999px 999px 0;padding:4px;gap:2px;border:1.5px solid var(--lijn)}
 .schakel button{border:0;background:transparent;padding:5px 16px 5px 12px;border-radius:0 999px 999px 0;color:var(--grijs);font-weight:500}
+.schakel button b{font-size:11.5px;font-weight:600;margin-left:4px;opacity:.75}
 .schakel button[aria-pressed="true"]{background:var(--blauw);color:var(--opaccent)}
 .zoek{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--vlak);border:1.5px solid var(--lijn);border-radius:0 999px 999px 0;padding:6px 16px 6px 12px;flex:0 1 320px}
 .zoek input{border:0;outline:0;background:transparent;width:100%}
@@ -352,12 +353,13 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="werkbalk">
           <label class="zoek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="f-zoek" placeholder="Zoek op nummer, onderwerp, melder of behandelaar"></label>
           <div class="schakel" id="f-soort" hidden><button data-v="alle" aria-pressed="true">Alles</button><button data-v="meldingen">Meldingen</button><button data-v="changes">Changes &amp; RfC</button></div>
+          <div class="schakel" id="f-mijalles" hidden title="Mij: jouw tickets en wat bij niemand ligt"><button data-v="mij">Mij <b></b></button><button data-v="alles">Alles <b></b></button></div>
           <label class="schuif" id="f-mijn" hidden><input type="checkbox"><i></i><span>Alleen mijn tickets</span></label>
         </div>
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.20 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.21 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -404,7 +406,7 @@ const INST = Object.assign({
   connMedewerkers: 'Profit_Employees',   // medewerkers om als melder te kiezen (standaard GetConnector van AFAS)
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.20';
+const VERSIE = 'v3.21';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -858,12 +860,16 @@ function tekenMij(){
 const filt = {zoek:''};
 // schuifje 'Alleen mijn tickets': per afdeling (standaard uit) en bij Aandacht nodig (standaard aan); onthouden per weergave
 const alleenMijn = opslag.get('mict-alleenmijn') || {};
-const heeftSchuif = t => t.startsWith('afd:') || t === 'norm';
-const schuifAan = t => heeftSchuif(t) && (alleenMijn[t] ?? t === 'norm');
+const heeftSchuif = t => t.startsWith('afd:');
+const heeftMijAlles = t => t === 'norm' || t === 'nieuw';
+const mijAlles = opslag.get('mict-mijalles') || {};
+const schuifAan = t => heeftSchuif(t) ? !!alleenMijn[t] : heeftMijAlles(t) ? (mijAlles[t] || 'mij') === 'mij' : false;
+// wat telt als 'Mij': jouw tickets, en wat bij niemand ligt (geen afdeling); bij nieuwe tickets ook nieuw binnen je afdelingen
+const vanMij = (t, x) => isMijn(x) || (!x.afdeling && !x.inuit) || (t === 'nieuw' && inGebied(x));
 const soortKeuze = opslag.get('mict-soort') || {};   // per afdeling: alle | meldingen | changes
 const soortVan = t => t.startsWith('afd:') ? (soortKeuze[t] || 'alle') : 'alle';
 function zichtbaar(t, l){
-  if(schuifAan(t)) l = l.filter(x => isMijn(x) || (t === 'norm' && !x.afdeling && !x.inuit));
+  if(schuifAan(t)) l = heeftMijAlles(t) ? l.filter(x => vanMij(t, x)) : l.filter(isMijn);
   const sk = soortVan(t); if(sk === 'changes') l = l.filter(isChange); if(sk === 'meldingen') l = l.filter(x => !isChange(x));
   return l;
 }
@@ -871,6 +877,9 @@ function tekenLijst(){
   const v = weergave(tab), w = norm(filt.zoek);
   let l = v.lijst;
   $('#f-mijn').hidden = !heeftSchuif(tab); $('#f-mijn input').checked = schuifAan(tab);
+  $('#f-mijalles').hidden = !heeftMijAlles(tab);
+  if(heeftMijAlles(tab)){ const alle = l.length, mij = l.filter(x => vanMij(tab, x)).length;
+    $('#f-mijalles').querySelectorAll('button').forEach(b => { b.setAttribute('aria-pressed', (b.dataset.v === 'mij') === schuifAan(tab)); b.querySelector('b').textContent = b.dataset.v === 'mij' ? mij : alle; }); }
   $('#f-soort').hidden = !tab.startsWith('afd:'); $('#f-soort').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === soortVan(tab)));
   l = zichtbaar(tab, l);
   if(w) l = l.filter(x => x.zoek.includes(w));
@@ -1116,8 +1125,15 @@ async function maakMelding(){
     const knop = $('#nieuw-knop').getBoundingClientRect();
     $('#nieuw').close(); toast(`Melding aangemaakt${sbid ? ' (dossieritem ' + sbid + ')' : ''}`);
     await laadGegevens(); teken();
-    const doel = document.querySelector('#nav [data-weergave="nieuw"]');
-    if(doel) vlieg({nr: 'Nieuw', ond, rect: knop}, doel, 'Nieuwe tickets');
+    // ticketnummer bij het dossieritem zoeken, zodat je het nieuwe ticket meteen ziet
+    let nr = '';
+    if(sbid && !DEMO){ try{ const m = await sbIdsVoor('Dossieritem', [sbid]); nr = [...m.entries()].find(([, v]) => String(v) === String(sbid))?.[0] || ''; }catch(e){} }
+    const x = DEMO ? items.find(y => norm(y.onderwerp) === norm(ond)) : items.find(y => String(y.nr) === String(nr) || String(y.sbid) === String(sbid));
+    if(x){ const doel = document.querySelector(`#nav [data-weergave="${x.emmer === 'nieuw' ? 'nieuw' : 'alle'}"]`);
+      if(doel) vlieg({nr: x.nr, ond, rect: knop}, doel, x.emmer === 'nieuw' ? 'Nieuwe tickets' : 'Alle open tickets');
+      toast(`Ticket ${x.nr} aangemaakt`); setTimeout(() => openDetail(x.nr), 900); }
+    else { toast(`Melding aangemaakt${nr ? ' als ticket ' + nr : ''}. AFAS toont hem binnen een paar minuten in de lijst.`);
+      setTimeout(async () => { await laadGegevens(); teken(); }, 60000); }
   }catch(e){
     fout.textContent = e.message + (/sollicitant|bestemming|melder|KnSubjectLink/i.test(e.message) ? ' Vul het medewerkernummer van de melder in.' : '');
     f.querySelectorAll('button, input, select, textarea').forEach(b => b.disabled = false);
@@ -1335,6 +1351,7 @@ document.addEventListener('click', e => {
   const a = e.target.closest('[data-actie]'); if(a){ voerUit(+a.dataset.actie); return; }
   if(e.target.closest('#k-actie')){ const v = $('#actie-keuze').value; if(v !== '') voerUit(+v); return; }
   if(e.target.closest('#k-reageer')){ voerUit(null); return; }
+  const ma = e.target.closest('#f-mijalles button'); if(ma){ mijAlles[tab] = ma.dataset.v; opslag.set('mict-mijalles', mijAlles); teken(); return; }
   const sb = e.target.closest('#f-soort button'); if(sb){ soortKeuze[tab] = sb.dataset.v; opslag.set('mict-soort', soortKeuze); teken(); return; }
   if(e.target.closest('#nieuw-knop')){ nieuweMelding(); return; }
   if(e.target.closest('[data-sluitnieuw]')){ sluitDialoog($('#nieuw')); return; }
