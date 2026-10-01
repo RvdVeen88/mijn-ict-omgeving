@@ -82,6 +82,7 @@ dialog.smal{width:min(560px, calc(100vw - 32px))}
 .nform input,.nform select{border:1.5px solid var(--lijn);border-radius:0 12px 12px 0;padding:8px 12px;background:var(--vlak);font-weight:400;color:var(--inkt)}
 .nform .twee{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .nform .hint{font-weight:400;font-size:12px}
+.nform input.metpijl{padding-right:34px;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7A99' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:14px}
 .nform textarea{font-weight:400;color:var(--inkt)}
 @media (max-width:560px){.nform .twee{grid-template-columns:1fr}.nieuwknop span{display:none}}
 .klok{font-size:13px;color:var(--grijs);white-space:nowrap}
@@ -370,7 +371,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.24 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.26 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -414,10 +415,10 @@ const INST = Object.assign({
   ticketUrl: 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}',   // leeg = geen link
   connReacties: 'Helpdesk_Reacties',
   nieuwStId: '26',                       // type dossieritem Aanvraag ICT
-  connMedewerkers: 'Profit_Employees',   // medewerkers om als melder te kiezen (standaard GetConnector van AFAS)
+  connMedewerkers: 'PowerBI_ICT_Verjaardag',   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.24';
+const VERSIE = 'v3.26';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1111,7 +1112,7 @@ async function nieuweMelding(){
     </div>
     ${m.extra.map((f, i) => `<label>${esc(f.label || f.code)}${keuze(f, 'x' + i, '')}</label>`).join('')}
     <label>Toelichting<textarea name="tx" placeholder="Wat is er aan de hand, sinds wanneer, welke locatie of werkplek?"></textarea></label>
-    <label>Melder<input name="melder" id="n-melder" autocomplete="off" spellcheck="false" placeholder="Zoek een medewerker op naam of nummer"><input type="hidden" name="melderId"><span class="hint" id="n-melder-hint">Medewerkers ophalen…</span></label>
+    <label>Melder<input name="melder" id="n-melder" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Zoek een medewerker op naam of nummer"><input type="hidden" name="melderId"><span class="hint" id="n-melder-hint">Medewerkers ophalen…</span></label>
     <div class="fout" id="n-fout">${m.stId ? '' : `Het type dossieritem "Aanvraag ICT" is niet gevonden in AFAS (gevonden: ${esc(m.typen.map(t => t.naam).join(', ') || 'geen')}). Zet nieuwStId in mijn-ict-config.js.`}</div>
     <div style="display:flex;gap:10px;justify-content:flex-end"><button type="button" class="knop" data-sluitnieuw>Annuleren</button><button type="button" class="knop vol" id="n-maak" ${m.stId ? '' : 'disabled'}>Melding aanmaken</button></div>
   </form>`;
@@ -1166,12 +1167,16 @@ function medewerkerKolommen(k){
   const naamK = k.find(x => /^(NameFull|FullName|Naam|Volledige_naam|Name|Naam_medewerker|Naam_volledig|Weergavenaam|DisplayName|Omschrijving|Description)$/i.test(x)) || k.find(x => /naam|name/i.test(x) && !/voor|first|achter|last|search|zoek|organisatie|afdeling|functie|gebruiker/i.test(x));
   const deel = re => k.find(x => re.test(x));
   const uitK = k.find(x => /uit.?dienst|date.?of.?leaving|leaving|einddatum|end.?date|DaEnd/i.test(x));
-  return {idK, naamK, uitK, voor: deel(/^(Roepnaam|Voornaam|FirstName|Nickname|CallName)$/i), tus: deel(/^(Voorvoegsel|Prefix|Infix)$/i), ach: deel(/^(Achternaam|LastName|Geboortenaam)$/i)};
+  const blokK = k.find(x => /^(geblokkeerd|blocked|inactief|inactive)$/i.test(x));
+  const oeK = k.find(x => /^organisatorische_eenheid$/i.test(x)) || k.find(x => /organisatorische|^oe$|afdeling|department/i.test(x));
+  return {idK, naamK, uitK, blokK, oeK, roep: deel(/^(Roepnaam|CallName|Nickname)$/i), voor: deel(/^(Voornaam|Voornamen|FirstName|First_name)$/i) || deel(/voornaam|first.?name/i),
+    tus: deel(/^(Voorvoegsel|Tussenvoegsel|Prefix|Infix)$/i) || deel(/voorvoegsel|tussenvoegsel|prefix|infix/i),
+    ach: deel(/^(Achternaam|LastName|Last_name|Geboortenaam|Surname)$/i) || deel(/achternaam|last.?name|surname|geboortenaam/i)};
 }
 // welke GetConnector levert de medewerkers? eerst de ingestelde, anders zoeken in de app connector
 async function kiesMedewerkerConnector(){
-  const bewaard = opslag.get('mict-connmede'); if(bewaard) return bewaard;
-  const kandidaten = [INST.connMedewerkers]; let alleGet = [];
+  const bewaard = opslag.get('mict-connmede');
+  const kandidaten = [INST.connMedewerkers, bewaard]; let alleGet = [];
   try{ const m = await afas('/metainfo'); alleGet = (m.getConnectors || []).map(c => ({id: c.id, oms: c.description || ''}));
     alleGet.filter(c => /medewerker|employee|personeel|werknemer|persoon|gebruiker|user/i.test(c.id + ' ' + c.oms)).forEach(c => kandidaten.push(c.id));
     alleGet.forEach(c => kandidaten.push(c.id)); }catch(e){}
@@ -1187,16 +1192,23 @@ async function kiesMedewerkerConnector(){
   }
   throw new Error(`geen GetConnector met alle medewerkers gevonden in de app connector. Bekeken: ${pogingen.join('; ') || 'niets'}${alleGet.length ? '. Beschikbaar: ' + alleGet.map(c => c.id).join(', ') : ''}`);
 }
-let medewerkers = null, medewerkerFout = '', medewerkerConn = '';
+let medewerkers = null, medewerkerFout = '', medewerkerConn = '', medewerkerKolDiag = '';
 async function laadMedewerkers(){
   if(medewerkers) return medewerkers;
-  if(DEMO) return (medewerkers = ['Robert van der Veen','Anouk de Vries','Kelly Groen','Glenn Brons','Daphne van de Weert','Teun Kessels','Wilma Balm','Bianca van den Berg','Guillonard Leer','Steven van Dijk','Anouk van Riel'].map((n, i) => ({id: String(488760 + i), naam: n})).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
+  if(DEMO) return (medewerkers = [['Robert','van der','Veen'],['Anouk','de','Vries'],['Kelly','','Groen'],['Glenn','','Brons'],['Daphne','van de','Weert'],['Teun','','Kessels'],['Wilma','','Balm'],['Bianca','van den','Berg'],['Guillonard','','Leer'],['Steven','van','Dijk'],['Anouk','van','Riel']].map(([v, t, a], i) => ({id: String(488760 + i), naam: `${a}, ${[v, t].filter(Boolean).join(' ')}`, vol: [v, t, a].filter(Boolean).join(' '), oe: ['ICT','Radiologie','Zorgadministratie','Maag Darm'][i % 4]})).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
   medewerkerConn = await kiesMedewerkerConnector();
   const rijen = await connectorAlles(medewerkerConn), k = medewerkerKolommen(Object.keys(rijen[0] || {}));
-  const naamVan = r => k.naamK ? String(r[k.naamK] ?? '').trim() : [r[k.voor], r[k.tus], r[k.ach]].filter(Boolean).join(' ');
+  const t = v => String(v ?? '').trim();
+  // weergave zoals in AFAS: "Achternaam, Roepnaam voorvoegsel" (bv. "Veen, Robert van der"); volledige naam voor zoeken en herkennen
+  const naamVan = r => {
+    const vn = t(r[k.roep]) || t(r[k.voor]);   // roepnaam, anders voornaam
+    if(vn && k.ach && t(r[k.ach])) return {label: `${t(r[k.ach])}, ${[vn, t(r[k.tus])].filter(Boolean).join(' ')}`, vol: [vn, t(r[k.tus]), t(r[k.ach])].filter(Boolean).join(' ')};
+    const n = t(r[k.naamK]); return {label: n, vol: n}; };
+  medewerkerKolDiag = Object.keys(rijen[0] || {}).join(', ');
   const vandaag = beginDag(new Date());
-  const inDienst = r => { if(!k.uitK || !r[k.uitK]) return true; const d = datum(r[k.uitK]); return !d || +d >= +vandaag; };   // uit dienst niet tonen
-  const uniek = new Map(); rijen.filter(inDienst).forEach(r => { const id = String(r[k.idK] ?? '').trim(), naam = naamVan(r); if(id && naam && !uniek.has(id)) uniek.set(id, {id, naam}); });
+  const inDienst = r => { if(k.blokK && ja(r[k.blokK])) return false;   // geblokkeerd en uit dienst niet tonen
+    if(!k.uitK || !r[k.uitK]) return true; const d = datum(r[k.uitK]); return !d || +d >= +vandaag; };
+  const uniek = new Map(); rijen.filter(inDienst).forEach(r => { const id = t(r[k.idK]), n = naamVan(r); if(id && n.label && !uniek.has(id)) uniek.set(id, {id, naam: n.label, vol: n.vol, oe: k.oeK ? t(r[k.oeK]) : ''}); });
   return (medewerkers = [...uniek.values()].sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
 }
 async function koppelMelder(){
@@ -1218,16 +1230,18 @@ async function koppelMelder(){
   try{ lijst = await laadMedewerkers(); }
   catch(e){ medewerkerFout = e.message; if($('#n-melder')) zonderLijst(); return; }
   if(!$('#n-melder')) return;
-  const ik = (profiel.emId && lijst.find(m => m.id === String(profiel.emId))) || lijst.find(m => benIk(m.naam));
-  if(ik && inp.dataset.std === '1'){ f.melderId.value = ik.id; if(!profiel.emId){ profiel.emId = ik.id; opslag.set(profielSleutel(), profiel); } }
+  const ik = (profiel.emId && lijst.find(m => m.id === String(profiel.emId))) || lijst.find(m => benIk(m.vol) || benIk(m.naam));
+  const tekst = m => `${m.naam} (${m.id})`;
+  if(ik && inp.dataset.std === '1'){ inp.value = tekst(ik); f.melderId.value = ik.id; if(!profiel.emId){ profiel.emId = ik.id; opslag.set(profielSleutel(), profiel); } }
   hint.textContent = ik ? `Jij bent de melder (${ik.id}). Klik om iemand anders te kiezen uit ${lijst.length} medewerkers.` : `Jouw medewerkernummer is niet gevonden; kies de melder uit de lijst (${lijst.length} medewerkers).`;
-  hint.title = medewerkerConn ? 'Bron: GetConnector ' + medewerkerConn : '';
+  hint.title = medewerkerConn ? `Bron: GetConnector ${medewerkerConn} (kolommen: ${medewerkerKolDiag})` : '';
   // net als in AFAS: jijzelf en de laatst gekozen melders bovenaan
   const items = () => { const recent = (opslag.get('mict-recente-melders') || []).map(id => lijst.find(m => m.id === id)).filter(Boolean);
     const boven = [...new Set([ik, ...recent].filter(Boolean))];
-    return [...boven.map(m => ({waarde: m.naam, sub: m.id, recent: true})), ...lijst.filter(m => !boven.includes(m)).map(m => ({waarde: m.naam, sub: m.id}))]; };
-  comboKoppel(inp, items, keus => { inp.value = keus.waarde; f.melderId.value = keus.sub; inp.dataset.std = '0'; hint.textContent = `Melder: ${keus.waarde} (${keus.sub})`; },
-    () => { f.melderId.value = ''; inp.dataset.std = '0'; });
+    const als = (m, recent) => ({waarde: tekst(m), sub: m.oe, id: m.id, zoek: m.vol + ' ' + m.id, recent});
+    return [...boven.map(m => als(m, true)), ...lijst.filter(m => !boven.includes(m)).map(m => als(m))]; };
+  comboKoppel(inp, items, keus => { inp.value = keus.waarde; f.melderId.value = keus.id; inp.dataset.std = '0'; hint.textContent = ik && keus.id === ik.id ? 'Jij bent de melder.' : 'Melder gekozen. Klik om iemand anders te kiezen.'; },
+    () => { f.melderId.value = ''; inp.dataset.std = '0'; hint.textContent = 'Kies de melder uit de lijst.'; });
   inp.addEventListener('focus', () => inp.select());
 }
 
@@ -1236,7 +1250,9 @@ let comboHuidig = null;
 function comboToon(inp, items, kies){
   const el = $('#combo'), w = norm(inp.dataset.typt === '1' ? inp.value : '');
   const host = inp.closest('dialog') || document.body; if(el.parentElement !== host) host.appendChild(el);   // in een dialoog moet de lijst in de dialoog staan, anders valt hij erachter
-  const l = items().filter(x => !w || norm(x.waarde).includes(w) || norm(x.sub || '').includes(w)).slice(0, 200);
+  // elk woord moet ergens voorkomen: "rob veen" vindt "Veen, Robert van der"
+  const woorden = w.split(' ').filter(Boolean), tekstVan = x => norm(x.waarde + ' ' + (x.sub || '') + ' ' + (x.zoek || ''));
+  const l = items().filter(x => !woorden.length || woorden.every(d => tekstVan(x).includes(d))).slice(0, 200);
   comboHuidig = {inp, l, kies, actief: -1};
   el.innerHTML = l.length ? l.map((x, i) => `<button type="button" data-ci="${i}" class="${x.recent ? 'recent' : ''}"><span>${esc(x.waarde)}</span>${x.sub ? `<small>${esc(x.sub)}</small>` : ''}</button>`).join('') : '<p>Niets gevonden</p>';
   const r = inp.getBoundingClientRect();
