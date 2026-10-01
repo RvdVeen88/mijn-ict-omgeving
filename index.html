@@ -357,7 +357,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.18 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.20 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -404,7 +404,7 @@ const INST = Object.assign({
   connMedewerkers: 'Profit_Employees',   // medewerkers om als melder te kiezen (standaard GetConnector van AFAS)
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.18';
+const VERSIE = 'v3.20';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -987,7 +987,7 @@ function openDetail(nr){
     </div>
     <div class="actiebalk" id="actiebalk"><span class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Acties ophalen…</span></div>
     <p class="fout" id="d-fout"></p>`}`;
-  $('#detail').showModal();
+  $('#detail').dataset.gewijzigd = ''; $('#detail').showModal();
   (DEMO ? Promise.resolve() : zorgSbId(x)).then(() => toonReacties(x)).catch(e => { const el = $('#tijdlijn'); if(el) el.innerHTML = `<h3>Reacties</h3><p class="hint">Het interne nummer van dit ticket kon niet worden opgezocht: ${esc(e.message)}</p>`; });
   if(!x.afgesloten){ laadWorkflow(x); $('#notitie').onchange = e => { $('#tekst').classList.toggle('intern', e.target.checked); $('#tekst').placeholder = e.target.checked ? 'Interne notitie voor collega’s…' : 'Schrijf een reactie aan de melder…'; }; }
   else $('#d-taak').textContent = '–';
@@ -1070,7 +1070,7 @@ function keuze(f, naam, std){
 }
 async function nieuweMelding(){
   const d = $('#nieuw'), kop = `<div class="dlg-kop"><div><small>Aanvraag ICT</small><h2>Nieuwe melding</h2></div><button class="sluit" data-sluitnieuw aria-label="Sluiten">×</button></div>`;
-  $('#nieuw-in').innerHTML = kop + '<p class="leeg">Velden ophalen uit AFAS…</p>'; d.showModal();
+  $('#nieuw-in').innerHTML = kop + '<p class="leeg">Velden ophalen uit AFAS…</p>'; d.dataset.gewijzigd = ''; d.showModal();
   let m;
   try{ m = await laadNieuwMeta(); }
   catch(e){ $('#nieuw-in').innerHTML = kop + `<p class="fout">De velden van een nieuw ticket kunnen niet worden gelezen (${esc(e.message)}). Staat UpdateConnector KnSubject in de app connector?</p>`; return; }
@@ -1104,7 +1104,8 @@ async function maakMelding(){
   const objecten = Object.entries(obj).map(([o, v]) => ({[o]: {Element: {Fields: v}}}));
   const melder = (f.melderId.value || (/^\d+$/.test(f.melder.value.trim()) ? f.melder.value.trim() : '')).trim();
   if(!melder && medewerkers){ fout.textContent = 'Kies de melder uit de lijst.'; f.melder.focus(); return; }
-  if(!melder && !medewerkers){ fout.textContent = `De melder kan niet worden gekoppeld: ${medewerkerFout || 'de medewerkerslijst is nog niet geladen'}. AFAS vereist een melder bij een nieuw ticket.`; return; }
+  if(!melder && !medewerkers){ fout.textContent = $('#n-mijnnr') ? 'Vul je medewerkernummer in (eenmalig), of typ het medewerkernummer van de melder.' : 'Typ het medewerkernummer van de melder.'; return; }
+  const mijnNr = $('#n-mijnnr') && $('#n-mijnnr').value.trim(); if(mijnNr && /^\d+$/.test(mijnNr)){ profiel.emId = mijnNr; opslag.set(profielSleutel(), profiel); }
   if(melder) objecten.unshift({KnSubjectLink: {Element: {Fields: {SfTp: 17, SfId: isNaN(+melder) ? melder : +melder}}}});
   const body = {KnSubject: {Element: {Fields: top, ...(objecten.length ? {Objects: objecten} : {})}}};
   f.querySelectorAll('button, input, select, textarea').forEach(b => b.disabled = true); fout.textContent = '';
@@ -1162,15 +1163,25 @@ async function laadMedewerkers(){
 }
 async function koppelMelder(){
   const inp = $('#n-melder'), hint = $('#n-melder-hint'), f = $('#n-form'); if(!inp) return;
-  // standaard: jijzelf; het nummer zoeken we op zodra de medewerkerslijst binnen is
-  inp.value = profiel.naam; inp.dataset.std = '1'; hint.textContent = 'Jij bent de melder. Klik om iemand anders te kiezen.';
+  // standaard: jijzelf, met je medewerkernummer (uit AFAS of eenmalig ingevuld)
+  inp.value = profiel.naam; inp.dataset.std = '1';
+  if(profiel.emId) f.melderId.value = profiel.emId;
+  const zonderLijst = () => {
+    // geen lijst met alle medewerkers: jijzelf als melder, of een medewerkernummer typen
+    inp.placeholder = 'Naam of medewerkernummer';
+    if(profiel.emId){ hint.textContent = `Jij bent de melder (${profiel.emId}). Voor een collega: typ zijn of haar medewerkernummer.`; }
+    else { hint.innerHTML = `Vul eenmalig <b>je eigen medewerkernummer</b> in; de pagina onthoudt het. <input id="n-mijnnr" inputmode="numeric" placeholder="bv. 488763" style="width:130px;margin-left:6px;padding:4px 10px;border:1.5px solid var(--lijn);border-radius:0 999px 999px 0">`;
+      $('#n-mijnnr').addEventListener('input', e => { const v = e.target.value.trim(); if(inp.dataset.std === '1') f.melderId.value = v; }); }
+    inp.addEventListener('input', () => { inp.dataset.std = '0'; f.melderId.value = /^\d+$/.test(inp.value.trim()) ? inp.value.trim() : ''; });
+    inp.addEventListener('focus', () => inp.select());
+  };
+  hint.textContent = profiel.emId ? `Jij bent de melder (${profiel.emId}). Klik om iemand anders te kiezen.` : 'Medewerkers ophalen…';
   let lijst = [];
   try{ lijst = await laadMedewerkers(); }
-  catch(e){ medewerkerFout = e.message; if(!$('#n-melder')) return;
-    hint.innerHTML = `Medewerkers ophalen lukte niet: ${esc(e.message)}`; return; }
+  catch(e){ medewerkerFout = e.message; if($('#n-melder')) zonderLijst(); return; }
   if(!$('#n-melder')) return;
-  const ik = lijst.find(m => benIk(m.naam)) || lijst.find(m => norm(m.naam) === norm(profiel.naam));
-  if(ik && inp.dataset.std === '1'){ f.melderId.value = ik.id; }
+  const ik = (profiel.emId && lijst.find(m => m.id === String(profiel.emId))) || lijst.find(m => benIk(m.naam));
+  if(ik && inp.dataset.std === '1'){ f.melderId.value = ik.id; if(!profiel.emId){ profiel.emId = ik.id; opslag.set(profielSleutel(), profiel); } }
   hint.textContent = ik ? `Jij bent de melder (${ik.id}). Klik om iemand anders te kiezen.` : `Jouw medewerkernummer is niet gevonden; kies de melder uit de lijst.`;
   // net als in AFAS: jijzelf en de laatst gekozen melders bovenaan
   const items = () => { const recent = (opslag.get('mict-recente-melders') || []).map(id => lijst.find(m => m.id === id)).filter(Boolean);
@@ -1178,7 +1189,6 @@ async function koppelMelder(){
     return [...boven.map(m => ({waarde: m.naam, sub: m.id, recent: true})), ...lijst.filter(m => !boven.includes(m)).map(m => ({waarde: m.naam, sub: m.id}))]; };
   comboKoppel(inp, items, keus => { inp.value = keus.waarde; f.melderId.value = keus.sub; inp.dataset.std = '0'; hint.textContent = `Melder: ${keus.waarde} (${keus.sub})`; },
     () => { f.melderId.value = ''; inp.dataset.std = '0'; });
-  // bij klikken op de standaardnaam: tekst selecteren zodat je meteen kunt typen
   inp.addEventListener('focus', () => inp.select());
 }
 
@@ -1206,7 +1216,7 @@ function comboKoppel(inp, items, kies, typt){
     if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); c.actief = Math.max(0, Math.min(c.l.length - 1, c.actief + (e.key === 'ArrowDown' ? 1 : -1)));
       $('#combo').querySelectorAll('button').forEach((b, i) => { b.classList.toggle('actief', i === c.actief); if(i === c.actief) b.scrollIntoView({block:'nearest'}); }); }
     else if(e.key === 'Enter' && c.actief >= 0){ e.preventDefault(); const x = c.l[c.actief]; comboSluit(); c.kies(x); }
-    else if(e.key === 'Escape') comboSluit(); });
+    else if(e.key === 'Escape'){ e.preventDefault(); comboSluit(); } });   // Esc sluit eerst alleen de lijst, niet het venster
 }
 document.addEventListener('mousedown', e => { const b = e.target.closest('#combo button'); if(!b) return; e.preventDefault();
   const c = comboHuidig; if(!c) return; const x = c.l[+b.dataset.ci]; comboSluit(); c.kies(x); });
@@ -1251,7 +1261,7 @@ function vlieg(voor, doelEl, label){
 /* ================= wie is er ingelogd: uit AFAS, niet zelf kiezen ================= */
 let ikDiag = '';
 async function wieBenIk(){
-  if(DEMO) return {naam:'Robert van der Veen', code:'88406.rvanderveen', functie:'', afdeling:'Digitale Zorg & ICT', groepen:['Rol Afdeling ICT','Functioneel beheer Emma'], bron:'demo'};
+  if(DEMO) return {naam:'Robert van der Veen', code:'88406.rvanderveen', emId:'488760', functie:'', afdeling:'Digitale Zorg & ICT', groepen:['Rol Afdeling ICT','Functioneel beheer Emma'], bron:'demo'};
   const pak = (r, re) => { const k = Object.keys(r).find(k => re.test(k)); return k ? String(r[k] ?? '').trim() : ''; };
   // 1. eigen GetConnector met filter Gebruiker = [Gebruiker]: altijd precies één rij, de ingelogde gebruiker
   // ook geschikt: "Groepen per gebruiker" (één rij per autorisatiegroep); de groepen gebruiken we dan voor de aandachtsgebieden
@@ -1266,7 +1276,7 @@ async function wieBenIk(){
       const groepVeld = Object.keys(r).find(k => /groep/i.test(k) && /omschr|naam/i.test(k)) || Object.keys(r).find(k => /^groep$/i.test(k));
       const eenGebruiker = code ? rows.every(x => norm(pak(x, /^(gebruiker|gebruikerscode|gebruiker_code|user|userid|gebruiker_id)$/i)) === norm(code)) : rows.every(x => norm(naamVan(x)) === norm(naam));
       if(naam && eenGebruiker)
-        return {naam, code, functie: pak(r, /functie/i), afdeling: pak(r, /afdeling|organisatorische|^oe$/i),
+        return {naam, code, emId: pak(r, /^(medewerker|medewerkernummer|nummer_medewerker|emid|employee|employeeid|medewerker_nummer)$/i), functie: pak(r, /functie/i), afdeling: pak(r, /afdeling|organisatorische|^oe$/i),
           groepen: groepVeld ? [...new Set(rows.map(x => String(x[groepVeld] ?? '').trim()).filter(Boolean))] : [], bron:INST.connIk};
       const namen = [...new Set(rows.map(naamVan))];
       ikDiag = `${INST.connIk} gaf ${rows.length} regel(s). Kolommen: ${Object.keys(r).join(', ')}. ` + (naam ? `Gevonden namen: ${namen.slice(0, 5).join(', ')}${namen.length > 5 ? ' …' : ''} (meer dan één gebruiker: het filter Gebruiker = [Gebruiker] werkt niet).` : `Gebruikerscode ${code || '?'} gevonden, maar geen naam: voeg in de GetConnector het veld met de naam van de gebruiker toe.`); }
@@ -1321,13 +1331,13 @@ document.addEventListener('click', e => {
   const r = e.target.closest('tr[data-nr]'); if(r){ openDetail(r.dataset.nr); return; }
   const m = e.target.closest('.meer'); if(m){ const id = m.dataset.blok; blokOpen.has(id) ? blokOpen.delete(id) : blokOpen.add(id); teken(); return; }
   const w = e.target.closest('[data-weergave]'); if(w){ tab = w.dataset.weergave; filt.zoek = ''; $('#f-zoek').value = ''; teken(); scrollTo(0, 0); return; }
-  if(e.target.closest('[data-sluit]')){ $('#detail').close(); teken(); return; }
+  if(e.target.closest('[data-sluit]')){ sluitDialoog($('#detail')); return; }
   const a = e.target.closest('[data-actie]'); if(a){ voerUit(+a.dataset.actie); return; }
   if(e.target.closest('#k-actie')){ const v = $('#actie-keuze').value; if(v !== '') voerUit(+v); return; }
   if(e.target.closest('#k-reageer')){ voerUit(null); return; }
   const sb = e.target.closest('#f-soort button'); if(sb){ soortKeuze[tab] = sb.dataset.v; opslag.set('mict-soort', soortKeuze); teken(); return; }
   if(e.target.closest('#nieuw-knop')){ nieuweMelding(); return; }
-  if(e.target.closest('[data-sluitnieuw]')){ $('#nieuw').close(); return; }
+  if(e.target.closest('[data-sluitnieuw]')){ sluitDialoog($('#nieuw')); return; }
   if(e.target.closest('#n-maak')){ maakMelding(); return; }
 });
 /* uitleg bij een signaal: met de muis erop zie je waarom het er staat */
@@ -1370,6 +1380,23 @@ document.addEventListener('input', e => {
   if(nieuw){ nieuw.focus(); try{ nieuw.setSelectionRange(pos, pos); }catch(err){} }
 });
 $('#detail').addEventListener('close', () => huidig = null);
+/* vensters sluiten: klik naast het venster, Esc, × of Annuleren; met niet-opgeslagen wijzigingen eerst vragen */
+function sluitDialoog(d){
+  if(!d.open) return;
+  if(d.dataset.gewijzigd === '1' && !confirm('Je hebt iets ingevuld of gewijzigd dat nog niet is opgeslagen. Weet je zeker dat je het venster wilt sluiten?')) return;
+  comboSluit(); d.close(); if(d.id === 'detail') teken();
+}
+['detail', 'nieuw'].forEach(id => { const d = $('#' + id);
+  // alles wat de gebruiker zelf typt of kiest telt als wijziging
+  d.addEventListener('input', e => { if(e.isTrusted) d.dataset.gewijzigd = '1'; });
+  d.addEventListener('change', e => { if(e.isTrusted) d.dataset.gewijzigd = '1'; });
+  // klik op de achtergrond: het doel is dan de dialog zelf, buiten het zichtbare vlak
+  let begon = false;
+  d.addEventListener('mousedown', e => { begon = e.target === d; });
+  d.addEventListener('click', e => { if(!begon || e.target !== d) return; const r = d.getBoundingClientRect();
+    if(e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) sluitDialoog(d); });
+  d.addEventListener('cancel', e => { e.preventDefault(); sluitDialoog(d); });
+});
 $('#f-zoek').addEventListener('input', e => { filt.zoek = e.target.value; tekenLijst(); });
 $('#k-ververs').onclick = async () => { await laadGegevens(); teken(); verrijkMetTaken(); };
 $('#ik').onclick = () => startProfiel(false);
@@ -1400,6 +1427,7 @@ function laadKaart(naam){
     const auto = autoRol(ik);
     profiel = {rol:auto.rol, domeinen:auto.domeinen, ...(opgeslagen && norm(opgeslagen.naam) === norm(ik.naam) ? opgeslagen : {}),
       naam:ik.naam, alias:[ik.code].filter(Boolean), functie:ik.functie, groepen:ik.groepen || []};
+    if(ik.emId) profiel.emId = ik.emId;
     laadKaart(ik.naam);
     await laadGegevens();
     if(status.fout && !items.length){ startInlog('Tickets ophalen mislukt: ' + status.fout); return; }
