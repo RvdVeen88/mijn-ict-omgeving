@@ -145,6 +145,14 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .keuzes button{border:1.5px solid var(--lijn);background:var(--vlak);border-radius:0 999px 999px 0;padding:4px 14px 4px 10px;font-size:13px;color:var(--grijs)}
 .keuzes button[aria-pressed="true"]{background:var(--blauw);border-color:var(--blauw);color:var(--opaccent)}
 .laden{display:flex;align-items:center;gap:10px;color:var(--grijs)}
+.voortgang{display:flex;flex-direction:column;gap:8px}
+.voortgang .spoor{height:6px;border-radius:3px;background:var(--lijn);overflow:hidden}
+.voortgang .spoor i{display:block;height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,var(--blauw-2),var(--blauw));transition:width .3s ease}
+.voortgang .regel{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--grijs)}
+.voortgang .regel b{color:var(--blauw);font-weight:600}
+.topbalk{position:fixed;left:0;right:0;top:0;height:3px;z-index:50;opacity:0;pointer-events:none;transition:opacity .3s}
+.topbalk.aan{opacity:1}
+.topbalk i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--lichtblauw),var(--blauw-2),var(--blauw));transition:width .3s ease}
 .spin{width:18px;height:18px;border-radius:50%;border:2.5px solid var(--lijn);border-top-color:var(--blauw-2);animation:draai 1s linear infinite}
 @keyframes draai{to{transform:rotate(360deg)}}
 
@@ -198,12 +206,13 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
         <div class="blok tabel" style="margin-top:14px"><header><h2 id="alle-titel">Tickets</h2><b id="alle-n">0</b><small id="alle-sub"></small></header><div id="alle-lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="versie">Mijn ICT-Omgeving v1.0 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="versie">Mijn ICT-Omgeving v1.2 · 01-10-2026</span></div>
   </div>
 </div>
 
 <dialog id="detail"><div class="dlg-in" id="detail-in"></div></dialog>
 <div id="toast" role="status"></div>
+<div class="topbalk" id="topbalk"><i></i></div>
 
 <script>
 'use strict';
@@ -212,6 +221,8 @@ const INST = Object.assign({
   omgeving: '88406',
   clientId: '91a1c1c2-bbaa-4075-a1cc-09252fd9c561',
   tokenFunctie: 'https://func-dck-helpdesk-b8cpg3gmd6d5hsgp.westeurope-01.azurewebsites.net/api/afas-token',
+  connIk: 'MijnICT_Ik',     // GetConnector op gebruikers met filter Gebruiker = [Gebruiker]: geeft alleen de ingelogde gebruiker terug
+  gebiedenPerFunctie: {},   // bv. {'functioneel beheer': ['Emma EPD']}: functie bevat de sleutel -> deze aandachtsgebieden
   connSla: 'PowerBI_ICT_SLA_Dashboard', connTickets: 'Helpdesk_PowerBI', connTaken: 'Profit_Subject_Tasks', connActies: 'Profit_Workflowactions',
   // zelfde regels als het SLA-dashboard
   st_nieuw: 'Nieuw', st_opvolging: 'In behandeling, Opvolging', st_melder: 'Wachten op melder', st_leverancier: 'Wachten op leverancier',
@@ -221,7 +232,7 @@ const INST = Object.assign({
   ticketUrl: '',           // bv. 'https://88406.afasinsite.nl/...?SbId={sbid}'; leeg = geen link
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v1.0';
+const VERSIE = 'v1.2';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -310,13 +321,38 @@ async function afas(pad, opties = {}, opnieuw = true){
     throw new Error(`AFAS gaf HTTP ${r.status}${detail ? ': ' + detail : ''}`); }
   return j || {};
 }
-async function connectorAlles(naam, filter = ''){
+async function connectorAlles(naam, filter = '', opVoortgang){
   const rijen = [], take = 1000;
   for(let skip = 0; skip < 50000; skip += take){
     const d = await afas(`/connectors/${encodeURIComponent(naam)}?skip=${skip}&take=${take}${filter}`);
-    rijen.push(...(d.rows || [])); if(!d.rows || d.rows.length < take) break;
+    rijen.push(...(d.rows || [])); const klaar = !d.rows || d.rows.length < take;
+    if(opVoortgang) opVoortgang(rijen.length, klaar); if(klaar) break;
   }
   return rijen;
+}
+/* voortgang: het aantal regels van de vorige keer is de verwachting; de eerste keer schatten we */
+const AANTAL = 'mict-aantallen';
+function maakVoortgang(namen, naarScherm){
+  const verwacht = opslag.get(AANTAL) || {}, stand = Object.fromEntries(namen.map(n => [n, {rijen:0, pagina:0, klaar:false}]));
+  const deel = n => { const s = stand[n]; if(s.klaar) return 1; const v = verwacht[n];
+    return v ? Math.min(.97, s.rijen / v) : 1 - Math.pow(.55, s.pagina) * .9; };
+  const gewicht = n => verwacht[n] || 1000;
+  const totaal = () => namen.reduce((t, n) => t + gewicht(n), 0);
+  return {
+    stap(n, rijen, klaar){ const s = stand[n]; s.rijen = rijen; s.pagina++; s.klaar = klaar;
+      const p = namen.reduce((t, x) => t + deel(x) * gewicht(x), 0) / totaal();
+      const geteld = namen.reduce((t, x) => t + stand[x].rijen, 0), schat = namen.reduce((t, x) => t + (stand[x].klaar ? stand[x].rijen : Math.max(verwacht[x] || 0, stand[x].rijen)), 0);
+      naarScherm(Math.round(p * 100), geteld, Object.keys(verwacht).length ? schat : 0);
+      if(klaar){ verwacht[n] = rijen; opslag.set(AANTAL, verwacht); } },
+    begin(){ naarScherm(0, 0, namen.reduce((t, n) => t + (verwacht[n] || 0), 0)); }
+  };
+}
+const fmtGetal = n => n.toLocaleString('nl-NL');
+function laadScherm(p, geteld, schat){
+  const el = $('#laad-voortgang'); if(el){ el.querySelector('i').style.width = p + '%'; el.querySelector('b').textContent = p + '%';
+    el.querySelector('small').textContent = geteld ? `${fmtGetal(geteld)}${schat ? ' van ~' + fmtGetal(schat) : ''} regels opgehaald` : 'Verbinding maken met AFAS…'; }
+  const tb = $('#topbalk'); tb.classList.toggle('aan', !$('#app').hidden && p < 100); tb.querySelector('i').style.width = p + '%';
+  if(!$('#app').hidden && p < 100) $('#bijgewerkt').textContent = `Bezig met verversen… ${p}%`;
 }
 const filterOp = (veld, waarde) => `&filterfieldids=${encodeURIComponent(veld)}&filtervalues=${encodeURIComponent(waarde)}&operatortypes=1`;
 
@@ -342,9 +378,12 @@ function maakItem(r, extra){
   return x;
 }
 async function laadGegevens(){
-  $('#live').classList.add('uit'); $('#bijgewerkt').textContent = 'Bezig met laden…';
+  $('#live').classList.add('uit'); $('#bijgewerkt').textContent = 'Bezig met verversen…';
+  const vg = maakVoortgang([INST.connSla, INST.connTickets, INST.connTaken], laadScherm); vg.begin();
+  const mee = n => (rijen, klaar) => vg.stap(n, rijen, klaar);
   try{
-    const [sla, tickets, taken] = await Promise.all([connectorAlles(INST.connSla), connectorAlles(INST.connTickets), connectorAlles(INST.connTaken).catch(() => [])]);
+    const [sla, tickets, taken] = await Promise.all([connectorAlles(INST.connSla, '', mee(INST.connSla)), connectorAlles(INST.connTickets, '', mee(INST.connTickets)),
+      connectorAlles(INST.connTaken, '', mee(INST.connTaken)).catch(() => { vg.stap(INST.connTaken, 0, true); return []; })]);
     const sbPerNr = new Map(tickets.map(t => [String(t.Nummer), t]));
     taakPerSb = new Map();
     taken.forEach(t => { const k = String(t.SubjectId); const o = taakPerSb.get(k) || {taak: t.TaskDescription || t.WfDescription || '', bij: []};
@@ -360,8 +399,8 @@ async function laadGegevens(){
     items.forEach(x => [['Focusgebied', x.categorie], ['Afdeling/systeem', x.afdeling], ['Emma', x.emma]].forEach(([s, w]) => { if(w) g.set(w, s); }));
     gebieden = [...g.keys()].sort((a, b) => a.localeCompare(b, 'nl'));
     status = {bijgewerkt: new Date(), fout: null};
-    $('#live').classList.remove('uit');
-  }catch(e){ status.fout = e.message; toast('Laden mislukt: ' + e.message, true); }
+    $('#live').classList.remove('uit'); laadScherm(100, 0, 0);
+  }catch(e){ status.fout = e.message; toast('Laden mislukt: ' + e.message, true); $('#topbalk').classList.remove('aan'); }
   $('#bijgewerkt').textContent = status.fout ? 'Laden mislukt: ' + status.fout : 'Live · bijgewerkt om ' + fmtTijd(status.bijgewerkt);
 }
 
@@ -540,6 +579,29 @@ async function voerUit(actieIdx){
   }catch(e){ $('#d-fout').textContent = e.message; document.querySelectorAll('#detail button').forEach(b => b.disabled = false); }
 }
 
+/* ================= wie is er ingelogd: uit AFAS, niet zelf kiezen ================= */
+async function wieBenIk(){
+  if(DEMO) return {naam:'Robert van der Veen', code:'88406.rvanderveen', functie:'Manager Digitale Zorg & ICT', afdeling:'Digitale Zorg & ICT', bron:'demo'};
+  const pak = (r, re) => { const k = Object.keys(r).find(k => re.test(k)); return k ? String(r[k] ?? '').trim() : ''; };
+  // 1. eigen GetConnector met filter Gebruiker = [Gebruiker]: altijd precies één rij, de ingelogde gebruiker
+  try{ const rows = (await afas(`/connectors/${encodeURIComponent(INST.connIk)}?skip=0&take=2`)).rows || [];
+    if(rows.length === 1){ const r = rows[0];
+      const naam = pak(r, /^(naam|naam_gebruiker|volledige_naam|weergavenaam|name|omschrijving|gebruikersnaam)$/i) || pak(r, /naam|name/i);
+      if(naam) return {naam, code: pak(r, /^(gebruiker|gebruikerscode|user|userid|gebruiker_id)$/i), functie: pak(r, /functie/i), afdeling: pak(r, /afdeling|organisatorische|^oe$/i), bron:INST.connIk}; } }catch(e){}
+  // 2. terugval: workflowtaken van de ingelogde gebruiker (werkt alleen als AFAS de filtertag ook in een aanroep toestaat)
+  try{ const rows = (await afas(`/connectors/${INST.connTaken}?skip=0&take=5${filterOp('User', '[Gebruiker]')}`)).rows || [];
+    const namen = [...new Set(rows.map(r => r.UserName).filter(Boolean))];
+    if(namen.length === 1) return {naam:namen[0], code:rows[0].User || '', functie:'', afdeling:'', bron:INST.connTaken}; }catch(e){}
+  return null;
+}
+function autoGebieden(ik){
+  const tekst = norm([ik.functie, ik.afdeling].join(' ')); if(!tekst) return [];
+  const uit = new Set();
+  Object.entries(INST.gebiedenPerFunctie || {}).forEach(([k, l]) => { if(tekst.includes(norm(k))) (l || []).forEach(g => uit.add(g)); });
+  gebieden.forEach(g => { if(norm(g).split(/[^a-z0-9]+/).some(w => w.length >= 4 && tekst.includes(w))) uit.add(g); });
+  return [...uit];
+}
+
 /* ================= start- en profielscherm ================= */
 function toonStart(html){ $('#app').hidden = true; $('#s-start').hidden = false; $('#kaart-start').innerHTML = html; }
 function startInlog(fout){
@@ -549,11 +611,11 @@ function startInlog(fout){
 }
 function startProfiel(eerste){
   const p = profiel || {naam:'', gebieden:[], servicedesk:false};
-  const gekozen = new Set(p.gebieden || []);
+  const gekozen = new Set(p.gebieden || []), vast = !!p.auto;
   toonStart(`<h1>${eerste ? 'Welkom bij Mijn ICT-Omgeving' : 'Mijn profiel'}</h1>
     <p>${eerste ? 'Eén keer instellen: wie je bent en waar je verantwoordelijk voor bent. Dit bepaalt wat je op je voorpagina ziet.' : 'Pas aan wat je op je voorpagina ziet.'}</p>
-    <label for="p-naam">Wie ben jij?</label>
-    <select id="p-naam"><option value="">Kies je naam…</option>${mensen.map(m => `<option ${norm(m) === norm(p.naam) ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>
+    ${vast ? `<p>Ingelogd als <b>${esc(p.naam)}</b>${p.functie ? ' · ' + esc(p.functie) : ''}</p>` : `<label for="p-naam">Wie ben jij? <span class="hint">AFAS gaf je naam niet door; kies hem één keer.</span></label>
+    <select id="p-naam"><option value="">Kies je naam…</option>${mensen.map(m => `<option ${norm(m) === norm(p.naam) ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>`}
     <label>Waar ben je verantwoordelijk voor? <span class="hint">Tickets in deze gebieden zie je ook als ze bij een collega liggen.</span></label>
     <div class="keuzes" id="p-geb">${gebieden.map(g => `<button type="button" aria-pressed="${gekozen.has(g)}">${esc(g)}</button>`).join('') || '<span class="hint">Geen gebieden gevonden.</span>'}</div>
     <label class="vink"><input type="checkbox" id="p-sd" ${p.servicedesk ? 'checked' : ''}> Ik pak nieuwe meldingen zonder behandelaar op (servicedesk)</label>
@@ -562,8 +624,8 @@ function startProfiel(eerste){
   $('#p-geb').onclick = e => { const b = e.target.closest('button'); if(b) b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'); };
   if($('#p-terug')) $('#p-terug').onclick = () => toonApp();
   $('#p-ok').onclick = () => {
-    const naam = $('#p-naam').value; if(!naam){ $('#p-fout').textContent = 'Kies je naam.'; return; }
-    profiel = {naam, gebieden:[...document.querySelectorAll('#p-geb button[aria-pressed="true"]')].map(b => b.textContent), servicedesk:$('#p-sd').checked};
+    const naam = vast ? p.naam : $('#p-naam').value; if(!naam){ $('#p-fout').textContent = 'Kies je naam.'; return; }
+    profiel = {...p, naam, gebieden:[...document.querySelectorAll('#p-geb button[aria-pressed="true"]')].map(b => b.textContent), servicedesk:$('#p-sd').checked, ingesteld:true};
     opslag.set(profielSleutel(), profiel); toonApp();
   };
 }
@@ -599,11 +661,21 @@ setInterval(async () => { if(!$('#app').hidden && !$('#detail').open){ await laa
       const terug = await terugVanAfas();
       if(!terug){ if(!opslag.get(RT)){ startInlog(); return; } try{ await vernieuw(); }catch(e){ opslag.weg(RT); startInlog('Je sessie is verlopen. Log opnieuw in.'); return; } }
     } else sub = 'demo';
-    toonStart('<div class="laden"><span class="spin"></span>Tickets ophalen uit AFAS…</div>');
+    toonStart(`<h1>Mijn ICT-Omgeving</h1><div class="voortgang" id="laad-voortgang"><div class="regel"><span>Tickets ophalen uit AFAS</span><b>0%</b></div>
+      <div class="spoor"><i></i></div><small class="hint">Verbinding maken met AFAS…</small></div>
+      <p class="hint">${opslag.get(AANTAL) ? '' : 'De eerste keer duurt dit wat langer; daarna weet de pagina hoeveel er komt.'}</p>`);
     await laadGegevens();
     if(status.fout && !items.length){ startInlog('Tickets ophalen mislukt: ' + status.fout); return; }
     profiel = opslag.get(profielSleutel());
-    if(!profiel || !profiel.naam) startProfiel(true); else toonApp();
+    const ik = await wieBenIk();
+    if(ik){
+      if(!profiel || norm(profiel.naam) !== norm(ik.naam)){
+        profiel = {naam:ik.naam, alias:[ik.code].filter(Boolean), functie:ik.functie, afdeling:ik.afdeling, auto:true,
+          gebieden:autoGebieden(ik), servicedesk:/servicedesk|service ?desk/.test(norm(ik.functie + ' ' + ik.afdeling))};
+        opslag.set(profielSleutel(), profiel); toonApp();
+        toast(`Ingelogd als ${ik.naam}.` + (profiel.gebieden.length ? ` Aandachtsgebied: ${profiel.gebieden.join(', ')}.` : '') + ' Aanpassen kan via het tandwiel.');
+      } else { profiel = {...profiel, auto:true, functie:ik.functie || profiel.functie, alias:[...new Set([...(profiel.alias || []), ik.code].filter(Boolean))]}; opslag.set(profielSleutel(), profiel); toonApp(); }
+    } else if(!profiel || !profiel.naam) startProfiel(true); else toonApp();
   }catch(e){ startInlog(e.message); }
 })();
 
@@ -633,6 +705,9 @@ function demoAfas(pad, opties){
     window._demo = {sla:r, tickets:r.map(x => ({Nummer:x.Nummer, Dossieritem:400000 + x.Nummer})), taken:[{SubjectId:412605, TaskDescription:'Behandelen ICT', UserName:mens[0]}]};
   }
   const D = window._demo;
+  return new Promise(res => setTimeout(() => res(demoRijen(D, pad)), 350));
+}
+function demoRijen(D, pad){
   if(pad.includes(INST.connSla)) return {rows: pad.includes('skip=0') ? D.sla : []};
   if(pad.includes(INST.connTickets)) return {rows: pad.includes('skip=0') ? D.tickets : []};
   if(pad.includes(INST.connTaken)) return {rows: pad.includes('skip=0') && !pad.includes('filter') ? D.taken : []};
