@@ -206,7 +206,7 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
         <div class="blok tabel" style="margin-top:14px"><header><h2 id="alle-titel">Tickets</h2><b id="alle-n">0</b><small id="alle-sub"></small></header><div id="alle-lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="versie">Mijn ICT-Omgeving v1.2 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="versie">Mijn ICT-Omgeving v1.4 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -221,7 +221,7 @@ const INST = Object.assign({
   omgeving: '88406',
   clientId: '91a1c1c2-bbaa-4075-a1cc-09252fd9c561',
   tokenFunctie: 'https://func-dck-helpdesk-b8cpg3gmd6d5hsgp.westeurope-01.azurewebsites.net/api/afas-token',
-  connIk: 'MijnICT_Ik',     // GetConnector op gebruikers met filter Gebruiker = [Gebruiker]: geeft alleen de ingelogde gebruiker terug
+  connIk: 'PowerBI_ICT_Gebruikers',     // GetConnector op gebruikers met filter Gebruiker = [Gebruiker]: geeft alleen de ingelogde gebruiker terug
   gebiedenPerFunctie: {},   // bv. {'functioneel beheer': ['Emma EPD']}: functie bevat de sleutel -> deze aandachtsgebieden
   connSla: 'PowerBI_ICT_SLA_Dashboard', connTickets: 'Helpdesk_PowerBI', connTaken: 'Profit_Subject_Tasks', connActies: 'Profit_Workflowactions',
   // zelfde regels als het SLA-dashboard
@@ -232,7 +232,7 @@ const INST = Object.assign({
   ticketUrl: '',           // bv. 'https://88406.afasinsite.nl/...?SbId={sbid}'; leeg = geen link
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v1.2';
+const VERSIE = 'v1.4';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -584,10 +584,14 @@ async function wieBenIk(){
   if(DEMO) return {naam:'Robert van der Veen', code:'88406.rvanderveen', functie:'Manager Digitale Zorg & ICT', afdeling:'Digitale Zorg & ICT', bron:'demo'};
   const pak = (r, re) => { const k = Object.keys(r).find(k => re.test(k)); return k ? String(r[k] ?? '').trim() : ''; };
   // 1. eigen GetConnector met filter Gebruiker = [Gebruiker]: altijd precies één rij, de ingelogde gebruiker
-  try{ const rows = (await afas(`/connectors/${encodeURIComponent(INST.connIk)}?skip=0&take=2`)).rows || [];
-    if(rows.length === 1){ const r = rows[0];
-      const naam = pak(r, /^(naam|naam_gebruiker|volledige_naam|weergavenaam|name|omschrijving|gebruikersnaam)$/i) || pak(r, /naam|name/i);
-      if(naam) return {naam, code: pak(r, /^(gebruiker|gebruikerscode|user|userid|gebruiker_id)$/i), functie: pak(r, /functie/i), afdeling: pak(r, /afdeling|organisatorische|^oe$/i), bron:INST.connIk}; } }catch(e){}
+  // ook geschikt: "Groepen per gebruiker" (één rij per autorisatiegroep); de groepen gebruiken we dan voor de aandachtsgebieden
+  try{ const rows = (await afas(`/connectors/${encodeURIComponent(INST.connIk)}?skip=0&take=200`)).rows || [];
+    if(rows.length){ const r = rows[0];
+      const naamVan = x => pak(x, /^(naam|naam_gebruiker|naam_gebruiker_1|volledige_naam|weergavenaam|name|gebruikersnaam)$/i) || pak(x, /naam.*gebruiker|gebruiker.*naam|^naam/i);
+      const naam = naamVan(r), groepVeld = Object.keys(r).find(k => /groep/i.test(k) && !/code|id$/i.test(k)) || Object.keys(r).find(k => /groep/i.test(k));
+      if(naam && rows.every(x => norm(naamVan(x)) === norm(naam)))
+        return {naam, code: pak(r, /^(gebruiker|gebruikerscode|gebruiker_code|user|userid|gebruiker_id)$/i), functie: pak(r, /functie/i), afdeling: pak(r, /afdeling|organisatorische|^oe$/i),
+          groepen: groepVeld ? [...new Set(rows.map(x => String(x[groepVeld] ?? '').trim()).filter(Boolean))] : [], bron:INST.connIk}; } }catch(e){}
   // 2. terugval: workflowtaken van de ingelogde gebruiker (werkt alleen als AFAS de filtertag ook in een aanroep toestaat)
   try{ const rows = (await afas(`/connectors/${INST.connTaken}?skip=0&take=5${filterOp('User', '[Gebruiker]')}`)).rows || [];
     const namen = [...new Set(rows.map(r => r.UserName).filter(Boolean))];
@@ -595,7 +599,7 @@ async function wieBenIk(){
   return null;
 }
 function autoGebieden(ik){
-  const tekst = norm([ik.functie, ik.afdeling].join(' ')); if(!tekst) return [];
+  const tekst = norm([ik.functie, ik.afdeling, ...(ik.groepen || [])].join(' ')); if(!tekst) return [];
   const uit = new Set();
   Object.entries(INST.gebiedenPerFunctie || {}).forEach(([k, l]) => { if(tekst.includes(norm(k))) (l || []).forEach(g => uit.add(g)); });
   gebieden.forEach(g => { if(norm(g).split(/[^a-z0-9]+/).some(w => w.length >= 4 && tekst.includes(w))) uit.add(g); });
@@ -671,7 +675,7 @@ setInterval(async () => { if(!$('#app').hidden && !$('#detail').open){ await laa
     if(ik){
       if(!profiel || norm(profiel.naam) !== norm(ik.naam)){
         profiel = {naam:ik.naam, alias:[ik.code].filter(Boolean), functie:ik.functie, afdeling:ik.afdeling, auto:true,
-          gebieden:autoGebieden(ik), servicedesk:/servicedesk|service ?desk/.test(norm(ik.functie + ' ' + ik.afdeling))};
+          gebieden:autoGebieden(ik), servicedesk:/servicedesk|service ?desk/.test(norm([ik.functie, ik.afdeling, ...(ik.groepen || [])].join(' ')))};
         opslag.set(profielSleutel(), profiel); toonApp();
         toast(`Ingelogd als ${ik.naam}.` + (profiel.gebieden.length ? ` Aandachtsgebied: ${profiel.gebieden.join(', ')}.` : '') + ' Aanpassen kan via het tandwiel.');
       } else { profiel = {...profiel, auto:true, functie:ik.functie || profiel.functie, alias:[...new Set([...(profiel.alias || []), ik.code].filter(Boolean))]}; opslag.set(profielSleutel(), profiel); toonApp(); }
