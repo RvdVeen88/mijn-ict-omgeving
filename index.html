@@ -64,9 +64,15 @@ pre{background:#f6f8fb;border:1px solid var(--lijn);border-radius:8px;padding:10
 
   <section class="vlak">
     <h2>3. Schrijftest (optioneel)</h2>
-    <p class="hint" style="margin-top:0">Plaatst één reactie op een testticket. Controleer daarna in AFAS of de reactie op <b>jouw naam</b> staat; dat is het bewijs dat acties onder de ingelogde medewerker lopen. Er wordt niets gewijzigd of afgesloten.</p>
-    <label>Ticketnummer van een testticket</label>
-    <input id="ticket" placeholder="bijv. 12345">
+    <p class="hint" style="margin-top:0">Zoekt eerst het ticket op bij het SbId, plaatst één reactie en leest daarna terug wat AFAS als laatste reactie en als <b>gebruiker</b> registreert. Er wordt niets gewijzigd of afgesloten.</p>
+    <div class="rij">
+      <div><label>SbId van een testticket (nummer uit de ticket-url)</label><input id="ticket" placeholder="bijv. 12345"></div>
+      <div><label>Soort reactie</label><select id="soort" style="width:100%;padding:9px 11px;border:1px solid var(--lijn);border-radius:8px;font:inherit">
+        <option value="reactie">Reactie (KnSubjectReaction)</option>
+        <option value="workflow">Reactie in workflow, zonder actie (KnSubjectWorkflowReaction)</option>
+      </select></div>
+    </div>
+    <button id="btnControle" class="licht" disabled>Alleen ticket controleren</button>
     <button id="btnSchrijf" disabled>Plaats testreactie</button>
   </section>
 
@@ -74,7 +80,7 @@ pre{background:#f6f8fb;border:1px solid var(--lijn);border-radius:8px;padding:10
     <h2>Details</h2>
     <pre id="log">–</pre>
   </section>
-  <div class="voet">Rechtentest v1.1 · 01-10-2026</div>
+  <div class="voet">Rechtentest v1.2 · 01-10-2026</div>
 </main>
 
 <script>
@@ -146,7 +152,7 @@ async function terugVanAfas(){
   zet('Token ophalen', 'ok', `Access token ${tok.expires_in ? 'geldig ' + Math.round(tok.expires_in/60) + ' min' : 'ontvangen'}; refresh token ${tok.refresh_token ? 'ontvangen' : '<b>niet</b> ontvangen'}.`);
   log('Tokenresponse (gemaskeerd):\n' + JSON.stringify(maskeer(tok), null, 2));
   wieBenIk();
-  ['btnTesten','btnRefresh','btnKopieer','btnSchrijf'].forEach(id => $(id).disabled = false);
+  ['btnTesten','btnRefresh','btnKopieer','btnSchrijf','btnControle'].forEach(id => $(id).disabled = false);
   await leestests();
 }
 
@@ -155,8 +161,8 @@ function wieBenIk(){
   const extra = Object.keys(tok).filter(k => !['access_token','refresh_token','token_type','expires_in','scope'].includes(k));
   if(claims){
     log('Claims in het access token:\n' + JSON.stringify(claims, null, 2));
-    const kandidaat = ['userId','userid','user_id','preferred_username','upn','unique_name','name','sub'].find(k => claims[k]);
-    zet('Wie is ingelogd', kandidaat ? 'ok' : 'let', kandidaat ? `Gevonden in token: <b>${kandidaat}</b> = ${claims[kandidaat]}` : 'Token bevat claims, maar geen herkenbare gebruiker. Zie Details.');
+    const kandidaat = ['userId','userid','user_id','preferred_username','upn','unique_name','name'].find(k => claims[k]);
+    zet('Wie is ingelogd', kandidaat ? 'ok' : 'let', kandidaat ? `Gevonden in token: <b>${kandidaat}</b> = ${claims[kandidaat]}` : `Token bevat geen gebruikersnaam, alleen een code (sub = ${claims.sub || '?'}). Zie Details.`);
   }else if(extra.length){
     zet('Wie is ingelogd', 'let', 'Token is niet leesbaar (geen JWT); extra velden in de response: ' + extra.join(', ') + '. Zie Details.');
   }else{
@@ -223,25 +229,63 @@ $('btnRefresh').onclick = async () => {
 };
 
 /* ---------- schrijftest ---------- */
+async function rijenWaar(connector, veld, waarde, take = 5){
+  const f = new URLSearchParams({filterfieldids:veld, filtervalues:String(waarde), operatortypes:'1', skip:'0', take:String(take)});
+  const r = await api(`/connectors/${connector}?` + f);
+  if(r.status !== 200 || !r.json) throw new Error(`${connector} (${veld}): ${foutTekst(r)}`);
+  return r.json.rows || [];
+}
+const kort = v => v == null || v === '' ? '–' : String(v).replace(/\s+/g, ' ').slice(0, 120);
+
+async function controleerTicket(sbId){
+  // invoer = SbId (het nummer uit de ticket-url); zoek het bijbehorende ticketnummer op
+  let rows = [];
+  try{ rows = await rijenWaar('Helpdesk_PowerBI', 'Dossieritem', sbId); }catch(e){ log('Zoeken op Dossieritem: ' + e.message); }
+  let via = 'Dossieritem';
+  if(!rows.length){ rows = await rijenWaar('Helpdesk_PowerBI', 'Nummer', sbId); via = 'Nummer'; }
+  log(`SbId ${sbId} · gevonden via ${via}: ${JSON.stringify(rows.map(r => ({Nummer:r.Nummer, Dossieritem:r.Dossieritem, Onderwerp:r.Onderwerp})))}`);
+  if(!rows.length){ zet('Ticket opzoeken', 'let', `SbId ${sbId} niet gevonden in Helpdesk_PowerBI (op Dossieritem of Nummer). Reactie wordt wel op dit SbId geplaatst.`); return {Nummer:null}; }
+  const t = rows[0];
+  zet('Ticket opzoeken', 'ok', `SbId ${sbId}: ticket <b>${kort(t.Nummer)}</b> "${kort(t.Onderwerp)}" (gevonden via ${via}).`);
+  return t;
+}
+async function laatsteReactie(nr, label){
+  const rows = await rijenWaar('PowerBI_ICT_SLA_Dashboard', 'Nummer', nr, 1);
+  if(!rows.length){ zet(label, 'let', `Ticket ${nr} niet gevonden in PowerBI_ICT_SLA_Dashboard.`); return; }
+  const r = rows[0];
+  log(`Laatste reactie ${nr}: ${JSON.stringify({Laatste_reactie:r.Laatste_reactie, Gebruiker_laatste_reactie:r.Gebruiker_laatste_reactie, Gebruiker_laatste_wijziging:r.Gebruiker_laatste_wijziging})}`);
+  zet(label, 'ok', `Laatste reactie: ${kort(r.Laatste_reactie)} · door <b>${kort(r.Gebruiker_laatste_reactie)}</b>`);
+}
+
+$('btnControle').onclick = async () => {
+  const nr = $('ticket').value.trim();
+  if(!/^\d+$/.test(nr)){ zet('Ticket opzoeken', 'fout', 'Vul een geldig ticketnummer in.'); return; }
+  try{ const t = await controleerTicket(nr); if(t.Nummer != null) await laatsteReactie(t.Nummer, 'Laatste reactie (vooraf)'); }catch(e){ zet('Ticket opzoeken', 'fout', e.message); }
+};
+
 $('btnSchrijf').onclick = async () => {
   const nr = $('ticket').value.trim();
   if(!/^\d+$/.test(nr)){ zet('Schrijftest reactie', 'fout', 'Vul een geldig ticketnummer in.'); return; }
+  let t;
+  try{ t = await controleerTicket(nr); }catch(e){ zet('Ticket opzoeken', 'fout', e.message); return; }
+  const sbId = +nr;
   zet('Schrijftest reactie', 'wacht', 'Bezig…');
   const tekst = 'Test Mijn ICT-Omgeving: rechtencheck ' + new Date().toLocaleString('nl-NL');
+  const soort = $('soort').value;
+  const body = soort === 'workflow'
+    ? {KnWorkflow:{Element:{Fields:{SbId:sbId, Tx:tekst}}}}
+    : {KnReaction:{Element:{Fields:{SbId:sbId, Tx:tekst}}}};
+  const connector = soort === 'workflow' ? 'KnSubjectWorkflowReaction' : 'KnSubjectReaction';
   try{
-    const r = await api('/connectors/KnSubjectReaction', {method:'POST', body:JSON.stringify({KnReaction:{Element:{Fields:{SbId:+nr, Tx:tekst}}}})});
-    if(r.status >= 200 && r.status < 300) zet('Schrijftest reactie', 'ok', `Reactie geplaatst op ticket ${nr}. Controleer in AFAS of hij op jouw naam staat.`);
-    else zet('Schrijftest reactie', 'fout', foutTekst(r));
-    log(`Schrijftest op ${nr}: HTTP ${r.status} ${r.tekst.slice(0,300)}`);
-  }catch(e){ zet('Schrijftest reactie', 'fout', e.message); }
-  try{
-    const f = new URLSearchParams({filterfieldids:'SubjectId', filtervalues:nr, operatortypes:'1', skip:'0', take:'10'});
-    const t = await api('/connectors/Profit_Subject_Tasks?' + f);
-    if(t.status === 200 && t.json){
-      const rows = t.json.rows || [];
-      zet('Workflowtaak van ticket', rows.length ? 'ok' : 'let', rows.length ? `Taak: ${rows[0].TaskDescription || rows[0].TaskName || '?'}${rows[0].UserName ? ' · bij ' + rows[0].UserName : ''}` : 'Geen openstaande workflowtaak gevonden voor dit ticket.');
-    }else zet('Workflowtaak van ticket', 'fout', foutTekst(t));
-  }catch(e){ zet('Workflowtaak van ticket', 'fout', e.message); }
+    const r = await api('/connectors/' + connector, {method:'POST', body:JSON.stringify(body)});
+    log(`Schrijftest ${connector} op ticket ${nr} (SbId ${sbId}): HTTP ${r.status} ${r.tekst.slice(0,400)}`);
+    if(r.status < 200 || r.status >= 300){ zet('Schrijftest reactie', 'fout', foutTekst(r)); return; }
+    zet('Schrijftest reactie', 'ok', `${connector}: AFAS accepteerde de reactie (HTTP ${r.status}) op SbId ${sbId}.`);
+  }catch(e){ zet('Schrijftest reactie', 'fout', e.message); return; }
+  zet('Laatste reactie (na schrijven)', 'wacht', 'Even wachten en opnieuw lezen…');
+  await new Promise(res => setTimeout(res, 3000));
+  if(t.Nummer == null){ zet('Laatste reactie (na schrijven)', 'let', 'Ticketnummer onbekend, kan niet teruglezen. Kijk in AFAS.'); return; }
+  try{ await laatsteReactie(t.Nummer, 'Laatste reactie (na schrijven)'); }catch(e){ zet('Laatste reactie (na schrijven)', 'fout', e.message); }
 };
 
 /* ---------- kopiëren ---------- */
