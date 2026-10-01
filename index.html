@@ -138,6 +138,10 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .scherm{min-height:100vh;display:grid;place-items:center;padding:24px}
 .kaart{background:var(--vlak);border-radius:0 36px 36px 0;box-shadow:var(--schaduw);padding:34px 38px;width:min(560px,100%);display:flex;flex-direction:column;gap:14px}
 .kaart h1{font-size:24px;color:var(--blauw)}
+.groet{display:flex;flex-direction:column;gap:4px;margin-bottom:4px}
+.groet small{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--grijs);font-weight:600}
+.groet h1{font-size:30px;font-weight:300;color:var(--inkt);letter-spacing:-.02em;line-height:1.15}
+.groet h1 b{font-weight:600;color:var(--blauw)}
 .kaart p{color:var(--grijs);line-height:1.5}
 .kaart label{font-size:13px;color:var(--grijs);font-weight:500}
 .kaart select{width:100%;border:1.5px solid var(--lijn);border-radius:0 999px 999px 0;padding:9px 14px;background:var(--vlak)}
@@ -272,7 +276,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v2.3 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v2.5 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -294,12 +298,15 @@ const INST = Object.assign({
     {naam:'AFAS/InPlanning', zoek:'afas|inplanning'},
     {naam:'Radiologie', zoek:'radiolog', erbij:['Gynaecologie','Pijnzorg']},
     {naam:'Maag Darm', zoek:'maag|mdl', erbij:['Dermatologie','Allergologie']},
-    {naam:'Dermatologie', zoek:'dermato|derma'},
+    {naam:'Dermatologie', zoek:'dermato|derma|huid'},
     {naam:'Pijnzorg', zoek:'pijn'},
     {naam:'Interne Geneeskunde', zoek:'interne'},
     {naam:'Gynaecologie', zoek:'gyn'},
     {naam:'Allergologie', zoek:'allerg', verborgen:true}
   ],
+  // categorieën zoals in InSite, in deze volgorde; de pagina zoekt zelf in welk veld van de connector ze staan
+  afdelingen: ['Radiologie','Maag Darm','Pijnzorg','Huid en Allergie','Infectieziekten','Algemeen','Emma','Emma [Changes]','AFAS / InPlanning','ICT','Projecten','Zorgadministratie','Power BI'],
+  afdelingVeld: '',          // leeg = automatisch bepalen
   connSla: 'PowerBI_ICT_SLA_Dashboard', connTickets: 'Helpdesk_PowerBI', connTaken: 'Profit_Subject_Tasks', connActies: 'Profit_Workflowactions',
   // zelfde regels als het SLA-dashboard
   st_nieuw: 'Nieuw', st_opvolging: 'In behandeling, Opvolging', st_melder: 'Wachten op melder', st_leverancier: 'Wachten op leverancier',
@@ -309,7 +316,7 @@ const INST = Object.assign({
   ticketUrl: '',           // bv. 'https://88406.afasinsite.nl/...?SbId={sbid}'; leeg = geen link
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v2.3';
+const VERSIE = 'v2.5';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -445,7 +452,7 @@ function maakItem(r, extra){
   const x = {
     nr: r.Nummer, onderwerp: r.Onderwerp || '(geen onderwerp)', status: String(r.Status ?? '').replace(/\s+/g, ' ').trim(),
     verantw: String(r.Omschrijving_4 ?? '').trim(), melder: String(r.Omschrijving_2 ?? '').trim(), soort: String(r[INST.soortVeld] ?? '').trim(),
-    type: String(r.Type_ticket_ICT ?? '').trim(), categorie: String(r.Focusgebied_ICT ?? '').trim(), afdeling: String(r.AFAS_Afdeling ?? '').trim(),
+    type: String(r.Type_ticket_ICT ?? '').trim(), categorie: String(r.Focusgebied_ICT ?? '').trim(), afdeling: String(r[afdVeld || 'AFAS_Afdeling'] ?? '').trim(), module: String(r.AFAS_Afdeling ?? '').trim(),
     emma: String(r.Focusgebied_EMMA ?? '').trim(), prioriteit: String(r.Prioriteit_actie ?? '').trim(),
     aangemaakt: datum(r.Instuurdatum), gepland: datum(r.Gepland), reactieDatum: datum(r.Laatste_reactie), reactieDoor: String(r.Gebruiker_laatste_reactie ?? '').trim(),
     statusDatum: datum(r.Laatste_wijziging_externe_status), wijzigingDoor: String(r.Gebruiker_laatste_wijziging ?? '').trim(),
@@ -459,7 +466,7 @@ function maakItem(r, extra){
   x.afgesloten = x.afgerond || lijst(INST.st_afgesloten).includes(norm(x.status));
   x.sla = (!lijst(INST.slaSoorten).length || lijst(INST.slaSoorten).includes(norm(x.soort))) && !x.zorgadmin;
   const t = taakPerSb.get(String(x.sbid)); x.taak = t ? t.taak : ''; x.taakBij = t ? t.bij : [];
-  x.zoek = norm([x.nr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.emma, ...x.taakBij].join(' '));
+  x.zoek = norm([x.nr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.module, x.emma, ...x.taakBij].join(' '));
   return x;
 }
 let alleGeladen = false, mijnTaken = [], achterBezig = null, openFilter = null;
@@ -469,7 +476,18 @@ function openFilters(){
   const st = lijst(INST.st_afgesloten).map(w => ['Status', INST.st_afgesloten.split(',').map(x => x.trim()).find(x => x.toLowerCase() === w), 7]);
   return [...['false', '0'].map(w => filterEn([['Workflow_afgerond', w, 1], ...st])), st.length ? filterEn(st) : ''].filter(Boolean);
 }
+let afdVeld = '';
+/* welk veld bevat de afdeling (Radiologie, Emma, ICT, ...)? Het veld waarin de meeste bekende namen voorkomen. */
+function bepaalAfdVeld(rijen){
+  if(INST.afdelingVeld){ afdVeld = INST.afdelingVeld; return; }
+  if(afdVeld || !rijen.length) return;
+  const bekend = new Set((INST.afdelingen || []).map(norm)), score = {};
+  rijen.forEach(r => Object.entries(r).forEach(([k, v]) => { if(typeof v === 'string' && bekend.has(norm(v))) score[k] = (score[k] || 0) + 1; }));
+  const best = Object.entries(score).sort((a, b) => b[1] - a[1])[0];
+  afdVeld = best ? best[0] : 'AFAS_Afdeling';
+}
 function bouwItems(sla, sbPerNr){
+  bepaalAfdVeld(sla);
   // taken: alleen die van de ingelogde gebruiker (die maken een ticket "van mij")
   taakPerSb = new Map();
   mijnTaken.forEach(t => { const k = String(t.SubjectId); const o = taakPerSb.get(k) || {taak: t.TaskDescription || t.WfDescription || '', bij: []};
@@ -650,11 +668,13 @@ const ONDER = [
   {id:'inuit', t:'In- en uitdienst', ico:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>', f:() => open().filter(x => x.inuit)},
   {id:'dicht', t:'Gesloten (90 dagen)', ico:'<path d="M5 12.5l4.5 4.5L19 7.5"/>', f:() => { const g = Date.now() - 90 * DAG; return items.filter(x => x.afgesloten && (x.statusDatum || x.aangemaakt || 0) >= g); }, geenTel:true}
 ];
-const afdelingen = () => { const t = new Map(); open().forEach(x => { const a = x.afdeling || 'Geen afdeling'; t.set(a, (t.get(a) || 0) + 1); });
-  return [...t.entries()].sort((a, b) => a[0].localeCompare(b[0], 'nl')); };
+const afdelingen = () => { const t = new Map((INST.afdelingen || []).map(a => [a, 0]));
+  open().filter(x => !x.inuit).forEach(x => { const a = (INST.afdelingen || []).find(n => norm(n) === norm(x.afdeling)) || x.afdeling || 'Geen afdeling'; t.set(a, (t.get(a) || 0) + 1); });
+  const volg = a => { const i = (INST.afdelingen || []).indexOf(a); return i < 0 ? 999 : i; };
+  return [...t.entries()].sort((a, b) => volg(a[0]) - volg(b[0]) || a[0].localeCompare(b[0], 'nl')); };
 function weergave(id){
   const v = [...VAST, ...ONDER].find(v => v.id === id); if(v) return {titel:v.t, lijst:v.f ? v.f() : []};
-  if(id.startsWith('afd:')){ const a = id.slice(4); return {titel:a, lijst:open().filter(x => (x.afdeling || 'Geen afdeling') === a)}; }
+  if(id.startsWith('afd:')){ const a = id.slice(4); return {titel:a, lijst:open().filter(x => !x.inuit && norm(x.afdeling || 'Geen afdeling') === norm(a))}; }
   return {titel:'Tickets', lijst:[]};
 }
 const ico = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
@@ -662,7 +682,7 @@ function tekenNav(){
   const it = (id, t, n, o = {}) => `<button type="button" class="it" data-weergave="${esc(id)}" aria-pressed="${tab === id}">${o.ico ? ico(o.ico) : ''}${o.ster ? '<i class="ster">★</i>' : ''}<span>${esc(t)}</span>${n == null ? '' : `<b class="${o.rood && n ? 'rood' : ''}">${n}</b>`}</button>`;
   const domeinAfd = a => profiel && profiel.rol === 'fb' && inGebied({categorie:'', afdeling:a, emma:'', soort:''});
   $('#nav').innerHTML = `<h4>Mijn werk</h4>${VAST.map(v => it(v.id, v.t, v.f ? v.f().length : null, v)).join('')}
-    <h4>Afdelingen</h4>${afdelingen().sort((a, b) => domeinAfd(b[0]) - domeinAfd(a[0])).map(([a, n]) => it('afd:' + a, a, n, {ster:domeinAfd(a)})).join('')}
+    <h4>Afdelingen</h4>${afdelingen().map(([a, n]) => it('afd:' + a, a, n, {ster:domeinAfd(a)})).join('')}
     <h4>Overzicht</h4>${ONDER.map(v => it(v.id, v.t, v.geenTel ? null : v.f().length, v)).join('')}`;
 }
 
@@ -850,6 +870,8 @@ function autoRol(ik){
 }
 
 /* ================= start- en profielscherm ================= */
+const groetWoord = () => { const u = new Date().getHours(); return u < 12 ? 'Goedemorgen' : u < 18 ? 'Goedemiddag' : 'Goedenavond'; };
+const groet = naam => `<div class="groet"><small>Mijn ICT-Omgeving</small><h1>${groetWoord()}, <b>${esc(String(naam).split(' ')[0])}</b></h1></div>`;
 function toonStart(html){ $('#app').hidden = true; $('#s-start').hidden = false; $('#kaart-start').innerHTML = html; }
 function startInlog(fout){
   toonStart(`<h1>Mijn ICT-Omgeving</h1><p>Jouw tickets en taken uit AFAS op één plek. Je logt in met je gewone werkaccount; alles wat je hier doet, staat in AFAS op jouw naam.</p>
@@ -862,7 +884,7 @@ function startProfiel(eerste){
   const ROLLEN = [['servicedesk','Servicedesk','Overzicht van alle gebieden, inclusief nieuwe meldingen zonder behandelaar'],
                   ['fb','Functioneel beheer','Tickets in jouw domeinen, ook als ze bij een collega liggen'],
                   ['geen','Alleen mijn eigen tickets','Wat op jouw naam staat of waarvan de taak bij jou ligt']];
-  toonStart(`<h1>${eerste ? 'Welkom, ' + esc(p.naam.split(' ')[0]) : 'Mijn instellingen'}</h1>
+  toonStart(`${eerste ? groet(p.naam) : '<h1>Mijn instellingen</h1>'}
     <p>${eerste ? 'Nog één ding: waar werk je aan? Dit bepaalt wat je op je voorpagina ziet. Je kunt het later aanpassen via het tandwiel.' : `Ingelogd als <b>${esc(p.naam)}</b>.`}</p>
     <div class="keuzes" id="p-rol" style="flex-direction:column;align-items:stretch">${ROLLEN.map(([k, t, u]) => `<button type="button" data-rol="${k}" aria-pressed="${rol === k}" style="text-align:left;padding:10px 16px"><b>${t}</b><br><small>${u}</small></button>`).join('')}</div>
     <div id="p-dom" ${rol === 'fb' ? '' : 'hidden'}><label>Jouw domeinen</label>
@@ -910,7 +932,7 @@ setInterval(async () => { if(!$('#app').hidden && !$('#detail').open){ await laa
 
 /* ================= opstarten ================= */
 function laadKaart(naam){
-  toonStart(`<h1>${naam ? 'Welkom, ' + esc(naam.split(' ')[0]) : 'Mijn ICT-Omgeving'}</h1>
+  toonStart(`${naam ? groet(naam) : '<h1>Mijn ICT-Omgeving</h1>'}
     <div class="voortgang" id="laad-voortgang"><div class="regel"><span>${naam ? 'Ik haal eerst je openstaande tickets op' : 'Tickets ophalen uit AFAS'}</span><b>0%</b></div>
     <div class="spoor"><i></i></div><small class="hint">Verbinding maken met AFAS…</small></div>
     <p class="hint">${opslag.get(AANTAL) ? '' : 'De eerste keer duurt dit wat langer; daarna weet de pagina hoeveel er komt.'}</p>`);
@@ -945,7 +967,7 @@ function demoAfas(pad, opties){
   if(!window._demo){
     const r = [], mens = ['Robert van der Veen','Kelly Groen','Glenn Brons','Eleandro Martis','Mehmet Ceylan'];
     const add = (nr, o, st, v, extra = {}) => r.push({Nummer:nr, Onderwerp:o, Status:st, Omschrijving_4:v, Omschrijving_2:extra.melder || 'Anouk de Vries', Omschrijving:extra.soort || 'Aanvraag ICT',
-      Type_ticket_ICT:extra.type || 'Incident', Focusgebied_ICT:extra.cat || 'Werkplek', AFAS_Afdeling:extra.afd || (extra.cat === 'Emma EPD' ? 'Emma' : 'ICT'), Focusgebied_EMMA:extra.emma || '', Instuurdatum:extra.in || d(4),
+      Type_ticket_ICT:extra.type || 'Incident', Focusgebied_ICT:extra.cat || 'Werkplek', AFAS_Afdeling:'', Omschrijving_3:extra.afd || (extra.cat === 'Emma EPD' ? 'Emma' : 'ICT'), Focusgebied_EMMA:extra.emma || '', Instuurdatum:extra.in || d(4),
       Gepland:extra.gepland || null, Laatste_reactie:extra.reactie || d(1), Gebruiker_laatste_reactie:extra.door || v, Laatste_wijziging_externe_status:extra.wijz || d(1), Workflow_afgerond:!!extra.af, Kritieke_storing:!!extra.krit});
     add(12601, 'Monitor blijft zwart na docking', 'In behandeling', mens[0], {reactie:d(6), wijz:d(6)});
     add(12602, 'Toegang gedeelde map Financiën', 'In behandeling', mens[0], {gepland:d(2)});
@@ -958,7 +980,7 @@ function demoAfas(pad, opties){
     add(12609, 'Printer balie Hanzeplein', 'Nieuw', '', {in:lok(new Date(nu - 40 * 60e3)), cat:'Printers'});
     add(12610, 'Storing faxkoppeling huisartsen', 'Wachten op leverancier', mens[3], {cat:'Koppelingen', reactie:d(12), wijz:d(12)});
     add(12611, 'Outlook-handtekening', 'Afgehandeld', mens[0], {af:true, wijz:d(3)});
-    for(let i = 0; i < 18; i++) add(12620 + i, ['Wachtwoord resetten','Scanner leest niet','Wifi valt weg','Telefoon doorschakelen'][i % 4], i % 3 ? 'In behandeling' : 'Afgehandeld', mens[i % 5], {af:!(i % 3), cat:['Werkplek','Netwerk','Telefonie'][i % 3], afd:['ICT','Radiologie','AFAS / InPlanning','Maag Darm'][i % 4], wijz:d(i % 4)});
+    for(let i = 0; i < 18; i++) add(12620 + i, ['Wachtwoord resetten','Scanner leest niet','Wifi valt weg','Telefoon doorschakelen'][i % 4], i % 3 ? 'In behandeling' : 'Afgehandeld', mens[i % 5], {af:!(i % 3), cat:['Werkplek','Netwerk','Telefonie'][i % 3], afd:['ICT','Radiologie','AFAS / InPlanning','Maag Darm','Huid en Allergie','Power BI'][i % 6], wijz:d(i % 4)});
     window._demo = {sla:r, tickets:r.map(x => ({Nummer:x.Nummer, Dossieritem:400000 + x.Nummer})), taken:[{SubjectId:412605, TaskDescription:'Behandelen ICT', UserName:mens[0]}]};
   }
   const D = window._demo;
