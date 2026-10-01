@@ -183,6 +183,17 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .it[aria-pressed="true"] svg{color:var(--opaccent)}
 .it[aria-pressed="true"] b{background:rgba(255,255,255,.22);color:var(--opaccent)}
 .it .ster{color:var(--goud);font-style:normal;margin-right:-4px}
+.afdrij{display:flex;align-items:center;position:relative}
+.afdrij .it{flex:1;min-width:0}
+.favknop{position:absolute;left:4px;width:22px;height:22px;border:0;background:transparent;color:var(--lijn);font-size:14px;line-height:1;padding:0;opacity:0;transition:opacity .15s}
+.afdrij:hover .favknop,.favknop.aan{opacity:1}
+.favknop.aan{color:var(--goud)}
+.favknop:hover{color:var(--goud)}
+.afdrij .it{padding-left:28px}
+.nav h4 button{all:unset;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%}
+.nav h4 button svg{width:12px;height:12px;transition:transform .2s}
+.nav h4 button[aria-expanded="false"] svg{transform:rotate(-90deg)}
+.nav .favhint{font-size:12px;color:var(--grijs);padding:2px 12px 6px 28px}
 @media (max-width:1000px){.nav{display:none}}
 .rail .r .ico-maan{display:contents} .rail .r .ico-zon{display:none}
 :root[data-thema="donker"] .rail .r .ico-maan{display:none} :root[data-thema="donker"] .rail .r .ico-zon{display:contents}
@@ -276,7 +287,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v2.5 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v2.6 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -316,7 +327,7 @@ const INST = Object.assign({
   ticketUrl: '',           // bv. 'https://88406.afasinsite.nl/...?SbId={sbid}'; leeg = geen link
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v2.5';
+const VERSIE = 'v2.6';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -678,11 +689,28 @@ function weergave(id){
   return {titel:'Tickets', lijst:[]};
 }
 const ico = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+/* favoriete afdelingen: standaard je domeinen, aan te vullen met het sterretje */
+const domeinAfd = a => profiel && profiel.rol === 'fb' && inGebied({categorie:'', afdeling:a, emma:'', soort:''});
+function favorieten(){
+  if(!profiel.favorieten) profiel.favorieten = (INST.afdelingen || []).filter(domeinAfd);
+  return profiel.favorieten;
+}
+function wisselFavoriet(a){
+  const f = favorieten(), i = f.findIndex(x => norm(x) === norm(a));
+  i >= 0 ? f.splice(i, 1) : f.push(a); opslag.set(profielSleutel(), profiel); tekenNav();
+}
+let overigeOpen = !!opslag.get('mict-overige-open');
 function tekenNav(){
-  const it = (id, t, n, o = {}) => `<button type="button" class="it" data-weergave="${esc(id)}" aria-pressed="${tab === id}">${o.ico ? ico(o.ico) : ''}${o.ster ? '<i class="ster">★</i>' : ''}<span>${esc(t)}</span>${n == null ? '' : `<b class="${o.rood && n ? 'rood' : ''}">${n}</b>`}</button>`;
-  const domeinAfd = a => profiel && profiel.rol === 'fb' && inGebied({categorie:'', afdeling:a, emma:'', soort:''});
+  const it = (id, t, n, o = {}) => `<button type="button" class="it" data-weergave="${esc(id)}" aria-pressed="${tab === id}">${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${n == null ? '' : `<b class="${o.rood && n ? 'rood' : ''}">${n}</b>`}</button>`;
+  const fav = favorieten(), isFav = a => fav.some(x => norm(x) === norm(a));
+  const afd = afdelingen();
+  const rijA = ([a, n]) => `<div class="afdrij"><button type="button" class="favknop ${isFav(a) ? 'aan' : ''}" data-fav="${esc(a)}" title="${isFav(a) ? 'Uit favorieten halen' : 'Als favoriet bovenaan zetten'}">★</button>${it('afd:' + a, a, n)}</div>`;
+  const favL = afd.filter(([a]) => isFav(a)), rest = afd.filter(([a]) => !isFav(a));
+  const restOpen = overigeOpen || rest.some(([a]) => tab === 'afd:' + a);
   $('#nav').innerHTML = `<h4>Mijn werk</h4>${VAST.map(v => it(v.id, v.t, v.f ? v.f().length : null, v)).join('')}
-    <h4>Afdelingen</h4>${afdelingen().map(([a, n]) => it('afd:' + a, a, n, {ster:domeinAfd(a)})).join('')}
+    <h4>Mijn afdelingen</h4>${favL.map(rijA).join('') || '<p class="favhint">Zet een ★ bij een afdeling om hem hier te tonen.</p>'}
+    <h4><button type="button" id="k-overige" aria-expanded="${restOpen}">${ico('<path d="M6 9l6 6 6-6"/>')}Overige afdelingen (${rest.length})</button></h4>
+    ${restOpen ? rest.map(rijA).join('') : ''}
     <h4>Overzicht</h4>${ONDER.map(v => it(v.id, v.t, v.geenTel ? null : v.f().length, v)).join('')}`;
 }
 
@@ -901,13 +929,15 @@ function startProfiel(eerste){
   if($('#p-terug')) $('#p-terug').onclick = () => toonApp();
   $('#p-ok').onclick = () => {
     if(rol === 'fb' && !gekozen.size){ $('#p-fout').textContent = 'Kies minstens één domein.'; return; }
-    profiel = {...p, rol, domeinen: rol === 'fb' ? [...gekozen] : [], ingesteld:true}; opslag.set(profielSleutel(), profiel); toonApp();
+    profiel = {...p, rol, domeinen: rol === 'fb' ? [...gekozen] : [], ingesteld:true}; if(String(p.domeinen) !== String(profiel.domeinen) || p.rol !== rol) delete profiel.favorieten; opslag.set(profielSleutel(), profiel); toonApp();
   };
 }
 function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken(); }
 
 /* ================= bediening ================= */
 document.addEventListener('click', e => {
+  const fv = e.target.closest('[data-fav]'); if(fv){ wisselFavoriet(fv.dataset.fav); return; }
+  if(e.target.closest('#k-overige')){ overigeOpen = !overigeOpen; opslag.set('mict-overige-open', overigeOpen); tekenNav(); return; }
   const th = e.target.closest('th[data-sort]'); if(th){ const id = th.closest('table').dataset.tabel, k = th.dataset.sort, s = sortering[id];
     sortering[id] = s && s.k === k ? (s.op > 0 ? {k, op:-1} : undefined) : {k, op: ['in','reactie','gepland','sig'].includes(k) ? -1 : 1}; teken(); return; }
   const r = e.target.closest('tr[data-nr]'); if(r){ openDetail(r.dataset.nr); return; }
