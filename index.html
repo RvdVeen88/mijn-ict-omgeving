@@ -373,7 +373,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.28 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.29 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -420,7 +420,7 @@ const INST = Object.assign({
   connMedewerkers: 'PowerBI_ICT_Verjaardag',   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.28';
+const VERSIE = 'v3.29';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -722,18 +722,19 @@ const wanneer = d => d ? `${fmtDatum(d)} ${fmtTijd(d)}` : 'onbekend';
 const laatsteActiviteit = x => x.reactieDatum ? `laatste reactie ${wanneer(x.reactieDatum)}${x.reactieDoor ? ' door ' + x.reactieDoor : ''}` : x.statusDatum ? `laatste statuswijziging ${wanneer(x.statusDatum)}` : `ingestuurd ${wanneer(x.aangemaakt)}`;
 function signalen(x){
   const s = [], nu = Date.now(); if(x.afgesloten) return s;
+  const sla = x.sla && !isChange(x);   // Changes en Requests for Change: geen reactietermijnen
   const wd = ms => Math.floor(ms / werkdagMs());
-  if(x.sla && x.emmer === 'nieuw' && x.aangemaakt){
+  if(sla && x.emmer === 'nieuw' && x.aangemaakt){
     const voor = plusWerk(x.aangemaakt, INST.nieuwUren * UUR);
     const uitleg = `Nieuwe meldingen moeten binnen ${INST.nieuwUren} werkuren worden opgepakt (status niet meer Nieuw). Ingestuurd ${wanneer(x.aangemaakt)}, uiterlijk ${voor ? wanneer(new Date(voor)) : '?'}.`;
     if(voor && voor < nu) s.push({ernst:3, code:'nieuw', tekst:'Nieuw · te laat opgepakt', uitleg});
     else s.push({ernst:2, code:'nieuw', tekst:'Nieuw · oppakken vóór ' + (voor ? (beginDag(voor) > beginDag(nu) ? fmtDatum(new Date(voor)) + ' ' : '') + fmtTijd(new Date(voor)) : '?'), uitleg});
   }
-  if(x.sla && x.emmer === 'opvolging' && !x.gepland){ const ms = werkMs(stilSinds(x), nu);
+  if(sla && x.emmer === 'opvolging' && !x.gepland){ const ms = werkMs(stilSinds(x), nu);
     if(ms >= INST.opvolgingDagen * werkdagMs()) s.push({ernst:3, code:'opvolging', tekst:`${wd(ms)} werkdagen geen reactie`, uitleg:`Status "${x.status}" zonder planning: na ${INST.opvolgingDagen} werkdagen zonder reactie of statuswijziging moet de melder iets horen. Nu ${wd(ms)} werkdagen stil; ${laatsteActiviteit(x)}. Plaats een reactie of zet een planningsdatum.`}); }
-  if(x.sla && x.emmer === 'melder'){ const ms = werkMs(stilSinds(x), nu);
+  if(sla && x.emmer === 'melder'){ const ms = werkMs(stilSinds(x), nu);
     if(ms >= INST.melderDagen * werkdagMs()) s.push({ernst:3, code:'melder', tekst:`Melder ${wd(ms)} werkdagen stil`, uitleg:`Status "${x.status}": na ${INST.melderDagen} werkdagen zonder antwoord van de melder het ticket opvolgen of afsluiten. Nu ${wd(ms)} werkdagen stil; ${laatsteActiviteit(x)}.`}); }
-  if(x.sla && x.emmer === 'leverancier'){ const ms = werkMs(stilSinds(x), nu);
+  if(sla && x.emmer === 'leverancier'){ const ms = werkMs(stilSinds(x), nu);
     if(ms >= INST.leverancierDagen * werkdagMs()) s.push({ernst:3, code:'leverancier', tekst:`Leverancier ${wd(ms)} werkdagen stil`, uitleg:`Status "${x.status}": na ${INST.leverancierDagen} werkdagen zonder nieuws de leverancier rappelleren en de melder bijpraten. Nu ${wd(ms)} werkdagen stil; ${laatsteActiviteit(x)}.`}); }
   if(x.gepland && +x.gepland < nu) s.push({ernst:3, code:'planning', tekst:`Planning verlopen · ${fmtDatum(x.gepland)}`, uitleg:`De geplande datum (${fmtDatum(x.gepland)}) is voorbij en het ticket staat nog open. Rond het af of zet een nieuwe planningsdatum.`});
   else if(!x.gepland && x.emmer === 'planning') s.push({ernst:3, code:'planning', tekst:'Planning ontbreekt', uitleg:`Status "${x.status}" vraagt om een planningsdatum, maar die is niet ingevuld.`});
