@@ -66,7 +66,7 @@ button{cursor:pointer}
 .klok{font-size:13px;color:var(--grijs);white-space:nowrap}
 main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;min-width:0}
 
-.tegels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.tegels{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
 .tegel{background:var(--vlak);border-radius:0 60px 60px 0;border:0;border-left:6px solid var(--lichtblauw);padding:14px 30px 12px 18px;display:flex;flex-direction:column;gap:2px;text-align:left;box-shadow:var(--schaduw)}
 .tegel:hover{box-shadow:0 4px 14px rgba(5,55,135,.14)}
 .tegel span{font-size:14px;color:var(--grijs);font-weight:500;white-space:nowrap}
@@ -75,7 +75,7 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .tegel.rood{border-left-color:var(--rood)} .tegel.rood b{color:var(--rood)}
 .tegel.oranje{border-left-color:var(--goud)} .tegel.oranje b{color:var(--oranje)}
 .tegel.nul b{color:var(--grijs)}
-@media (max-width:900px){.tegels{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
 
 .blok{background:var(--vlak);border-radius:0 30px 30px 0;box-shadow:var(--schaduw);overflow:hidden}
 .blok > header{display:flex;align-items:baseline;gap:10px;padding:16px 26px 10px}
@@ -199,14 +199,14 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
       </section>
       <section id="v-alle" hidden>
         <div class="werkbalk">
-          <div class="schakel" id="f-scope"><button data-v="alle" aria-pressed="true">Alle</button><button data-v="mijn">Van mij</button><button data-v="gebied">Mijn gebied</button></div>
+          <div class="schakel" id="f-scope"><button data-v="alle" aria-pressed="true">Alle</button><button data-v="mijn">Van mij</button><button data-v="gebied">Mijn domein</button></div>
           <div class="schakel" id="f-open"><button data-v="open" aria-pressed="true">Open</button><button data-v="dicht">Afgesloten (90 d)</button></div>
           <label class="zoek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="f-zoek" placeholder="Zoek op nummer, onderwerp, melder of behandelaar"></label>
         </div>
         <div class="blok tabel" style="margin-top:14px"><header><h2 id="alle-titel">Tickets</h2><b id="alle-n">0</b><small id="alle-sub"></small></header><div id="alle-lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="versie">Mijn ICT-Omgeving v1.4 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="versie">Mijn ICT-Omgeving v1.5 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -222,7 +222,18 @@ const INST = Object.assign({
   clientId: '91a1c1c2-bbaa-4075-a1cc-09252fd9c561',
   tokenFunctie: 'https://func-dck-helpdesk-b8cpg3gmd6d5hsgp.westeurope-01.azurewebsites.net/api/afas-token',
   connIk: 'PowerBI_ICT_Gebruikers',     // GetConnector op gebruikers met filter Gebruiker = [Gebruiker]: geeft alleen de ingelogde gebruiker terug
-  gebiedenPerFunctie: {},   // bv. {'functioneel beheer': ['Emma EPD']}: functie bevat de sleutel -> deze aandachtsgebieden
+  // Functioneel beheer: domeinen, met zoekwoorden in focusgebied/afdeling/systeem van een ticket, en wat er automatisch bij hoort
+  domeinen: [
+    {naam:'Emma', zoek:'emma'},
+    {naam:'AFAS/InPlanning', zoek:'afas|inplanning'},
+    {naam:'Radiologie', zoek:'radiolog', erbij:['Gynaecologie','Pijnzorg']},
+    {naam:'Maag Darm', zoek:'maag|mdl', erbij:['Dermatologie','Allergologie']},
+    {naam:'Dermatologie', zoek:'dermato|derma'},
+    {naam:'Pijnzorg', zoek:'pijn'},
+    {naam:'Interne Geneeskunde', zoek:'interne'},
+    {naam:'Gynaecologie', zoek:'gyn'},
+    {naam:'Allergologie', zoek:'allerg', verborgen:true}
+  ],
   connSla: 'PowerBI_ICT_SLA_Dashboard', connTickets: 'Helpdesk_PowerBI', connTaken: 'Profit_Subject_Tasks', connActies: 'Profit_Workflowactions',
   // zelfde regels als het SLA-dashboard
   st_nieuw: 'Nieuw', st_opvolging: 'In behandeling, Opvolging', st_melder: 'Wachten op melder', st_leverancier: 'Wachten op leverancier',
@@ -232,7 +243,7 @@ const INST = Object.assign({
   ticketUrl: '',           // bv. 'https://88406.afasinsite.nl/...?SbId={sbid}'; leeg = geen link
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v1.4';
+const VERSIE = 'v1.5';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -409,7 +420,16 @@ const profielSleutel = () => 'mict-profiel-' + (sub || 'demo');
 let profiel = null;
 const benIk = naam => !!profiel && !!norm(naam) && (norm(naam) === norm(profiel.naam) || (profiel.alias || []).some(a => norm(a) === norm(naam)));
 const isMijn = x => benIk(x.verantw) || x.taakBij.some(benIk);
-const inGebied = x => !!profiel && (profiel.gebieden || []).some(g => [x.categorie, x.afdeling, x.emma].some(w => norm(w) === norm(g)));
+const domein = naam => INST.domeinen.find(d => d.naam === naam);
+const metErbij = lijstD => { const uit = new Set(lijstD); lijstD.forEach(n => ((domein(n) || {}).erbij || []).forEach(e => uit.add(e))); return [...uit]; };
+function inGebied(x){
+  if(!profiel) return false;
+  if(profiel.rol === 'servicedesk') return true;
+  if(profiel.rol !== 'fb') return false;
+  const tekst = norm([x.categorie, x.afdeling, x.emma, x.soort].join(' | '));
+  return metErbij(profiel.domeinen || []).some(n => { const d = domein(n); return d && new RegExp(d.zoek, 'i').test(tekst); });
+}
+const gebiedLabel = () => !profiel ? '' : profiel.rol === 'servicedesk' ? 'alle gebieden' : profiel.rol === 'fb' ? metErbij(profiel.domeinen || []).join(', ') || 'geen domein gekozen' : '';
 
 /* ================= signalen: dezelfde normen als het SLA-dashboard, per ticket ================= */
 const stilSinds = x => x.reactieDatum || x.statusDatum || x.aangemaakt;
@@ -463,18 +483,18 @@ function tekenMij(){
   open.forEach(x => x._sg = signalen(x));
   const mijn = open.filter(isMijn).sort(sorteer);
   const mijnActie = mijn.filter(actie);
-  const nieuwLos = open.filter(x => x.sla && x.emmer === 'nieuw' && !x.verantw && (profiel.servicedesk || inGebied(x))).sort(sorteer);
+  const nieuwLos = open.filter(x => x.sla && x.emmer === 'nieuw' && !x.verantw && (profiel.rol === 'servicedesk' || inGebied(x))).sort(sorteer);
   const gebied = open.filter(x => !isMijn(x) && inGebied(x) && !(x.emmer === 'nieuw' && !x.verantw)).sort(sorteer);
   const gebiedActie = gebied.filter(x => ernst(x) >= 2);
   const mijnRust = mijn.filter(x => !actie(x));
   const tegel = (n, t, sub, kl) => `<div class="tegel ${n ? kl : 'nul'}"><span>${t}</span><b>${n}</b><small>${esc(sub)}</small></div>`;
   $('#tegels').innerHTML = tegel(mijnActie.length, 'Actie nodig', 'op jouw naam', 'rood')
-    + tegel(nieuwLos.length, 'Nieuw op te pakken', profiel.servicedesk ? 'zonder behandelaar' : 'in jouw gebied', 'oranje')
-    + tegel(gebiedActie.length, 'Aandacht in jouw gebied', (profiel.gebieden || []).join(', ') || 'geen gebied gekozen', 'oranje')
+    + tegel(nieuwLos.length, 'Nieuw op te pakken', profiel.rol === 'servicedesk' ? 'zonder behandelaar' : 'in jouw gebied', 'oranje')
+    + (profiel.rol === 'geen' ? '' : tegel(gebiedActie.length, profiel.rol === 'servicedesk' ? 'Aandacht bij collega’s' : 'Aandacht in jouw domein', gebiedLabel(), 'oranje'))
     + tegel(mijn.length, 'Mijn open tickets', 'verantwoordelijk of taak bij jou', '');
   let html = blok('actie', 'Actie nodig', mijnActie, {rood:true, toonWie:false, leeg:'Niets dat over een norm gaat. Mooi zo.', sub:'Verlopen planning, te lang geen reactie, nieuwe meldingen'});
-  if(profiel.servicedesk || nieuwLos.length) html += blok('nieuw', 'Nieuwe meldingen zonder behandelaar', nieuwLos, {leeg:'Geen nieuwe meldingen die wachten.', sub:`Binnen ${INST.nieuwUren} werkuren oppakken`});
-  if((profiel.gebieden || []).length) html += blok('gebied', 'In jouw aandachtsgebied', gebied.filter(x => ernst(x) >= 1).concat(gebied.filter(x => !ernst(x))), {leeg:'Niets open in jouw gebied.', sub:'Ook als het bij een collega ligt', max:6});
+  if(profiel.rol === 'servicedesk' || nieuwLos.length) html += blok('nieuw', 'Nieuwe meldingen zonder behandelaar', nieuwLos, {leeg:'Geen nieuwe meldingen die wachten.', sub:`Binnen ${INST.nieuwUren} werkuren oppakken`});
+  if(profiel.rol !== 'geen') html += blok('gebied', profiel.rol === 'servicedesk' ? 'Over een norm, bij een collega' : 'In jouw domein: ' + gebiedLabel(), (profiel.rol === 'servicedesk' ? gebied.filter(x => ernst(x) >= 2) : gebied.filter(x => ernst(x) >= 1).concat(gebied.filter(x => !ernst(x)))), {leeg:'Niets open in jouw domein.', sub:'Ook als het bij een collega ligt', max:6});
   html += blok('rust', 'Mijn overige open tickets', mijnRust, {toonWie:false, leeg:'Geen andere open tickets.', max:10});
   $('#blokken').innerHTML = html;
   $('#tel-mij').textContent = mijnActie.length || '';
@@ -581,7 +601,7 @@ async function voerUit(actieIdx){
 
 /* ================= wie is er ingelogd: uit AFAS, niet zelf kiezen ================= */
 async function wieBenIk(){
-  if(DEMO) return {naam:'Robert van der Veen', code:'88406.rvanderveen', functie:'Manager Digitale Zorg & ICT', afdeling:'Digitale Zorg & ICT', bron:'demo'};
+  if(DEMO) return {naam:'Robert van der Veen', code:'88406.rvanderveen', functie:'', afdeling:'Digitale Zorg & ICT', groepen:['Rol Afdeling ICT','Functioneel beheer Emma'], bron:'demo'};
   const pak = (r, re) => { const k = Object.keys(r).find(k => re.test(k)); return k ? String(r[k] ?? '').trim() : ''; };
   // 1. eigen GetConnector met filter Gebruiker = [Gebruiker]: altijd precies één rij, de ingelogde gebruiker
   // ook geschikt: "Groepen per gebruiker" (één rij per autorisatiegroep); de groepen gebruiken we dan voor de aandachtsgebieden
@@ -598,12 +618,11 @@ async function wieBenIk(){
     if(namen.length === 1) return {naam:namen[0], code:rows[0].User || '', functie:'', afdeling:'', bron:INST.connTaken}; }catch(e){}
   return null;
 }
-function autoGebieden(ik){
-  const tekst = norm([ik.functie, ik.afdeling, ...(ik.groepen || [])].join(' ')); if(!tekst) return [];
-  const uit = new Set();
-  Object.entries(INST.gebiedenPerFunctie || {}).forEach(([k, l]) => { if(tekst.includes(norm(k))) (l || []).forEach(g => uit.add(g)); });
-  gebieden.forEach(g => { if(norm(g).split(/[^a-z0-9]+/).some(w => w.length >= 4 && tekst.includes(w))) uit.add(g); });
-  return [...uit];
+function autoRol(ik){
+  const tekst = norm([ik.functie, ik.afdeling, ...(ik.groepen || [])].join(' | '));
+  const domeinen = INST.domeinen.filter(d => !d.verborgen && new RegExp(d.zoek, 'i').test(tekst)).map(d => d.naam);
+  const rol = /servicedesk|service ?desk/.test(tekst) ? 'servicedesk' : (/functioneel beheer|functioneel beheerder/.test(tekst) || domeinen.length) ? 'fb' : 'geen';
+  return {rol, domeinen: rol === 'fb' ? domeinen : []};
 }
 
 /* ================= start- en profielscherm ================= */
@@ -614,23 +633,29 @@ function startInlog(fout){
   $('#k-in').onclick = () => inloggen();
 }
 function startProfiel(eerste){
-  const p = profiel || {naam:'', gebieden:[], servicedesk:false};
-  const gekozen = new Set(p.gebieden || []), vast = !!p.auto;
-  toonStart(`<h1>${eerste ? 'Welkom bij Mijn ICT-Omgeving' : 'Mijn profiel'}</h1>
-    <p>${eerste ? 'Eén keer instellen: wie je bent en waar je verantwoordelijk voor bent. Dit bepaalt wat je op je voorpagina ziet.' : 'Pas aan wat je op je voorpagina ziet.'}</p>
-    ${vast ? `<p>Ingelogd als <b>${esc(p.naam)}</b>${p.functie ? ' · ' + esc(p.functie) : ''}</p>` : `<label for="p-naam">Wie ben jij? <span class="hint">AFAS gaf je naam niet door; kies hem één keer.</span></label>
-    <select id="p-naam"><option value="">Kies je naam…</option>${mensen.map(m => `<option ${norm(m) === norm(p.naam) ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>`}
-    <label>Waar ben je verantwoordelijk voor? <span class="hint">Tickets in deze gebieden zie je ook als ze bij een collega liggen.</span></label>
-    <div class="keuzes" id="p-geb">${gebieden.map(g => `<button type="button" aria-pressed="${gekozen.has(g)}">${esc(g)}</button>`).join('') || '<span class="hint">Geen gebieden gevonden.</span>'}</div>
-    <label class="vink"><input type="checkbox" id="p-sd" ${p.servicedesk ? 'checked' : ''}> Ik pak nieuwe meldingen zonder behandelaar op (servicedesk)</label>
+  const p = profiel;
+  let rol = p.rol || 'geen'; const gekozen = new Set(p.domeinen || []);
+  const ROLLEN = [['servicedesk','Servicedesk','Overzicht van alle gebieden, inclusief nieuwe meldingen zonder behandelaar'],
+                  ['fb','Functioneel beheer','Tickets in jouw domeinen, ook als ze bij een collega liggen'],
+                  ['geen','Alleen mijn eigen tickets','Wat op jouw naam staat of waarvan de taak bij jou ligt']];
+  toonStart(`<h1>${eerste ? 'Welkom, ' + esc(p.naam.split(' ')[0]) : 'Mijn instellingen'}</h1>
+    <p>${eerste ? 'Nog één ding: waar werk je aan? Dit bepaalt wat je op je voorpagina ziet. Je kunt het later aanpassen via het tandwiel.' : `Ingelogd als <b>${esc(p.naam)}</b>.`}</p>
+    <div class="keuzes" id="p-rol" style="flex-direction:column;align-items:stretch">${ROLLEN.map(([k, t, u]) => `<button type="button" data-rol="${k}" aria-pressed="${rol === k}" style="text-align:left;padding:10px 16px"><b>${t}</b><br><small>${u}</small></button>`).join('')}</div>
+    <div id="p-dom" ${rol === 'fb' ? '' : 'hidden'}><label>Jouw domeinen</label>
+      <div class="keuzes">${INST.domeinen.filter(d => !d.verborgen).map(d => `<button type="button" data-dom="${esc(d.naam)}" aria-pressed="${gekozen.has(d.naam)}">${esc(d.naam)}</button>`).join('')}</div>
+      <p class="hint" id="p-erbij"></p></div>
     <p class="fout" id="p-fout"></p>
     <div style="display:flex;gap:8px"><button class="knop vol" id="p-ok">${eerste ? 'Aan de slag' : 'Opslaan'}</button>${eerste ? '' : '<button class="knop" id="p-terug">Annuleren</button>'}</div>`);
-  $('#p-geb').onclick = e => { const b = e.target.closest('button'); if(b) b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'); };
+  const erbij = () => { const extra = metErbij([...gekozen]).filter(n => !gekozen.has(n)); $('#p-erbij').textContent = extra.length ? 'Komt er automatisch bij: ' + extra.join(', ') : ''; };
+  erbij();
+  $('#p-rol').onclick = e => { const b = e.target.closest('[data-rol]'); if(!b) return; rol = b.dataset.rol;
+    document.querySelectorAll('#p-rol [data-rol]').forEach(x => x.setAttribute('aria-pressed', x === b)); $('#p-dom').hidden = rol !== 'fb'; };
+  $('#p-dom').onclick = e => { const b = e.target.closest('[data-dom]'); if(!b) return; const n = b.dataset.dom;
+    gekozen.has(n) ? gekozen.delete(n) : gekozen.add(n); b.setAttribute('aria-pressed', gekozen.has(n)); erbij(); };
   if($('#p-terug')) $('#p-terug').onclick = () => toonApp();
   $('#p-ok').onclick = () => {
-    const naam = vast ? p.naam : $('#p-naam').value; if(!naam){ $('#p-fout').textContent = 'Kies je naam.'; return; }
-    profiel = {...p, naam, gebieden:[...document.querySelectorAll('#p-geb button[aria-pressed="true"]')].map(b => b.textContent), servicedesk:$('#p-sd').checked, ingesteld:true};
-    opslag.set(profielSleutel(), profiel); toonApp();
+    if(rol === 'fb' && !gekozen.size){ $('#p-fout').textContent = 'Kies minstens één domein.'; return; }
+    profiel = {...p, rol, domeinen: rol === 'fb' ? [...gekozen] : [], ingesteld:true}; opslag.set(profielSleutel(), profiel); toonApp();
   };
 }
 function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken(); }
@@ -658,6 +683,12 @@ setInterval(() => { $('#klok').textContent = new Date().toLocaleDateString('nl-N
 setInterval(async () => { if(!$('#app').hidden && !$('#detail').open){ await laadGegevens(); teken(); } }, INST.verversMinuten * 60e3);
 
 /* ================= opstarten ================= */
+function laadKaart(naam){
+  toonStart(`<h1>${naam ? 'Welkom, ' + esc(naam.split(' ')[0]) : 'Mijn ICT-Omgeving'}</h1>
+    <div class="voortgang" id="laad-voortgang"><div class="regel"><span>${naam ? 'Ik laad even je tickets en taken uit AFAS' : 'Tickets ophalen uit AFAS'}</span><b>0%</b></div>
+    <div class="spoor"><i></i></div><small class="hint">Verbinding maken met AFAS…</small></div>
+    <p class="hint">${opslag.get(AANTAL) ? '' : 'De eerste keer duurt dit wat langer; daarna weet de pagina hoeveel er komt.'}</p>`);
+}
 (async function start(){
   toonStart('<div class="laden"><span class="spin"></span>Bezig met inloggen…</div>');
   try{
@@ -665,21 +696,16 @@ setInterval(async () => { if(!$('#app').hidden && !$('#detail').open){ await laa
       const terug = await terugVanAfas();
       if(!terug){ if(!opslag.get(RT)){ startInlog(); return; } try{ await vernieuw(); }catch(e){ opslag.weg(RT); startInlog('Je sessie is verlopen. Log opnieuw in.'); return; } }
     } else sub = 'demo';
-    toonStart(`<h1>Mijn ICT-Omgeving</h1><div class="voortgang" id="laad-voortgang"><div class="regel"><span>Tickets ophalen uit AFAS</span><b>0%</b></div>
-      <div class="spoor"><i></i></div><small class="hint">Verbinding maken met AFAS…</small></div>
-      <p class="hint">${opslag.get(AANTAL) ? '' : 'De eerste keer duurt dit wat langer; daarna weet de pagina hoeveel er komt.'}</p>`);
+    const ik = await wieBenIk();
+    if(!ik){ startInlog(`AFAS gaf niet door wie je bent. Controleer of GetConnector ${INST.connIk} (met filter Gebruiker = [Gebruiker]) aan de app connector gekoppeld is.`); return; }
+    const opgeslagen = opslag.get(profielSleutel());
+    const auto = autoRol(ik);
+    profiel = {rol:auto.rol, domeinen:auto.domeinen, ...(opgeslagen && norm(opgeslagen.naam) === norm(ik.naam) ? opgeslagen : {}),
+      naam:ik.naam, alias:[ik.code].filter(Boolean), functie:ik.functie, groepen:ik.groepen || []};
+    laadKaart(ik.naam);
     await laadGegevens();
     if(status.fout && !items.length){ startInlog('Tickets ophalen mislukt: ' + status.fout); return; }
-    profiel = opslag.get(profielSleutel());
-    const ik = await wieBenIk();
-    if(ik){
-      if(!profiel || norm(profiel.naam) !== norm(ik.naam)){
-        profiel = {naam:ik.naam, alias:[ik.code].filter(Boolean), functie:ik.functie, afdeling:ik.afdeling, auto:true,
-          gebieden:autoGebieden(ik), servicedesk:/servicedesk|service ?desk/.test(norm([ik.functie, ik.afdeling, ...(ik.groepen || [])].join(' ')))};
-        opslag.set(profielSleutel(), profiel); toonApp();
-        toast(`Ingelogd als ${ik.naam}.` + (profiel.gebieden.length ? ` Aandachtsgebied: ${profiel.gebieden.join(', ')}.` : '') + ' Aanpassen kan via het tandwiel.');
-      } else { profiel = {...profiel, auto:true, functie:ik.functie || profiel.functie, alias:[...new Set([...(profiel.alias || []), ik.code].filter(Boolean))]}; opslag.set(profielSleutel(), profiel); toonApp(); }
-    } else if(!profiel || !profiel.naam) startProfiel(true); else toonApp();
+    if(!profiel.ingesteld) startProfiel(true); else toonApp();
   }catch(e){ startInlog(e.message); }
 })();
 
