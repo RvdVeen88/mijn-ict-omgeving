@@ -392,7 +392,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.34 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.35 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -440,7 +440,7 @@ const INST = Object.assign({
   connMedewerkers: 'PowerBI_ICT_Verjaardag',   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.34';
+const VERSIE = 'v3.35';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1129,7 +1129,12 @@ async function ictCollegas(){
   const behandelaars = new Set(items.map(x => norm(x.verantw)).filter(Boolean));
   let l = waarden.filter(w => behandelaars.has(norm(w.naam)));
   if(!l.length && waarden.length) l = waarden;
-  if(!l.length){   // geen keuzelijst in AFAS: gebruikerscodes uit de workflowtaken van de behandelaars
+  if(!l.length){   // geen keuzelijst in AFAS: Verantwoordelijke is een medewerker, dus het medewerkernummer uit de medewerkerslijst
+    try{ const mw = await laadMedewerkers();
+      l = mw.filter(m => behandelaars.has(norm(m.vol)) || behandelaars.has(norm(m.naam))).map(m => ({code: m.id, naam: m.vol || m.naam}));
+      if(!l.length) l = mw.filter(m => /ict|digitale zorg/i.test(m.oe || '')).map(m => ({code: m.id, naam: m.vol || m.naam}));
+    }catch(e){} }
+  if(!l.length){   // laatste redmiddel: gebruikerscodes uit de workflowtaken van de behandelaars
     const namen = [...behandelaars].map(n => items.find(x => norm(x.verantw) === n).verantw);
     try{ const rows = (await afas(`/connectors/${INST.connTaken}?skip=0&take=2000&filterfieldids=UserName&filtervalues=${encodeURIComponent(namen.join(';'))}&operatortypes=1`)).rows || [];
       const kaart = new Map(); rows.forEach(r => { if(r.User && r.UserName) kaart.set(r.User, r.UserName); }); l = [...kaart].map(([code, naam]) => ({code, naam})); }catch(e){}
@@ -1145,7 +1150,7 @@ async function toonActieExtra(a){
     knop.disabled = true; el.innerHTML = '<input id="actie-collega" class="metpijl" placeholder="Kies een ICT-collega…" autocomplete="off">';
     const inp = $('#actie-collega'); let l = [];
     try{ l = await ictCollegas(); }catch(e){ el.innerHTML = `<span class="fout">Collega's ophalen lukte niet: ${esc(e.message)}</span>`; return; }
-    if(!l.length){ el.innerHTML = '<span class="fout">Geen ICT-collega’s gevonden in het veld Verantwoordelijke van AFAS.</span>'; return; }
+    if(!l.length){ el.innerHTML = `<span class="fout">Geen ICT-collega’s gevonden${medewerkerFout ? ' (' + esc(medewerkerFout) + ')' : ''}.</span>`; return; }
     comboKoppel(inp, () => l.filter(c => !benIk(c.naam)).map(c => ({waarde: c.naam, sub: c.code, code: c.code})), k => { inp.value = k.waarde; actieKeuze = {code: k.code, naam: k.waarde}; knop.disabled = false; },
       () => { actieKeuze = null; knop.disabled = true; });
     inp.focus();
@@ -1176,7 +1181,8 @@ async function voerUit(actieIdx){
       if(sa === 'plannen'){ if(!m.gepland) throw new Error('Het veld voor de geplande datum is niet gevonden in KnSubject.'); await zetVelden(x, {[veldCode(m.gepland)]: actieKeuze.datum}); }
       else { if(!m.verantw) throw new Error('Het veld Verantwoordelijke is niet gevonden in KnSubject.');
         let code = actieKeuze && actieKeuze.code;
-        if(sa === 'mij'){ const w = waardenVan(m.verantw.values); code = (w.find(v => benIk(v.naam)) || {}).code || (profiel.alias || [])[0]; }
+        if(sa === 'mij'){ const w = waardenVan(m.verantw.values); code = (w.find(v => benIk(v.naam)) || {}).code || (w.length ? '' : profiel.emId) || (profiel.alias || [])[0];
+          if(!w.length && !profiel.emId){ try{ const mw = await laadMedewerkers(); const ik = mw.find(v => benIk(v.vol) || benIk(v.naam)); if(ik){ code = ik.id; profiel.emId = ik.id; opslag.set(profielSleutel(), profiel); } }catch(e){} } }
         if(!code) throw new Error('Je gebruikerscode is onbekend; toewijzen lukt niet.');
         await zetVelden(x, {[veldCode(m.verantw)]: code}); }
     }
