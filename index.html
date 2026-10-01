@@ -272,7 +272,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v2.1 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v2.2 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -309,7 +309,7 @@ const INST = Object.assign({
   ticketUrl: '',           // bv. 'https://88406.afasinsite.nl/...?SbId={sbid}'; leeg = geen link
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v2.1';
+const VERSIE = 'v2.2';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -432,6 +432,8 @@ function laadScherm(p, geteld, schat){
   if(!$('#app').hidden && p < 100) $('#bijgewerkt').textContent = `Bezig met verversen… ${p}%`;
 }
 const filterOp = (veld, waarde) => `&filterfieldids=${encodeURIComponent(veld)}&filtervalues=${encodeURIComponent(waarde)}&operatortypes=1`;
+/* meerdere voorwaarden (EN): [[veld, waarde, operator]]; operator 1 = gelijk, 2 = groter of gelijk, 7 = niet gelijk */
+const filterEn = vw => `&filterfieldids=${vw.map(v => encodeURIComponent(v[0])).join(',')}&filtervalues=${vw.map(v => encodeURIComponent(v[1])).join(',')}&operatortypes=${vw.map(v => v[2] || 1).join(',')}`;
 
 /* ================= gegevens ================= */
 let items = [], taakPerSb = new Map(), mensen = [], gebieden = [], status = {bijgewerkt:null, fout:null};
@@ -458,34 +460,61 @@ function maakItem(r, extra){
   x.zoek = norm([x.nr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.emma, ...x.taakBij].join(' '));
   return x;
 }
-let alleGeladen = false, laatsteTaken = [], achterBezig = null;
-let openFilterWaarde = '';
-function bouwItems(sla, tickets, taken){
-  const sbPerNr = new Map(tickets.map(t => [String(t.Nummer), t]));
-  taakPerSb = new Map();
-  taken.forEach(t => { const k = String(t.SubjectId); const o = taakPerSb.get(k) || {taak: t.TaskDescription || t.WfDescription || '', bij: []};
-    if(t.UserName && !o.bij.includes(t.UserName)) o.bij.push(t.UserName); taakPerSb.set(k, o); });
-  // Zorgadministratie staat wel in de lijst (eigen categorie), maar telt niet mee voor de SLA-normen
-  return sla.map(r => { const t = sbPerNr.get(String(r.Nummer)) || {}; return maakItem(r, {sbid: t.Dossieritem ?? null}); });
+let alleGeladen = false, mijnTaken = [], achterBezig = null, openFilter = null;
+const isoD = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+/* open tickets: workflow niet afgerond én status niet afgesloten. De waarde voor ja/nee verschilt per omgeving, dus we proberen een paar varianten. */
+function openFilters(){
+  const st = lijst(INST.st_afgesloten).map(w => ['Status', INST.st_afgesloten.split(',').map(x => x.trim()).find(x => x.toLowerCase() === w), 7]);
+  return [...['false', '0'].map(w => filterEn([['Workflow_afgerond', w, 1], ...st])), st.length ? filterEn(st) : ''].filter(Boolean);
 }
-/* fase 'open': eerst alleen de openstaande tickets (snel), daarna op de achtergrond de rest */
+function bouwItems(sla, sbPerNr){
+  // taken: alleen die van de ingelogde gebruiker (die maken een ticket "van mij")
+  taakPerSb = new Map();
+  mijnTaken.forEach(t => { const k = String(t.SubjectId); const o = taakPerSb.get(k) || {taak: t.TaskDescription || t.WfDescription || '', bij: []};
+    if(t.UserName && !o.bij.includes(t.UserName)) o.bij.push(t.UserName); taakPerSb.set(k, o); });
+  return sla.map(r => maakItem(r, {sbid: sbPerNr.get(String(r.Nummer)) ?? null}));
+}
+async function haalMijnTaken(){
+  if(DEMO) return (await afas(`/connectors/${INST.connTaken}?skip=0&take=1000`)).rows || [];
+  const code = profiel && (profiel.alias || [])[0];
+  if(!code) return [];
+  try{ return await connectorAlles(INST.connTaken, filterOp('User', code)); }catch(e){ return []; }
+}
+/* interne nummers (Dossieritem) alleen ophalen voor de tickets waar we ze nodig hebben */
+const sbCache = new Map();
+async function sbIdsVoor(veld, waarden){
+  const uit = new Map(); const lijstW = [...new Set(waarden.map(String))];
+  for(let i = 0; i < lijstW.length; i += 40){
+    const deel = lijstW.slice(i, i + 40);
+    try{ const rows = (await afas(`/connectors/${INST.connTickets}?skip=0&take=200&filterfieldids=${veld}&filtervalues=${encodeURIComponent(deel.join(';'))}&operatortypes=1`)).rows || [];
+      rows.forEach(r => { uit.set(String(r.Nummer), r.Dossieritem); sbCache.set(String(r.Nummer), r.Dossieritem); }); }catch(e){}
+  }
+  return uit;
+}
+async function zorgSbId(x){
+  if(x.sbid) return x.sbid;
+  if(sbCache.has(String(x.nr))) return x.sbid = sbCache.get(String(x.nr));
+  const m = await sbIdsVoor('Nummer', [x.nr]); return x.sbid = m.get(String(x.nr)) ?? null;
+}
 async function laadGegevens(fase = 'open'){
   $('#live').classList.add('uit'); $('#bijgewerkt').textContent = 'Bezig met verversen…';
-  const vg = maakVoortgang([INST.connSla, INST.connTickets, INST.connTaken].map(n => n + '|' + fase), laadScherm); vg.begin();
-  const sleutel = fase, mee = n => (rijen, klaar) => vg.stap(n + '|' + sleutel, rijen, klaar);
+  const vg = maakVoortgang([INST.connSla + '|' + fase], laadScherm); vg.begin();
+  const mee = (rijen, klaar) => vg.stap(INST.connSla + '|' + fase, rijen, klaar);
   try{
-    let sla, tickets, taken;
+    let sla = null;
+    const takenKlaar = haalMijnTaken();
     if(fase === 'open'){
-      // filterwaarde voor ja/nee-velden verschilt per omgeving: probeer false en 0; lukt geen van beide, dan alles ophalen
-      for(const w of [openFilterWaarde, 'false', '0', 'False'].filter((v, i, a) => v && a.indexOf(v) === i)){
-        try{ const f = filterOp('Workflow_afgerond', w);
-          [sla, tickets] = await Promise.all([connectorAlles(INST.connSla, f, mee(INST.connSla)), connectorAlles(INST.connTickets, f, mee(INST.connTickets))]);
-          if(sla.length){ openFilterWaarde = w; break; } sla = null; }catch(e){ sla = null; }
+      for(const f of (openFilter ? [openFilter] : openFilters())){
+        try{ sla = await connectorAlles(INST.connSla, f, mee); if(sla.length){ openFilter = f; break; } sla = null; }catch(e){ sla = null; }
       }
-      if(!sla){ fase = 'alles'; [sla, tickets] = await Promise.all([connectorAlles(INST.connSla, '', mee(INST.connSla)), connectorAlles(INST.connTickets, '', mee(INST.connTickets))]); }
-    } else [sla, tickets] = await Promise.all([connectorAlles(INST.connSla, '', mee(INST.connSla)), connectorAlles(INST.connTickets, '', mee(INST.connTickets))]);
-    taken = laatsteTaken = await connectorAlles(INST.connTaken, '', mee(INST.connTaken)).catch(() => { vg.stap(INST.connTaken + '|' + sleutel, 0, true); return laatsteTaken; });
-    const nieuw = bouwItems(sla, tickets, taken);
+      if(!sla){ fase = 'alles'; sla = await connectorAlles(INST.connSla, '', mee); }
+    } else sla = await connectorAlles(INST.connSla, '', mee);
+    mijnTaken = await takenKlaar;
+    // interne nummers voor mijn taken, zodat we weten welk ticket bij welke taak hoort
+    const sbPerNr = new Map(sbCache);
+    const metTaak = await sbIdsVoor('Dossieritem', mijnTaken.map(t => t.SubjectId).filter(id => ![...sbPerNr.values()].includes(id)));
+    metTaak.forEach((v, k) => sbPerNr.set(k, v));
+    const nieuw = bouwItems(sla, sbPerNr);
     if(fase === 'open' && alleGeladen){ const nrs = new Set(nieuw.map(x => String(x.nr))); items = [...nieuw, ...items.filter(x => x.afgesloten && !nrs.has(String(x.nr)))]; }
     else items = nieuw;
     if(fase === 'alles') alleGeladen = true;
@@ -495,19 +524,25 @@ async function laadGegevens(fase = 'open'){
   $('#bijgewerkt').textContent = status.fout ? 'Laden mislukt: ' + status.fout : 'Live · bijgewerkt om ' + fmtTijd(status.bijgewerkt);
   return fase;
 }
-/* achtergrond: gesloten meldingen erbij halen, voortgang onderin */
+/* achtergrond: afgesloten meldingen van de laatste 90 dagen erbij halen, voortgang onderin */
 function laadRestOpAchtergrond(){
   if(alleGeladen || achterBezig) return achterBezig;
   const el = $('#achter');
-  el.hidden = false; el.querySelector('span').textContent = 'Overige meldingen ophalen…';
-  const vg = maakVoortgang([INST.connSla, INST.connTickets].map(n => n + '|alles'), p => { el.style.setProperty('--p', p + '%'); el.querySelector('span').textContent = `Overige meldingen ophalen… ${p}%`; });
+  el.hidden = false; el.querySelector('span').textContent = 'Gesloten meldingen ophalen…';
+  const vg = maakVoortgang([INST.connSla + '|dicht'], p => { el.style.setProperty('--p', p + '%'); el.querySelector('span').textContent = `Gesloten meldingen ophalen… ${p}%`; });
   vg.begin();
   return achterBezig = (async () => {
-    try{ const [sla, tickets] = await Promise.all([connectorAlles(INST.connSla, '', (r, k) => vg.stap(INST.connSla + '|alles', r, k)), connectorAlles(INST.connTickets, '', (r, k) => vg.stap(INST.connTickets + '|alles', r, k))]);
-      items = bouwItems(sla, tickets, laatsteTaken); alleGeladen = true;
+    try{
+      const sinds = isoD(new Date(Date.now() - 90 * DAG)), mee = (r, k) => vg.stap(INST.connSla + '|dicht', r, k);
+      let dicht = null;
+      for(const w of ['true', '1']){ try{ dicht = await connectorAlles(INST.connSla, filterEn([['Workflow_afgerond', w, 1], ['Laatste_wijziging_externe_status', sinds, 2]]), mee); if(dicht.length) break; dicht = null; }catch(e){ dicht = null; } }
+      if(!dicht) dicht = await connectorAlles(INST.connSla, filterEn([['Laatste_wijziging_externe_status', sinds, 2]]), mee).catch(() => connectorAlles(INST.connSla, '', mee));
+      const nrs = new Set(items.map(x => String(x.nr)));
+      items = [...items, ...bouwItems(dicht.filter(r => !nrs.has(String(r.Nummer))), new Map(sbCache))];
+      alleGeladen = true;
       el.querySelector('span').textContent = 'Alle meldingen geladen'; setTimeout(() => el.hidden = true, 2500);
       if(!$('#detail').open) teken(); }
-    catch(e){ el.querySelector('span').textContent = 'Overige meldingen ophalen mislukt'; }
+    catch(e){ el.querySelector('span').textContent = 'Gesloten meldingen ophalen mislukt'; }
     achterBezig = null;
   })();
 }
@@ -732,7 +767,8 @@ function openDetail(nr){
 }
 async function laadWorkflow(x){
   const el = $('#actiebalk');
-  if(!x.sbid && !DEMO){ el.innerHTML = '<span class="fout">Het interne nummer (Dossieritem) van dit ticket ontbreekt in Helpdesk_PowerBI; bijwerken kan niet.</span>'; $('#d-taak').textContent = '–'; return; }
+  if(!DEMO) await zorgSbId(x).catch(() => null);
+  if(!x.sbid && !DEMO){ el.innerHTML = '<span class="fout">Het interne nummer (Dossieritem) van dit ticket is niet gevonden in Helpdesk_PowerBI; bijwerken kan niet.</span>'; $('#d-taak').textContent = '–'; return; }
   try{
     const [wf] = await Promise.all([workflow(x), zoekZichtVeld()]); if(!huidig || huidig.x !== x) return; huidig.wf = wf;
     const bijMij = wf.bij.some(benIk);
@@ -918,7 +954,7 @@ function demoAfas(pad, opties){
   return new Promise(res => setTimeout(() => res(demoRijen(D, pad)), 350));
 }
 function demoRijen(D, pad){
-  const alleenOpen = rows => pad.includes('Workflow_afgerond') ? rows.filter(r => !r.Workflow_afgerond) : rows;
+  const alleenOpen = rows => !pad.includes('Workflow_afgerond') ? rows : /filtervalues=(true|1)/.test(pad) ? rows.filter(r => r.Workflow_afgerond) : rows.filter(r => !r.Workflow_afgerond);
   if(pad.includes(INST.connSla)) return {rows: pad.includes('skip=0') ? alleenOpen(D.sla) : []};
   if(pad.includes(INST.connTickets)) return {rows: pad.includes('skip=0') ? (pad.includes('Workflow_afgerond') ? D.tickets.filter(t => !D.sla.find(r => r.Nummer === t.Nummer).Workflow_afgerond) : D.tickets) : []};
   if(pad.includes(INST.connTaken)) return {rows: pad.includes('skip=0') && !pad.includes('filter') ? D.taken : []};
