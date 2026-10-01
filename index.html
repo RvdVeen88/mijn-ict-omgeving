@@ -272,7 +272,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v2.2 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v2.3 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -309,7 +309,7 @@ const INST = Object.assign({
   ticketUrl: '',           // bv. 'https://88406.afasinsite.nl/...?SbId={sbid}'; leeg = geen link
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v2.2';
+const VERSIE = 'v2.3';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -390,7 +390,9 @@ function uitloggen(){ opslag.weg(RT); tok = null; location.href = REDIRECT; }
 /* ================= AFAS-aanroepen ================= */
 async function afas(pad, opties = {}, opnieuw = true){
   if(DEMO) return demoAfas(pad, opties);
-  const r = await fetch(afasBasis() + pad, {...opties, headers:{'Authorization':'Bearer ' + await geldigToken(), 'Accept':'application/json', 'Accept-Language':'nl-nl', ...(opties.body ? {'Content-Type':'application/json'} : {})}});
+  const ctrl = new AbortController(), tm = setTimeout(() => ctrl.abort(), 60000);
+  const r = await fetch(afasBasis() + pad, {...opties, signal: ctrl.signal, headers:{'Authorization':'Bearer ' + await geldigToken(), 'Accept':'application/json', 'Accept-Language':'nl-nl', ...(opties.body ? {'Content-Type':'application/json'} : {})}});
+  clearTimeout(tm);
   if(r.status === 401 && opnieuw){ tok = null; return afas(pad, opties, false); }
   const t = await r.text(); let j = null; try{ j = JSON.parse(t); }catch(e){}
   if(!r.ok){ let detail = (j && (j.externalMessage || j.message)) || '';
@@ -478,7 +480,9 @@ async function haalMijnTaken(){
   if(DEMO) return (await afas(`/connectors/${INST.connTaken}?skip=0&take=1000`)).rows || [];
   const code = profiel && (profiel.alias || [])[0];
   if(!code) return [];
-  try{ return await connectorAlles(INST.connTaken, filterOp('User', code)); }catch(e){ return []; }
+  // ook als AFAS het filter negeert: alleen taken van mij houden, en niet eindeloos doorbladeren
+  try{ const rows = (await afas(`/connectors/${INST.connTaken}?skip=0&take=1000${filterOp('User', code)}`)).rows || [];
+    return rows.filter(t => norm(t.User) === norm(code) || benIk(t.UserName)).slice(0, 400); }catch(e){ return []; }
 }
 /* interne nummers (Dossieritem) alleen ophalen voor de tickets waar we ze nodig hebben */
 const sbCache = new Map();
@@ -502,19 +506,13 @@ async function laadGegevens(fase = 'open'){
   const mee = (rijen, klaar) => vg.stap(INST.connSla + '|' + fase, rijen, klaar);
   try{
     let sla = null;
-    const takenKlaar = haalMijnTaken();
     if(fase === 'open'){
       for(const f of (openFilter ? [openFilter] : openFilters())){
         try{ sla = await connectorAlles(INST.connSla, f, mee); if(sla.length){ openFilter = f; break; } sla = null; }catch(e){ sla = null; }
       }
       if(!sla){ fase = 'alles'; sla = await connectorAlles(INST.connSla, '', mee); }
     } else sla = await connectorAlles(INST.connSla, '', mee);
-    mijnTaken = await takenKlaar;
-    // interne nummers voor mijn taken, zodat we weten welk ticket bij welke taak hoort
-    const sbPerNr = new Map(sbCache);
-    const metTaak = await sbIdsVoor('Dossieritem', mijnTaken.map(t => t.SubjectId).filter(id => ![...sbPerNr.values()].includes(id)));
-    metTaak.forEach((v, k) => sbPerNr.set(k, v));
-    const nieuw = bouwItems(sla, sbPerNr);
+    const nieuw = bouwItems(sla, new Map(sbCache));
     if(fase === 'open' && alleGeladen){ const nrs = new Set(nieuw.map(x => String(x.nr))); items = [...nieuw, ...items.filter(x => x.afgesloten && !nrs.has(String(x.nr)))]; }
     else items = nieuw;
     if(fase === 'alles') alleGeladen = true;
@@ -524,7 +522,20 @@ async function laadGegevens(fase = 'open'){
   $('#bijgewerkt').textContent = status.fout ? 'Laden mislukt: ' + status.fout : 'Live · bijgewerkt om ' + fmtTijd(status.bijgewerkt);
   return fase;
 }
-/* achtergrond: afgesloten meldingen van de laatste 90 dagen erbij halen, voortgang onderin */
+/* achtergrond 1: jouw workflowtaken koppelen aan tickets ("taak bij jou") */
+async function verrijkMetTaken(){
+  try{
+    mijnTaken = await haalMijnTaken();
+    const bekend = new Set(sbCache.values());
+    await sbIdsVoor('Dossieritem', mijnTaken.map(t => t.SubjectId).filter(id => !bekend.has(id)));
+    bouwItems([], new Map());   // vult taakPerSb opnieuw
+    items.forEach(x => { if(!x.sbid && sbCache.has(String(x.nr))) x.sbid = sbCache.get(String(x.nr));
+      const t = taakPerSb.get(String(x.sbid)); x.taak = t ? t.taak : ''; x.taakBij = t ? t.bij : [];
+      x.zoek = norm([x.nr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.emma, ...x.taakBij].join(' ')); });
+    if(!$('#detail').open && !$('#app').hidden) teken();
+  }catch(e){}
+}
+/* achtergrond 2: afgesloten meldingen van de laatste 90 dagen erbij halen, voortgang onderin */
 function laadRestOpAchtergrond(){
   if(alleGeladen || achterBezig) return achterBezig;
   const el = $('#achter');
@@ -888,7 +899,7 @@ document.addEventListener('click', e => {
 });
 $('#detail').addEventListener('close', () => huidig = null);
 $('#f-zoek').addEventListener('input', e => { filt.zoek = e.target.value; tekenLijst(); });
-$('#k-ververs').onclick = async () => { await laadGegevens(); teken(); };
+$('#k-ververs').onclick = async () => { await laadGegevens(); teken(); verrijkMetTaken(); };
 $('#k-profiel').onclick = () => startProfiel(false);
 $('#k-uit').onclick = () => uitloggen();
 const isDonker = () => (document.documentElement.dataset.thema || (matchMedia('(prefers-color-scheme: dark)').matches ? 'donker' : 'licht')) === 'donker';
@@ -921,7 +932,7 @@ function laadKaart(naam){
     await laadGegevens();
     if(status.fout && !items.length){ startInlog('Tickets ophalen mislukt: ' + status.fout); return; }
     if(!profiel.ingesteld) startProfiel(true); else toonApp();
-    laadRestOpAchtergrond();
+    verrijkMetTaken().then(() => laadRestOpAchtergrond());
   }catch(e){ startInlog(e.message); }
 })();
 
