@@ -392,7 +392,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.35 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.36 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -437,10 +437,11 @@ const INST = Object.assign({
   ticketUrl: 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}',   // leeg = geen link
   connReacties: 'Helpdesk_Reacties',
   nieuwStId: '26',                       // type dossieritem Aanvraag ICT
-  connMedewerkers: 'PowerBI_ICT_Verjaardag',   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
+  connMedewerkers: 'PowerBI_ICT_Verjaardag',
+  ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.35';
+const VERSIE = 'v3.36';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1130,9 +1131,10 @@ async function ictCollegas(){
   let l = waarden.filter(w => behandelaars.has(norm(w.naam)));
   if(!l.length && waarden.length) l = waarden;
   if(!l.length){   // geen keuzelijst in AFAS: Verantwoordelijke is een medewerker, dus het medewerkernummer uit de medewerkerslijst
-    try{ const mw = await laadMedewerkers();
-      l = mw.filter(m => behandelaars.has(norm(m.vol)) || behandelaars.has(norm(m.naam))).map(m => ({code: m.id, naam: m.vol || m.naam}));
-      if(!l.length) l = mw.filter(m => /ict|digitale zorg/i.test(m.oe || '')).map(m => ({code: m.id, naam: m.vol || m.naam}));
+    try{ const mw = await laadMedewerkers(), oeRe = new RegExp(INST.ictOe || 'ict|digitale zorg', 'i');
+      // eerst op organisatorische eenheid (het ICT-team); alleen als die niets oplevert: iedereen die behandelaar is
+      l = mw.filter(m => oeRe.test(m.oe || '')).map(m => ({code: m.id, naam: m.vol || m.naam, oe: m.oe}));
+      if(!l.length) l = mw.filter(m => behandelaars.has(norm(m.vol)) || behandelaars.has(norm(m.naam))).map(m => ({code: m.id, naam: m.vol || m.naam, oe: m.oe}));
     }catch(e){} }
   if(!l.length){   // laatste redmiddel: gebruikerscodes uit de workflowtaken van de behandelaars
     const namen = [...behandelaars].map(n => items.find(x => norm(x.verantw) === n).verantw);
@@ -1151,7 +1153,7 @@ async function toonActieExtra(a){
     const inp = $('#actie-collega'); let l = [];
     try{ l = await ictCollegas(); }catch(e){ el.innerHTML = `<span class="fout">Collega's ophalen lukte niet: ${esc(e.message)}</span>`; return; }
     if(!l.length){ el.innerHTML = `<span class="fout">Geen ICT-collega’s gevonden${medewerkerFout ? ' (' + esc(medewerkerFout) + ')' : ''}.</span>`; return; }
-    comboKoppel(inp, () => l.filter(c => !benIk(c.naam)).map(c => ({waarde: c.naam, sub: c.code, code: c.code})), k => { inp.value = k.waarde; actieKeuze = {code: k.code, naam: k.waarde}; knop.disabled = false; },
+    comboKoppel(inp, () => l.filter(c => !benIk(c.naam)).map(c => ({waarde: c.naam, sub: c.oe || c.code, zoek: c.code, code: c.code})), k => { inp.value = k.waarde; actieKeuze = {code: k.code, naam: k.waarde}; knop.disabled = false; },
       () => { actieKeuze = null; knop.disabled = true; });
     inp.focus();
   } else if(sa === 'plannen'){
