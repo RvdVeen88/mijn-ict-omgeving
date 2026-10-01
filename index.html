@@ -370,7 +370,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.23 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.24 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -417,7 +417,7 @@ const INST = Object.assign({
   connMedewerkers: 'Profit_Employees',   // medewerkers om als melder te kiezen (standaard GetConnector van AFAS)
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.23';
+const VERSIE = 'v3.24';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1162,10 +1162,11 @@ async function maakMelding(){
 /* medewerkers (GetConnector Profit_Employees) om als melder te kiezen; eenmalig ophalen per sessie */
 // zoek de kolommen voor nummer en naam in een lijst met veldnamen
 function medewerkerKolommen(k){
-  const idK = k.find(x => /^(EmId|EmployeeId|Medewerker|Medewerkernummer|Nummer_medewerker|Medewerker_nummer)$/i.test(x)) || k.find(x => /emid|employee.?id|medewerker.?(nr|nummer|id|code)?$/i.test(x));
-  const naamK = k.find(x => /^(NameFull|Naam|Volledige_naam|Name|Naam_medewerker|Weergavenaam|DisplayName)$/i.test(x)) || k.find(x => /naam|name/i.test(x) && !/voor|first|achter|last|search|zoek|organisatie|afdeling|functie|gebruiker/i.test(x));
+  const idK = k.find(x => /^(EmId|EmployeeId|Employee_Id|Medewerker|Medewerkernummer|Nummer_medewerker|Medewerker_nummer|MedewerkerId|Medewerker_code)$/i.test(x)) || k.find(x => /emid|employee.?id|medewerker.?(nr|nummer|id|code)?$/i.test(x));
+  const naamK = k.find(x => /^(NameFull|FullName|Naam|Volledige_naam|Name|Naam_medewerker|Naam_volledig|Weergavenaam|DisplayName|Omschrijving|Description)$/i.test(x)) || k.find(x => /naam|name/i.test(x) && !/voor|first|achter|last|search|zoek|organisatie|afdeling|functie|gebruiker/i.test(x));
   const deel = re => k.find(x => re.test(x));
-  return {idK, naamK, voor: deel(/^(Roepnaam|Voornaam|FirstName|Nickname|CallName)$/i), tus: deel(/^(Voorvoegsel|Prefix|Infix)$/i), ach: deel(/^(Achternaam|LastName|Geboortenaam)$/i)};
+  const uitK = k.find(x => /uit.?dienst|date.?of.?leaving|leaving|einddatum|end.?date|DaEnd/i.test(x));
+  return {idK, naamK, uitK, voor: deel(/^(Roepnaam|Voornaam|FirstName|Nickname|CallName)$/i), tus: deel(/^(Voorvoegsel|Prefix|Infix)$/i), ach: deel(/^(Achternaam|LastName|Geboortenaam)$/i)};
 }
 // welke GetConnector levert de medewerkers? eerst de ingestelde, anders zoeken in de app connector
 async function kiesMedewerkerConnector(){
@@ -1193,7 +1194,9 @@ async function laadMedewerkers(){
   medewerkerConn = await kiesMedewerkerConnector();
   const rijen = await connectorAlles(medewerkerConn), k = medewerkerKolommen(Object.keys(rijen[0] || {}));
   const naamVan = r => k.naamK ? String(r[k.naamK] ?? '').trim() : [r[k.voor], r[k.tus], r[k.ach]].filter(Boolean).join(' ');
-  const uniek = new Map(); rijen.forEach(r => { const id = String(r[k.idK] ?? '').trim(), naam = naamVan(r); if(id && naam && !uniek.has(id)) uniek.set(id, {id, naam}); });
+  const vandaag = beginDag(new Date());
+  const inDienst = r => { if(!k.uitK || !r[k.uitK]) return true; const d = datum(r[k.uitK]); return !d || +d >= +vandaag; };   // uit dienst niet tonen
+  const uniek = new Map(); rijen.filter(inDienst).forEach(r => { const id = String(r[k.idK] ?? '').trim(), naam = naamVan(r); if(id && naam && !uniek.has(id)) uniek.set(id, {id, naam}); });
   return (medewerkers = [...uniek.values()].sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
 }
 async function koppelMelder(){
@@ -1217,7 +1220,8 @@ async function koppelMelder(){
   if(!$('#n-melder')) return;
   const ik = (profiel.emId && lijst.find(m => m.id === String(profiel.emId))) || lijst.find(m => benIk(m.naam));
   if(ik && inp.dataset.std === '1'){ f.melderId.value = ik.id; if(!profiel.emId){ profiel.emId = ik.id; opslag.set(profielSleutel(), profiel); } }
-  hint.textContent = ik ? `Jij bent de melder (${ik.id}). Klik om iemand anders te kiezen.` : `Jouw medewerkernummer is niet gevonden; kies de melder uit de lijst.`;
+  hint.textContent = ik ? `Jij bent de melder (${ik.id}). Klik om iemand anders te kiezen uit ${lijst.length} medewerkers.` : `Jouw medewerkernummer is niet gevonden; kies de melder uit de lijst (${lijst.length} medewerkers).`;
+  hint.title = medewerkerConn ? 'Bron: GetConnector ' + medewerkerConn : '';
   // net als in AFAS: jijzelf en de laatst gekozen melders bovenaan
   const items = () => { const recent = (opslag.get('mict-recente-melders') || []).map(id => lijst.find(m => m.id === id)).filter(Boolean);
     const boven = [...new Set([ik, ...recent].filter(Boolean))];
