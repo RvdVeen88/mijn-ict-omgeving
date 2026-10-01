@@ -389,7 +389,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.31 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.32 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -437,7 +437,7 @@ const INST = Object.assign({
   connMedewerkers: 'PowerBI_ICT_Verjaardag',   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.31';
+const VERSIE = 'v3.32';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -819,7 +819,7 @@ function tabel(id, l, opties = {}){
   const s = sortering[id];
   if(s){ const c = KOLOMMEN.find(c => c.k === s.k); l = [...l].sort((a, b) => { const x = c.w(a), y = c.w(b); return (x < y ? -1 : x > y ? 1 : 0) * s.op || (+b.aangemaakt || 0) - (+a.aangemaakt || 0); }); }
   const max = opties.max && !blokOpen.has(id) ? opties.max : 400, zicht = l.slice(0, max);
-  return `<div class="tw"><table class="tabel" data-tabel="${id}"><thead><tr>${kol.map(c => `<th data-sort="${c.k}" ${c.bw ? `style="width:${c.bw}"` : ''} class="${c.cls.replace(/\b(nr|ond|sig|zacht)\b/g, '')}" ${s && s.k === c.k ? `aria-sort="${s.op > 0 ? 'ascending' : 'descending'}"` : ''}>${c.t}<span class="pijl">${s && s.k === c.k ? (s.op > 0 ? '▲' : '▼') : '↕'}</span></th>`).join('')}</tr>
+  return `<div class="tw"><table class="tabel" data-tabel="${id}"><thead><tr>${kol.map(c => `<th data-sort="${c.k}" ${c.bw ? `style="width:${c.bw}"` : ''} class="${c.cls.replace(/\b(nr|ond|sig|zacht)\b/g, '')}" ${s && s.k === c.k ? `aria-sort="${s.op > 0 ? 'ascending' : 'descending'}"` : ''}>${c.t}${s && s.k === c.k ? `<span class="pijl">${s.op > 0 ? '▲' : '▼'}</span>` : ''}</th>`).join('')}</tr>
     <tr class="kolfilter">${kol.map(c => `<th class="${c.cls.replace(/\b(nr|ond|sig|zacht)\b/g, '')}"><input size="3" data-kf="${c.k}" ${KEUZE.has(c.k) ? 'data-keuze autocomplete="off"' : ''} value="${esc(kf[c.k] || '')}" placeholder="${KEUZE.has(c.k) ? 'Alle ▾' : 'Filter…'}" aria-label="Filter op ${c.t}" class="${kf[c.k] ? 'aan' : ''}"></th>`).join('')}</tr></thead>
     <tbody>${!zicht.length ? `<tr class="geenrij"><td colspan="${kol.length}">Geen tickets met deze filters. <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></td></tr>` : ''}${zicht.map(x => `<tr class="${KLEUR[ernst(x)]}${x.afgesloten ? ' dicht' : ''}${(x._sg || []).some(s => s.code === 'ongelezen') ? ' ongelezen' : ''}" data-nr="${esc(x.nr)}">${kol.map(c => `<td class="${c.cls}"${c.k === 'sig' ? '' : ` title="${esc(kolTekst(c, x))}"`}>${c.html(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
     ${actief.length ? `<p class="filterinfo">${l.length} van ${totaal} na filteren · <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></p>` : ''}
