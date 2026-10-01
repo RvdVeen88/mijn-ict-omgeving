@@ -123,6 +123,8 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .werkbalk{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .schakel{display:inline-flex;background:var(--vlak);border-radius:0 999px 999px 0;padding:4px;gap:2px;border:1.5px solid var(--lijn)}
 .schakel button{border:0;background:transparent;padding:5px 16px 5px 12px;border-radius:0 999px 999px 0;color:var(--grijs);font-weight:500}
+.schakel.klein{padding:3px}
+.schakel.klein button{padding:4px 14px 4px 11px;font-size:13px}
 .schakel button b{font-size:11.5px;font-weight:600;margin-left:4px;opacity:.75}
 .schakel button[aria-pressed="true"]{background:var(--blauw);color:var(--opaccent)}
 .zoek{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--vlak);border:1.5px solid var(--lijn);border-radius:0 999px 999px 0;padding:6px 16px 6px 12px;flex:0 1 320px}
@@ -198,7 +200,7 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 #toast.fout{background:var(--rood);color:#fff}
 
 /* ---- v2: navigatie met categorieën ---- */
-.nav{width:300px;flex:none;padding:18px 6px 18px 16px;display:flex;flex-direction:column;gap:1px;position:sticky;top:0;height:100vh;overflow:auto}
+.nav{width:256px;flex:none;padding:18px 6px 18px 16px;display:flex;flex-direction:column;gap:1px;position:sticky;top:0;height:100vh;overflow:auto}
 .nav h4{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--grijs);margin:14px 10px 6px;font-weight:600}
 .nav h4:first-child{margin-top:4px}
 .it{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;text-align:left;padding:7px 12px;border-radius:0 999px 999px 0;font-size:14px;color:var(--inkt)}
@@ -212,6 +214,8 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .it[aria-pressed="true"] .minischak span{color:rgba(255,255,255,.85)}
 .it[aria-pressed="true"] .minischak span[aria-pressed="true"]{background:#fff;color:var(--blauw)}
 .it > span:not(.minischak){flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .ongstip{font-style:normal;font-size:10.5px;font-weight:700;color:var(--blauw-2);white-space:nowrap}
+.it[aria-pressed="true"] .ongstip{color:#fff}
 .it b{font-size:12px;font-weight:600;color:var(--grijs);background:var(--lijn);border-radius:999px;padding:0 8px;line-height:19px;min-width:24px;text-align:center}
 .it b.rood{background:var(--rood);color:#fff}
 .it[aria-pressed="true"]{background:var(--blauw);color:var(--opaccent);font-weight:600}
@@ -349,7 +353,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
   <div class="werk">
     <div class="bovenbalk">
       <h1 id="titel">Voor mij</h1><span class="sub" id="subtitel"></span>
-      <div class="rechts"><span class="klok" id="klok"></span><button type="button" class="ik" id="ik" title="Mijn instellingen"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
+      <div class="rechts"><span class="klok" id="klok"></span><div class="schakel klein" id="mijalles-top" role="group" title="Geldt voor Aandacht nodig en Nieuwe tickets. Mij = jouw tickets, nieuw in je afdelingen en wat bij niemand ligt."><button type="button" data-v="mij">Mij</button><button type="button" data-v="alles">Alles</button></div><button type="button" class="ik" id="ik" title="Mijn instellingen"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
     </div>
     <main>
       <section id="v-mij">
@@ -366,7 +370,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.22 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.23 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -413,7 +417,7 @@ const INST = Object.assign({
   connMedewerkers: 'Profit_Employees',   // medewerkers om als melder te kiezen (standaard GetConnector van AFAS)
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.22';
+const VERSIE = 'v3.23';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -698,10 +702,14 @@ const stilSinds = x => x.reactieDatum || x.statusDatum || x.aangemaakt;
 /* gelezen: per ticket het moment dat je het voor het laatst opende; wat een ander daarna deed is een ongelezen update */
 const GELEZEN = 'mict-gelezen', gelezen = opslag.get(GELEZEN) || {};
 if(!gelezen._start){ gelezen._start = Date.now() - DAG; opslag.set(GELEZEN, gelezen); }
-function markeerGelezen(x){ gelezen[x.nr] = Date.now(); const oud = Date.now() - 120 * DAG;
+function markeerGelezen(x){ gelezen[x.nr] = Date.now();
+  const bk = opslag.get(BEKEND) || []; if(!bk.includes(String(x.nr))) opslag.set(BEKEND, [String(x.nr), ...bk].slice(0, 800)); const oud = Date.now() - 120 * DAG;
   Object.keys(gelezen).forEach(k => { if(k !== '_start' && gelezen[k] < oud) delete gelezen[k]; }); opslag.set(GELEZEN, gelezen); }
+const BEKEND = 'mict-mijn-bekend';   // tickets die je al eens als 'mijn ticket' hebt gezien of geopend
 function ongelezen(x){
   if(!profiel || x.afgesloten || !isMijn(x)) return null;
+  const bekend = opslag.get(BEKEND);
+  if(bekend && !bekend.includes(String(x.nr)) && !gelezen[x.nr]) return {wat:'toegewezen', wie:x.wijzigingDoor || '', t:x.statusDatum || x.aangemaakt};
   const sinds = gelezen[x.nr] || gelezen._start;
   if(x.reactieDatum && +x.reactieDatum > sinds && x.reactieDoor && !benIk(x.reactieDoor)) return {wat:'reactie', wie:x.reactieDoor, t:x.reactieDatum};
   if(x.statusDatum && +x.statusDatum > sinds && x.wijzigingDoor && !benIk(x.wijzigingDoor)) return {wat:'wijziging', wie:x.wijzigingDoor, t:x.statusDatum};
@@ -728,7 +736,7 @@ function signalen(x){
   else if(!x.gepland && x.emmer === 'planning') s.push({ernst:3, code:'planning', tekst:'Planning ontbreekt', uitleg:`Status "${x.status}" vraagt om een planningsdatum, maar die is niet ingevuld.`});
   else if(x.gepland && (beginDag(x.gepland) - beginDag(nu)) / DAG <= 1) s.push({ernst:1, code:'binnenkort', tekst:`Gepland ${beginDag(x.gepland) - beginDag(nu) < DAG ? 'vandaag' : 'morgen'}`, uitleg:`Ter info: dit ticket staat gepland op ${fmtDatum(x.gepland)}.`});
   const u = ongelezen(x);
-  if(u) s.push({ernst:1, code:'ongelezen', tekst: u.wat === 'reactie' ? `Ongelezen reactie · ${u.wie.split(' ')[0]}` : 'Ongelezen update', uitleg: u.wat === 'reactie' ? `${u.wie} reageerde op ${wanneer(u.t)}, nadat jij het ticket voor het laatst opende. Open het ticket om het te lezen.` : `${u.wie} wijzigde het ticket op ${wanneer(u.t)} (status nu "${x.status}"), nadat jij het voor het laatst opende.`});
+  if(u) s.push({ernst:1, code:'ongelezen', tekst: u.wat === 'toegewezen' ? 'Nieuw voor jou' : u.wat === 'reactie' ? `Ongelezen reactie · ${u.wie.split(' ')[0]}` : 'Ongelezen update', uitleg: u.wat === 'toegewezen' ? `Dit ticket is${u.wie && !benIk(u.wie) ? ' door ' + u.wie : ''} aan jou toegewezen en je hebt het nog niet geopend.` : u.wat === 'reactie' ? `${u.wie} reageerde op ${wanneer(u.t)}, nadat jij het ticket voor het laatst opende. Open het ticket om het te lezen.` : `${u.wie} wijzigde het ticket op ${wanneer(u.t)} (status nu "${x.status}"), nadat jij het voor het laatst opende.`});
   if(!x.afdeling && !x.inuit) s.push({ernst:3, code:'afdeling', tekst:'Geen afdeling', uitleg:'Er is geen afdeling aan dit ticket toegewezen, waardoor het bij niemand in beeld komt. Zet het door naar de juiste afdeling.'});
   if(x.kritiek) s.unshift({ernst:3, code:'kritiek', tekst:'Kritieke storing', uitleg:'In AFAS als kritieke storing gemarkeerd: direct oppakken.'});
   return s;
@@ -791,7 +799,7 @@ function blok(id, titel, l, opties = {}){
 const open = () => items.filter(x => !x.afgesloten);
 const VAST = [
   {id:'mij', t:'Overzicht', ico:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'},
-  {id:'toegewezen', t:'Mijn tickets', ico:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>', f:() => open().filter(isMijn)},
+  {id:'toegewezen', t:'Mijn tickets', ongelezen:true, ico:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>', f:() => open().filter(isMijn)},
   {id:'norm', t:'Aandacht nodig', ico:'<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>', f:() => open().filter(actie), rood:true},
   {id:'nieuw', t:'Nieuwe tickets', ico:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>', f:() => open().filter(x => x.emmer === 'nieuw'), stuiter:true}
 ];
@@ -831,7 +839,8 @@ function wisselFavoriet(a){
 let overigeOpen = !!opslag.get('mict-overige-open');
 function tekenNav(){
   const mini = id => `<span class="minischak" role="group" aria-label="Mij of alles">${['mij','alles'].map(v => `<span role="button" tabindex="0" data-mijalles="${id}" data-v="${v}" aria-pressed="${(v === 'mij') === schuifAan(id)}" title="${v === 'mij' ? 'Alleen mijn tickets en wat bij niemand ligt' : 'Alle tickets'}">${v === 'mij' ? 'Mij' : 'Alle'}</span>`).join('')}</span>`;
-  const it = (id, t, n, o = {}) => `<button type="button" class="it${o.rood && n ? ' rinkel' : ''}${o.stuiter && n ? ' stuiter' : ''}" data-weergave="${esc(id)}" aria-pressed="${tab === id}">${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${heeftMijAlles(id) ? mini(id) : ''}${n == null ? '' : `<b class="${o.rood && n ? 'rood' : ''}">${n}</b>`}</button>`;
+  const it = (id, t, n, o = {}) => { const ong = o.ongelezen ? open().filter(x => (x._sg || []).some(s => s.code === 'ongelezen')).length : 0;
+    return `<button type="button" class="it${o.rood && n ? ' rinkel' : ''}${(o.stuiter && n) || ong ? ' stuiter' : ''}" data-weergave="${esc(id)}" aria-pressed="${tab === id}" ${ong ? `title="${ong} ticket${ong === 1 ? '' : 's'} met iets nieuws voor jou"` : ''}>${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${ong ? `<i class="ongstip">${ong} nieuw</i>` : ''}${n == null ? '' : `<b class="${o.rood && n ? 'rood' : ''}">${n}</b>`}</button>`; };
   const fav = favorieten(), isFav = a => fav.some(x => norm(x) === norm(a));
   const afd = afdelingen();
   const rijA = ([a, n]) => `<div class="afdrij"><button type="button" class="favknop ${isFav(a) ? 'aan' : ''}" data-fav="${esc(a)}" title="${isFav(a) ? 'Uit favorieten halen' : 'Als favoriet bovenaan zetten'}">★</button>${it('afd:' + a, a, zichtbaar('afd:' + a, weergave('afd:' + a).lijst).length)}</div>`;
@@ -870,8 +879,8 @@ const filt = {zoek:''};
 const alleenMijn = opslag.get('mict-alleenmijn') || {};
 const heeftSchuif = t => t.startsWith('afd:');
 const heeftMijAlles = t => t === 'norm' || t === 'nieuw';
-const mijAlles = opslag.get('mict-mijalles') || {};
-const schuifAan = t => heeftSchuif(t) ? !!alleenMijn[t] : heeftMijAlles(t) ? (mijAlles[t] || 'mij') === 'mij' : false;
+let mijAllesStand = opslag.get('mict-mijalles-top') || 'mij';
+const schuifAan = t => heeftSchuif(t) ? !!alleenMijn[t] : heeftMijAlles(t) ? mijAllesStand === 'mij' : false;
 // wat telt als 'Mij': jouw tickets, en wat bij niemand ligt (geen afdeling); bij nieuwe tickets ook nieuw binnen je afdelingen
 const vanMij = (t, x) => isMijn(x) || (!x.afdeling && !x.inuit) || (t === 'nieuw' && inGebied(x));
 const soortKeuze = opslag.get('mict-soort') || {};   // per afdeling: alle | meldingen | changes
@@ -903,6 +912,8 @@ function tekenLijst(){
 let tab = 'mij';
 function teken(){
   if(!profiel) return;
+  document.querySelectorAll('#mijalles-top button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === mijAllesStand));
+  if(items.length && !opslag.get(BEKEND)) opslag.set(BEKEND, items.filter(isMijn).map(x => String(x.nr)));   // eerste keer: wat er nu staat is al bekend
   items.forEach(x => x._sg = signalen(x));
   $('#ik span').textContent = profiel.naam; $('#ik i').textContent = profiel.naam.split(' ').map(w => w[0]).filter(c => c && c === c.toUpperCase()).slice(0, 2).join('');
   tekenNav();
@@ -1346,7 +1357,7 @@ function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken
 
 /* ================= bediening ================= */
 document.addEventListener('click', e => {
-  const ma = e.target.closest('[data-mijalles]'); if(ma){ mijAlles[ma.dataset.mijalles] = ma.dataset.v; opslag.set('mict-mijalles', mijAlles); teken(); return; }
+  const ma = e.target.closest('#mijalles-top button'); if(ma){ mijAllesStand = ma.dataset.v; opslag.set('mict-mijalles-top', mijAllesStand); teken(); return; }
   const fv = e.target.closest('[data-fav]'); if(fv){ wisselFavoriet(fv.dataset.fav); return; }
   if(e.target.closest('#k-overige')){ overigeOpen = !overigeOpen; opslag.set('mict-overige-open', overigeOpen); tekenNav(); return; }
   const wf = e.target.closest('[data-wisfilter]'); if(wf){ delete kolFilter[wf.dataset.wisfilter]; teken(); return; }
@@ -1360,7 +1371,6 @@ document.addEventListener('click', e => {
   const a = e.target.closest('[data-actie]'); if(a){ voerUit(+a.dataset.actie); return; }
   if(e.target.closest('#k-actie')){ const v = $('#actie-keuze').value; if(v !== '') voerUit(+v); return; }
   if(e.target.closest('#k-reageer')){ voerUit(null); return; }
-  const ma2 = e.target.closest('#f-mijalles button'); if(ma2){ mijAlles[tab] = ma2.dataset.v; opslag.set('mict-mijalles', mijAlles); teken(); return; }
   const sb = e.target.closest('#f-soort button'); if(sb){ soortKeuze[tab] = sb.dataset.v; opslag.set('mict-soort', soortKeuze); teken(); return; }
   if(e.target.closest('#nieuw-knop')){ nieuweMelding(); return; }
   if(e.target.closest('[data-sluitnieuw]')){ sluitDialoog($('#nieuw')); return; }
