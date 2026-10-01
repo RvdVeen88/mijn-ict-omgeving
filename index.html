@@ -389,7 +389,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.32 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.33 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -437,7 +437,7 @@ const INST = Object.assign({
   connMedewerkers: 'PowerBI_ICT_Verjaardag',   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.32';
+const VERSIE = 'v3.33';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -718,6 +718,8 @@ const heeftGebied = () => !!profiel && (profiel.rol === 'servicedesk' || (profie
 const gebiedLabel = () => !profiel ? '' : profiel.rol === 'servicedesk' ? 'alle afdelingen' : (profiel.favorieten || []).join(', ') || 'geen afdeling geselecteerd';
 
 /* ================= signalen: dezelfde normen als het SLA-dashboard, per ticket ================= */
+// statusnaam voor op het scherm: 'In behandeling ICT' wordt 'In behandeling'
+const toonStatus = st => String(st || '').replace(/\s+ICT$/i, '').trim();
 const stilSinds = x => x.reactieDatum || x.statusDatum || x.aangemaakt;
 /* gelezen: per ticket het moment dat je het voor het laatst opende; wat een ander daarna deed is een ongelezen update */
 const GELEZEN = 'mict-gelezen', gelezen = opslag.get(GELEZEN) || {};
@@ -748,16 +750,16 @@ function signalen(x){
     else s.push({ernst:2, code:'nieuw', tekst:'Nieuw · oppakken vóór ' + (voor ? (beginDag(voor) > beginDag(nu) ? fmtDatum(new Date(voor)) + ' ' : '') + fmtTijd(new Date(voor)) : '?'), uitleg});
   }
   if(sla && x.emmer === 'opvolging' && !x.gepland){ const ms = werkMs(stilSinds(x), nu);
-    if(ms >= INST.opvolgingDagen * werkdagMs()) s.push({ernst:3, code:'opvolging', tekst:`${wd(ms)} werkdagen geen reactie`, uitleg:`Status "${x.status}" zonder planning: na ${INST.opvolgingDagen} werkdagen zonder reactie of statuswijziging moet de melder iets horen. Nu ${wd(ms)} werkdagen stil; ${laatsteActiviteit(x)}. Plaats een reactie of zet een planningsdatum.`}); }
+    if(ms >= INST.opvolgingDagen * werkdagMs()) s.push({ernst:3, code:'opvolging', tekst:`${wd(ms)} werkdagen geen reactie`, uitleg:`Status "${toonStatus(x.status)}" zonder planning: na ${INST.opvolgingDagen} werkdagen zonder reactie of statuswijziging moet de melder iets horen. Nu ${wd(ms)} werkdagen stil; ${laatsteActiviteit(x)}. Plaats een reactie of zet een planningsdatum.`}); }
   if(sla && x.emmer === 'melder'){ const ms = werkMs(stilSinds(x), nu);
-    if(ms >= INST.melderDagen * werkdagMs()) s.push({ernst:3, code:'melder', tekst:`Melder ${wd(ms)} werkdagen stil`, uitleg:`Status "${x.status}": na ${INST.melderDagen} werkdagen zonder antwoord van de melder het ticket opvolgen of afsluiten. Nu ${wd(ms)} werkdagen stil; ${laatsteActiviteit(x)}.`}); }
+    if(ms >= INST.melderDagen * werkdagMs()) s.push({ernst:3, code:'melder', tekst:`Melder ${wd(ms)} werkdagen stil`, uitleg:`Status "${toonStatus(x.status)}": na ${INST.melderDagen} werkdagen zonder antwoord van de melder het ticket opvolgen of afsluiten. Nu ${wd(ms)} werkdagen stil; ${laatsteActiviteit(x)}.`}); }
   if(sla && x.emmer === 'leverancier'){ const ms = werkMs(stilSinds(x), nu);
-    if(ms >= INST.leverancierDagen * werkdagMs()) s.push({ernst:3, code:'leverancier', tekst:`Leverancier ${wd(ms)} werkdagen stil`, uitleg:`Status "${x.status}": na ${INST.leverancierDagen} werkdagen zonder nieuws de leverancier rappelleren en de melder bijpraten. Nu ${wd(ms)} werkdagen stil; ${laatsteActiviteit(x)}.`}); }
+    if(ms >= INST.leverancierDagen * werkdagMs()) s.push({ernst:3, code:'leverancier', tekst:`Leverancier ${wd(ms)} werkdagen stil`, uitleg:`Status "${toonStatus(x.status)}": na ${INST.leverancierDagen} werkdagen zonder nieuws de leverancier rappelleren en de melder bijpraten. Nu ${wd(ms)} werkdagen stil; ${laatsteActiviteit(x)}.`}); }
   if(x.gepland && +x.gepland < nu) s.push({ernst:3, code:'planning', tekst:`Planning verlopen · ${fmtDatum(x.gepland)}`, uitleg:`De geplande datum (${fmtDatum(x.gepland)}) is voorbij en het ticket staat nog open. Rond het af of zet een nieuwe planningsdatum.`});
-  else if(!x.gepland && x.emmer === 'planning') s.push({ernst:3, code:'planning', tekst:'Planning ontbreekt', uitleg:`Status "${x.status}" vraagt om een planningsdatum, maar die is niet ingevuld.`});
+  else if(!x.gepland && x.emmer === 'planning') s.push({ernst:3, code:'planning', tekst:'Planning ontbreekt', uitleg:`Status "${toonStatus(x.status)}" vraagt om een planningsdatum, maar die is niet ingevuld.`});
   else if(x.gepland && (beginDag(x.gepland) - beginDag(nu)) / DAG <= 1) s.push({ernst:1, code:'binnenkort', tekst:`Gepland ${beginDag(x.gepland) - beginDag(nu) < DAG ? 'vandaag' : 'morgen'}`, uitleg:`Ter info: dit ticket staat gepland op ${fmtDatum(x.gepland)}.`});
   const u = ongelezen(x);
-  if(u) s.push({ernst:1, code:'ongelezen', tekst: u.wat === 'toegewezen' ? 'Nieuw voor jou' : u.wat === 'reactie' ? `Ongelezen reactie · ${u.wie.split(' ')[0]}` : 'Ongelezen update', uitleg: u.wat === 'toegewezen' ? `Dit ticket is${u.wie && !benIk(u.wie) ? ' door ' + u.wie : ''} aan jou toegewezen en je hebt het nog niet geopend.` : u.wat === 'reactie' ? `${u.wie} reageerde op ${wanneer(u.t)}, nadat jij het ticket voor het laatst opende. Open het ticket om het te lezen.` : `${u.wie} wijzigde het ticket op ${wanneer(u.t)} (status nu "${x.status}"), nadat jij het voor het laatst opende.`});
+  if(u) s.push({ernst:1, code:'ongelezen', tekst: u.wat === 'toegewezen' ? 'Nieuw voor jou' : u.wat === 'reactie' ? `Ongelezen reactie · ${u.wie.split(' ')[0]}` : 'Ongelezen update', uitleg: u.wat === 'toegewezen' ? `Dit ticket is${u.wie && !benIk(u.wie) ? ' door ' + u.wie : ''} aan jou toegewezen en je hebt het nog niet geopend.` : u.wat === 'reactie' ? `${u.wie} reageerde op ${wanneer(u.t)}, nadat jij het ticket voor het laatst opende. Open het ticket om het te lezen.` : `${u.wie} wijzigde het ticket op ${wanneer(u.t)} (status nu "${toonStatus(x.status)}"), nadat jij het voor het laatst opende.`});
   if(!x.afdeling && !x.inuit) s.push({ernst:3, code:'afdeling', tekst:'Geen afdeling', uitleg:'Er is geen afdeling aan dit ticket toegewezen, waardoor het bij niemand in beeld komt. Zet het door naar de juiste afdeling.'});
   if(x.kritiek) s.unshift({ernst:3, code:'kritiek', tekst:'Kritieke storing', uitleg:'In AFAS als kritieke storing gemarkeerd: direct oppakken.'});
   return s;
@@ -786,7 +788,7 @@ const KOLOMMEN = [
   {k:'wie', bw:'12%', t:'Behandelaar', w:x => norm(x.verantw), html:x => esc(x.verantw || '–'), cls:'zacht k-wie'},
   {k:'reactie', bw:'96px', t:'Laatste reactie', w:x => +x.reactieDatum || 0, html:x => x.reactieDatum ? kortDatum(x.reactieDatum) : '–', cls:'zacht k-reactie'},
   {k:'type', bw:'9%', t:'Type', w:x => norm(x.type), html:x => esc(x.type || '–'), cls:'zacht k-type'},
-  {k:'status', bw:'12%', t:'Status', w:x => norm(x.status), html:x => esc(x.status || 'Open'), cls:''},
+  {k:'status', bw:'12%', t:'Status', w:x => norm(x.status), html:x => esc(toonStatus(x.status) || 'Open'), cls:''},
   {k:'gepland', bw:'86px', t:'Gepland', w:x => +x.gepland || 0, html:x => x.gepland ? kortDatum(x.gepland) : '', cls:'zacht k-gepland'},
   {k:'sig', bw:'196px', t:'Signaal', w:x => ernst(x), html:x => (x._sg || []).filter(s => s.ernst >= 1).slice(0, 2).map(chip).join(' '), cls:'sig'}
 ];
@@ -945,6 +947,8 @@ function zichtbaar(t, l){
   const sk = soortVan(t); if(sk === 'changes') l = l.filter(isChange); if(sk === 'meldingen') l = l.filter(x => !isChange(x));
   return l;
 }
+// alleen eigen tickets in beeld: dan is de kolom Behandelaar overbodig (dat ben je zelf)
+const alleenEigen = t => t === 'toegewezen' || (t === 'norm' && schuifAan(t)) || (t.startsWith('afd:') && schuifAan(t));
 function tekenLijst(){
   const v = weergave(tab), w = norm(filt.zoek);
   let l = v.lijst;
@@ -962,7 +966,7 @@ function tekenLijst(){
   $('#lijst-sub').textContent = l.length > 400 ? 'eerste 400 getoond; zoek of sorteer om te verfijnen' : 'Klik op een kolomkop om te sorteren';
   if(tab === 'dicht' && !alleGeladen) $('#lijst-sub').textContent = 'Gesloten meldingen worden nog opgehaald…';
   $('#lijst-kol').innerHTML = kolKnop;
-  $('#lijst').innerHTML = l.length ? tabel('lijst:' + tab, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(tab === 'dicht' ? ['sig'] : [])]}) : '<p class="leeg">Geen tickets gevonden.</p>';
+  $('#lijst').innerHTML = l.length ? tabel('lijst:' + tab, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(tab === 'dicht' ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])]}) : '<p class="leeg">Geen tickets gevonden.</p>';
   $('#titel').textContent = v.titel; $('#subtitel').textContent = '';
 }
 let tab = 'mij';
@@ -1058,7 +1062,7 @@ function openDetail(nr){
     <div class="kaarten">
       <div class="kaart2"><h3>Melding</h3>${r('Melder', x.melder, {altijd:true})}${r('Type ticket', x.type)}${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}${r('Locatie', x.locatie)}
         ${x.toelichting ? `<div class="lang">${esc(x.toelichting)}</div>` : ''}</div>
-      <div class="kaart2"><h3>Behandeling</h3>${r('Verantwoordelijke', x.verantw, {altijd:true})}${r('Status', x.status, {altijd:true})}<span>Taak</span><b id="d-taak">…</b>
+      <div class="kaart2"><h3>Behandeling</h3>${r('Verantwoordelijke', x.verantw, {altijd:true})}${r('Status', toonStatus(x.status), {altijd:true})}<span>Taak</span><b id="d-taak">…</b>
         ${r('Gepland', x.gepland ? fmtDatum(x.gepland) : '')}${r('Laatste reactie', x.reactieDatum ? fmtDatum(x.reactieDatum) + (x.reactieDoor ? ' · ' + x.reactieDoor : '') : '')}${r('Extern ticket', x.extern)}${x.kritiek ? r('Kritieke storing', 'Ja') : ''}</div>
     </div>
     ${link ? `<a class="hint" href="${esc(link)}" target="_blank" rel="noopener">Openen in AFAS ↗</a>` : ''}
