@@ -206,7 +206,7 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
         <div class="blok tabel" style="margin-top:14px"><header><h2 id="alle-titel">Tickets</h2><b id="alle-n">0</b><small id="alle-sub"></small></header><div id="alle-lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="versie">Mijn ICT-Omgeving v1.6 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="versie">Mijn ICT-Omgeving v1.8 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -243,7 +243,7 @@ const INST = Object.assign({
   ticketUrl: '',           // bv. 'https://88406.afasinsite.nl/...?SbId={sbid}'; leeg = geen link
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v1.6';
+const VERSIE = 'v1.8';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -608,13 +608,19 @@ async function wieBenIk(){
   // ook geschikt: "Groepen per gebruiker" (één rij per autorisatiegroep); de groepen gebruiken we dan voor de aandachtsgebieden
   try{ const rows = (await afas(`/connectors/${encodeURIComponent(INST.connIk)}?skip=0&take=200`)).rows || [];
     if(rows.length){ const r = rows[0];
-      const naamVan = x => pak(x, /^(naam|naam_gebruiker|naam_gebruiker_1|volledige_naam|weergavenaam|name|gebruikersnaam)$/i) || pak(x, /naam.*gebruiker|gebruiker.*naam|^naam/i);
-      const naam = naamVan(r), groepVeld = Object.keys(r).find(k => /groep/i.test(k) && !/code|id$/i.test(k)) || Object.keys(r).find(k => /groep/i.test(k));
-      if(naam && rows.every(x => norm(naamVan(x)) === norm(naam)))
-        return {naam, code: pak(r, /^(gebruiker|gebruikerscode|gebruiker_code|user|userid|gebruiker_id)$/i), functie: pak(r, /functie/i), afdeling: pak(r, /afdeling|organisatorische|^oe$/i),
+      // in 'Groepen per gebruiker' heet de naam van de gebruiker Omschrijving (in AFAS: kolom Gebruiker), de code Gebruiker (kolom Gebr.)
+      const naamVan = x => pak(x, /^(naam|naam_gebruiker|naam_gebruiker_1|volledige_naam|weergavenaam|name|gebruikersnaam)$/i) || pak(x, /naam.*gebruiker|gebruiker.*naam|^naam/i) || pak(x, /^omschrijving$/i);
+      const code = pak(r, /^(gebruiker|gebruikerscode|gebruiker_code|user|userid|gebruiker_id)$/i);
+      let naam = naamVan(r);
+      // geen naamkolom (bv. Groepen per gebruiker: Groep, Gebruiker, Omschrijving): naam opzoeken bij de gebruikerscode in de workflowtaken
+      if(!naam && code){ try{ const t = (await afas(`/connectors/${INST.connTaken}?skip=0&take=1${filterOp('User', code)}`)).rows || []; naam = t[0] ? String(t[0].UserName || '').trim() : ''; }catch(e){} }
+      const groepVeld = Object.keys(r).find(k => /groep/i.test(k) && /omschr|naam/i.test(k)) || Object.keys(r).find(k => /^groep$/i.test(k));
+      const eenGebruiker = code ? rows.every(x => norm(pak(x, /^(gebruiker|gebruikerscode|gebruiker_code|user|userid|gebruiker_id)$/i)) === norm(code)) : rows.every(x => norm(naamVan(x)) === norm(naam));
+      if(naam && eenGebruiker)
+        return {naam, code, functie: pak(r, /functie/i), afdeling: pak(r, /afdeling|organisatorische|^oe$/i),
           groepen: groepVeld ? [...new Set(rows.map(x => String(x[groepVeld] ?? '').trim()).filter(Boolean))] : [], bron:INST.connIk};
       const namen = [...new Set(rows.map(naamVan))];
-      ikDiag = `${INST.connIk} gaf ${rows.length} regel(s). Kolommen: ${Object.keys(r).join(', ')}. ` + (naam ? `Gevonden namen: ${namen.slice(0, 5).join(', ')}${namen.length > 5 ? ' …' : ''} (meer dan één naam: het filter Gebruiker = [Gebruiker] werkt niet).` : 'Geen kolom met een naam herkend.'); }
+      ikDiag = `${INST.connIk} gaf ${rows.length} regel(s). Kolommen: ${Object.keys(r).join(', ')}. ` + (naam ? `Gevonden namen: ${namen.slice(0, 5).join(', ')}${namen.length > 5 ? ' …' : ''} (meer dan één gebruiker: het filter Gebruiker = [Gebruiker] werkt niet).` : `Gebruikerscode ${code || '?'} gevonden, maar geen naam: voeg in de GetConnector het veld met de naam van de gebruiker toe.`); }
     else ikDiag = `${INST.connIk} gaf 0 regels terug. Het filter Gebruiker = [Gebruiker] levert voor jou niets op, of je hebt via filterautorisatie geen rechten op deze gegevens.`; }
   catch(e){ ikDiag = `${INST.connIk}: ${e.message}`; }
   // 2. terugval: workflowtaken van de ingelogde gebruiker (werkt alleen als AFAS de filtertag ook in een aanroep toestaat)
