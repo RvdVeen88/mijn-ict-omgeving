@@ -357,7 +357,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.16 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.18 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -404,7 +404,7 @@ const INST = Object.assign({
   connMedewerkers: 'Profit_Employees',   // medewerkers om als melder te kiezen (standaard GetConnector van AFAS)
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.16';
+const VERSIE = 'v3.18';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -680,6 +680,8 @@ function inGebied(x){
   if(profiel.rol === 'servicedesk') return true;
   return (profiel.favorieten || []).some(f => norm(f) === norm(x.afdeling));
 }
+// zonder gekozen afdeling (en geen servicedesk) laten we het afdelingenblok en de tegel weg
+const heeftGebied = () => !!profiel && (profiel.rol === 'servicedesk' || (profiel.favorieten || []).length > 0);
 const gebiedLabel = () => !profiel ? '' : profiel.rol === 'servicedesk' ? 'alle afdelingen' : (profiel.favorieten || []).join(', ') || 'geen afdeling geselecteerd';
 
 /* ================= signalen: dezelfde normen als het SLA-dashboard, per ticket ================= */
@@ -718,6 +720,7 @@ function signalen(x){
   else if(x.gepland && (beginDag(x.gepland) - beginDag(nu)) / DAG <= 1) s.push({ernst:1, code:'binnenkort', tekst:`Gepland ${beginDag(x.gepland) - beginDag(nu) < DAG ? 'vandaag' : 'morgen'}`, uitleg:`Ter info: dit ticket staat gepland op ${fmtDatum(x.gepland)}.`});
   const u = ongelezen(x);
   if(u) s.push({ernst:1, code:'ongelezen', tekst: u.wat === 'reactie' ? `Ongelezen reactie · ${u.wie.split(' ')[0]}` : 'Ongelezen update', uitleg: u.wat === 'reactie' ? `${u.wie} reageerde op ${wanneer(u.t)}, nadat jij het ticket voor het laatst opende. Open het ticket om het te lezen.` : `${u.wie} wijzigde het ticket op ${wanneer(u.t)} (status nu "${x.status}"), nadat jij het voor het laatst opende.`});
+  if(!x.afdeling && !x.inuit) s.push({ernst:3, code:'afdeling', tekst:'Geen afdeling', uitleg:'Er is geen afdeling aan dit ticket toegewezen, waardoor het bij niemand in beeld komt. Zet het door naar de juiste afdeling.'});
   if(x.kritiek) s.unshift({ernst:3, code:'kritiek', tekst:'Kritieke storing', uitleg:'In AFAS als kritieke storing gemarkeerd: direct oppakken.'});
   return s;
 }
@@ -842,11 +845,11 @@ function tekenMij(){
   const tegel = (n, t, sub, kl, doel) => `<button type="button" class="tegel ${n ? kl : 'nul'}" data-weergave="${doel}" title="${esc(sub)}"><span>${t}</span><b>${n}</b><small>${esc(sub)}</small></button>`;
   $('#tegels').innerHTML = tegel(mijnActie.length, 'Actie nodig', 'op jouw naam', 'rood', 'toegewezen')
     + tegel(nieuwLos.length, 'Nieuw op te pakken', profiel.rol === 'servicedesk' ? 'zonder behandelaar' : 'in je afdelingen', 'oranje', 'nieuw')
-    + (false ? '' : tegel(gebiedActie.length, profiel.rol === 'servicedesk' ? 'Aandacht nodig bij collega’s' : 'Aandacht in mijn afdelingen', gebiedLabel(), 'oranje', 'norm'))
+    + (!heeftGebied() ? '' : tegel(gebiedActie.length, profiel.rol === 'servicedesk' ? 'Aandacht nodig bij collega’s' : 'Aandacht in mijn afdelingen', gebiedLabel(), 'oranje', 'norm'))
     + tegel(mijn.length, 'Mijn open tickets', 'verantwoordelijk of taak bij jou', '', 'toegewezen');
   let html = blok('actie', 'Actie nodig', mijnActie, {rood:true, zonder:['wie'], leeg:'Niets dat over een norm gaat. Mooi zo.', sub:'Verlopen planning, te lang geen reactie, nieuwe meldingen'});
   if(profiel.rol === 'servicedesk' || nieuwLos.length) html += blok('nieuwlos', 'Nieuwe meldingen zonder behandelaar', nieuwLos, {zonder:['wie','reactie','gepland'], leeg:'Geen nieuwe meldingen die wachten.', sub:`Binnen ${INST.nieuwUren} werkuren oppakken`});
-  if(true) html += blok('gebied', profiel.rol === 'servicedesk' ? 'Aandacht nodig, bij een collega' : 'In mijn afdelingen: ' + gebiedLabel(),
+  if(heeftGebied()) html += blok('gebied', profiel.rol === 'servicedesk' ? 'Aandacht nodig, bij een collega' : 'In mijn afdelingen: ' + gebiedLabel(),
     profiel.rol === 'servicedesk' ? gebiedActie : gebied, {leeg:'Niets open in je afdelingen, of nog geen afdeling met ★ gekozen.', sub:'Ook als het bij een collega ligt', max:8});
   html += blok('rust', 'Mijn overige open tickets', mijnRust, {zonder:['wie'], leeg:'Geen andere open tickets.', max:10});
   $('#blokken').innerHTML = html;
@@ -860,7 +863,7 @@ const schuifAan = t => heeftSchuif(t) && (alleenMijn[t] ?? t === 'norm');
 const soortKeuze = opslag.get('mict-soort') || {};   // per afdeling: alle | meldingen | changes
 const soortVan = t => t.startsWith('afd:') ? (soortKeuze[t] || 'alle') : 'alle';
 function zichtbaar(t, l){
-  if(schuifAan(t)) l = l.filter(isMijn);
+  if(schuifAan(t)) l = l.filter(x => isMijn(x) || (t === 'norm' && !x.afdeling && !x.inuit));
   const sk = soortVan(t); if(sk === 'changes') l = l.filter(isChange); if(sk === 'meldingen') l = l.filter(x => !isChange(x));
   return l;
 }
@@ -1436,6 +1439,7 @@ function demoAfas(pad, opties){
     add(12606, 'Emma loopt vast bij opslaan decursus', 'In behandeling', mens[2], {cat:'Emma EPD', reactie:d(7), wijz:d(7)});
     add(12607, 'Sjabloon ontslagbrief aanpassen', 'In behandeling', mens[1], {cat:'Emma EPD', type:'Change', soort:'Change', gepland:d(3)});
     add(12608, 'Labuitslagen komen niet binnen', 'Nieuw', '', {cat:'Emma EPD', in:lok(new Date(nu - 3 * UUR)), krit:true});
+    add(12613, 'Toegang tot nieuwe gedeelde mailbox', 'In behandeling', mens[1], {afd:' ', reactie:d(1)});
     add(12609, 'Printer balie Hanzeplein', 'Nieuw', '', {in:lok(new Date(nu - 40 * 60e3)), cat:'Printers'});
     add(12610, 'Storing faxkoppeling huisartsen', 'Wachten op leverancier', mens[3], {cat:'Koppelingen', reactie:d(12), wijz:d(12)});
     add(12612, 'Licentie scansoftware verlopen', 'In afwachting leverancier', mens[0], {cat:'Software', reactie:d(15), wijz:d(15)});
