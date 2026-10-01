@@ -267,6 +267,15 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .chip.ongelezen::before{content:'';width:6px;height:6px;border-radius:50%;background:#fff;flex:none}
 #uitleg{position:fixed;z-index:60;max-width:320px;background:var(--inkt);color:var(--vlak);font-size:12.5px;line-height:1.45;padding:9px 12px;border-radius:0 12px 12px 0;box-shadow:0 8px 24px rgba(3,31,77,.25);pointer-events:none;opacity:0;transition:opacity .12s}
 #uitleg.zichtbaar{opacity:1}
+.kolknop{margin-left:12px;display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--lijn);background:var(--vlak);border-radius:0 999px 999px 0;padding:3px 12px 3px 9px;font-size:12px;font-weight:500;color:var(--grijs);cursor:pointer;white-space:nowrap}
+.kolknop:hover{color:var(--blauw);border-color:var(--lichtblauw)}
+.kolknop svg{width:14px;height:14px}
+#kolkeuze{position:fixed;z-index:70;background:var(--vlak);border:1.5px solid var(--lijn);border-radius:0 16px 16px 0;box-shadow:0 12px 32px rgba(3,31,77,.18);padding:12px 16px;min-width:220px;display:flex;flex-direction:column;gap:6px}
+#kolkeuze[hidden]{display:none}
+#kolkeuze h4{margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--grijs)}
+#kolkeuze label{display:flex;align-items:center;gap:8px;font-size:13.5px;cursor:pointer}
+#kolkeuze p{margin:6px 0 0;font-size:11.5px;color:var(--grijs);max-width:220px}
+#kolkeuze .linkknop{align-self:flex-start;font-size:12px}
 #combo{position:fixed;z-index:70;max-height:260px;overflow:auto;background:var(--vlak);border:1.5px solid var(--lijn);border-radius:0 14px 14px 0;box-shadow:0 12px 32px rgba(3,31,77,.18);padding:4px;max-width:360px}
 #combo button{display:flex;justify-content:space-between;gap:12px;width:100%;text-align:left;border:0;background:transparent;padding:6px 10px;border-radius:0 8px 8px 0;font-size:13px;color:var(--inkt);cursor:pointer}
 #combo button:hover,#combo button.actief{background:var(--lichtblauw-2);color:var(--blauw)}
@@ -285,8 +294,15 @@ dialog #combo{position:fixed}
 .tabel tr.geenrij td{color:var(--grijs);padding:14px 12px;cursor:default}
 .filterinfo{font-size:12.5px;color:var(--grijs);padding:8px 14px}
 .linkknop{border:0;background:none;color:var(--blauw-2);text-decoration:underline;font-size:12.5px;padding:0;cursor:pointer}
-@media (max-width:1400px){.tabel .k-reactie,.tabel .k-afd,.tabel .k-in{display:none}}
-@media (max-width:1150px){.tabel .k-melder,.tabel .k-gepland,.tabel .k-type{display:none}}
+/* kolommen vallen weg op volgorde van belang zodra de tabel smaller wordt (werkt op elk scherm en elke zoomstand) */
+.tw{container-type:inline-size}
+@container (max-width:1250px){.tabel .k-reactie{display:none}}
+@container (max-width:1120px){.tabel .k-afd{display:none}}
+@container (max-width:1010px){.tabel .k-in{display:none}}
+@container (max-width:920px){.tabel .k-type{display:none}.tabel{font-size:12.8px}.tabel th.k-sig{width:160px!important}}
+@container (max-width:830px){.tabel .k-gepland{display:none}}
+@container (max-width:740px){.tabel .k-melder{display:none}}
+@container (max-width:620px){.tabel .k-wie{display:none}.tabel th.k-sig{width:130px!important}}
 
 /* ---- ticketscherm ---- */
 dialog#detail{width:min(1080px,calc(100vw - 32px))}
@@ -356,7 +372,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
   <div class="werk">
     <div class="bovenbalk">
       <h1 id="titel">Voor mij</h1><span class="sub" id="subtitel"></span>
-      <div class="rechts"><span class="klok" id="klok"></span><div class="schakel klein" id="mijalles-top" role="group" title="Geldt voor Aandacht nodig en Nieuwe tickets. Mij = jouw tickets, nieuw in je afdelingen en wat bij niemand ligt."><button type="button" data-v="mij">Mij</button><button type="button" data-v="alles">Alles</button></div><button type="button" class="ik" id="ik" title="Mijn instellingen"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
+      <div class="rechts"><span class="klok" id="klok"></span><div class="schakel klein" id="mijalles-top" role="group" title="Geldt voor Aandacht nodig en Nieuwe tickets. Mij = alleen jouw tickets (bij Nieuwe tickets ook je ★-afdelingen)."><button type="button" data-v="mij">Mij</button><button type="button" data-v="alles">Alles</button></div><button type="button" class="ik" id="ik" title="Mijn instellingen"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
     </div>
     <main>
       <section id="v-mij">
@@ -370,10 +386,10 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
           <div class="schakel" id="f-mijalles" hidden title="Mij: jouw tickets en wat bij niemand ligt"><button data-v="mij">Mij <b></b></button><button data-v="alles">Alles <b></b></button></div>
           <label class="schuif" id="f-mijn" hidden><input type="checkbox"><i></i><span>Alleen mijn tickets</span></label>
         </div>
-        <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small></header><div id="lijst"></div></div>
+        <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.29 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.31 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -382,6 +398,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
 <div id="toast" role="status"></div>
 <div id="uitleg" role="tooltip"></div>
 <div id="combo" role="listbox" hidden></div>
+<div id="kolkeuze" hidden></div>
 <div class="topbalk" id="topbalk"><i></i></div>
 
 <script>
@@ -420,7 +437,7 @@ const INST = Object.assign({
   connMedewerkers: 'PowerBI_ICT_Verjaardag',   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.29';
+const VERSIE = 'v3.31';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -773,13 +790,27 @@ const KOLOMMEN = [
   {k:'gepland', bw:'86px', t:'Gepland', w:x => +x.gepland || 0, html:x => x.gepland ? kortDatum(x.gepland) : '', cls:'zacht k-gepland'},
   {k:'sig', bw:'196px', t:'Signaal', w:x => ernst(x), html:x => (x._sg || []).filter(s => s.ernst >= 1).slice(0, 2).map(chip).join(' '), cls:'sig'}
 ];
+KOLOMMEN.forEach(c => { if(!c.cls.split(' ').includes('k-' + c.k)) c.cls = (c.cls + ' k-' + c.k).trim(); });
+/* kolommen kiezen: per gebruiker te verbergen (Nr. en Onderwerp blijven altijd staan) */
+const VAST_KOL = new Set(['nr', 'ond']);
+let verborgenKol = new Set(opslag.get('mict-kolommen-uit') || []);
+function kolKeuze(knop){
+  const el = $('#kolkeuze');
+  if(!el.hidden && el._knop === knop){ el.hidden = true; return; }
+  el._knop = knop;
+  el.innerHTML = `<h4>Kolommen tonen</h4>${KOLOMMEN.filter(c => !VAST_KOL.has(c.k)).map(c => `<label><input type="checkbox" data-kol="${c.k}" ${verborgenKol.has(c.k) ? '' : 'checked'}> ${esc(c.t)}</label>`).join('')}
+    <p>Op een smal scherm vallen minder belangrijke kolommen vanzelf weg.</p><button type="button" class="linkknop" data-kolstd>Standaard herstellen</button>`;
+  const r = knop.getBoundingClientRect(); el.hidden = false;
+  el.style.top = (r.bottom + 6) + 'px'; el.style.left = Math.max(12, Math.min(innerWidth - el.offsetWidth - 12, r.right - el.offsetWidth)) + 'px';
+}
+const kolKnop = `<button type="button" class="kolknop" data-kolkeuze title="Kolommen kiezen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/></svg>Kolommen</button>`;
 const sortering = {};   // per tabel-id: {k, op}
 const kolFilter = {};   // per tabel-id: {kolom: zoektekst}
 const KEUZE = new Set(['afd','melder','wie','status','type']);   // kolommen met een keuzelijst in het filterveld
 const keuzeOpties = {};   // per tabel en kolom: de waarden voor de filterlijst
 const kolTekst = (c, x) => c.k === 'sig' ? (x._sg || []).map(s => s.tekst).join(' ') : String(c.html(x)).replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
 function tabel(id, l, opties = {}){
-  const zonder = new Set(opties.zonder || []), kol = KOLOMMEN.filter(c => !zonder.has(c.k));
+  const zonder = new Set(opties.zonder || []), kol = KOLOMMEN.filter(c => !zonder.has(c.k) && !verborgenKol.has(c.k));
   const kf = kolFilter[id] || {}, actief = Object.entries(kf).filter(([, v]) => v && v.trim());
   const opties_ = {}; kol.filter(c => KEUZE.has(c.k)).forEach(c => opties_[c.k] = [...new Set(l.map(x => kolTekst(c, x)).filter(v => v && v !== '–'))].sort((a, b) => a.localeCompare(b, 'nl')));
   Object.entries(opties_).forEach(([k, v]) => keuzeOpties[id + '|' + k] = v);
@@ -795,7 +826,7 @@ function tabel(id, l, opties = {}){
     ${l.length > max ? `<button type="button" class="meer" data-blok="${id}">${blokOpen.has(id) ? 'Minder tonen' : `Alle ${l.length} tonen`}</button>` : ''}`;
 }
 function blok(id, titel, l, opties = {}){
-  return `<section class="blok ${opties.rood && l.length ? 'rood' : ''}"><header><h2>${esc(titel)}</h2><b>${l.length}</b><small>${esc(opties.sub || '')}</small></header>
+  return `<section class="blok ${opties.rood && l.length ? 'rood' : ''}"><header><h2>${esc(titel)}</h2><b>${l.length}</b><small>${esc(opties.sub || '')}</small>${l.length ? kolKnop : ''}</header>
     ${l.length ? tabel(id, l, opties) : `<p class="leeg">${esc(opties.leeg || 'Niets te doen.')}</p>`}</section>`;
 }
 
@@ -905,8 +936,8 @@ const heeftSchuif = t => t.startsWith('afd:');
 const heeftMijAlles = t => t === 'norm' || t === 'nieuw';
 let mijAllesStand = opslag.get('mict-mijalles-top') || 'mij';
 const schuifAan = t => heeftSchuif(t) ? !!alleenMijn[t] : heeftMijAlles(t) ? mijAllesStand === 'mij' : false;
-// wat telt als 'Mij': jouw tickets, en wat bij niemand ligt (geen afdeling); bij nieuwe tickets ook nieuw binnen je afdelingen
-const vanMij = (t, x) => isMijn(x) || (!x.afdeling && !x.inuit) || (t === 'nieuw' && inGebied(x));
+// wat telt als 'Mij': alleen jouw tickets; bij nieuwe tickets ook wat nieuw binnenkomt in je ★-afdelingen
+const vanMij = (t, x) => isMijn(x) || (t === 'nieuw' && inGebied(x));
 const soortKeuze = opslag.get('mict-soort') || {};   // per afdeling: alle | meldingen | changes
 const soortVan = t => t.startsWith('afd:') ? (soortKeuze[t] || 'alle') : 'alle';
 function zichtbaar(t, l){
@@ -930,6 +961,7 @@ function tekenLijst(){
   $('#lijst-titel').textContent = v.titel; $('#lijst-n').textContent = l.length;
   $('#lijst-sub').textContent = l.length > 400 ? 'eerste 400 getoond; zoek of sorteer om te verfijnen' : 'Klik op een kolomkop om te sorteren';
   if(tab === 'dicht' && !alleGeladen) $('#lijst-sub').textContent = 'Gesloten meldingen worden nog opgehaald…';
+  $('#lijst-kol').innerHTML = kolKnop;
   $('#lijst').innerHTML = l.length ? tabel('lijst:' + tab, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(tab === 'dicht' ? ['sig'] : [])]}) : '<p class="leeg">Geen tickets gevonden.</p>';
   $('#titel').textContent = v.titel; $('#subtitel').textContent = '';
 }
@@ -1400,6 +1432,7 @@ function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken
 
 /* ================= bediening ================= */
 document.addEventListener('click', e => {
+  if(!e.target.closest('#kolkeuze') && !e.target.closest('[data-kolkeuze]')) $('#kolkeuze').hidden = true;
   const ma = e.target.closest('#mijalles-top button'); if(ma){ mijAllesStand = ma.dataset.v; opslag.set('mict-mijalles-top', mijAllesStand); teken(); return; }
   const fv = e.target.closest('[data-fav]'); if(fv){ wisselFavoriet(fv.dataset.fav); return; }
   if(e.target.closest('#k-overige')){ overigeOpen = !overigeOpen; tekenNav(); return; }
@@ -1415,6 +1448,8 @@ document.addEventListener('click', e => {
   if(e.target.closest('#k-actie')){ const v = $('#actie-keuze').value; if(v !== '') voerUit(+v); return; }
   if(e.target.closest('#k-reageer')){ voerUit(null); return; }
   const sb = e.target.closest('#f-soort button'); if(sb){ soortKeuze[tab] = sb.dataset.v; opslag.set('mict-soort', soortKeuze); teken(); return; }
+  const kk = e.target.closest('[data-kolkeuze]'); if(kk){ kolKeuze(kk); return; }
+  if(e.target.closest('[data-kolstd]')){ verborgenKol = new Set(); opslag.set('mict-kolommen-uit', []); $('#kolkeuze').hidden = true; teken(); return; }
   if(e.target.closest('#nieuw-knop')){ nieuweMelding(); return; }
   if(e.target.closest('[data-sluitnieuw]')){ sluitDialoog($('#nieuw')); return; }
   if(e.target.closest('#n-maak')){ maakMelding(); return; }
@@ -1431,6 +1466,7 @@ document.addEventListener('mouseover', e => {
   t.style.left = x + 'px'; t.style.top = y + 'px';
 });
 document.addEventListener('change', e => {
+  const kc = e.target.closest('#kolkeuze [data-kol]'); if(kc){ kc.checked ? verborgenKol.delete(kc.dataset.kol) : verborgenKol.add(kc.dataset.kol); opslag.set('mict-kolommen-uit', [...verborgenKol]); teken(); return; }
   if(e.target.closest('#f-mijn')){ alleenMijn[tab] = e.target.checked; opslag.set('mict-alleenmijn', alleenMijn); teken(); }
 });
 function zetKolFilter(id, k, v, focus = true, pos){
