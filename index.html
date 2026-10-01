@@ -272,7 +272,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v2.0 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v2.1 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -309,7 +309,7 @@ const INST = Object.assign({
   ticketUrl: '',           // bv. 'https://88406.afasinsite.nl/...?SbId={sbid}'; leeg = geen link
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v2.0';
+const VERSIE = 'v2.1';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -416,7 +416,7 @@ function maakVoortgang(namen, naarScherm){
   const gewicht = n => verwacht[n] || 1000;
   const totaal = () => namen.reduce((t, n) => t + gewicht(n), 0);
   return {
-    stap(n, rijen, klaar){ const s = stand[n]; s.rijen = rijen; s.pagina++; s.klaar = klaar;
+    stap(n, rijen, klaar){ const s = stand[n]; if(!s) return; s.rijen = rijen; s.pagina++; s.klaar = klaar;
       const p = namen.reduce((t, x) => t + deel(x) * gewicht(x), 0) / totaal();
       const geteld = namen.reduce((t, x) => t + stand[x].rijen, 0), schat = namen.reduce((t, x) => t + (stand[x].klaar ? stand[x].rijen : Math.max(verwacht[x] || 0, stand[x].rijen)), 0);
       naarScherm(Math.round(p * 100), geteld, Object.keys(verwacht).length ? schat : 0);
@@ -459,7 +459,7 @@ function maakItem(r, extra){
   return x;
 }
 let alleGeladen = false, laatsteTaken = [], achterBezig = null;
-const OPEN_FILTER = filterOp('Workflow_afgerond', 'false');
+let openFilterWaarde = '';
 function bouwItems(sla, tickets, taken){
   const sbPerNr = new Map(tickets.map(t => [String(t.Nummer), t]));
   taakPerSb = new Map();
@@ -472,15 +472,19 @@ function bouwItems(sla, tickets, taken){
 async function laadGegevens(fase = 'open'){
   $('#live').classList.add('uit'); $('#bijgewerkt').textContent = 'Bezig met verversen…';
   const vg = maakVoortgang([INST.connSla, INST.connTickets, INST.connTaken].map(n => n + '|' + fase), laadScherm); vg.begin();
-  const mee = n => (rijen, klaar) => vg.stap(n + '|' + fase, rijen, klaar);
+  const sleutel = fase, mee = n => (rijen, klaar) => vg.stap(n + '|' + sleutel, rijen, klaar);
   try{
     let sla, tickets, taken;
     if(fase === 'open'){
-      try{ [sla, tickets] = await Promise.all([connectorAlles(INST.connSla, OPEN_FILTER, mee(INST.connSla)), connectorAlles(INST.connTickets, OPEN_FILTER, mee(INST.connTickets))]);
-        if(!sla.length) throw new Error('leeg'); }
-      catch(e){ fase = 'alles'; [sla, tickets] = await Promise.all([connectorAlles(INST.connSla, '', mee(INST.connSla)), connectorAlles(INST.connTickets, '', mee(INST.connTickets))]); }
+      // filterwaarde voor ja/nee-velden verschilt per omgeving: probeer false en 0; lukt geen van beide, dan alles ophalen
+      for(const w of [openFilterWaarde, 'false', '0', 'False'].filter((v, i, a) => v && a.indexOf(v) === i)){
+        try{ const f = filterOp('Workflow_afgerond', w);
+          [sla, tickets] = await Promise.all([connectorAlles(INST.connSla, f, mee(INST.connSla)), connectorAlles(INST.connTickets, f, mee(INST.connTickets))]);
+          if(sla.length){ openFilterWaarde = w; break; } sla = null; }catch(e){ sla = null; }
+      }
+      if(!sla){ fase = 'alles'; [sla, tickets] = await Promise.all([connectorAlles(INST.connSla, '', mee(INST.connSla)), connectorAlles(INST.connTickets, '', mee(INST.connTickets))]); }
     } else [sla, tickets] = await Promise.all([connectorAlles(INST.connSla, '', mee(INST.connSla)), connectorAlles(INST.connTickets, '', mee(INST.connTickets))]);
-    taken = laatsteTaken = await connectorAlles(INST.connTaken, '', mee(INST.connTaken)).catch(() => { vg.stap(INST.connTaken + '|' + fase, 0, true); return laatsteTaken; });
+    taken = laatsteTaken = await connectorAlles(INST.connTaken, '', mee(INST.connTaken)).catch(() => { vg.stap(INST.connTaken + '|' + sleutel, 0, true); return laatsteTaken; });
     const nieuw = bouwItems(sla, tickets, taken);
     if(fase === 'open' && alleGeladen){ const nrs = new Set(nieuw.map(x => String(x.nr))); items = [...nieuw, ...items.filter(x => x.afgesloten && !nrs.has(String(x.nr)))]; }
     else items = nieuw;
