@@ -371,7 +371,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.26 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.27 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -418,7 +418,7 @@ const INST = Object.assign({
   connMedewerkers: 'PowerBI_ICT_Verjaardag',   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.26';
+const VERSIE = 'v3.27';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -837,7 +837,7 @@ function wisselFavoriet(a){
   else { f.push(a); (INST.afdErbij[a] || []).forEach(e => { const n = bestaand.find(x => norm(x) === norm(e)); if(n && !f.some(x => norm(x) === norm(n))) f.push(n); }); }
   opslag.set(profielSleutel(), profiel); teken();
 }
-let overigeOpen = !!opslag.get('mict-overige-open');
+let overigeOpen = false;   // bij openen altijd dichtgeklapt
 function tekenNav(){
   const mini = id => `<span class="minischak" role="group" aria-label="Mij of alles">${['mij','alles'].map(v => `<span role="button" tabindex="0" data-mijalles="${id}" data-v="${v}" aria-pressed="${(v === 'mij') === schuifAan(id)}" title="${v === 'mij' ? 'Alleen mijn tickets en wat bij niemand ligt' : 'Alle tickets'}">${v === 'mij' ? 'Mij' : 'Alle'}</span>`).join('')}</span>`;
   const it = (id, t, n, o = {}) => { const ong = o.ongelezen ? open().filter(x => (x._sg || []).some(s => s.code === 'ongelezen')).length : 0;
@@ -846,7 +846,7 @@ function tekenNav(){
   const afd = afdelingen();
   const rijA = ([a, n]) => `<div class="afdrij"><button type="button" class="favknop ${isFav(a) ? 'aan' : ''}" data-fav="${esc(a)}" title="${isFav(a) ? 'Uit favorieten halen' : 'Als favoriet bovenaan zetten'}">★</button>${it('afd:' + a, a, zichtbaar('afd:' + a, weergave('afd:' + a).lijst).length)}</div>`;
   const favL = afd.filter(([a]) => isFav(a)), rest = afd.filter(([a]) => !isFav(a));
-  const restOpen = overigeOpen || rest.some(([a]) => tab === 'afd:' + a);
+  const restOpen = overigeOpen;
   $('#nav').innerHTML = `<h4>Mijn werk</h4>${VAST.map(v => it(v.id, v.t, v.f ? zichtbaar(v.id, v.f()).length : null, v)).join('')}
     <h4>Mijn afdelingen</h4>${favL.map(rijA).join('') || '<p class="favhint"><b style="color:var(--inkt);font-weight:500">Geen afdeling geselecteerd</b><br>Zet een ★ bij een afdeling om hem hier te tonen.</p>'}
     <h4><button type="button" id="k-overige" aria-expanded="${restOpen}">${ico('<path d="M6 9l6 6 6-6"/>')}Overige afdelingen (${rest.length})</button></h4>
@@ -1379,7 +1379,7 @@ function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken
 document.addEventListener('click', e => {
   const ma = e.target.closest('#mijalles-top button'); if(ma){ mijAllesStand = ma.dataset.v; opslag.set('mict-mijalles-top', mijAllesStand); teken(); return; }
   const fv = e.target.closest('[data-fav]'); if(fv){ wisselFavoriet(fv.dataset.fav); return; }
-  if(e.target.closest('#k-overige')){ overigeOpen = !overigeOpen; opslag.set('mict-overige-open', overigeOpen); tekenNav(); return; }
+  if(e.target.closest('#k-overige')){ overigeOpen = !overigeOpen; tekenNav(); return; }
   const wf = e.target.closest('[data-wisfilter]'); if(wf){ delete kolFilter[wf.dataset.wisfilter]; teken(); return; }
   if(e.target.closest('.kolfilter')) return;
   const th = e.target.closest('th[data-sort]'); if(th){ const id = th.closest('table').dataset.tabel, k = th.dataset.sort, s = sortering[id];
