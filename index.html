@@ -46,12 +46,10 @@ pre{background:#f6f8fb;border:1px solid var(--lijn);border-radius:8px;padding:10
       <div><label>Omgeving</label><input id="omgeving" value="88406"></div>
       <div><label>OAuth client id</label><input id="clientId" placeholder="van de AFAS-beheerder"></div>
     </div>
-    <label>OAuth client secret</label>
-    <input id="secret" type="password" autocomplete="off" placeholder="wordt niet opgeslagen, alleen gebruikt voor deze test">
     <label>Scope (leeg laten, tenzij AFAS erom vraagt)</label>
     <input id="scope" value="">
     <button id="btnLogin">Inloggen met AFAS</button>
-    <div class="hint">Je gaat naar het AFAS-inlogscherm en komt daarna automatisch hier terug. De secret staat alleen tijdelijk in dit tabblad en wordt na het inloggen gewist.</div>
+    <div class="hint">Je gaat naar het AFAS-inlogscherm en komt daarna automatisch hier terug. De code wordt via de Azure-functie afas-token ingewisseld; de client secret staat alleen daar.</div>
   </section>
 
   <section class="vlak">
@@ -80,7 +78,7 @@ pre{background:#f6f8fb;border:1px solid var(--lijn);border-radius:8px;padding:10
     <h2>Details</h2>
     <pre id="log">–</pre>
   </section>
-  <div class="voet">Rechtentest v1.2 · 01-10-2026</div>
+  <div class="voet">Rechtentest v1.3 · 01-10-2026</div>
 </main>
 
 <script>
@@ -114,20 +112,21 @@ function maskeer(o){ const c = {...o}; ['access_token','refresh_token','id_token
 ['omgeving','clientId','scope'].forEach(id => { const v = opslag.get('mict_' + id); if(v !== null) $(id).value = v; });
 
 $('btnLogin').onclick = async () => {
-  const clientId = $('clientId').value.trim(), secret = $('secret').value;
-  if(!clientId || !secret){ alertKort('Vul client id en client secret in.'); return; }
+  const clientId = $('clientId').value.trim();
+  if(!clientId){ alertKort('Vul de client id in.'); return; }
   ['omgeving','clientId','scope'].forEach(id => opslag.set('mict_' + id, $(id).value.trim()));
   const verifier = willekeurig(48), state = willekeurig(16);
   const challenge = b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
-  sessie.set('mict_verifier', verifier); sessie.set('mict_state', state); sessie.set('mict_secret', secret);
+  sessie.set('mict_verifier', verifier); sessie.set('mict_state', state);
   const p = new URLSearchParams({response_type:'code', client_id:clientId, redirect_uri:redirectUri, state, code_challenge:challenge, code_challenge_method:'S256'});
   const scope = $('scope').value.trim(); if(scope) p.set('scope', scope);
   location.href = `${basis()}/oauth/authorize?${p}`;
 };
 function alertKort(t){ zet('Invoer', 'fout', t); }
 
+const TOKEN_FUNCTIE = 'https://func-dck-helpdesk-b8cpg3gmd6d5hsgp.westeurope-01.azurewebsites.net/api/afas-token';
 async function tokenAanvraag(velden){
-  const r = await fetch(`${basis()}/oauth/token`, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams(velden)});
+  const r = await fetch(TOKEN_FUNCTIE, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(velden)});
   const tekst = await r.text(); let json = null; try{ json = JSON.parse(tekst); }catch(e){}
   return {status:r.status, json, tekst};
 }
@@ -140,13 +139,12 @@ async function terugVanAfas(){
   if(q.get('state') !== sessie.get('mict_state')){ zet('Inloggen bij AFAS', 'fout', 'State komt niet overeen. Probeer opnieuw in te loggen vanuit dit tabblad.'); return; }
   zet('Inloggen bij AFAS', 'ok', 'Ingelogd, AFAS gaf een code terug.');
   zet('Token ophalen', 'wacht', 'Bezig…');
-  const secret = sessie.get('mict_secret');
   let res;
   try{
-    res = await tokenAanvraag({grant_type:'authorization_code', code:q.get('code'), redirect_uri:redirectUri, client_id:$('clientId').value.trim(), client_secret:secret, code_verifier:sessie.get('mict_verifier')});
+    res = await tokenAanvraag({grant_type:'authorization_code', code:q.get('code'), redirect_uri:redirectUri, code_verifier:sessie.get('mict_verifier')});
   }catch(e){
-    zet('Token ophalen', 'fout', 'Verzoek geblokkeerd (' + e.message + '). Waarschijnlijk CORS: de code moet dan via de Azure-functie worden ingewisseld.'); return;
-  }finally{ sessie.del('mict_secret'); sessie.del('mict_verifier'); sessie.del('mict_state'); }
+    zet('Token ophalen', 'fout', 'Azure-functie afas-token niet bereikbaar (' + e.message + '). Is de publicatie klaar?'); return;
+  }finally{ sessie.del('mict_verifier'); sessie.del('mict_state'); }
   if(res.status !== 200 || !res.json || !res.json.access_token){ zet('Token ophalen', 'fout', `HTTP ${res.status}: ${res.tekst.slice(0,300)}`); return; }
   tok = res.json;
   zet('Token ophalen', 'ok', `Access token ${tok.expires_in ? 'geldig ' + Math.round(tok.expires_in/60) + ' min' : 'ontvangen'}; refresh token ${tok.refresh_token ? 'ontvangen' : '<b>niet</b> ontvangen'}.`);
@@ -215,10 +213,9 @@ $('btnTesten').onclick = () => leestests();
 /* ---------- token vernieuwen ---------- */
 $('btnRefresh').onclick = async () => {
   if(!tok || !tok.refresh_token){ zet('Token vernieuwen', 'fout', 'Geen refresh token ontvangen.'); return; }
-  const secret = $('secret').value || prompt('Client secret (alleen voor deze test)') || '';
   zet('Token vernieuwen', 'wacht', 'Bezig…');
   try{
-    const res = await tokenAanvraag({grant_type:'refresh_token', refresh_token:tok.refresh_token, client_id:$('clientId').value.trim(), client_secret:secret});
+    const res = await tokenAanvraag({grant_type:'refresh_token', refresh_token:tok.refresh_token});
     if(res.status === 200 && res.json && res.json.access_token){
       const nieuw = res.json.refresh_token && res.json.refresh_token !== tok.refresh_token;
       tok = res.json;
