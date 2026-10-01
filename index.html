@@ -393,7 +393,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.40 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.41 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -442,7 +442,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.40';
+const VERSIE = 'v3.41';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1281,11 +1281,12 @@ async function nieuweMelding(){
     ${m.extra.map((f, i) => `<label>${esc(f.label || f.code)}${keuze(f, 'x' + i, '')}</label>`).join('')}
     <label>Toelichting<textarea name="tx" placeholder="Wat is er aan de hand, sinds wanneer, welke locatie of werkplek?"></textarea></label>
     <label>Melder<input name="melder" id="n-melder" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Zoek een medewerker op naam of nummer"><input type="hidden" name="melderId"><span class="hint" id="n-melder-hint">Medewerkers ophalen…</span></label>
+    <label>Behandelaar<input name="beh" id="n-beh" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Nog niet toewijzen (komt bij Nieuwe tickets)"><input type="hidden" name="behCode"><span class="hint" id="n-beh-hint">Laat leeg om het ticket bij Nieuwe tickets te zetten.</span></label>
     <div class="fout" id="n-fout">${m.stId ? '' : `Het type dossieritem "Aanvraag ICT" is niet gevonden in AFAS (gevonden: ${esc(m.typen.map(t => t.naam).join(', ') || 'geen')}). Zet nieuwStId in mijn-ict-config.js.`}</div>
     <div style="display:flex;gap:10px;justify-content:flex-end"><button type="button" class="knop" data-sluitnieuw>Annuleren</button><button type="button" class="knop vol" id="n-maak" ${m.stId ? '' : 'disabled'}>Melding aanmaken</button></div>
   </form>`;
   $('#n-form').ond.focus();
-  koppelMelder();
+  koppelMelder(); koppelBehandelaar();
 }
 async function maakMelding(){
   const f = $('#n-form'), m = nieuwMeta, fout = $('#n-fout'), ond = f.ond.value.trim();
@@ -1295,6 +1296,7 @@ async function maakMelding(){
   const zet = (veld, v) => { if(veld && v !== '') w[veldCode(veld)] = veld.dataType === 'int' && !isNaN(+v) ? +v : v; };
   if(m.afd && f.afd) zet(m.afd, f.afd.value); if(m.type && f.type) zet(m.type, f.type.value);
   m.extra.forEach((x, i) => zet(x, f['x' + i].value));
+  if(f.behCode && f.behCode.value){ const sm = await laadSubjMeta(); if(!sm.verantw){ fout.textContent = 'Het veld Verantwoordelijke is niet gevonden in AFAS; laat Behandelaar leeg.'; return; } w[veldCode(sm.verantw)] = f.behCode.value; }
   // velden met een / horen in een onderliggend object (vrije velden KnS<StId>)
   const top = {}, obj = {};
   Object.entries(w).forEach(([c, v]) => { const i = c.indexOf('/'); if(i > 0) (obj[c.slice(0, i)] = obj[c.slice(0, i)] || {})[c.slice(i + 1)] = v; else top[c] = v; });
@@ -1378,6 +1380,19 @@ async function laadMedewerkers(){
     if(!k.uitK || !r[k.uitK]) return true; const d = datum(r[k.uitK]); return !d || +d >= +vandaag; };
   const uniek = new Map(); rijen.filter(inDienst).forEach(r => { const id = t(r[k.idK]), n = naamVan(r); if(id && n.label && !uniek.has(id)) uniek.set(id, {id, naam: n.label, vol: n.vol, oe: k.oeK ? t(r[k.oeK]) : ''}); });
   return (medewerkers = [...uniek.values()].sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
+}
+// behandelaar bij een nieuwe melding: zelfde ICT-lijst als bij 'Toewijzen aan collega', standaard leeg
+async function koppelBehandelaar(){
+  const inp = $('#n-beh'), f = $('#n-form'); if(!inp) return;
+  let l = [];
+  try{ l = await ictCollegas(); }catch(e){ $('#n-beh-hint').textContent = 'ICT-collega’s ophalen lukte niet: ' + e.message; return; }
+  if(!$('#n-beh')) return;
+  if(!l.length){ $('#n-beh-hint').textContent = 'Geen ICT-collega’s gevonden; het ticket komt bij Nieuwe tickets.'; inp.disabled = true; return; }
+  if(collegaDiag) inp.title = collegaDiag;
+  const items = () => [{waarde: 'Niemand (komt bij Nieuwe tickets)', leeg: true}, ...l.map(c => ({waarde: c.naam, sub: (c.oe || '').replace(/^medewerkers\s+/i, '') || c.code, zoek: c.code + ' ' + (c.oe || ''), code: c.code}))];
+  comboKoppel(inp, items, k => { if(k.leeg){ inp.value = ''; f.behCode.value = ''; } else { inp.value = k.waarde; f.behCode.value = k.code; } },
+    () => { f.behCode.value = ''; });
+  inp.addEventListener('blur', () => setTimeout(() => { if(!f.behCode.value) inp.value = ''; }, 200));   // alleen een gekozen naam telt
 }
 async function koppelMelder(){
   const inp = $('#n-melder'), hint = $('#n-melder-hint'), f = $('#n-form'); if(!inp) return;
@@ -1669,7 +1684,7 @@ function laadKaart(naam){
 function demoAfas(pad, opties){
   if(opties.method === 'POST' && pad === '/connectors/KnSubject'){ const b = JSON.parse(opties.body).KnSubject.Element, D = window._demo, nr = 12700 + D.sla.length;
     const afdC = ((b.Objects || []).find(o => o.KnS38) || {KnS38:{Element:{Fields:{}}}}).KnS38.Element.Fields.UAfd;
-    D.sla.push({Nummer:nr, Onderwerp:b.Fields.Ds, Status:'Nieuw', Omschrijving_4:'', Omschrijving_2:'Robert van der Veen', Omschrijving:'Aanvraag ICT', Type_ticket_ICT:'Incident', Focusgebied_ICT:'', AFAS_Afdeling:'', Omschrijving_3:{1:'ICT',2:'Radiologie',3:'AFAS'}[afdC] || 'ICT', Focusgebied_EMMA:'', Instuurdatum:new Date().toISOString().slice(0, 19), Gepland:null, Laatste_reactie:null, Gebruiker_laatste_reactie:'', Laatste_wijziging_externe_status:null, Workflow_afgerond:false, Kritieke_storing:false});
+    D.sla.push({Nummer:nr, Onderwerp:b.Fields.Ds, Status:'Nieuw', Omschrijving_4:({'88406.rvanderveen':'Robert van der Veen','88406.kgroen':'Kelly Groen','88406.gbrons':'Glenn Brons','88406.gleer':'Guillonard Leer'})[((b.Objects || []).find(o => o.KnS38) || {KnS38:{Element:{Fields:{}}}}).KnS38.Element.Fields.UVer] || '', Omschrijving_2:'Robert van der Veen', Omschrijving:'Aanvraag ICT', Type_ticket_ICT:'Incident', Focusgebied_ICT:'', AFAS_Afdeling:'', Omschrijving_3:{1:'ICT',2:'Radiologie',3:'AFAS'}[afdC] || 'ICT', Focusgebied_EMMA:'', Instuurdatum:new Date().toISOString().slice(0, 19), Gepland:null, Laatste_reactie:null, Gebruiker_laatste_reactie:'', Laatste_wijziging_externe_status:null, Workflow_afgerond:false, Kritieke_storing:false});
     return new Promise(r => setTimeout(() => r({results:{KnSubject:{SbId: 400000 + nr}}}), 400)); }
   if(pad === '/metainfo/update/KnSubject') return {name:'KnSubject', fields:[{fieldId:'StId', label:'Type dossier', dataType:'int', mandatory:true, values:[{id:'26', description:'Aanvraag ICT'},{id:'31', description:'Change'}]},{fieldId:'Ds', label:'Onderwerp', mandatory:true},{fieldId:'SbTx', label:'Toelichting'},{fieldId:'USt', label:'Status', values:[{id:'Nieuw', description:'Nieuw'},{id:'In behandeling ICT', description:'In behandeling ICT'},{id:'Wachten op leverancier', description:'Wachten op leverancier'},{id:'Interne release', description:'Interne release'},{id:'Externe release', description:'Externe release'}]}],
     objects:[{name:'KnSubjectLink', fields:[{fieldId:'SfTp', label:'Type bestemming'}]},{name:'KnS38', fields:[{fieldId:'UAfd', label:'Afdeling', dataType:'string', values:[{id:'1', description:'ICT'},{id:'2', description:'Radiologie'},{id:'3', description:'AFAS'}]},{fieldId:'UVer', label:'Verantwoordelijke', values:[{id:'88406.rvanderveen', description:'Robert van der Veen'},{id:'88406.kgroen', description:'Kelly Groen'},{id:'88406.gbrons', description:'Glenn Brons'},{id:'88406.gleer', description:'Guillonard Leer'},{id:'88406.anders', description:'Iemand Buiten ICT'}]},{fieldId:'UGep', label:'Werkzaamheden gepland', dataType:'date'},{fieldId:'UTyp', label:'Type ticket ICT', values:[{id:'I', description:'Incident'},{id:'V', description:'Vraag'},{id:'C', description:'Change'}]}]},{name:'KnS26', fields:[{fieldId:'UPrj', label:'Begindatum project', mandatory:true}]}]};
