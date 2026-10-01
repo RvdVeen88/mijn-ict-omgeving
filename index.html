@@ -164,6 +164,74 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--inkt);color:var(--vlak);padding:10px 20px;border-radius:0 999px 999px 0;transition:all .25s;pointer-events:none;z-index:99;max-width:90vw}
 #toast.zichtbaar{opacity:1;transform:translateX(-50%)}
 #toast.fout{background:var(--rood);color:#fff}
+
+/* ---- v2: navigatie met categorieën ---- */
+.nav{width:256px;flex:none;padding:18px 6px 18px 16px;display:flex;flex-direction:column;gap:1px;position:sticky;top:0;height:100vh;overflow:auto}
+.nav h4{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--grijs);margin:14px 10px 6px;font-weight:600}
+.nav h4:first-child{margin-top:4px}
+.it{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;text-align:left;padding:7px 12px;border-radius:0 999px 999px 0;font-size:14px;color:var(--inkt)}
+.it:hover{background:var(--vlak)}
+.it svg{width:16px;height:16px;flex:none;color:var(--grijs)}
+.it span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it b{font-size:12px;font-weight:600;color:var(--grijs);background:var(--lijn);border-radius:999px;padding:0 8px;line-height:19px;min-width:24px;text-align:center}
+.it b.rood{background:var(--rood);color:#fff}
+.it[aria-pressed="true"]{background:var(--blauw);color:var(--opaccent);font-weight:600}
+.it[aria-pressed="true"] svg{color:var(--opaccent)}
+.it[aria-pressed="true"] b{background:rgba(255,255,255,.22);color:var(--opaccent)}
+.it .ster{color:var(--goud);font-style:normal;margin-right:-4px}
+@media (max-width:1000px){.nav{display:none}}
+.rail .r .ico-maan{display:contents} .rail .r .ico-zon{display:none}
+:root[data-thema="donker"] .rail .r .ico-maan{display:none} :root[data-thema="donker"] .rail .r .ico-zon{display:contents}
+.tw{overflow-x:auto}
+.voet .achter{display:inline-flex;align-items:center;gap:8px;margin-left:14px}
+.voet .achter i{display:block;width:120px;height:4px;border-radius:2px;background:var(--lijn);overflow:hidden}
+.voet .achter i::before{content:'';display:block;height:100%;width:var(--p,0%);background:var(--blauw-2);transition:width .3s}
+
+/* ---- tabel ---- */
+.tabel{width:100%;border-collapse:collapse;font-size:13.5px}
+.tabel th{text-align:left;font-size:12px;font-weight:600;color:var(--blauw);padding:8px 10px;border-bottom:2px solid var(--lijn);white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--vlak)}
+.tabel th:hover{color:var(--blauw-2)}
+.tabel th .pijl{opacity:.35;margin-left:4px;font-size:10px}
+.tabel th[aria-sort] .pijl{opacity:1}
+.tabel td{padding:8px 10px;border-bottom:1px solid var(--lijn);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;vertical-align:middle}
+.tabel tbody tr{cursor:pointer}
+.tabel tbody tr:hover td{background:var(--achtergrond)}
+.tabel td.nr{font-weight:600;color:var(--blauw);text-align:right;width:64px;box-shadow:inset 4px 0 0 transparent}
+.tabel tr.rood td.nr{box-shadow:inset 4px 0 0 var(--rood)} .tabel tr.oranje td.nr{box-shadow:inset 4px 0 0 var(--goud)} .tabel tr.blauw td.nr{box-shadow:inset 4px 0 0 var(--blauw-2)}
+.tabel td.ond{max-width:360px;color:var(--inkt);font-weight:500}
+.tabel td.zacht{color:var(--grijs)}
+.tabel td.sig{max-width:280px}
+.tabel .chip{font-size:11.5px;padding:1px 8px 1px 7px}
+.tabel tr.dicht td{color:var(--grijs)}
+@media (max-width:1400px){.tabel .k-reactie,.tabel .k-afd{display:none}}
+@media (max-width:1150px){.tabel .k-melder,.tabel .k-gepland{display:none}}
+
+/* ---- ticketscherm ---- */
+dialog#detail{width:min(1080px,calc(100vw - 32px))}
+.stappen{display:flex;align-items:center;gap:0;margin:2px 0 4px}
+.stap{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--grijs);font-weight:500}
+.stap i{width:22px;height:22px;border-radius:50%;border:2px solid var(--lijn);display:grid;place-items:center;font-style:normal;font-size:11px;background:var(--vlak)}
+.stap.klaar i{background:var(--blauw-2);border-color:var(--blauw-2);color:#fff}
+.stap.nu{color:var(--blauw);font-weight:700} .stap.nu i{border-color:var(--blauw);box-shadow:0 0 0 4px var(--lichtblauw-2)}
+.stap.nu i::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--blauw)}
+.lijntje{flex:0 0 46px;height:2px;background:var(--lijn);margin:0 10px}
+.lijntje.klaar{background:var(--blauw-2)}
+.kaarten{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.kaarten{grid-template-columns:1fr}}
+.kaart2{background:var(--achtergrond);border-radius:0 18px 18px 0;padding:14px 18px;display:grid;grid-template-columns:130px 1fr;gap:7px 14px;align-content:start;font-size:13.5px}
+.kaart2 h3{grid-column:1/-1;font-size:13px;color:var(--blauw);margin-bottom:2px}
+.kaart2 span{color:var(--grijs)}
+.kaart2 b{font-weight:500;overflow-wrap:anywhere}
+.kaart2 .lang{grid-column:1/-1;white-space:pre-wrap;font-weight:400;line-height:1.5;max-height:180px;overflow:auto;background:var(--vlak);border-radius:0 12px 12px 0;padding:10px 12px}
+.actiebalk{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 0 2px;border-top:1px solid var(--lijn)}
+.actiebalk select{border:1.5px solid var(--lijn);background:var(--vlak);border-radius:0 999px 999px 0;padding:7px 14px;min-width:220px}
+.actiebalk .wfinfo{margin-left:auto;font-size:12.5px;color:var(--grijs)}
+.composer{display:flex;flex-direction:column;gap:8px}
+.composer .onder{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.composer .onder .knop{margin-left:auto}
+.vink.notitie{background:var(--goud-licht);border-radius:0 999px 999px 0;padding:4px 12px 4px 8px;color:var(--bruin)}
+textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
+
 @media (max-width:700px){.rail{display:none}.bovenbalk,main,.voet{padding-left:16px;padding-right:16px}.rij{padding-right:16px}.chips{display:none}}
 </style>
 <script src="mijn-ict-config.js"></script>
@@ -178,15 +246,14 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 <div class="app" id="app" hidden>
   <nav class="rail" aria-label="Onderdelen">
     <svg class="logo" viewBox="0 0 36 36" aria-hidden="true"><path class="d1" d="M3 6h8a10 10 0 0 1 0 20H3z"/><path class="d2" d="M13 10h8a10 10 0 0 1 0 20h-8z"/></svg>
-    <button type="button" class="r" data-tab="mij" title="Voor mij"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span class="tel" id="tel-mij"></span></button>
-    <button type="button" class="r" data-tab="alle" title="Alle tickets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></button>
     <div class="rail-onder">
       <button type="button" class="r" id="k-ververs" title="Verversen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
-      <button type="button" class="r" id="k-profiel" title="Mijn profiel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></button>
-      <button type="button" class="r" id="k-thema" title="Licht of donker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      <button type="button" class="r" id="k-thema" title="Licht of donker"><span class="ico-maan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></span><span class="ico-zon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M5 19l1.4-1.4M17.6 6.4L19 5"/></svg></span></button>
+      <button type="button" class="r" id="k-profiel" title="Instellingen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.2 2h-.4a2 2 0 0 0-2 2v.2a2 2 0 0 1-1 1.7l-.4.3a2 2 0 0 1-2 0l-.2-.1a2 2 0 0 0-2.7.7l-.2.4a2 2 0 0 0 .7 2.7l.2.1a2 2 0 0 1 1 1.7v.5a2 2 0 0 1-1 1.7l-.2.1a2 2 0 0 0-.7 2.7l.2.4a2 2 0 0 0 2.7.7l.2-.1a2 2 0 0 1 2 0l.4.3a2 2 0 0 1 1 1.7v.2a2 2 0 0 0 2 2h.4a2 2 0 0 0 2-2v-.2a2 2 0 0 1 1-1.7l.4-.3a2 2 0 0 1 2 0l.2.1a2 2 0 0 0 2.7-.7l.2-.4a2 2 0 0 0-.7-2.7l-.2-.1a2 2 0 0 1-1-1.7v-.5a2 2 0 0 1 1-1.7l.2-.1a2 2 0 0 0 .7-2.7l-.2-.4a2 2 0 0 0-2.7-.7l-.2.1a2 2 0 0 1-2 0l-.4-.3a2 2 0 0 1-1-1.7V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
       <button type="button" class="r" id="k-uit" title="Uitloggen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></svg></button>
     </div>
   </nav>
+  <aside class="nav" id="nav"></aside>
   <div class="werk">
     <div class="bovenbalk">
       <h1 id="titel">Voor mij</h1><span class="sub" id="subtitel"></span>
@@ -197,16 +264,15 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
         <div class="tegels" id="tegels"></div>
         <div id="blokken" style="display:flex;flex-direction:column;gap:16px;margin-top:16px"></div>
       </section>
-      <section id="v-alle" hidden>
+      <section id="v-lijst" hidden>
         <div class="werkbalk">
-          <div class="schakel" id="f-scope"><button data-v="alle" aria-pressed="true">Alle</button><button data-v="mijn">Van mij</button><button data-v="gebied">Mijn domein</button></div>
-          <div class="schakel" id="f-open"><button data-v="open" aria-pressed="true">Open</button><button data-v="dicht">Afgesloten (90 d)</button></div>
           <label class="zoek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="f-zoek" placeholder="Zoek op nummer, onderwerp, melder of behandelaar"></label>
+          <div class="schakel" id="f-wie"><button data-v="alle" aria-pressed="true">Iedereen</button><button data-v="mijn">Van mij</button><button data-v="geen">Zonder behandelaar</button></div>
         </div>
-        <div class="blok tabel" style="margin-top:14px"><header><h2 id="alle-titel">Tickets</h2><b id="alle-n">0</b><small id="alle-sub"></small></header><div id="alle-lijst"></div></div>
+        <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="versie">Mijn ICT-Omgeving v1.8 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v2.0 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -243,7 +309,7 @@ const INST = Object.assign({
   ticketUrl: '',           // bv. 'https://88406.afasinsite.nl/...?SbId={sbid}'; leeg = geen link
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v1.8';
+const VERSIE = 'v2.0';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -381,38 +447,65 @@ function maakItem(r, extra){
     statusDatum: datum(r.Laatste_wijziging_externe_status), wijzigingDoor: String(r.Gebruiker_laatste_wijziging ?? '').trim(),
     afgerond: ja(r.Workflow_afgerond), kritiek: ja(r.Kritieke_storing), extern: String(r.Extern_ticket ?? '').trim(),
     ...extra };
+  const veld = re => { const k = Object.keys(r).find(k => re.test(k)); return k ? String(r[k] ?? '').trim() : ''; };
+  x.toelichting = veld(/^toelichting/i); x.locatie = veld(/^locatie$/i);
+  x.zorgadmin = lijst(INST.afdVerbergen).includes(norm(x.afdeling));
+  x.inuit = /(^|\s)(in|uit)[\s-]*dienst/i.test(x.soort);
   x.emmer = emmer(x.status);
   x.afgesloten = x.afgerond || lijst(INST.st_afgesloten).includes(norm(x.status));
-  x.sla = !lijst(INST.slaSoorten).length || lijst(INST.slaSoorten).includes(norm(x.soort));
+  x.sla = (!lijst(INST.slaSoorten).length || lijst(INST.slaSoorten).includes(norm(x.soort))) && !x.zorgadmin;
   const t = taakPerSb.get(String(x.sbid)); x.taak = t ? t.taak : ''; x.taakBij = t ? t.bij : [];
   x.zoek = norm([x.nr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.emma, ...x.taakBij].join(' '));
   return x;
 }
-async function laadGegevens(){
+let alleGeladen = false, laatsteTaken = [], achterBezig = null;
+const OPEN_FILTER = filterOp('Workflow_afgerond', 'false');
+function bouwItems(sla, tickets, taken){
+  const sbPerNr = new Map(tickets.map(t => [String(t.Nummer), t]));
+  taakPerSb = new Map();
+  taken.forEach(t => { const k = String(t.SubjectId); const o = taakPerSb.get(k) || {taak: t.TaskDescription || t.WfDescription || '', bij: []};
+    if(t.UserName && !o.bij.includes(t.UserName)) o.bij.push(t.UserName); taakPerSb.set(k, o); });
+  // Zorgadministratie staat wel in de lijst (eigen categorie), maar telt niet mee voor de SLA-normen
+  return sla.map(r => { const t = sbPerNr.get(String(r.Nummer)) || {}; return maakItem(r, {sbid: t.Dossieritem ?? null}); });
+}
+/* fase 'open': eerst alleen de openstaande tickets (snel), daarna op de achtergrond de rest */
+async function laadGegevens(fase = 'open'){
   $('#live').classList.add('uit'); $('#bijgewerkt').textContent = 'Bezig met verversen…';
-  const vg = maakVoortgang([INST.connSla, INST.connTickets, INST.connTaken], laadScherm); vg.begin();
-  const mee = n => (rijen, klaar) => vg.stap(n, rijen, klaar);
+  const vg = maakVoortgang([INST.connSla, INST.connTickets, INST.connTaken].map(n => n + '|' + fase), laadScherm); vg.begin();
+  const mee = n => (rijen, klaar) => vg.stap(n + '|' + fase, rijen, klaar);
   try{
-    const [sla, tickets, taken] = await Promise.all([connectorAlles(INST.connSla, '', mee(INST.connSla)), connectorAlles(INST.connTickets, '', mee(INST.connTickets)),
-      connectorAlles(INST.connTaken, '', mee(INST.connTaken)).catch(() => { vg.stap(INST.connTaken, 0, true); return []; })]);
-    const sbPerNr = new Map(tickets.map(t => [String(t.Nummer), t]));
-    taakPerSb = new Map();
-    taken.forEach(t => { const k = String(t.SubjectId); const o = taakPerSb.get(k) || {taak: t.TaskDescription || t.WfDescription || '', bij: []};
-      if(t.UserName && !o.bij.includes(t.UserName)) o.bij.push(t.UserName); taakPerSb.set(k, o); });
-    // afdeling Zorgadministratie hoort niet bij ICT: zelfde aanpak als het SLA-dashboard, zoek het veld waarin die waarde staat
-    const verbergen = lijst(INST.afdVerbergen);
-    const afdVeld = verbergen.length && sla[0] ? Object.keys(sla[0]).find(k => sla.some(r => verbergen.includes(norm(r[k])))) : '';
-    items = sla.filter(r => !afdVeld || !verbergen.includes(norm(r[afdVeld])))
-      .map(r => { const t = sbPerNr.get(String(r.Nummer)) || {}; return maakItem(r, {sbid: t.Dossieritem ?? null}); });
-    const tel = {}; items.forEach(x => { if(x.verantw) tel[x.verantw] = (tel[x.verantw] || 0) + 1; x.taakBij.forEach(b => tel[b] = (tel[b] || 0) + 0.5); });
-    mensen = Object.keys(tel).sort((a, b) => a.localeCompare(b, 'nl'));
-    const g = new Map();
-    items.forEach(x => [['Focusgebied', x.categorie], ['Afdeling/systeem', x.afdeling], ['Emma', x.emma]].forEach(([s, w]) => { if(w) g.set(w, s); }));
-    gebieden = [...g.keys()].sort((a, b) => a.localeCompare(b, 'nl'));
+    let sla, tickets, taken;
+    if(fase === 'open'){
+      try{ [sla, tickets] = await Promise.all([connectorAlles(INST.connSla, OPEN_FILTER, mee(INST.connSla)), connectorAlles(INST.connTickets, OPEN_FILTER, mee(INST.connTickets))]);
+        if(!sla.length) throw new Error('leeg'); }
+      catch(e){ fase = 'alles'; [sla, tickets] = await Promise.all([connectorAlles(INST.connSla, '', mee(INST.connSla)), connectorAlles(INST.connTickets, '', mee(INST.connTickets))]); }
+    } else [sla, tickets] = await Promise.all([connectorAlles(INST.connSla, '', mee(INST.connSla)), connectorAlles(INST.connTickets, '', mee(INST.connTickets))]);
+    taken = laatsteTaken = await connectorAlles(INST.connTaken, '', mee(INST.connTaken)).catch(() => { vg.stap(INST.connTaken + '|' + fase, 0, true); return laatsteTaken; });
+    const nieuw = bouwItems(sla, tickets, taken);
+    if(fase === 'open' && alleGeladen){ const nrs = new Set(nieuw.map(x => String(x.nr))); items = [...nieuw, ...items.filter(x => x.afgesloten && !nrs.has(String(x.nr)))]; }
+    else items = nieuw;
+    if(fase === 'alles') alleGeladen = true;
     status = {bijgewerkt: new Date(), fout: null};
     $('#live').classList.remove('uit'); laadScherm(100, 0, 0);
   }catch(e){ status.fout = e.message; toast('Laden mislukt: ' + e.message, true); $('#topbalk').classList.remove('aan'); }
   $('#bijgewerkt').textContent = status.fout ? 'Laden mislukt: ' + status.fout : 'Live · bijgewerkt om ' + fmtTijd(status.bijgewerkt);
+  return fase;
+}
+/* achtergrond: gesloten meldingen erbij halen, voortgang onderin */
+function laadRestOpAchtergrond(){
+  if(alleGeladen || achterBezig) return achterBezig;
+  const el = $('#achter');
+  el.hidden = false; el.querySelector('span').textContent = 'Overige meldingen ophalen…';
+  const vg = maakVoortgang([INST.connSla, INST.connTickets].map(n => n + '|alles'), p => { el.style.setProperty('--p', p + '%'); el.querySelector('span').textContent = `Overige meldingen ophalen… ${p}%`; });
+  vg.begin();
+  return achterBezig = (async () => {
+    try{ const [sla, tickets] = await Promise.all([connectorAlles(INST.connSla, '', (r, k) => vg.stap(INST.connSla + '|alles', r, k)), connectorAlles(INST.connTickets, '', (r, k) => vg.stap(INST.connTickets + '|alles', r, k))]);
+      items = bouwItems(sla, tickets, laatsteTaken); alleGeladen = true;
+      el.querySelector('span').textContent = 'Alle meldingen geladen'; setTimeout(() => el.hidden = true, 2500);
+      if(!$('#detail').open) teken(); }
+    catch(e){ el.querySelector('span').textContent = 'Overige meldingen ophalen mislukt'; }
+    achterBezig = null;
+  })();
 }
 
 /* ================= profiel: wie ben ik en waar ben ik verantwoordelijk voor ================= */
@@ -461,73 +554,113 @@ const actie = x => ernst(x) >= 2;
 /* ================= tekenen ================= */
 const KLEUR = {3:'rood', 2:'oranje', 1:'blauw', 0:''};
 const chipKleur = s => s.ernst >= 3 ? 'rood' : s.ernst === 2 ? 'oranje' : '';
-function rij(x, toonWie = true){
-  const sg = x._sg || [], wie = x.verantw || (x.taakBij[0] ? 'taak bij ' + x.taakBij[0] : 'nog niemand');
-  const meta = [x.status || 'Open', toonWie ? wie : '', x.melder ? 'melder ' + x.melder : '', x.aangemaakt ? 'gemeld ' + fmtDatum(x.aangemaakt) : ''].filter(Boolean).join(' · ');
-  return `<button type="button" class="rij ${KLEUR[ernst(x)]}" data-nr="${esc(x.nr)}"><span class="balk"></span><span class="nr">${esc(x.nr)}</span>
-    <span class="titel"><b>${esc(x.onderwerp)}</b><small>${esc(meta)}</small></span>
-    <span class="chips">${sg.map(s => `<span class="chip ${chipKleur(s)}">${esc(s.tekst)}</span>`).join('')}${!sg.length && x.categorie ? `<span class="chip grijs">${esc(x.categorie)}</span>` : ''}</span></button>`;
-}
-function blok(id, titel, lijstItems, opties = {}){
-  const max = opties.max || 8, open = blokOpen.has(id);
-  const zicht = open ? lijstItems : lijstItems.slice(0, max);
-  return `<section class="blok ${opties.rood && lijstItems.length ? 'rood' : ''}"><header><h2>${esc(titel)}</h2><b>${lijstItems.length}</b><small>${esc(opties.sub || '')}</small></header>
-    ${lijstItems.length ? zicht.map(x => rij(x, opties.toonWie !== false)).join('') : `<p class="leeg">${esc(opties.leeg || 'Niets te doen.')}</p>`}
-    ${lijstItems.length > max ? `<button type="button" class="meer" data-blok="${id}">${open ? 'Minder tonen' : `Alle ${lijstItems.length} tonen`}</button>` : ''}</section>`;
-}
 const blokOpen = new Set();
 const sorteer = (a, b) => ernst(b) - ernst(a) || (a.gepland || a.aangemaakt || 0) - (b.gepland || b.aangemaakt || 0);
+const datTijd = d => d ? `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}` : '';
+const korteNaam = n => String(n || '').trim();
+
+/* ---- tabel met sorteerbare kolommen (zoals in AFAS, maar slimmer) ---- */
+const KOLOMMEN = [
+  {k:'nr', t:'Nr.', w:x => +x.nr || 0, html:x => esc(x.nr), cls:'nr'},
+  {k:'afd', t:'Afdeling', w:x => norm(x.afdeling), html:x => esc(x.afdeling || '–'), cls:'zacht k-afd'},
+  {k:'in', t:'Ingestuurd', w:x => +x.aangemaakt || 0, html:x => datTijd(x.aangemaakt), cls:'zacht'},
+  {k:'melder', t:'Melder', w:x => norm(x.melder), html:x => esc(x.melder || '–'), cls:'k-melder'},
+  {k:'ond', t:'Onderwerp', w:x => norm(x.onderwerp), html:x => esc(x.onderwerp), cls:'ond'},
+  {k:'wie', t:'Verantwoordelijke', w:x => norm(x.verantw), html:x => esc(x.verantw || '–'), cls:'zacht k-wie'},
+  {k:'reactie', t:'Laatste reactie', w:x => +x.reactieDatum || 0, html:x => x.reactieDatum ? datTijd(x.reactieDatum) : '–', cls:'zacht k-reactie'},
+  {k:'status', t:'Status', w:x => norm(x.status), html:x => esc(x.status || 'Open'), cls:''},
+  {k:'gepland', t:'Gepland', w:x => +x.gepland || 0, html:x => x.gepland ? datTijd(x.gepland) : '', cls:'zacht k-gepland'},
+  {k:'sig', t:'Signaal', w:x => ernst(x), html:x => (x._sg || []).filter(s => s.ernst >= 1).slice(0, 2).map(s => `<span class="chip ${chipKleur(s)}">${esc(s.tekst)}</span>`).join(' '), cls:'sig'}
+];
+const sortering = {};   // per tabel-id: {k, op}
+function tabel(id, l, opties = {}){
+  const zonder = new Set(opties.zonder || []), kol = KOLOMMEN.filter(c => !zonder.has(c.k));
+  const s = sortering[id];
+  if(s){ const c = KOLOMMEN.find(c => c.k === s.k); l = [...l].sort((a, b) => { const x = c.w(a), y = c.w(b); return (x < y ? -1 : x > y ? 1 : 0) * s.op || sorteer(a, b); }); }
+  const max = opties.max && !blokOpen.has(id) ? opties.max : 400, zicht = l.slice(0, max);
+  return `<div class="tw"><table class="tabel" data-tabel="${id}"><thead><tr>${kol.map(c => `<th data-sort="${c.k}" class="${c.cls.replace(/\b(nr|ond|sig|zacht)\b/g, '')}" ${s && s.k === c.k ? `aria-sort="${s.op > 0 ? 'ascending' : 'descending'}"` : ''}>${c.t}<span class="pijl">${s && s.k === c.k ? (s.op > 0 ? '▲' : '▼') : '↕'}</span></th>`).join('')}</tr></thead>
+    <tbody>${zicht.map(x => `<tr class="${KLEUR[ernst(x)]}${x.afgesloten ? ' dicht' : ''}" data-nr="${esc(x.nr)}">${kol.map(c => `<td class="${c.cls}">${c.html(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    ${l.length > max ? `<button type="button" class="meer" data-blok="${id}">${blokOpen.has(id) ? 'Minder tonen' : `Alle ${l.length} tonen`}</button>` : ''}`;
+}
+function blok(id, titel, l, opties = {}){
+  return `<section class="blok ${opties.rood && l.length ? 'rood' : ''}"><header><h2>${esc(titel)}</h2><b>${l.length}</b><small>${esc(opties.sub || '')}</small></header>
+    ${l.length ? tabel(id, l, opties) : `<p class="leeg">${esc(opties.leeg || 'Niets te doen.')}</p>`}</section>`;
+}
+
+/* ---- weergaven: wat staat er in elke categorie ---- */
+const open = () => items.filter(x => !x.afgesloten);
+const VAST = [
+  {id:'mij', t:'Voor mij', ico:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'},
+  {id:'toegewezen', t:'Aan mij toegewezen', ico:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>', f:() => open().filter(isMijn)},
+  {id:'nieuw', t:'Nieuwe tickets', ico:'<path d="M12 5v14M5 12h14"/>', f:() => open().filter(x => x.emmer === 'nieuw')},
+  {id:'norm', t:'Over een norm', ico:'<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>', f:() => open().filter(x => ernst(x) >= 2), rood:true}
+];
+const ONDER = [
+  {id:'alle', t:'Alle open tickets', ico:'<path d="M4 6h16M4 12h16M4 18h10"/>', f:() => open()},
+  {id:'inuit', t:'In- en uitdienst', ico:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>', f:() => open().filter(x => x.inuit)},
+  {id:'dicht', t:'Gesloten (90 dagen)', ico:'<path d="M5 12.5l4.5 4.5L19 7.5"/>', f:() => { const g = Date.now() - 90 * DAG; return items.filter(x => x.afgesloten && (x.statusDatum || x.aangemaakt || 0) >= g); }, geenTel:true}
+];
+const afdelingen = () => { const t = new Map(); open().forEach(x => { const a = x.afdeling || 'Geen afdeling'; t.set(a, (t.get(a) || 0) + 1); });
+  return [...t.entries()].sort((a, b) => a[0].localeCompare(b[0], 'nl')); };
+function weergave(id){
+  const v = [...VAST, ...ONDER].find(v => v.id === id); if(v) return {titel:v.t, lijst:v.f ? v.f() : []};
+  if(id.startsWith('afd:')){ const a = id.slice(4); return {titel:a, lijst:open().filter(x => (x.afdeling || 'Geen afdeling') === a)}; }
+  return {titel:'Tickets', lijst:[]};
+}
+const ico = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+function tekenNav(){
+  const it = (id, t, n, o = {}) => `<button type="button" class="it" data-weergave="${esc(id)}" aria-pressed="${tab === id}">${o.ico ? ico(o.ico) : ''}${o.ster ? '<i class="ster">★</i>' : ''}<span>${esc(t)}</span>${n == null ? '' : `<b class="${o.rood && n ? 'rood' : ''}">${n}</b>`}</button>`;
+  const domeinAfd = a => profiel && profiel.rol === 'fb' && inGebied({categorie:'', afdeling:a, emma:'', soort:''});
+  $('#nav').innerHTML = `<h4>Mijn werk</h4>${VAST.map(v => it(v.id, v.t, v.f ? v.f().length : null, v)).join('')}
+    <h4>Afdelingen</h4>${afdelingen().sort((a, b) => domeinAfd(b[0]) - domeinAfd(a[0])).map(([a, n]) => it('afd:' + a, a, n, {ster:domeinAfd(a)})).join('')}
+    <h4>Overzicht</h4>${ONDER.map(v => it(v.id, v.t, v.geenTel ? null : v.f().length, v)).join('')}`;
+}
 
 function tekenMij(){
-  const open = items.filter(x => !x.afgesloten);
-  open.forEach(x => x._sg = signalen(x));
-  const mijn = open.filter(isMijn).sort(sorteer);
+  const o = open();
+  const mijn = o.filter(isMijn).sort(sorteer);
   const mijnActie = mijn.filter(actie);
-  const nieuwLos = open.filter(x => x.sla && x.emmer === 'nieuw' && !x.verantw && (profiel.rol === 'servicedesk' || inGebied(x))).sort(sorteer);
-  const gebied = open.filter(x => !isMijn(x) && inGebied(x) && !(x.emmer === 'nieuw' && !x.verantw)).sort(sorteer);
+  const nieuwLos = o.filter(x => x.sla && x.emmer === 'nieuw' && !x.verantw && (profiel.rol === 'servicedesk' || inGebied(x))).sort(sorteer);
+  const gebied = o.filter(x => !isMijn(x) && inGebied(x) && !(x.emmer === 'nieuw' && !x.verantw)).sort(sorteer);
   const gebiedActie = gebied.filter(x => ernst(x) >= 2);
   const mijnRust = mijn.filter(x => !actie(x));
-  const tegel = (n, t, sub, kl) => `<div class="tegel ${n ? kl : 'nul'}"><span>${t}</span><b>${n}</b><small>${esc(sub)}</small></div>`;
-  $('#tegels').innerHTML = tegel(mijnActie.length, 'Actie nodig', 'op jouw naam', 'rood')
-    + tegel(nieuwLos.length, 'Nieuw op te pakken', profiel.rol === 'servicedesk' ? 'zonder behandelaar' : 'in jouw gebied', 'oranje')
-    + (profiel.rol === 'geen' ? '' : tegel(gebiedActie.length, profiel.rol === 'servicedesk' ? 'Aandacht bij collega’s' : 'Aandacht in jouw domein', gebiedLabel(), 'oranje'))
-    + tegel(mijn.length, 'Mijn open tickets', 'verantwoordelijk of taak bij jou', '');
-  let html = blok('actie', 'Actie nodig', mijnActie, {rood:true, toonWie:false, leeg:'Niets dat over een norm gaat. Mooi zo.', sub:'Verlopen planning, te lang geen reactie, nieuwe meldingen'});
-  if(profiel.rol === 'servicedesk' || nieuwLos.length) html += blok('nieuw', 'Nieuwe meldingen zonder behandelaar', nieuwLos, {leeg:'Geen nieuwe meldingen die wachten.', sub:`Binnen ${INST.nieuwUren} werkuren oppakken`});
-  if(profiel.rol !== 'geen') html += blok('gebied', profiel.rol === 'servicedesk' ? 'Over een norm, bij een collega' : 'In jouw domein: ' + gebiedLabel(), (profiel.rol === 'servicedesk' ? gebied.filter(x => ernst(x) >= 2) : gebied.filter(x => ernst(x) >= 1).concat(gebied.filter(x => !ernst(x)))), {leeg:'Niets open in jouw domein.', sub:'Ook als het bij een collega ligt', max:6});
-  html += blok('rust', 'Mijn overige open tickets', mijnRust, {toonWie:false, leeg:'Geen andere open tickets.', max:10});
+  const tegel = (n, t, sub, kl, doel) => `<button type="button" class="tegel ${n ? kl : 'nul'}" data-weergave="${doel}"><span>${t}</span><b>${n}</b><small>${esc(sub)}</small></button>`;
+  $('#tegels').innerHTML = tegel(mijnActie.length, 'Actie nodig', 'op jouw naam', 'rood', 'toegewezen')
+    + tegel(nieuwLos.length, 'Nieuw op te pakken', profiel.rol === 'servicedesk' ? 'zonder behandelaar' : 'in jouw domein', 'oranje', 'nieuw')
+    + (profiel.rol === 'geen' ? '' : tegel(gebiedActie.length, profiel.rol === 'servicedesk' ? 'Over een norm bij collega’s' : 'Aandacht in jouw domein', gebiedLabel(), 'oranje', 'norm'))
+    + tegel(mijn.length, 'Mijn open tickets', 'verantwoordelijk of taak bij jou', '', 'toegewezen');
+  let html = blok('actie', 'Actie nodig', mijnActie, {rood:true, zonder:['wie'], leeg:'Niets dat over een norm gaat. Mooi zo.', sub:'Verlopen planning, te lang geen reactie, nieuwe meldingen'});
+  if(profiel.rol === 'servicedesk' || nieuwLos.length) html += blok('nieuwlos', 'Nieuwe meldingen zonder behandelaar', nieuwLos, {zonder:['wie','reactie','gepland'], leeg:'Geen nieuwe meldingen die wachten.', sub:`Binnen ${INST.nieuwUren} werkuren oppakken`});
+  if(profiel.rol !== 'geen') html += blok('gebied', profiel.rol === 'servicedesk' ? 'Over een norm, bij een collega' : 'In jouw domein: ' + gebiedLabel(),
+    profiel.rol === 'servicedesk' ? gebiedActie : gebied, {leeg:'Niets open in jouw domein.', sub:'Ook als het bij een collega ligt', max:8});
+  html += blok('rust', 'Mijn overige open tickets', mijnRust, {zonder:['wie'], leeg:'Geen andere open tickets.', max:10});
   $('#blokken').innerHTML = html;
-  $('#tel-mij').textContent = mijnActie.length || '';
   $('#subtitel').textContent = `${mijnActie.length ? mijnActie.length + ' ticket' + (mijnActie.length === 1 ? '' : 's') + ' vraagt actie' : 'Alles binnen de normen'}`;
 }
-const filt = {scope:'alle', open:'open', zoek:''};
-function tekenAlle(){
-  const grens = Date.now() - 90 * DAG, w = norm(filt.zoek);
-  let l = items.filter(x => filt.open === 'open' ? !x.afgesloten : x.afgesloten && (x.statusDatum || x.aangemaakt || 0) >= grens);
-  if(filt.scope === 'mijn') l = l.filter(isMijn); if(filt.scope === 'gebied') l = l.filter(inGebied);
+const filt = {wie:'alle', zoek:''};
+function tekenLijst(){
+  const v = weergave(tab), w = norm(filt.zoek);
+  let l = v.lijst;
+  if(filt.wie === 'mijn') l = l.filter(isMijn); if(filt.wie === 'geen') l = l.filter(x => !x.verantw);
   if(w) l = l.filter(x => x.zoek.includes(w));
-  l.forEach(x => x._sg = signalen(x));
-  l.sort(filt.open === 'open' ? sorteer : (a, b) => (b.statusDatum || 0) - (a.statusDatum || 0));
-  const max = 300;
-  $('#alle-n').textContent = l.length; $('#alle-sub').textContent = l.length > max ? `eerste ${max} getoond, zoek om te verfijnen` : '';
-  $('#alle-titel').textContent = filt.open === 'open' ? 'Open tickets' : 'Afgesloten, afgelopen 90 dagen';
-  $('#alle-lijst').innerHTML = l.length ? l.slice(0, max).map(x => `<button type="button" class="rij ${KLEUR[ernst(x)]}" data-nr="${esc(x.nr)}"><span class="balk"></span><span class="nr">${esc(x.nr)}</span>
-      <span class="titel"><b>${esc(x.onderwerp)}</b><small>${esc([x.status, x.melder ? 'melder ' + x.melder : '', x.categorie].filter(Boolean).join(' · '))}</small></span>
-      <span class="kol">${esc(x.verantw || (x.taakBij[0] ? 'taak: ' + x.taakBij[0] : '–'))}</span><span class="kol">${x.gepland ? 'gepland ' + fmtDatum(x.gepland) : 'gemeld ' + fmtDatum(x.aangemaakt)}</span>
-      <span class="chips">${(x._sg || []).filter(s => s.ernst >= 2).slice(0, 2).map(s => `<span class="chip ${chipKleur(s)}">${esc(s.tekst)}</span>`).join('')}</span></button>`).join('')
-    : '<p class="leeg">Geen tickets gevonden.</p>';
+  l = [...l].sort(tab === 'dicht' ? (a, b) => (b.statusDatum || 0) - (a.statusDatum || 0) : sorteer);
+  $('#lijst-titel').textContent = v.titel; $('#lijst-n').textContent = l.length;
+  $('#lijst-sub').textContent = l.length > 400 ? 'eerste 400 getoond; zoek of sorteer om te verfijnen' : 'Klik op een kolomkop om te sorteren';
+  if(tab === 'dicht' && !alleGeladen) $('#lijst-sub').textContent = 'Gesloten meldingen worden nog opgehaald…';
+  $('#lijst').innerHTML = l.length ? tabel('lijst:' + tab, l, {zonder: tab.startsWith('afd:') ? ['afd'] : []}) : '<p class="leeg">Geen tickets gevonden.</p>';
+  $('#titel').textContent = v.titel; $('#subtitel').textContent = '';
 }
 let tab = 'mij';
 function teken(){
   if(!profiel) return;
+  items.forEach(x => x._sg = signalen(x));
   $('#ik span').textContent = profiel.naam; $('#ik i').textContent = profiel.naam.split(' ').map(w => w[0]).filter(c => c && c === c.toUpperCase()).slice(0, 2).join('');
-  document.querySelectorAll('.rail [data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === tab));
-  $('#v-mij').hidden = tab !== 'mij'; $('#v-alle').hidden = tab !== 'alle';
-  $('#titel').textContent = tab === 'mij' ? 'Voor ' + profiel.naam.split(' ')[0] : 'Alle tickets';
-  tekenMij(); if(tab === 'alle'){ tekenAlle(); $('#subtitel').textContent = ''; }
+  tekenNav();
+  $('#v-mij').hidden = tab !== 'mij'; $('#v-lijst').hidden = tab === 'mij';
+  if(tab === 'mij'){ $('#titel').textContent = 'Voor ' + profiel.naam.split(' ')[0]; tekenMij(); } else tekenLijst();
 }
 
-/* ================= detail: bekijken, reageren, workflowactie ================= */
+/* ================= ticketscherm: bekijken, reageren, workflowactie ================= */
 const actieCache = {};
 let zichtVeld;   // veld in KnSubjectWorkflowReaction voor zichtbaarheid; undefined = nog niet gezocht
 async function zoekZichtVeld(){
@@ -535,9 +668,17 @@ async function zoekZichtVeld(){
   zichtVeld = null;
   try{ const m = await afas('/metainfo/update/KnSubjectWorkflowReaction');
     const velden = []; (function loop(o){ if(!o || typeof o !== 'object') return; if(Array.isArray(o)) return o.forEach(loop);
-      if((o.fieldId || o.id) && (o.label || o.description)) velden.push({code:o.fieldId || o.id, label:norm(o.label || o.description), type:norm(o.dataType || o.type)}); Object.values(o).forEach(loop); })(m);
-    const v = velden.find(f => /zichtbaar|extern|intern|outsite|portal/.test(f.label) && /bool|ja|yes/.test(f.type + ' boolean'));
-    if(v) zichtVeld = {code:v.code, label:v.label, intern: /intern/.test(v.label) && !/extern/.test(v.label)};
+      if(o.fieldId && o.label) velden.push(o); Object.values(o).forEach(loop); })(m);
+    const v = velden.find(f => /zichtbaar/i.test(f.label)) || velden.find(f => /extern|intern/i.test(f.label));
+    if(v){
+      const waarden = (Array.isArray(v.values) ? v.values : []).map(w => ({id: w.id ?? w.Id ?? w.code, tekst: norm(w.description ?? w.Description ?? '')}));
+      if(waarden.length){
+        // keuzelijst, bv. "Intern" / "Extern en intern": kies de code die bij de tekst hoort
+        const intern = waarden.find(w => /intern/.test(w.tekst) && !/extern/.test(w.tekst));
+        const extern = waarden.find(w => /extern/.test(w.tekst)) || waarden.find(w => w !== intern);
+        if(intern && extern) zichtVeld = {code:v.fieldId, soort:'lijst', intern:intern.id, extern:extern.id, label:v.label};
+      } else if(/bool/i.test(v.dataType || '')) zichtVeld = {code:v.fieldId, soort:'ja', label:v.label, omgekeerd: /intern/i.test(v.label) && !/extern/i.test(v.label)};
+    }
   }catch(e){}
   return zichtVeld;
 }
@@ -552,51 +693,72 @@ async function workflow(x){
   return {taak: t.TaskDescription || t.WfDescription || '', bij:[...new Set(taken.map(y => y.UserName).filter(Boolean))], acties: actieCache[k]};
 }
 let huidig = null;
+const STAPPEN = ['Open', 'Actief', 'Afgehandeld'];
+const stapVan = x => x.afgesloten ? 2 : (x.emmer === 'nieuw' || (!x.verantw && !x.emmer)) ? 0 : 1;
+const isReactieActie = a => /reactie plaatsen|^reageren/i.test(a.naam), isNotitieActie = a => /interne notitie/i.test(a.naam);
+const isOppakActie = a => !a.afhandelen && /toewijzen aan mij|in behandeling|oppakken|behandel/i.test(a.naam);
 function openDetail(nr){
   const x = items.find(y => String(y.nr) === String(nr)); if(!x) return; huidig = {x, wf:null};
   x._sg = signalen(x);
-  const veld = (t, w) => `<div><span>${t}</span><b>${esc(w || '–')}</b></div>`;
+  const st = stapVan(x);
+  const r = (t, w, o = {}) => w || o.altijd ? `<span>${t}</span><b>${o.html ? w : esc(w || '–')}</b>` : '';
   const link = INST.ticketUrl && x.sbid ? INST.ticketUrl.replace('{sbid}', encodeURIComponent(x.sbid)).replace('{nr}', encodeURIComponent(x.nr)) : '';
   $('#detail-in').innerHTML = `
-    <div class="dlg-kop"><div><small>Ticket ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.soort ? ' · ' + esc(x.soort) : ''}</small><h2>${esc(x.onderwerp)}</h2></div><button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
-    ${x._sg.length ? `<div class="chips" style="justify-content:flex-start;max-width:none">${x._sg.map(s => `<span class="chip ${chipKleur(s)}">${esc(s.tekst)}</span>`).join('')}</div>` : ''}
-    <div class="velden">${veld('Status', x.status)}${veld('Verantwoordelijke', x.verantw)}${veld('Melder', x.melder)}
-      ${veld('Gemeld', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '')}${veld('Gepland', x.gepland ? fmtDatum(x.gepland) : '')}${veld('Focusgebied', [x.categorie, x.afdeling, x.emma].filter(Boolean).join(' · '))}
-      ${veld('Laatste reactie', x.reactieDatum ? fmtDatum(x.reactieDatum) + (x.reactieDoor ? ' · ' + x.reactieDoor : '') : '')}${veld('Laatste wijziging', x.statusDatum ? fmtDatum(x.statusDatum) + (x.wijzigingDoor ? ' · ' + x.wijzigingDoor : '') : '')}${veld('Extern ticket', x.extern)}</div>
+    <div class="dlg-kop"><div><small>Ticket ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.afdeling ? ' · ' + esc(x.afdeling) : ''}</small><h2>${esc(x.onderwerp)}</h2></div><button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
+    <div class="stappen">${STAPPEN.map((t, i) => `${i ? `<span class="lijntje ${i <= st ? 'klaar' : ''}"></span>` : ''}<span class="stap ${i < st ? 'klaar' : i === st ? 'nu' : ''}"><i>${i < st ? '✓' : ''}</i>${t}</span>`).join('')}
+      ${x._sg.length ? `<span class="chips" style="margin-left:auto">${x._sg.map(s => `<span class="chip ${chipKleur(s)}">${esc(s.tekst)}</span>`).join('')}</span>` : ''}</div>
+    <div class="kaarten">
+      <div class="kaart2"><h3>Melding</h3>${r('Melder', x.melder, {altijd:true})}${r('Type ticket', x.type)}${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}${r('Locatie', x.locatie)}
+        ${x.toelichting ? `<div class="lang">${esc(x.toelichting)}</div>` : ''}</div>
+      <div class="kaart2"><h3>Behandeling</h3>${r('Verantwoordelijke', x.verantw, {altijd:true})}${r('Status', x.status, {altijd:true})}<span>Taak</span><b id="d-taak">…</b>
+        ${r('Gepland', x.gepland ? fmtDatum(x.gepland) : '')}${r('Laatste reactie', x.reactieDatum ? fmtDatum(x.reactieDatum) + (x.reactieDoor ? ' · ' + x.reactieDoor : '') : '')}${r('Extern ticket', x.extern)}${x.kritiek ? r('Kritieke storing', 'Ja') : ''}</div>
+    </div>
     ${link ? `<a class="hint" href="${esc(link)}" target="_blank" rel="noopener">Openen in AFAS ↗</a>` : ''}
-    ${x.afgesloten ? '<p class="hint">Dit ticket is afgesloten.</p>' : `
-    <div class="wf" id="wf"><span class="wfkop"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Workflow ophalen…</span></div>
-    <textarea id="tekst" placeholder="Schrijf een reactie of toelichting…"></textarea>
-    <label class="vink" id="zicht" hidden><input type="checkbox" id="ookMelder"> Ook zichtbaar voor de melder</label>
-    <div class="acties"><button class="knop" id="k-reageer">Alleen reactie plaatsen</button></div>
-    <p class="hint">Alles wat je hier doet, staat in AFAS op jouw naam.</p><p class="fout" id="d-fout"></p>`}`;
+    ${x.afgesloten ? '<p class="hint">Dit ticket is afgehandeld.</p>' : `
+    <div class="composer">
+      <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
+      <div class="onder"><label class="vink notitie"><input type="checkbox" id="notitie"> Interne notitie <small>(alleen zichtbaar voor ICT)</small></label>
+        <span class="hint">Standaard is een reactie zichtbaar voor melder én ICT.</span><button class="knop" id="k-reageer">Plaats reactie</button></div>
+    </div>
+    <div class="actiebalk" id="actiebalk"><span class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Acties ophalen…</span></div>
+    <p class="fout" id="d-fout"></p>`}`;
   $('#detail').showModal();
-  if(!x.afgesloten) laadWorkflow(x);
+  if(!x.afgesloten){ laadWorkflow(x); $('#notitie').onchange = e => { $('#tekst').classList.toggle('intern', e.target.checked); $('#tekst').placeholder = e.target.checked ? 'Interne notitie voor collega’s…' : 'Schrijf een reactie aan de melder…'; }; }
+  else $('#d-taak').textContent = '–';
 }
 async function laadWorkflow(x){
-  const el = $('#wf');
-  if(!x.sbid && !DEMO){ el.innerHTML = '<span class="fout">Het interne nummer (Dossieritem) van dit ticket ontbreekt in Helpdesk_PowerBI; bijwerken kan niet.</span>'; return; }
+  const el = $('#actiebalk');
+  if(!x.sbid && !DEMO){ el.innerHTML = '<span class="fout">Het interne nummer (Dossieritem) van dit ticket ontbreekt in Helpdesk_PowerBI; bijwerken kan niet.</span>'; $('#d-taak').textContent = '–'; return; }
   try{
-    const [wf, zv] = await Promise.all([workflow(x), zoekZichtVeld()]); if(!huidig || huidig.x !== x) return; huidig.wf = wf;
-    el.innerHTML = `<span class="wfkop">${wf.taak ? `Taak <b>${esc(wf.taak)}</b>${wf.bij.length ? ' · bij ' + esc(wf.bij.join(', ')) : ''}` : 'Geen openstaande workflowtaak voor dit ticket.'}</span>
-      ${wf.acties.length ? `<div class="acties">${wf.acties.map((a, i) => `<button class="knop ${a.afhandelen ? 'vol' : ''}" data-actie="${i}">${esc(a.naam)}</button>`).join('')}</div>` : ''}`;
-    if(zv){ $('#zicht').hidden = false; }
-    if(wf.taak && wf.bij.length && !wf.bij.some(benIk)) el.insertAdjacentHTML('beforeend', '<span class="hint">Let op: de taak staat niet bij jou. AFAS staat een actie alleen toe als je rechten op deze taak hebt.</span>');
-  }catch(e){ el.innerHTML = `<span class="fout">Workflow ophalen mislukt: ${esc(e.message)}</span>`; }
+    const [wf] = await Promise.all([workflow(x), zoekZichtVeld()]); if(!huidig || huidig.x !== x) return; huidig.wf = wf;
+    const bijMij = wf.bij.some(benIk);
+    $('#d-taak').textContent = wf.taak ? wf.taak + (bijMij ? ' · bij jou' : '') : 'geen open taak';
+    const st = stapVan(x);
+    const hoofd = st === 0 ? wf.acties.find(isOppakActie) : wf.acties.find(a => a.afhandelen);
+    const rest = wf.acties.filter(a => a !== hoofd && !isReactieActie(a) && !isNotitieActie(a));
+    el.innerHTML = !wf.acties.length ? '<span class="hint">Geen workflowacties beschikbaar voor dit ticket.</span>' :
+      `${hoofd ? `<button class="knop vol" data-actie="${wf.acties.indexOf(hoofd)}">${esc(hoofd.naam)}</button>` : ''}
+       ${rest.length ? `<select id="actie-keuze"><option value="">Andere actie…</option>${rest.map(a => `<option value="${wf.acties.indexOf(a)}">${esc(a.naam)}</option>`).join('')}</select><button class="knop" id="k-actie" disabled>Uitvoeren</button>` : ''}
+       <span class="wfinfo">Tekst in het veld hierboven gaat mee met de actie</span>`;
+    const kies = $('#actie-keuze'); if(kies) kies.onchange = () => $('#k-actie').disabled = !kies.value;
+  }catch(e){ el.innerHTML = `<span class="fout">Acties ophalen mislukt: ${esc(e.message)}</span>`; $('#d-taak').textContent = '?'; }
 }
 async function voerUit(actieIdx){
-  const {x, wf} = huidig, tekst = $('#tekst').value.trim(), a = actieIdx == null ? null : wf.acties[actieIdx];
+  const {x, wf} = huidig, tekst = $('#tekst').value.trim(), notitie = $('#notitie').checked;
+  let a = actieIdx == null ? null : wf && wf.acties[actieIdx];
   if(!a && !tekst){ $('#d-fout').textContent = 'Schrijf eerst een reactie.'; return; }
   if(a && a.afhandelen && !confirm(`Ticket ${x.nr} afhandelen?`)) return;
+  // losse reactie: gebruik de eigen AFAS-acties "Reactie plaatsen" / "Interne notitie" als die er zijn
+  if(!a && wf) a = wf.acties.find(notitie ? isNotitieActie : isReactieActie) || null;
   const velden = {SbId: isNaN(+x.sbid) ? x.sbid : +x.sbid, ...(a ? {WfNm:a.wf, TkNm:a.tk, AcNm:a.ac} : {}), ...(tekst ? {Tx:tekst} : {})};
-  const zv = zichtVeld, ook = $('#ookMelder') && $('#ookMelder').checked;
-  if(zv && tekst) velden[zv.code] = zv.intern ? !ook : ook;
-  document.querySelectorAll('#detail button').forEach(b => b.disabled = true); $('#d-fout').textContent = '';
+  const zv = zichtVeld;
+  if(zv && tekst && !(a && (isNotitieActie(a) || isReactieActie(a)))) velden[zv.code] = zv.soort === 'lijst' ? (notitie ? zv.intern : zv.extern) : (zv.omgekeerd ? notitie : !notitie);
+  document.querySelectorAll('#detail button, #detail select').forEach(b => b.disabled = true); $('#d-fout').textContent = '';
   try{
     await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body:JSON.stringify({KnWorkflow:{Element:{Fields:velden}}})});
-    $('#detail').close(); toast(a ? `${a.naam}: verwerkt in AFAS` : 'Reactie geplaatst');
+    $('#detail').close(); toast(actieIdx != null && a ? `${a.naam}: verwerkt in AFAS` : notitie ? 'Interne notitie geplaatst' : 'Reactie geplaatst');
     await laadGegevens(); teken();
-  }catch(e){ $('#d-fout').textContent = e.message; document.querySelectorAll('#detail button').forEach(b => b.disabled = false); }
+  }catch(e){ $('#d-fout').textContent = e.message; document.querySelectorAll('#detail button, #detail select').forEach(b => b.disabled = false); }
 }
 
 /* ================= wie is er ingelogd: uit AFAS, niet zelf kiezen ================= */
@@ -673,30 +835,32 @@ function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken
 
 /* ================= bediening ================= */
 document.addEventListener('click', e => {
-  const r = e.target.closest('.rij[data-nr]'); if(r){ openDetail(r.dataset.nr); return; }
+  const th = e.target.closest('th[data-sort]'); if(th){ const id = th.closest('table').dataset.tabel, k = th.dataset.sort, s = sortering[id];
+    sortering[id] = s && s.k === k ? (s.op > 0 ? {k, op:-1} : undefined) : {k, op: ['in','reactie','gepland','sig'].includes(k) ? -1 : 1}; teken(); return; }
+  const r = e.target.closest('tr[data-nr]'); if(r){ openDetail(r.dataset.nr); return; }
   const m = e.target.closest('.meer'); if(m){ const id = m.dataset.blok; blokOpen.has(id) ? blokOpen.delete(id) : blokOpen.add(id); teken(); return; }
-  const t = e.target.closest('.rail [data-tab]'); if(t){ tab = t.dataset.tab; teken(); return; }
+  const w = e.target.closest('[data-weergave]'); if(w){ tab = w.dataset.weergave; filt.zoek = ''; $('#f-zoek').value = ''; teken(); scrollTo(0, 0); return; }
   if(e.target.closest('[data-sluit]')){ $('#detail').close(); return; }
   const a = e.target.closest('[data-actie]'); if(a){ voerUit(+a.dataset.actie); return; }
+  if(e.target.closest('#k-actie')){ const v = $('#actie-keuze').value; if(v !== '') voerUit(+v); return; }
   if(e.target.closest('#k-reageer')){ voerUit(null); return; }
-  const s = e.target.closest('.schakel button'); if(s){ const g = s.parentElement; g.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b === s));
-    filt[g.id === 'f-scope' ? 'scope' : 'open'] = s.dataset.v; tekenAlle(); }
+  const s = e.target.closest('#f-wie button'); if(s){ s.parentElement.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b === s)); filt.wie = s.dataset.v; tekenLijst(); }
 });
 $('#detail').addEventListener('close', () => huidig = null);
-$('#f-zoek').addEventListener('input', e => { filt.zoek = e.target.value; tekenAlle(); });
+$('#f-zoek').addEventListener('input', e => { filt.zoek = e.target.value; tekenLijst(); });
 $('#k-ververs').onclick = async () => { await laadGegevens(); teken(); };
 $('#k-profiel').onclick = () => startProfiel(false);
 $('#k-uit').onclick = () => uitloggen();
-$('#k-thema').onclick = () => { const d = document.documentElement, nu = d.dataset.thema || (matchMedia('(prefers-color-scheme: dark)').matches ? 'donker' : 'licht');
-  d.dataset.thema = nu === 'donker' ? 'licht' : 'donker'; opslag.set('mict-thema', d.dataset.thema); };
-{ const t = opslag.get('mict-thema'); if(t) document.documentElement.dataset.thema = t; }
+const isDonker = () => (document.documentElement.dataset.thema || (matchMedia('(prefers-color-scheme: dark)').matches ? 'donker' : 'licht')) === 'donker';
+$('#k-thema').onclick = () => { document.documentElement.dataset.thema = isDonker() ? 'licht' : 'donker'; opslag.set('mict-thema', document.documentElement.dataset.thema); };
+{ const t = opslag.get('mict-thema'); document.documentElement.dataset.thema = t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'donker' : 'licht'); }
 setInterval(() => { $('#klok').textContent = new Date().toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'}) + ' · ' + fmtTijd(new Date()); }, 1000);
 setInterval(async () => { if(!$('#app').hidden && !$('#detail').open){ await laadGegevens(); teken(); } }, INST.verversMinuten * 60e3);
 
 /* ================= opstarten ================= */
 function laadKaart(naam){
   toonStart(`<h1>${naam ? 'Welkom, ' + esc(naam.split(' ')[0]) : 'Mijn ICT-Omgeving'}</h1>
-    <div class="voortgang" id="laad-voortgang"><div class="regel"><span>${naam ? 'Ik laad even je tickets en taken uit AFAS' : 'Tickets ophalen uit AFAS'}</span><b>0%</b></div>
+    <div class="voortgang" id="laad-voortgang"><div class="regel"><span>${naam ? 'Ik haal eerst je openstaande tickets op' : 'Tickets ophalen uit AFAS'}</span><b>0%</b></div>
     <div class="spoor"><i></i></div><small class="hint">Verbinding maken met AFAS…</small></div>
     <p class="hint">${opslag.get(AANTAL) ? '' : 'De eerste keer duurt dit wat langer; daarna weet de pagina hoeveel er komt.'}</p>`);
 }
@@ -717,19 +881,20 @@ function laadKaart(naam){
     await laadGegevens();
     if(status.fout && !items.length){ startInlog('Tickets ophalen mislukt: ' + status.fout); return; }
     if(!profiel.ingesteld) startProfiel(true); else toonApp();
+    laadRestOpAchtergrond();
   }catch(e){ startInlog(e.message); }
 })();
 
 /* ================= demodata (alleen met ?demo in de adresbalk) ================= */
 function demoAfas(pad, opties){
   if(opties.method === 'POST'){ return new Promise(r => setTimeout(() => r({}), 300)); }
-  if(pad.startsWith('/metainfo')) return {fields:[{fieldId:'VaIn', label:'Zichtbaar extern', dataType:'boolean'}]};
+  if(pad.startsWith('/metainfo')) return {fields:[{fieldId:'ViRe', label:'Reactie zichtbaar', dataType:'string', values:[{id:'I', description:'Intern'},{id:'E', description:'Extern en intern'}]}]};
   const nu = Date.now(), lok = x => `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}T${String(x.getHours()).padStart(2,'0')}:${String(x.getMinutes()).padStart(2,'0')}:00`,
     d = (dagen, uur = 10) => { const x = new Date(nu - dagen * DAG); x.setHours(uur, 15, 0, 0); return lok(x); };
   if(!window._demo){
     const r = [], mens = ['Robert van der Veen','Kelly Groen','Glenn Brons','Eleandro Martis','Mehmet Ceylan'];
     const add = (nr, o, st, v, extra = {}) => r.push({Nummer:nr, Onderwerp:o, Status:st, Omschrijving_4:v, Omschrijving_2:extra.melder || 'Anouk de Vries', Omschrijving:extra.soort || 'Aanvraag ICT',
-      Type_ticket_ICT:extra.type || 'Incident', Focusgebied_ICT:extra.cat || 'Werkplek', AFAS_Afdeling:extra.afd || '', Focusgebied_EMMA:extra.emma || '', Instuurdatum:extra.in || d(4),
+      Type_ticket_ICT:extra.type || 'Incident', Focusgebied_ICT:extra.cat || 'Werkplek', AFAS_Afdeling:extra.afd || (extra.cat === 'Emma EPD' ? 'Emma' : 'ICT'), Focusgebied_EMMA:extra.emma || '', Instuurdatum:extra.in || d(4),
       Gepland:extra.gepland || null, Laatste_reactie:extra.reactie || d(1), Gebruiker_laatste_reactie:extra.door || v, Laatste_wijziging_externe_status:extra.wijz || d(1), Workflow_afgerond:!!extra.af, Kritieke_storing:!!extra.krit});
     add(12601, 'Monitor blijft zwart na docking', 'In behandeling', mens[0], {reactie:d(6), wijz:d(6)});
     add(12602, 'Toegang gedeelde map Financiën', 'In behandeling', mens[0], {gepland:d(2)});
@@ -742,15 +907,16 @@ function demoAfas(pad, opties){
     add(12609, 'Printer balie Hanzeplein', 'Nieuw', '', {in:lok(new Date(nu - 40 * 60e3)), cat:'Printers'});
     add(12610, 'Storing faxkoppeling huisartsen', 'Wachten op leverancier', mens[3], {cat:'Koppelingen', reactie:d(12), wijz:d(12)});
     add(12611, 'Outlook-handtekening', 'Afgehandeld', mens[0], {af:true, wijz:d(3)});
-    for(let i = 0; i < 18; i++) add(12620 + i, ['Wachtwoord resetten','Scanner leest niet','Wifi valt weg','Telefoon doorschakelen'][i % 4], i % 3 ? 'In behandeling' : 'Afgehandeld', mens[i % 5], {af:!(i % 3), cat:['Werkplek','Netwerk','Telefonie'][i % 3], wijz:d(i % 4)});
+    for(let i = 0; i < 18; i++) add(12620 + i, ['Wachtwoord resetten','Scanner leest niet','Wifi valt weg','Telefoon doorschakelen'][i % 4], i % 3 ? 'In behandeling' : 'Afgehandeld', mens[i % 5], {af:!(i % 3), cat:['Werkplek','Netwerk','Telefonie'][i % 3], afd:['ICT','Radiologie','AFAS / InPlanning','Maag Darm'][i % 4], wijz:d(i % 4)});
     window._demo = {sla:r, tickets:r.map(x => ({Nummer:x.Nummer, Dossieritem:400000 + x.Nummer})), taken:[{SubjectId:412605, TaskDescription:'Behandelen ICT', UserName:mens[0]}]};
   }
   const D = window._demo;
   return new Promise(res => setTimeout(() => res(demoRijen(D, pad)), 350));
 }
 function demoRijen(D, pad){
-  if(pad.includes(INST.connSla)) return {rows: pad.includes('skip=0') ? D.sla : []};
-  if(pad.includes(INST.connTickets)) return {rows: pad.includes('skip=0') ? D.tickets : []};
+  const alleenOpen = rows => pad.includes('Workflow_afgerond') ? rows.filter(r => !r.Workflow_afgerond) : rows;
+  if(pad.includes(INST.connSla)) return {rows: pad.includes('skip=0') ? alleenOpen(D.sla) : []};
+  if(pad.includes(INST.connTickets)) return {rows: pad.includes('skip=0') ? (pad.includes('Workflow_afgerond') ? D.tickets.filter(t => !D.sla.find(r => r.Nummer === t.Nummer).Workflow_afgerond) : D.tickets) : []};
   if(pad.includes(INST.connTaken)) return {rows: pad.includes('skip=0') && !pad.includes('filter') ? D.taken : []};
   return {rows:[]};
 }
