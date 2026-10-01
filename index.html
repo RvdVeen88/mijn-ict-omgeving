@@ -258,6 +258,8 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 #combo{position:fixed;z-index:70;max-height:260px;overflow:auto;background:var(--vlak);border:1.5px solid var(--lijn);border-radius:0 14px 14px 0;box-shadow:0 12px 32px rgba(3,31,77,.18);padding:4px;max-width:360px}
 #combo button{display:flex;justify-content:space-between;gap:12px;width:100%;text-align:left;border:0;background:transparent;padding:6px 10px;border-radius:0 8px 8px 0;font-size:13px;color:var(--inkt);cursor:pointer}
 #combo button:hover,#combo button.actief{background:var(--lichtblauw-2);color:var(--blauw)}
+#combo button.recent span::before{content:'↺ ';color:var(--grijs)}
+#combo button.recent + button:not(.recent){border-top:1px solid var(--lijn)}
 #combo button small{color:var(--grijs);font-size:11.5px}
 #combo p{margin:0;padding:8px 10px;color:var(--grijs);font-size:13px}
 dialog #combo{position:fixed}
@@ -356,7 +358,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.14 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.15 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -403,7 +405,7 @@ const INST = Object.assign({
   connMedewerkers: 'Profit_Employees',   // medewerkers om als melder te kiezen (standaard GetConnector van AFAS)
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.14';
+const VERSIE = 'v3.15';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1099,12 +1101,14 @@ async function maakMelding(){
   Object.entries(w).forEach(([c, v]) => { const i = c.indexOf('/'); if(i > 0) (obj[c.slice(0, i)] = obj[c.slice(0, i)] || {})[c.slice(i + 1)] = v; else top[c] = v; });
   const objecten = Object.entries(obj).map(([o, v]) => ({[o]: {Element: {Fields: v}}}));
   const melder = (f.melderId.value || (/^\d+$/.test(f.melder.value.trim()) ? f.melder.value.trim() : '')).trim();
-  if(f.melder.value.trim() && !melder){ fout.textContent = 'Kies de melder uit de lijst (of vul een medewerkernummer in).'; f.melder.focus(); return; }
+  if(!melder && medewerkers){ fout.textContent = 'Kies de melder uit de lijst.'; f.melder.focus(); return; }
+  if(!melder && !medewerkers){ fout.textContent = `De melder kan niet worden gekoppeld: ${medewerkerFout || 'de medewerkerslijst is nog niet geladen'}. AFAS vereist een melder bij een nieuw ticket.`; return; }
   if(melder) objecten.unshift({KnSubjectLink: {Element: {Fields: {SfTp: 17, SfId: isNaN(+melder) ? melder : +melder}}}});
   const body = {KnSubject: {Element: {Fields: top, ...(objecten.length ? {Objects: objecten} : {})}}};
   f.querySelectorAll('button, input, select, textarea').forEach(b => b.disabled = true); fout.textContent = '';
   try{
     const antw = await afas('/connectors/KnSubject', {method:'POST', body: JSON.stringify(body)});
+    if(melder) opslag.set('mict-recente-melders', [melder, ...(opslag.get('mict-recente-melders') || []).filter(x => x !== melder)].slice(0, 5));
     const sbid = JSON.stringify(antw).match(/"@?SbId"\s*:\s*"?(\d+)/i)?.[1] || '';
     const knop = $('#nieuw-knop').getBoundingClientRect();
     $('#nieuw').close(); toast(`Melding aangemaakt${sbid ? ' (dossieritem ' + sbid + ')' : ''}`);
@@ -1118,31 +1122,62 @@ async function maakMelding(){
 }
 
 /* medewerkers (GetConnector Profit_Employees) om als melder te kiezen; eenmalig ophalen per sessie */
-let medewerkers = null, medewerkerFout = '';
+// zoek de kolommen voor nummer en naam in een lijst met veldnamen
+function medewerkerKolommen(k){
+  const idK = k.find(x => /^(EmId|EmployeeId|Medewerker|Medewerkernummer|Nummer_medewerker|Medewerker_nummer)$/i.test(x)) || k.find(x => /emid|employee.?id|medewerker.?(nr|nummer|id|code)?$/i.test(x));
+  const naamK = k.find(x => /^(NameFull|Naam|Volledige_naam|Name|Naam_medewerker|Weergavenaam|DisplayName)$/i.test(x)) || k.find(x => /naam|name/i.test(x) && !/voor|first|achter|last|search|zoek|organisatie|afdeling|functie|gebruiker/i.test(x));
+  const deel = re => k.find(x => re.test(x));
+  return {idK, naamK, voor: deel(/^(Roepnaam|Voornaam|FirstName|Nickname|CallName)$/i), tus: deel(/^(Voorvoegsel|Prefix|Infix)$/i), ach: deel(/^(Achternaam|LastName|Geboortenaam)$/i)};
+}
+// welke GetConnector levert de medewerkers? eerst de ingestelde, anders zoeken in de app connector
+async function kiesMedewerkerConnector(){
+  const bewaard = opslag.get('mict-connmede'); if(bewaard) return bewaard;
+  const kandidaten = [INST.connMedewerkers]; let alleGet = [];
+  try{ const m = await afas('/metainfo'); alleGet = (m.getConnectors || []).map(c => ({id: c.id, oms: c.description || ''}));
+    alleGet.filter(c => /medewerker|employee|personeel|werknemer|persoon|gebruiker|user/i.test(c.id + ' ' + c.oms)).forEach(c => kandidaten.push(c.id));
+    alleGet.forEach(c => kandidaten.push(c.id)); }catch(e){}
+  const pogingen = [];
+  for(const naam of [...new Set(kandidaten.filter(Boolean))]){
+    if([INST.connSla, INST.connTickets, INST.connTaken, INST.connActies, INST.connReacties].includes(naam)) continue;
+    try{
+      const d = await afas(`/connectors/${encodeURIComponent(naam)}?skip=0&take=5`), rijen = d.rows || [];
+      const k = medewerkerKolommen(Object.keys(rijen[0] || {}));
+      if(rijen.length > 1 && k.idK && (k.naamK || k.ach)){ opslag.set('mict-connmede', naam); return naam; }
+      pogingen.push(`${naam}: ${rijen.length > 1 ? 'geen kolommen medewerker en naam' : 'maar ' + rijen.length + ' regel'}`);
+    }catch(e){ pogingen.push(`${naam}: geen toegang`); }
+  }
+  throw new Error(`geen GetConnector met alle medewerkers gevonden in de app connector. Bekeken: ${pogingen.join('; ') || 'niets'}${alleGet.length ? '. Beschikbaar: ' + alleGet.map(c => c.id).join(', ') : ''}`);
+}
+let medewerkers = null, medewerkerFout = '', medewerkerConn = '';
 async function laadMedewerkers(){
   if(medewerkers) return medewerkers;
-  if(DEMO) return (medewerkers = ['Robert van der Veen','Anouk de Vries','Kelly Groen','Glenn Brons','Daphne van de Weert','Teun Kessels','Wilma Balm','Bianca van den Berg'].map((n, i) => ({id: String(488760 + i), naam: n})));
-  const rijen = await connectorAlles(INST.connMedewerkers);
-  const k = Object.keys(rijen[0] || {});
-  const idK = k.find(x => /^(EmId|EmployeeId|Medewerker|Medewerkernummer|Nummer_medewerker)$/i.test(x)) || k.find(x => /emid|employee.?id|medewerker/i.test(x));
-  const naamK = k.find(x => /^(NameFull|Naam|Volledige_naam|Name)$/i.test(x)) || k.find(x => /naam|name/i.test(x) && !/voor|first|achter|last|search|zoek/i.test(x));
-  const deel = (re) => k.find(x => re.test(x));
-  const voor = deel(/^(Roepnaam|Voornaam|FirstName|Nickname|CallName)$/i), tus = deel(/^(Voorvoegsel|Prefix|Infix)$/i), ach = deel(/^(Achternaam|LastName|Geboortenaam)$/i);
-  if(!idK) throw new Error(`geen medewerkernummer gevonden in ${INST.connMedewerkers} (kolommen: ${k.join(', ')})`);
-  const naamVan = r => naamK ? String(r[naamK] ?? '').trim() : [r[voor], r[tus], r[ach]].filter(Boolean).join(' ');
-  return (medewerkers = rijen.map(r => ({id: String(r[idK] ?? '').trim(), naam: naamVan(r)})).filter(m => m.id && m.naam).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
+  if(DEMO) return (medewerkers = ['Robert van der Veen','Anouk de Vries','Kelly Groen','Glenn Brons','Daphne van de Weert','Teun Kessels','Wilma Balm','Bianca van den Berg','Guillonard Leer','Steven van Dijk','Anouk van Riel'].map((n, i) => ({id: String(488760 + i), naam: n})).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
+  medewerkerConn = await kiesMedewerkerConnector();
+  const rijen = await connectorAlles(medewerkerConn), k = medewerkerKolommen(Object.keys(rijen[0] || {}));
+  const naamVan = r => k.naamK ? String(r[k.naamK] ?? '').trim() : [r[k.voor], r[k.tus], r[k.ach]].filter(Boolean).join(' ');
+  const uniek = new Map(); rijen.forEach(r => { const id = String(r[k.idK] ?? '').trim(), naam = naamVan(r); if(id && naam && !uniek.has(id)) uniek.set(id, {id, naam}); });
+  return (medewerkers = [...uniek.values()].sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
 }
 async function koppelMelder(){
-  const inp = $('#n-melder'), hint = $('#n-melder-hint'); if(!inp) return;
+  const inp = $('#n-melder'), hint = $('#n-melder-hint'), f = $('#n-form'); if(!inp) return;
+  // standaard: jijzelf; het nummer zoeken we op zodra de medewerkerslijst binnen is
+  inp.value = profiel.naam; inp.dataset.std = '1'; hint.textContent = 'Jij bent de melder. Klik om iemand anders te kiezen.';
   let lijst = [];
   try{ lijst = await laadMedewerkers(); }
-  catch(e){ medewerkerFout = e.message; hint.textContent = `Medewerkers ophalen lukte niet (${e.message}). Vul het medewerkernummer in, of laat GetConnector ${INST.connMedewerkers} aan de app connector toevoegen.`; inp.placeholder = 'Medewerkernummer'; return; }
+  catch(e){ medewerkerFout = e.message; if(!$('#n-melder')) return;
+    hint.innerHTML = `Medewerkers ophalen lukte niet: ${esc(e.message)}`; return; }
   if(!$('#n-melder')) return;
-  const ik = lijst.find(m => benIk(m.naam));
-  hint.textContent = `Zoek in ${lijst.length} medewerkers op naam of nummer`;
-  if(ik){ inp.value = ik.naam; $('#n-form').melderId.value = ik.id; }
-  comboKoppel(inp, () => lijst.map(m => ({waarde: m.naam, sub: m.id})), keus => { inp.value = keus.waarde; $('#n-form').melderId.value = keus.sub; },
-    () => { $('#n-form').melderId.value = ''; });
+  const ik = lijst.find(m => benIk(m.naam)) || lijst.find(m => norm(m.naam) === norm(profiel.naam));
+  if(ik && inp.dataset.std === '1'){ f.melderId.value = ik.id; }
+  hint.textContent = ik ? `Jij bent de melder (${ik.id}). Klik om iemand anders te kiezen.` : `Jouw medewerkernummer is niet gevonden; kies de melder uit de lijst.`;
+  // net als in AFAS: jijzelf en de laatst gekozen melders bovenaan
+  const items = () => { const recent = (opslag.get('mict-recente-melders') || []).map(id => lijst.find(m => m.id === id)).filter(Boolean);
+    const boven = [...new Set([ik, ...recent].filter(Boolean))];
+    return [...boven.map(m => ({waarde: m.naam, sub: m.id, recent: true})), ...lijst.filter(m => !boven.includes(m)).map(m => ({waarde: m.naam, sub: m.id}))]; };
+  comboKoppel(inp, items, keus => { inp.value = keus.waarde; f.melderId.value = keus.sub; inp.dataset.std = '0'; hint.textContent = `Melder: ${keus.waarde} (${keus.sub})`; },
+    () => { f.melderId.value = ''; inp.dataset.std = '0'; });
+  // bij klikken op de standaardnaam: tekst selecteren zodat je meteen kunt typen
+  inp.addEventListener('focus', () => inp.select());
 }
 
 /* ================= combobox: zoeken in een lange keuzelijst (filters en melder) ================= */
@@ -1152,7 +1187,7 @@ function comboToon(inp, items, kies){
   const host = inp.closest('dialog') || document.body; if(el.parentElement !== host) host.appendChild(el);   // in een dialoog moet de lijst in de dialoog staan, anders valt hij erachter
   const l = items().filter(x => !w || norm(x.waarde).includes(w) || norm(x.sub || '').includes(w)).slice(0, 200);
   comboHuidig = {inp, l, kies, actief: -1};
-  el.innerHTML = l.length ? l.map((x, i) => `<button type="button" data-ci="${i}"><span>${esc(x.waarde)}</span>${x.sub ? `<small>${esc(x.sub)}</small>` : ''}</button>`).join('') : '<p>Niets gevonden</p>';
+  el.innerHTML = l.length ? l.map((x, i) => `<button type="button" data-ci="${i}" class="${x.recent ? 'recent' : ''}"><span>${esc(x.waarde)}</span>${x.sub ? `<small>${esc(x.sub)}</small>` : ''}</button>`).join('') : '<p>Niets gevonden</p>';
   const r = inp.getBoundingClientRect();
   el.style.left = r.left + 'px'; el.style.minWidth = Math.max(r.width, 220) + 'px';
   const onder = innerHeight - r.bottom;
