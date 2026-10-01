@@ -276,12 +276,13 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 #kolkeuze label{display:flex;align-items:center;gap:8px;font-size:13.5px;cursor:pointer}
 #kolkeuze p{margin:6px 0 0;font-size:11.5px;color:var(--grijs);max-width:220px}
 #kolkeuze .linkknop{align-self:flex-start;font-size:12px}
-#combo{position:fixed;z-index:70;max-height:260px;overflow:auto;background:var(--vlak);border:1.5px solid var(--lijn);border-radius:0 14px 14px 0;box-shadow:0 12px 32px rgba(3,31,77,.18);padding:4px;max-width:360px}
-#combo button{display:flex;justify-content:space-between;gap:12px;width:100%;text-align:left;border:0;background:transparent;padding:6px 10px;border-radius:0 8px 8px 0;font-size:13px;color:var(--inkt);cursor:pointer}
+#combo{position:fixed;z-index:70;max-height:300px;overflow:auto;background:var(--vlak);border:1.5px solid var(--lijn);border-radius:0 14px 14px 0;box-shadow:0 12px 32px rgba(3,31,77,.18);padding:4px;max-width:360px}
+#combo button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;text-align:left;border:0;background:transparent;padding:6px 10px;border-radius:0 8px 8px 0;font-size:13px;color:var(--inkt);cursor:pointer}
 #combo button:hover,#combo button.actief{background:var(--lichtblauw-2);color:var(--blauw)}
 #combo button.recent span::before{content:'↺ ';color:var(--grijs)}
 #combo button.recent + button:not(.recent){border-top:1px solid var(--lijn)}
-#combo button small{color:var(--grijs);font-size:11.5px}
+#combo button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#combo button small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;color:var(--grijs);font-size:11.5px}
 #combo p{margin:0;padding:8px 10px;color:var(--grijs);font-size:13px}
 dialog #combo{position:fixed}
 .tabel tr.dicht td{color:var(--grijs)}
@@ -392,7 +393,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.36 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.37 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -441,7 +442,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.36';
+const VERSIE = 'v3.37';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1153,7 +1154,7 @@ async function toonActieExtra(a){
     const inp = $('#actie-collega'); let l = [];
     try{ l = await ictCollegas(); }catch(e){ el.innerHTML = `<span class="fout">Collega's ophalen lukte niet: ${esc(e.message)}</span>`; return; }
     if(!l.length){ el.innerHTML = `<span class="fout">Geen ICT-collega’s gevonden${medewerkerFout ? ' (' + esc(medewerkerFout) + ')' : ''}.</span>`; return; }
-    comboKoppel(inp, () => l.filter(c => !benIk(c.naam)).map(c => ({waarde: c.naam, sub: c.oe || c.code, zoek: c.code, code: c.code})), k => { inp.value = k.waarde; actieKeuze = {code: k.code, naam: k.waarde}; knop.disabled = false; },
+    comboKoppel(inp, () => l.filter(c => !benIk(c.naam)).map(c => ({waarde: c.naam, sub: (c.oe || '').replace(/^medewerkers\s+/i, '') || c.code, zoek: c.code + ' ' + (c.oe || ''), code: c.code})), k => { inp.value = k.waarde; actieKeuze = {code: k.code, naam: k.waarde}; knop.disabled = false; },
       () => { actieKeuze = null; knop.disabled = true; });
     inp.focus();
   } else if(sa === 'plannen'){
