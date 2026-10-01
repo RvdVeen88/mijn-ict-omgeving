@@ -198,13 +198,20 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 #toast.fout{background:var(--rood);color:#fff}
 
 /* ---- v2: navigatie met categorieën ---- */
-.nav{width:256px;flex:none;padding:18px 6px 18px 16px;display:flex;flex-direction:column;gap:1px;position:sticky;top:0;height:100vh;overflow:auto}
+.nav{width:300px;flex:none;padding:18px 6px 18px 16px;display:flex;flex-direction:column;gap:1px;position:sticky;top:0;height:100vh;overflow:auto}
 .nav h4{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--grijs);margin:14px 10px 6px;font-weight:600}
 .nav h4:first-child{margin-top:4px}
 .it{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;text-align:left;padding:7px 12px;border-radius:0 999px 999px 0;font-size:14px;color:var(--inkt)}
 .it:hover{background:var(--vlak)}
 .it svg{width:16px;height:16px;flex:none;color:var(--grijs)}
-.it span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .minischak{flex:none;display:inline-flex;background:var(--lijn);border-radius:999px;padding:2px;gap:1px}
+.it .minischak span{font-size:10.5px;font-weight:600;color:var(--grijs);padding:1px 5px;border-radius:999px;line-height:15px;cursor:pointer}
+.it .minischak span:hover{color:var(--blauw)}
+.it .minischak span[aria-pressed="true"]{background:var(--vlak);color:var(--blauw);box-shadow:0 1px 2px rgba(3,31,77,.18)}
+.it[aria-pressed="true"] .minischak{background:rgba(255,255,255,.2)}
+.it[aria-pressed="true"] .minischak span{color:rgba(255,255,255,.85)}
+.it[aria-pressed="true"] .minischak span[aria-pressed="true"]{background:#fff;color:var(--blauw)}
+.it > span:not(.minischak){flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .it b{font-size:12px;font-weight:600;color:var(--grijs);background:var(--lijn);border-radius:999px;padding:0 8px;line-height:19px;min-width:24px;text-align:center}
 .it b.rood{background:var(--rood);color:#fff}
 .it[aria-pressed="true"]{background:var(--blauw);color:var(--opaccent);font-weight:600}
@@ -359,7 +366,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.21 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.22 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -406,7 +413,7 @@ const INST = Object.assign({
   connMedewerkers: 'Profit_Employees',   // medewerkers om als melder te kiezen (standaard GetConnector van AFAS)
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.21';
+const VERSIE = 'v3.22';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -536,8 +543,8 @@ const filterEn = vw => `&filterfieldids=${vw.map(v => encodeURIComponent(v[0])).
 
 /* ================= gegevens ================= */
 let items = [], taakPerSb = new Map(), mensen = [], gebieden = [], status = {bijgewerkt:null, fout:null};
-const EMMER_RE = [['leverancier', /leverancier|derde partij/], ['melder', /melder|aanvrager|gebruiker|klant|reactie van/], ['nieuw', /^nieuw/], ['opvolging', /behandeling|opvolging|actief|bezig|uitvoering/]];
-function emmer(status){ const s = norm(status); if(!s) return null;
+const EMMER_RE = [['leverancier', /leverancier|derde partij/], ['melder', /melder|aanvrager|gebruiker|klant|reactie van/], ['nieuw', /^nieuw|^open$|ingediend|aangemeld|ontvangen|geregistreerd|^ingevoerd/], ['opvolging', /behandeling|opvolging|actief|bezig|uitvoering/]];
+function emmer(status){ const s = norm(status); if(!s) return 'nieuw';   // nieuw aangemaakt ticket heeft vaak nog geen status
   for(const k of ['nieuw','opvolging','melder','leverancier','planning']) if(lijst(INST['st_' + k]).includes(s)) return k;
   if(lijst(INST.st_afgesloten).includes(s)) return null;
   for(const [k, re] of EMMER_RE) if(re.test(s)) return k;
@@ -568,7 +575,7 @@ const isoD = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-
 /* open tickets: workflow niet afgerond én status niet afgesloten. De waarde voor ja/nee verschilt per omgeving, dus we proberen een paar varianten. */
 function openFilters(){
   const st = lijst(INST.st_afgesloten).map(w => ['Status', INST.st_afgesloten.split(',').map(x => x.trim()).find(x => x.toLowerCase() === w), 7]);
-  return [...['false', '0'].map(w => filterEn([['Workflow_afgerond', w, 1], ...st])), st.length ? filterEn(st) : ''].filter(Boolean);
+  return ['false', '0'].map(w => filterEn([['Workflow_afgerond', w, 1]]));   // statusfilter niet in AFAS: tickets zonder status vielen daardoor weg
 }
 let afdVeld = '';
 /* welk veld bevat de afdeling (Radiologie, Emma, ICT, ...)? Het veld waarin de meeste bekende namen voorkomen. */
@@ -823,7 +830,8 @@ function wisselFavoriet(a){
 }
 let overigeOpen = !!opslag.get('mict-overige-open');
 function tekenNav(){
-  const it = (id, t, n, o = {}) => `<button type="button" class="it${o.rood && n ? ' rinkel' : ''}${o.stuiter && n ? ' stuiter' : ''}" data-weergave="${esc(id)}" aria-pressed="${tab === id}">${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${n == null ? '' : `<b class="${o.rood && n ? 'rood' : ''}">${n}</b>`}</button>`;
+  const mini = id => `<span class="minischak" role="group" aria-label="Mij of alles">${['mij','alles'].map(v => `<span role="button" tabindex="0" data-mijalles="${id}" data-v="${v}" aria-pressed="${(v === 'mij') === schuifAan(id)}" title="${v === 'mij' ? 'Alleen mijn tickets en wat bij niemand ligt' : 'Alle tickets'}">${v === 'mij' ? 'Mij' : 'Alle'}</span>`).join('')}</span>`;
+  const it = (id, t, n, o = {}) => `<button type="button" class="it${o.rood && n ? ' rinkel' : ''}${o.stuiter && n ? ' stuiter' : ''}" data-weergave="${esc(id)}" aria-pressed="${tab === id}">${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${heeftMijAlles(id) ? mini(id) : ''}${n == null ? '' : `<b class="${o.rood && n ? 'rood' : ''}">${n}</b>`}</button>`;
   const fav = favorieten(), isFav = a => fav.some(x => norm(x) === norm(a));
   const afd = afdelingen();
   const rijA = ([a, n]) => `<div class="afdrij"><button type="button" class="favknop ${isFav(a) ? 'aan' : ''}" data-fav="${esc(a)}" title="${isFav(a) ? 'Uit favorieten halen' : 'Als favoriet bovenaan zetten'}">★</button>${it('afd:' + a, a, zichtbaar('afd:' + a, weergave('afd:' + a).lijst).length)}</div>`;
@@ -877,7 +885,7 @@ function tekenLijst(){
   const v = weergave(tab), w = norm(filt.zoek);
   let l = v.lijst;
   $('#f-mijn').hidden = !heeftSchuif(tab); $('#f-mijn input').checked = schuifAan(tab);
-  $('#f-mijalles').hidden = !heeftMijAlles(tab);
+  $('#f-mijalles').hidden = true;
   if(heeftMijAlles(tab)){ const alle = l.length, mij = l.filter(x => vanMij(tab, x)).length;
     $('#f-mijalles').querySelectorAll('button').forEach(b => { b.setAttribute('aria-pressed', (b.dataset.v === 'mij') === schuifAan(tab)); b.querySelector('b').textContent = b.dataset.v === 'mij' ? mij : alle; }); }
   $('#f-soort').hidden = !tab.startsWith('afd:'); $('#f-soort').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === soortVan(tab)));
@@ -1338,6 +1346,7 @@ function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken
 
 /* ================= bediening ================= */
 document.addEventListener('click', e => {
+  const ma = e.target.closest('[data-mijalles]'); if(ma){ mijAlles[ma.dataset.mijalles] = ma.dataset.v; opslag.set('mict-mijalles', mijAlles); teken(); return; }
   const fv = e.target.closest('[data-fav]'); if(fv){ wisselFavoriet(fv.dataset.fav); return; }
   if(e.target.closest('#k-overige')){ overigeOpen = !overigeOpen; opslag.set('mict-overige-open', overigeOpen); tekenNav(); return; }
   const wf = e.target.closest('[data-wisfilter]'); if(wf){ delete kolFilter[wf.dataset.wisfilter]; teken(); return; }
@@ -1351,13 +1360,14 @@ document.addEventListener('click', e => {
   const a = e.target.closest('[data-actie]'); if(a){ voerUit(+a.dataset.actie); return; }
   if(e.target.closest('#k-actie')){ const v = $('#actie-keuze').value; if(v !== '') voerUit(+v); return; }
   if(e.target.closest('#k-reageer')){ voerUit(null); return; }
-  const ma = e.target.closest('#f-mijalles button'); if(ma){ mijAlles[tab] = ma.dataset.v; opslag.set('mict-mijalles', mijAlles); teken(); return; }
+  const ma2 = e.target.closest('#f-mijalles button'); if(ma2){ mijAlles[tab] = ma2.dataset.v; opslag.set('mict-mijalles', mijAlles); teken(); return; }
   const sb = e.target.closest('#f-soort button'); if(sb){ soortKeuze[tab] = sb.dataset.v; opslag.set('mict-soort', soortKeuze); teken(); return; }
   if(e.target.closest('#nieuw-knop')){ nieuweMelding(); return; }
   if(e.target.closest('[data-sluitnieuw]')){ sluitDialoog($('#nieuw')); return; }
   if(e.target.closest('#n-maak')){ maakMelding(); return; }
 });
 /* uitleg bij een signaal: met de muis erop zie je waarom het er staat */
+document.addEventListener('keydown', e => { const m = e.target.closest && e.target.closest('[data-mijalles]'); if(m && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); m.click(); } });
 document.addEventListener('mouseover', e => {
   const c = e.target.closest('[data-uitleg]'), t = $('#uitleg');
   if(!c){ t.className = ''; return; }
