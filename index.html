@@ -206,7 +206,7 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
         <div class="blok tabel" style="margin-top:14px"><header><h2 id="alle-titel">Tickets</h2><b id="alle-n">0</b><small id="alle-sub"></small></header><div id="alle-lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="versie">Mijn ICT-Omgeving v1.5 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="versie">Mijn ICT-Omgeving v1.6 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -243,7 +243,7 @@ const INST = Object.assign({
   ticketUrl: '',           // bv. 'https://88406.afasinsite.nl/...?SbId={sbid}'; leeg = geen link
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v1.5';
+const VERSIE = 'v1.6';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -600,6 +600,7 @@ async function voerUit(actieIdx){
 }
 
 /* ================= wie is er ingelogd: uit AFAS, niet zelf kiezen ================= */
+let ikDiag = '';
 async function wieBenIk(){
   if(DEMO) return {naam:'Robert van der Veen', code:'88406.rvanderveen', functie:'', afdeling:'Digitale Zorg & ICT', groepen:['Rol Afdeling ICT','Functioneel beheer Emma'], bron:'demo'};
   const pak = (r, re) => { const k = Object.keys(r).find(k => re.test(k)); return k ? String(r[k] ?? '').trim() : ''; };
@@ -611,7 +612,11 @@ async function wieBenIk(){
       const naam = naamVan(r), groepVeld = Object.keys(r).find(k => /groep/i.test(k) && !/code|id$/i.test(k)) || Object.keys(r).find(k => /groep/i.test(k));
       if(naam && rows.every(x => norm(naamVan(x)) === norm(naam)))
         return {naam, code: pak(r, /^(gebruiker|gebruikerscode|gebruiker_code|user|userid|gebruiker_id)$/i), functie: pak(r, /functie/i), afdeling: pak(r, /afdeling|organisatorische|^oe$/i),
-          groepen: groepVeld ? [...new Set(rows.map(x => String(x[groepVeld] ?? '').trim()).filter(Boolean))] : [], bron:INST.connIk}; } }catch(e){}
+          groepen: groepVeld ? [...new Set(rows.map(x => String(x[groepVeld] ?? '').trim()).filter(Boolean))] : [], bron:INST.connIk};
+      const namen = [...new Set(rows.map(naamVan))];
+      ikDiag = `${INST.connIk} gaf ${rows.length} regel(s). Kolommen: ${Object.keys(r).join(', ')}. ` + (naam ? `Gevonden namen: ${namen.slice(0, 5).join(', ')}${namen.length > 5 ? ' …' : ''} (meer dan één naam: het filter Gebruiker = [Gebruiker] werkt niet).` : 'Geen kolom met een naam herkend.'); }
+    else ikDiag = `${INST.connIk} gaf 0 regels terug. Het filter Gebruiker = [Gebruiker] levert voor jou niets op, of je hebt via filterautorisatie geen rechten op deze gegevens.`; }
+  catch(e){ ikDiag = `${INST.connIk}: ${e.message}`; }
   // 2. terugval: workflowtaken van de ingelogde gebruiker (werkt alleen als AFAS de filtertag ook in een aanroep toestaat)
   try{ const rows = (await afas(`/connectors/${INST.connTaken}?skip=0&take=5${filterOp('User', '[Gebruiker]')}`)).rows || [];
     const namen = [...new Set(rows.map(r => r.UserName).filter(Boolean))];
@@ -697,7 +702,7 @@ function laadKaart(naam){
       if(!terug){ if(!opslag.get(RT)){ startInlog(); return; } try{ await vernieuw(); }catch(e){ opslag.weg(RT); startInlog('Je sessie is verlopen. Log opnieuw in.'); return; } }
     } else sub = 'demo';
     const ik = await wieBenIk();
-    if(!ik){ startInlog(`AFAS gaf niet door wie je bent. Controleer of GetConnector ${INST.connIk} (met filter Gebruiker = [Gebruiker]) aan de app connector gekoppeld is.`); return; }
+    if(!ik){ startInlog(`AFAS gaf niet door wie je bent. ${ikDiag}`); return; }
     const opgeslagen = opslag.get(profielSleutel());
     const auto = autoRol(ik);
     profiel = {rol:auto.rol, domeinen:auto.domeinen, ...(opgeslagen && norm(opgeslagen.naam) === norm(ik.naam) ? opgeslagen : {}),
