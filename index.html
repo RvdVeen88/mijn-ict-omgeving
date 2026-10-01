@@ -1,297 +1,643 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mijn ICT-Omgeving · Rechtentest</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Mijn ICT-Omgeving · DC Klinieken</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f3f6fb;--vlak:#fff;--tekst:#1c2533;--zacht:#6b7689;--lijn:#e3e8f0;--blauw:#053787;--groen:#1f9d55;--rood:#d64545;--oranje:#d98a1c}
-*{box-sizing:border-box}
-body{margin:0;font-family:Poppins,Segoe UI,sans-serif;background:linear-gradient(160deg,#eef3fa,#f7f9fc);color:var(--tekst);font-size:14px}
-.top{height:4px;background:var(--blauw)}
-main{max-width:920px;margin:0 auto;padding:28px 16px 60px}
-h1{font-size:22px;font-weight:600;margin:0 0 4px}
-.sub{color:var(--zacht);margin:0 0 22px}
-.vlak{background:var(--vlak);border-radius:14px;box-shadow:0 2px 10px rgba(20,40,80,.06);padding:20px 22px;margin-bottom:16px}
-h2{font-size:15px;font-weight:600;margin:0 0 12px}
-label{display:block;font-size:12px;color:var(--zacht);margin:10px 0 4px}
-input{width:100%;padding:9px 11px;border:1px solid var(--lijn);border-radius:8px;font:inherit}
-.rij{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:640px){.rij{grid-template-columns:1fr}}
-button{background:var(--blauw);color:#fff;border:0;border-radius:8px;padding:9px 16px;font:inherit;font-weight:500;cursor:pointer;margin:14px 8px 0 0}
-button.licht{background:#e8eef8;color:var(--blauw)}
-button:disabled{opacity:.45;cursor:default}
-.hint{font-size:12px;color:var(--zacht);margin-top:6px}
-table{width:100%;border-collapse:collapse}
-td{padding:8px 6px;border-top:1px solid var(--lijn);vertical-align:top}
-tr:first-child td{border-top:0}
-td.s{width:28px;font-size:16px;font-weight:600}
-td.n{width:230px;font-weight:500}
-td.d{color:var(--zacht);font-size:12.5px;word-break:break-word}
-.ok{color:var(--groen)}.fout{color:var(--rood)}.let{color:var(--oranje)}.wacht{color:var(--zacht)}
-pre{background:#f6f8fb;border:1px solid var(--lijn);border-radius:8px;padding:10px;font-size:12px;overflow:auto;max-height:260px;white-space:pre-wrap;word-break:break-all}
-.voet{color:var(--zacht);font-size:12px;text-align:center;margin-top:20px}
+:root{
+  --blauw:#053787; --blauw-2:#2E5FB0; --lichtblauw:#B5D0FF; --lichtblauw-2:#E6EEFF;
+  --goud:#EAC479; --goud-licht:#FBF3E2; --bruin:#7A5A12;
+  --inkt:#16213E; --grijs:#5B6480; --lijn:#DFE5F0; --achtergrond:#F4F6FA;
+  --rood:#B42318; --rood-licht:#FDECEA; --oranje:#B54708; --oranje-licht:#FEF0E3; --groen:#1E7F4F; --groen-licht:#E7F4EC;
+  --vlak:#FFFFFF; --opaccent:#FFFFFF; --bg1:#FFFFFF; --bg2:#F4F6FA; --bg3:#E6EEFF;
+  --rail-bg:rgba(255,255,255,.8); --rail-ico:#6B7899; --rail-hover:#EEF3FC; --rail-act:#053787; --rail-act-ink:#fff;
+  --schaduw:0 8px 28px rgba(5,55,135,.08);
+  --font:'Axiforma','Poppins','Segoe UI',Helvetica,Arial,sans-serif;
+}
+:root[data-thema="donker"]{
+  --blauw:#9DBEFF; --blauw-2:#6F9BEA; --lichtblauw:#3E5E98; --lichtblauw-2:rgba(111,155,234,.18);
+  --goud-licht:rgba(234,196,121,.16); --bruin:#EAC479;
+  --inkt:#E6ECF8; --grijs:#98A3BE; --lijn:#29344F; --achtergrond:#0C1323;
+  --rood:#FF7A6E; --rood-licht:rgba(255,122,110,.16); --oranje:#FFB067; --oranje-licht:rgba(255,176,103,.14); --groen:#52C98F; --groen-licht:rgba(82,201,143,.16);
+  --vlak:#141D33; --opaccent:#0B1633; --bg1:#0E1628; --bg2:#0C1323; --bg3:#101B35;
+  --rail-bg:rgba(255,255,255,.05); --rail-ico:#7C88A6; --rail-hover:rgba(255,255,255,.06); --rail-act:#9DBEFF; --rail-act-ink:#0C1323;
+  --schaduw:0 8px 28px rgba(0,0,0,.35); color-scheme:dark;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-thema="licht"]){
+  --blauw:#9DBEFF; --blauw-2:#6F9BEA; --lichtblauw:#3E5E98; --lichtblauw-2:rgba(111,155,234,.18);
+  --goud-licht:rgba(234,196,121,.16); --bruin:#EAC479;
+  --inkt:#E6ECF8; --grijs:#98A3BE; --lijn:#29344F; --achtergrond:#0C1323;
+  --rood:#FF7A6E; --rood-licht:rgba(255,122,110,.16); --oranje:#FFB067; --oranje-licht:rgba(255,176,103,.14); --groen:#52C98F; --groen-licht:rgba(82,201,143,.16);
+  --vlak:#141D33; --opaccent:#0B1633; --bg1:#0E1628; --bg2:#0C1323; --bg3:#101B35;
+  --rail-bg:rgba(255,255,255,.05); --rail-ico:#7C88A6; --rail-hover:rgba(255,255,255,.06); --rail-act:#9DBEFF; --rail-act-ink:#0C1323;
+  --schaduw:0 8px 28px rgba(0,0,0,.35); color-scheme:dark;
+} }
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{background:var(--achtergrond)}
+body{font-family:var(--font);color:var(--inkt);font-variant-numeric:tabular-nums;min-height:100vh;font-size:14px;
+  background:linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 45%,var(--bg3) 100%) fixed}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--blauw-2);outline-offset:2px}
+
+.app{display:flex;min-height:100vh}
+.rail{position:sticky;top:12px;margin:12px 0 12px 12px;height:calc(100vh - 24px);width:62px;flex:none;border-radius:20px;background:var(--rail-bg);
+  box-shadow:var(--schaduw);backdrop-filter:blur(10px);display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:8px;z-index:5}
+.logo{width:38px;height:38px;margin-bottom:10px}
+.logo .d1{fill:#B5D0FF}.logo .d2{fill:var(--rail-act)}
+.rail .r{width:44px;height:44px;border-radius:12px;border:0;background:transparent;display:grid;place-items:center;color:var(--rail-ico);position:relative}
+.rail .r svg{width:21px;height:21px}
+.rail .r:hover{background:var(--rail-hover);color:var(--rail-act)}
+.rail .r[aria-pressed="true"]{background:var(--rail-act);color:var(--rail-act-ink)}
+.rail .tel{position:absolute;top:3px;right:2px;font-size:10px;font-weight:700;background:#D92D20;color:#fff;border-radius:999px;padding:0 5px;line-height:15px;box-shadow:0 0 0 2px var(--vlak)}
+.rail .tel:empty{display:none}
+.rail-onder{margin-top:auto;display:flex;flex-direction:column;gap:2px}
+
+.werk{flex:1;min-width:0;display:flex;flex-direction:column}
+.bovenbalk{display:flex;align-items:center;gap:14px;padding:18px 28px 10px;flex-wrap:wrap}
+.bovenbalk h1{font-size:22px;color:var(--blauw);white-space:nowrap}
+.bovenbalk .sub{color:var(--grijs);font-size:14px}
+.bovenbalk .rechts{margin-left:auto;display:flex;align-items:center;gap:12px}
+.ik{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--lijn);background:var(--vlak);border-radius:0 999px 999px 0;padding:5px 16px 5px 6px;font-weight:500}
+.ik i{width:26px;height:26px;border-radius:50%;background:var(--blauw);color:var(--opaccent);display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700}
+.klok{font-size:13px;color:var(--grijs);white-space:nowrap}
+main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;min-width:0}
+
+.tegels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.tegel{background:var(--vlak);border-radius:0 60px 60px 0;border:0;border-left:6px solid var(--lichtblauw);padding:14px 30px 12px 18px;display:flex;flex-direction:column;gap:2px;text-align:left;box-shadow:var(--schaduw)}
+.tegel:hover{box-shadow:0 4px 14px rgba(5,55,135,.14)}
+.tegel span{font-size:14px;color:var(--grijs);font-weight:500;white-space:nowrap}
+.tegel b{font-size:36px;line-height:1.1;font-weight:700;color:var(--blauw)}
+.tegel small{font-size:12.5px;color:var(--grijs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tegel.rood{border-left-color:var(--rood)} .tegel.rood b{color:var(--rood)}
+.tegel.oranje{border-left-color:var(--goud)} .tegel.oranje b{color:var(--oranje)}
+.tegel.nul b{color:var(--grijs)}
+@media (max-width:900px){.tegels{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.blok{background:var(--vlak);border-radius:0 30px 30px 0;box-shadow:var(--schaduw);overflow:hidden}
+.blok > header{display:flex;align-items:baseline;gap:10px;padding:16px 26px 10px}
+.blok > header h2{font-size:16px;color:var(--blauw)}
+.blok > header b{font-size:13px;background:var(--lichtblauw-2);color:var(--blauw);border-radius:999px;padding:1px 9px}
+.blok > header small{color:var(--grijs);font-size:12.5px;margin-left:auto}
+.blok.rood > header b{background:var(--rood-licht);color:var(--rood)}
+.leeg{padding:6px 26px 18px;color:var(--grijs)}
+
+.rij{display:grid;grid-template-columns:6px 72px minmax(0,1fr) auto;gap:14px;align-items:center;padding:10px 26px 10px 0;border-top:1px solid var(--lijn);cursor:pointer;width:100%;border-left:0;border-right:0;border-bottom:0;background:transparent;text-align:left}
+.rij:hover{background:var(--achtergrond)}
+.rij .balk{align-self:stretch;border-radius:0 4px 4px 0;background:transparent}
+.rij.rood .balk{background:var(--rood)} .rij.oranje .balk{background:var(--goud)} .rij.blauw .balk{background:var(--blauw-2)}
+.rij .nr{font-weight:600;color:var(--blauw)}
+.rij .titel{min-width:0}
+.rij .titel b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rij .titel small{display:block;color:var(--grijs);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:420px}
+.chip{font-size:12px;border-radius:0 999px 999px 0;padding:2px 10px 2px 8px;background:var(--lichtblauw-2);color:var(--blauw);white-space:nowrap;font-weight:500}
+.chip.rood{background:var(--rood-licht);color:var(--rood)} .chip.oranje{background:var(--oranje-licht);color:var(--oranje)}
+.chip.groen{background:var(--groen-licht);color:var(--groen)} .chip.grijs{background:var(--achtergrond);color:var(--grijs)}
+.meer{display:block;width:100%;border:0;border-top:1px solid var(--lijn);background:transparent;color:var(--blauw-2);padding:9px;font-weight:500}
+
+.werkbalk{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.schakel{display:inline-flex;background:var(--vlak);border-radius:0 999px 999px 0;padding:4px;gap:2px;border:1.5px solid var(--lijn)}
+.schakel button{border:0;background:transparent;padding:5px 16px 5px 12px;border-radius:0 999px 999px 0;color:var(--grijs);font-weight:500}
+.schakel button[aria-pressed="true"]{background:var(--blauw);color:var(--opaccent)}
+.zoek{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--vlak);border:1.5px solid var(--lijn);border-radius:0 999px 999px 0;padding:6px 16px 6px 12px;flex:0 1 320px}
+.zoek input{border:0;outline:0;background:transparent;width:100%}
+.zoek svg{width:17px;height:17px;color:var(--grijs);flex:none}
+.knop{border:1.5px solid var(--lijn);background:var(--vlak);border-radius:0 999px 999px 0;padding:7px 18px 7px 14px;color:var(--blauw);font-weight:500}
+.knop.vol{background:var(--blauw);border-color:var(--blauw);color:var(--opaccent)}
+.knop.rood{color:var(--rood)}
+.knop:disabled{opacity:.5;cursor:default}
+
+.tabel .rij{grid-template-columns:6px 72px minmax(0,1fr) 160px 120px 290px}
+.tabel .rij .kol{font-size:13px;color:var(--grijs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:1100px){.tabel .rij{grid-template-columns:6px 64px minmax(0,1fr) auto}.tabel .rij .kol{display:none}}
+
+dialog{margin:auto;border:0;border-radius:0 28px 28px 0;background:var(--vlak);color:var(--inkt);box-shadow:0 20px 60px rgba(3,31,77,.3);padding:0;width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 40px)}
+dialog::backdrop{background:rgba(12,19,35,.45)}
+.dlg-in{padding:24px 28px;display:flex;flex-direction:column;gap:14px;overflow:auto;max-height:calc(100vh - 40px)}
+.dlg-kop{display:flex;gap:12px;align-items:flex-start}
+.dlg-kop h2{font-size:19px;color:var(--blauw);line-height:1.3}
+.dlg-kop small{display:block;color:var(--grijs);font-size:13px;font-weight:500}
+.sluit{margin-left:auto;border:0;background:transparent;font-size:24px;line-height:1;color:var(--grijs);padding:0 4px}
+.velden{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 18px;background:var(--achtergrond);border-radius:0 18px 18px 0;padding:14px 18px}
+.velden div span{display:block;font-size:11.5px;color:var(--grijs);text-transform:uppercase;letter-spacing:.05em}
+.velden div b{font-weight:500;font-size:14px;overflow-wrap:anywhere}
+@media (max-width:640px){.velden{grid-template-columns:1fr 1fr}}
+.wf{display:flex;flex-direction:column;gap:8px}
+.wf .wfkop{font-size:13px;color:var(--grijs)}
+.wf .wfkop b{color:var(--inkt);font-weight:600}
+.acties{display:flex;gap:8px;flex-wrap:wrap}
+textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius:0 14px 14px 0;padding:10px 12px;background:var(--vlak);resize:vertical}
+.vink{display:flex;gap:8px;align-items:center;font-size:13.5px;color:var(--grijs)}
+.hint{font-size:12.5px;color:var(--grijs)}
+.fout{color:var(--rood);font-size:13px}
+
+.scherm{min-height:100vh;display:grid;place-items:center;padding:24px}
+.kaart{background:var(--vlak);border-radius:0 36px 36px 0;box-shadow:var(--schaduw);padding:34px 38px;width:min(560px,100%);display:flex;flex-direction:column;gap:14px}
+.kaart h1{font-size:24px;color:var(--blauw)}
+.kaart p{color:var(--grijs);line-height:1.5}
+.kaart label{font-size:13px;color:var(--grijs);font-weight:500}
+.kaart select{width:100%;border:1.5px solid var(--lijn);border-radius:0 999px 999px 0;padding:9px 14px;background:var(--vlak)}
+.keuzes{display:flex;flex-wrap:wrap;gap:6px}
+.keuzes button{border:1.5px solid var(--lijn);background:var(--vlak);border-radius:0 999px 999px 0;padding:4px 14px 4px 10px;font-size:13px;color:var(--grijs)}
+.keuzes button[aria-pressed="true"]{background:var(--blauw);border-color:var(--blauw);color:var(--opaccent)}
+.laden{display:flex;align-items:center;gap:10px;color:var(--grijs)}
+.spin{width:18px;height:18px;border-radius:50%;border:2.5px solid var(--lijn);border-top-color:var(--blauw-2);animation:draai 1s linear infinite}
+@keyframes draai{to{transform:rotate(360deg)}}
+
+.voet{display:flex;gap:10px;align-items:center;padding:6px 28px 14px;color:var(--grijs);font-size:12.5px}
+.voet .live{width:8px;height:8px;border-radius:50%;background:#22A06B;animation:knipper 2.4s ease-in-out infinite}
+.voet .live.uit{background:var(--grijs);animation:none}
+@keyframes knipper{50%{opacity:.35}}
+.voet .versie{margin-left:auto}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--inkt);color:var(--vlak);padding:10px 20px;border-radius:0 999px 999px 0;transition:all .25s;pointer-events:none;z-index:99;max-width:90vw}
+#toast.zichtbaar{opacity:1;transform:translateX(-50%)}
+#toast.fout{background:var(--rood);color:#fff}
+@media (max-width:700px){.rail{display:none}.bovenbalk,main,.voet{padding-left:16px;padding-right:16px}.rij{padding-right:16px}.chips{display:none}}
 </style>
+<script src="mijn-ict-config.js"></script>
 </head>
 <body>
-<div class="top"></div>
-<main>
-  <h1>Mijn ICT-Omgeving · Rechtentest</h1>
-  <p class="sub">Controleert of inloggen via AFAS (OAuth, Authorization code flow) werkt en of de app connector alle rechten heeft.</p>
 
-  <section class="vlak" id="stap-inlog">
-    <h2>1. Inloggen</h2>
-    <div class="rij">
-      <div><label>Omgeving</label><input id="omgeving" value="88406"></div>
-      <div><label>OAuth client id</label><input id="clientId" placeholder="van de AFAS-beheerder"></div>
+<!-- inlog / eerste keer -->
+<section class="scherm" id="s-start" hidden>
+  <div class="kaart" id="kaart-start"></div>
+</section>
+
+<div class="app" id="app" hidden>
+  <nav class="rail" aria-label="Onderdelen">
+    <svg class="logo" viewBox="0 0 36 36" aria-hidden="true"><path class="d1" d="M3 6h8a10 10 0 0 1 0 20H3z"/><path class="d2" d="M13 10h8a10 10 0 0 1 0 20h-8z"/></svg>
+    <button type="button" class="r" data-tab="mij" title="Voor mij"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span class="tel" id="tel-mij"></span></button>
+    <button type="button" class="r" data-tab="alle" title="Alle tickets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></button>
+    <div class="rail-onder">
+      <button type="button" class="r" id="k-ververs" title="Verversen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
+      <button type="button" class="r" id="k-profiel" title="Mijn profiel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></button>
+      <button type="button" class="r" id="k-thema" title="Licht of donker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      <button type="button" class="r" id="k-uit" title="Uitloggen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></svg></button>
     </div>
-    <label>Scope (leeg laten, tenzij AFAS erom vraagt)</label>
-    <input id="scope" value="">
-    <button id="btnLogin">Inloggen met AFAS</button>
-    <div class="hint">Je gaat naar het AFAS-inlogscherm en komt daarna automatisch hier terug. De code wordt via de Azure-functie afas-token ingewisseld; de client secret staat alleen daar.</div>
-  </section>
-
-  <section class="vlak">
-    <h2>2. Resultaten</h2>
-    <table id="resultaten"><tr><td class="s wacht">·</td><td class="n">Nog niet ingelogd</td><td class="d">Log eerst in bij stap 1.</td></tr></table>
-    <button id="btnTesten" class="licht" disabled>Leestests opnieuw uitvoeren</button>
-    <button id="btnRefresh" class="licht" disabled>Test token vernieuwen</button>
-    <button id="btnKopieer" class="licht" disabled>Kopieer resultaten</button>
-  </section>
-
-  <section class="vlak">
-    <h2>3. Schrijftest (optioneel)</h2>
-    <p class="hint" style="margin-top:0">Zoekt eerst het ticket op bij het SbId, plaatst één reactie en leest daarna terug wat AFAS als laatste reactie en als <b>gebruiker</b> registreert. Er wordt niets gewijzigd of afgesloten.</p>
-    <div class="rij">
-      <div><label>SbId van een testticket (nummer uit de ticket-url)</label><input id="ticket" placeholder="bijv. 12345"></div>
-      <div><label>Soort reactie</label><select id="soort" style="width:100%;padding:9px 11px;border:1px solid var(--lijn);border-radius:8px;font:inherit">
-        <option value="reactie">Reactie (KnSubjectReaction)</option>
-        <option value="workflow">Reactie in workflow, zonder actie (KnSubjectWorkflowReaction)</option>
-      </select></div>
+  </nav>
+  <div class="werk">
+    <div class="bovenbalk">
+      <h1 id="titel">Voor mij</h1><span class="sub" id="subtitel"></span>
+      <div class="rechts"><span class="klok" id="klok"></span><span class="ik" id="ik"><i></i><span></span></span></div>
     </div>
-    <button id="btnControle" class="licht" disabled>Alleen ticket controleren</button>
-    <button id="btnSchrijf" disabled>Plaats testreactie</button>
-  </section>
+    <main>
+      <section id="v-mij">
+        <div class="tegels" id="tegels"></div>
+        <div id="blokken" style="display:flex;flex-direction:column;gap:16px;margin-top:16px"></div>
+      </section>
+      <section id="v-alle" hidden>
+        <div class="werkbalk">
+          <div class="schakel" id="f-scope"><button data-v="alle" aria-pressed="true">Alle</button><button data-v="mijn">Van mij</button><button data-v="gebied">Mijn gebied</button></div>
+          <div class="schakel" id="f-open"><button data-v="open" aria-pressed="true">Open</button><button data-v="dicht">Afgesloten (90 d)</button></div>
+          <label class="zoek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="f-zoek" placeholder="Zoek op nummer, onderwerp, melder of behandelaar"></label>
+        </div>
+        <div class="blok tabel" style="margin-top:14px"><header><h2 id="alle-titel">Tickets</h2><b id="alle-n">0</b><small id="alle-sub"></small></header><div id="alle-lijst"></div></div>
+      </section>
+    </main>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="versie">Mijn ICT-Omgeving v1.0 · 01-10-2026</span></div>
+  </div>
+</div>
 
-  <section class="vlak">
-    <h2>Details</h2>
-    <pre id="log">–</pre>
-  </section>
-  <div class="voet">Rechtentest v1.3 · 01-10-2026</div>
-</main>
+<dialog id="detail"><div class="dlg-in" id="detail-in"></div></dialog>
+<div id="toast" role="status"></div>
 
 <script>
-const VERWACHT_GET = ['Helpdesk_PowerBI','PowerBI_ICT_SLA_Dashboard','Profit_Subject_Tasks','Profit_Workflowactions'];
-const VERWACHT_UPDATE = ['KnSubject','KnSubjectReaction','KnSubjectWorkflowReaction'];
-const $ = id => document.getElementById(id);
-const opslag = { get:(k)=>{try{return localStorage.getItem(k)}catch(e){return null}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}} };
-const sessie = { get:(k)=>{try{return sessionStorage.getItem(k)}catch(e){return null}}, set:(k,v)=>{try{sessionStorage.setItem(k,v)}catch(e){}}, del:(k)=>{try{sessionStorage.removeItem(k)}catch(e){}} };
-let tok = null, rijen = [], logRegels = [];
+'use strict';
+/* ================= instellingen (mijn-ict-config.js mag dit overschrijven; daar staat géén geheim in) ================= */
+const INST = Object.assign({
+  omgeving: '88406',
+  clientId: '91a1c1c2-bbaa-4075-a1cc-09252fd9c561',
+  tokenFunctie: 'https://func-dck-helpdesk-b8cpg3gmd6d5hsgp.westeurope-01.azurewebsites.net/api/afas-token',
+  connSla: 'PowerBI_ICT_SLA_Dashboard', connTickets: 'Helpdesk_PowerBI', connTaken: 'Profit_Subject_Tasks', connActies: 'Profit_Workflowactions',
+  // zelfde regels als het SLA-dashboard
+  st_nieuw: 'Nieuw', st_opvolging: 'In behandeling, Opvolging', st_melder: 'Wachten op melder', st_leverancier: 'Wachten op leverancier',
+  st_planning: '', st_afgesloten: 'Afgehandeld, Gesloten, Afgesloten',
+  nieuwUren: 2, opvolgingDagen: 3, melderDagen: 5, leverancierDagen: 5, werkBegin: '08:00', werkEind: '17:30',
+  soortVeld: 'Omschrijving', slaSoorten: 'Aanvraag ICT', afdVerbergen: 'Zorgadministratie',
+  ticketUrl: '',           // bv. 'https://88406.afasinsite.nl/...?SbId={sbid}'; leeg = geen link
+  verversMinuten: 5
+}, window.MIJNICT_CONFIG || {});
+const VERSIE = 'v1.0';
 
-const redirectUri = location.origin + location.pathname.replace(/index\.html$/i, '');
-const basis = () => `https://${$('omgeving').value.trim()}.rest.afas.online/ProfitRestServices`;
+/* ================= hulpfuncties ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = v => String(v ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
+const lijst = s => String(s || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+const UUR = 3600e3, DAG = 24 * UUR;
+const datum = x => { if(!x || typeof x === 'boolean') return null; if(x instanceof Date) return x;
+  const m = typeof x === 'string' && x.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?/); if(!m) return null;
+  const d = new Date(+m[1], m[2]-1, +m[3], +(m[4]||0), +(m[5]||0), +(m[6]||0)); return isNaN(d) || d.getFullYear() < 1990 ? null : d; };
+const ja = x => x === true || x === 1 || /^(true|ja|j|yes|y|1)$/i.test(String(x ?? ''));
+const beginDag = d => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
+const fmtDatum = d => d ? d.toLocaleDateString('nl-NL', {day:'numeric', month:'short', year: d.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined}).replace('.', '') : '–';
+const fmtTijd = d => d.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'});
+const dagenGeleden = d => d ? Math.floor((Date.now() - d) / DAG) : null;
+const opslag = { get(k){ try{ return JSON.parse(localStorage.getItem(k) || 'null'); }catch(e){ return null; } }, set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }, weg(k){ try{ localStorage.removeItem(k); }catch(e){} } };
+const sessie = { get(k){ try{ return sessionStorage.getItem(k); }catch(e){ return null; } }, set(k, v){ try{ sessionStorage.setItem(k, v); }catch(e){} }, weg(k){ try{ sessionStorage.removeItem(k); }catch(e){} } };
+let toastT = 0;
+function toast(t, fout){ const el = $('#toast'); el.textContent = t; el.className = 'zichtbaar' + (fout ? ' fout' : ''); clearTimeout(toastT); toastT = setTimeout(() => el.className = '', fout ? 7000 : 3500); }
 
-function log(t){ logRegels.push(t); $('log').textContent = logRegels.join('\n'); }
-function zet(naam, status, detail){
-  const i = rijen.findIndex(r => r.naam === naam);
-  const r = {naam, status, detail};
-  if(i >= 0) rijen[i] = r; else rijen.push(r);
-  const sym = {ok:'✓', fout:'✗', let:'!', wacht:'…'};
-  $('resultaten').innerHTML = rijen.map(r => `<tr><td class="s ${r.status}">${sym[r.status]}</td><td class="n">${r.naam}</td><td class="d">${r.detail}</td></tr>`).join('');
-}
-function b64url(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
-function willekeurig(n){ const a = new Uint8Array(n); crypto.getRandomValues(a); return b64url(a); }
-function jwtClaims(t){
-  if(!t || t.split('.').length !== 3) return null;
-  try{ return JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))))); }catch(e){ return null; }
-}
-function maskeer(o){ const c = {...o}; ['access_token','refresh_token','id_token'].forEach(k => { if(c[k]) c[k] = String(c[k]).slice(0,12) + '… (' + String(c[k]).length + ' tekens)'; }); return c; }
+/* ---- werktijd: ma t/m vr binnen werktijden (zelfde rekenwijze als het SLA-dashboard) ---- */
+const hm = (s, std) => { const [h, m] = String(s || std).split(':').map(Number); return isNaN(h) ? hm(std, std) : [h, m || 0]; };
+function werkvenster(dag){ const wd = dag.getDay(); if(wd === 0 || wd === 6) return null;
+  const [bh, bm] = hm(INST.werkBegin, '08:00'), [eh, em] = hm(INST.werkEind, '17:30');
+  const a = new Date(dag); a.setHours(bh, bm, 0, 0); const b = new Date(dag); b.setHours(eh, em, 0, 0); return +b > +a ? [+a, +b] : null; }
+const volgendeDag = dag => beginDag(new Date(+dag + DAG + 2 * UUR));
+const werkdagMs = () => { const [bh, bm] = hm(INST.werkBegin, '08:00'), [eh, em] = hm(INST.werkEind, '17:30'); return Math.max(UUR, ((eh*60+em) - (bh*60+bm)) * 60e3); };
+function werkMs(van, tot){ if(!van) return 0; van = +van; tot = +tot; if(tot <= van) return 0; let ms = 0;
+  for(let dag = beginDag(new Date(van)); +dag < tot; dag = volgendeDag(dag)){ const w = werkvenster(dag); if(!w) continue;
+    const a = Math.max(w[0], van), b = Math.min(w[1], tot); if(b > a) ms += b - a; } return ms; }
+function plusWerk(van, ms){ let t = +van, rest = ms;
+  for(let dag = beginDag(new Date(t)), i = 0; i < 1000; i++, dag = volgendeDag(dag), t = +dag){ const w = werkvenster(dag); if(!w) continue;
+    const a = Math.max(w[0], t); if(a >= w[1]) continue; if(rest <= w[1] - a) return a + rest; rest -= w[1] - a; } return null; }
 
-/* ---------- inloggen ---------- */
-['omgeving','clientId','scope'].forEach(id => { const v = opslag.get('mict_' + id); if(v !== null) $(id).value = v; });
+/* ================= inloggen: AFAS OAuth (Authorization code + PKCE), code inwisselen via de Azure-functie ================= */
+const DEMO = new URLSearchParams(location.search).has('demo');
+const REDIRECT = location.origin + location.pathname.replace(/index\.html$/i, '');
+const RT = 'mict-rt';
+let tok = null, tokTot = 0, sub = '';
+const b64url = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const willekeurig = n => { const a = new Uint8Array(n); crypto.getRandomValues(a); return b64url(a); };
+const claims = t => { try{ return JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))))); }catch(e){ return {}; } };
+const afasBasis = () => `https://${INST.omgeving}.rest.afas.online/ProfitRestServices`;
 
-$('btnLogin').onclick = async () => {
-  const clientId = $('clientId').value.trim();
-  if(!clientId){ alertKort('Vul de client id in.'); return; }
-  ['omgeving','clientId','scope'].forEach(id => opslag.set('mict_' + id, $(id).value.trim()));
+async function inloggen(){
   const verifier = willekeurig(48), state = willekeurig(16);
   const challenge = b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
-  sessie.set('mict_verifier', verifier); sessie.set('mict_state', state);
-  const p = new URLSearchParams({response_type:'code', client_id:clientId, redirect_uri:redirectUri, state, code_challenge:challenge, code_challenge_method:'S256'});
-  const scope = $('scope').value.trim(); if(scope) p.set('scope', scope);
-  location.href = `${basis()}/oauth/authorize?${p}`;
-};
-function alertKort(t){ zet('Invoer', 'fout', t); }
-
-const TOKEN_FUNCTIE = 'https://func-dck-helpdesk-b8cpg3gmd6d5hsgp.westeurope-01.azurewebsites.net/api/afas-token';
-async function tokenAanvraag(velden){
-  const r = await fetch(TOKEN_FUNCTIE, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(velden)});
-  const tekst = await r.text(); let json = null; try{ json = JSON.parse(tekst); }catch(e){}
-  return {status:r.status, json, tekst};
+  sessie.set('mict-verifier', verifier); sessie.set('mict-state', state);
+  const p = new URLSearchParams({response_type:'code', client_id:INST.clientId, redirect_uri:REDIRECT, state, code_challenge:challenge, code_challenge_method:'S256'});
+  location.href = `${afasBasis()}/oauth/authorize?${p}`;
 }
-
+async function tokenFunctie(velden){
+  const r = await fetch(INST.tokenFunctie, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(velden)});
+  const t = await r.text(); let j = null; try{ j = JSON.parse(t); }catch(e){}
+  if(!r.ok || !j || !j.access_token) throw new Error((j && (j.error_description || j.error)) || `HTTP ${r.status}`);
+  return j;
+}
+function zetToken(j){ tok = j.access_token; tokTot = Date.now() + (+j.expires_in || 3600) * 1000; if(j.refresh_token) opslag.set(RT, j.refresh_token); sub = claims(tok).sub || ''; }
+let vernieuwBezig = null;
+async function vernieuw(){
+  if(vernieuwBezig) return vernieuwBezig;
+  return vernieuwBezig = (async () => { const rt = opslag.get(RT); if(!rt) throw new Error('niet ingelogd');
+    try{ zetToken(await tokenFunctie({grant_type:'refresh_token', refresh_token:rt})); } finally { vernieuwBezig = null; } })();
+}
+async function geldigToken(){ if(DEMO) return 'demo'; if(!tok || Date.now() > tokTot - 120e3) await vernieuw(); return tok; }
 async function terugVanAfas(){
   const q = new URLSearchParams(location.search);
-  if(!q.has('code') && !q.has('error')) return;
-  history.replaceState(null, '', redirectUri);
-  if(q.has('error')){ zet('Inloggen bij AFAS', 'fout', `${q.get('error')}: ${q.get('error_description') || ''}`); log('Fout bij authorize: ' + q.toString()); return; }
-  if(q.get('state') !== sessie.get('mict_state')){ zet('Inloggen bij AFAS', 'fout', 'State komt niet overeen. Probeer opnieuw in te loggen vanuit dit tabblad.'); return; }
-  zet('Inloggen bij AFAS', 'ok', 'Ingelogd, AFAS gaf een code terug.');
-  zet('Token ophalen', 'wacht', 'Bezig…');
-  let res;
-  try{
-    res = await tokenAanvraag({grant_type:'authorization_code', code:q.get('code'), redirect_uri:redirectUri, code_verifier:sessie.get('mict_verifier')});
-  }catch(e){
-    zet('Token ophalen', 'fout', 'Azure-functie afas-token niet bereikbaar (' + e.message + '). Is de publicatie klaar?'); return;
-  }finally{ sessie.del('mict_verifier'); sessie.del('mict_state'); }
-  if(res.status !== 200 || !res.json || !res.json.access_token){ zet('Token ophalen', 'fout', `HTTP ${res.status}: ${res.tekst.slice(0,300)}`); return; }
-  tok = res.json;
-  zet('Token ophalen', 'ok', `Access token ${tok.expires_in ? 'geldig ' + Math.round(tok.expires_in/60) + ' min' : 'ontvangen'}; refresh token ${tok.refresh_token ? 'ontvangen' : '<b>niet</b> ontvangen'}.`);
-  log('Tokenresponse (gemaskeerd):\n' + JSON.stringify(maskeer(tok), null, 2));
-  wieBenIk();
-  ['btnTesten','btnRefresh','btnKopieer','btnSchrijf','btnControle'].forEach(id => $(id).disabled = false);
-  await leestests();
+  if(!q.has('code') && !q.has('error')) return false;
+  history.replaceState(null, '', REDIRECT);
+  if(q.has('error')) throw new Error('AFAS: ' + (q.get('error_description') || q.get('error')));
+  if(q.get('state') !== sessie.get('mict-state')) throw new Error('Inloggen is niet vanuit dit tabblad gestart. Probeer het opnieuw.');
+  try{ zetToken(await tokenFunctie({grant_type:'authorization_code', code:q.get('code'), code_verifier:sessie.get('mict-verifier'), redirect_uri:REDIRECT})); }
+  finally{ sessie.weg('mict-verifier'); sessie.weg('mict-state'); }
+  return true;
 }
+function uitloggen(){ opslag.weg(RT); tok = null; location.href = REDIRECT; }
 
-function wieBenIk(){
-  const claims = jwtClaims(tok.access_token);
-  const extra = Object.keys(tok).filter(k => !['access_token','refresh_token','token_type','expires_in','scope'].includes(k));
-  if(claims){
-    log('Claims in het access token:\n' + JSON.stringify(claims, null, 2));
-    const kandidaat = ['userId','userid','user_id','preferred_username','upn','unique_name','name'].find(k => claims[k]);
-    zet('Wie is ingelogd', kandidaat ? 'ok' : 'let', kandidaat ? `Gevonden in token: <b>${kandidaat}</b> = ${claims[kandidaat]}` : `Token bevat geen gebruikersnaam, alleen een code (sub = ${claims.sub || '?'}). Zie Details.`);
-  }else if(extra.length){
-    zet('Wie is ingelogd', 'let', 'Token is niet leesbaar (geen JWT); extra velden in de response: ' + extra.join(', ') + '. Zie Details.');
-  }else{
-    zet('Wie is ingelogd', 'let', 'Het token zegt niet wie er is ingelogd. Dan bepalen we dat via een GetConnector (bijv. MijnICT_Gebruikers).');
+/* ================= AFAS-aanroepen ================= */
+async function afas(pad, opties = {}, opnieuw = true){
+  if(DEMO) return demoAfas(pad, opties);
+  const r = await fetch(afasBasis() + pad, {...opties, headers:{'Authorization':'Bearer ' + await geldigToken(), 'Accept':'application/json', 'Accept-Language':'nl-nl', ...(opties.body ? {'Content-Type':'application/json'} : {})}});
+  if(r.status === 401 && opnieuw){ tok = null; return afas(pad, opties, false); }
+  const t = await r.text(); let j = null; try{ j = JSON.parse(t); }catch(e){}
+  if(!r.ok){ let detail = (j && (j.externalMessage || j.message)) || '';
+    try{ const h = r.headers.get('X-Profit-Error'); if(h && !detail) detail = new TextDecoder().decode(Uint8Array.from(atob(h), c => c.charCodeAt(0))); }catch(e){}
+    throw new Error(`AFAS gaf HTTP ${r.status}${detail ? ': ' + detail : ''}`); }
+  return j || {};
+}
+async function connectorAlles(naam, filter = ''){
+  const rijen = [], take = 1000;
+  for(let skip = 0; skip < 50000; skip += take){
+    const d = await afas(`/connectors/${encodeURIComponent(naam)}?skip=${skip}&take=${take}${filter}`);
+    rijen.push(...(d.rows || [])); if(!d.rows || d.rows.length < take) break;
   }
+  return rijen;
 }
+const filterOp = (veld, waarde) => `&filterfieldids=${encodeURIComponent(veld)}&filtervalues=${encodeURIComponent(waarde)}&operatortypes=1`;
 
-/* ---------- leestests ---------- */
-async function api(pad, opties = {}){
-  const r = await fetch(basis() + pad, {...opties, headers:{'Authorization':'Bearer ' + tok.access_token, 'Accept':'application/json', ...(opties.body ? {'Content-Type':'application/json'} : {})}});
-  const tekst = await r.text(); let json = null; try{ json = JSON.parse(tekst); }catch(e){}
-  return {status:r.status, json, tekst};
+/* ================= gegevens ================= */
+let items = [], taakPerSb = new Map(), mensen = [], gebieden = [], status = {bijgewerkt:null, fout:null};
+function emmer(status){ const s = norm(status);
+  for(const k of ['nieuw','opvolging','melder','leverancier','planning']) if(lijst(INST['st_' + k]).includes(s)) return k; return null; }
+function maakItem(r, extra){
+  const x = {
+    nr: r.Nummer, onderwerp: r.Onderwerp || '(geen onderwerp)', status: String(r.Status ?? '').replace(/\s+/g, ' ').trim(),
+    verantw: String(r.Omschrijving_4 ?? '').trim(), melder: String(r.Omschrijving_2 ?? '').trim(), soort: String(r[INST.soortVeld] ?? '').trim(),
+    type: String(r.Type_ticket_ICT ?? '').trim(), categorie: String(r.Focusgebied_ICT ?? '').trim(), afdeling: String(r.AFAS_Afdeling ?? '').trim(),
+    emma: String(r.Focusgebied_EMMA ?? '').trim(), prioriteit: String(r.Prioriteit_actie ?? '').trim(),
+    aangemaakt: datum(r.Instuurdatum), gepland: datum(r.Gepland), reactieDatum: datum(r.Laatste_reactie), reactieDoor: String(r.Gebruiker_laatste_reactie ?? '').trim(),
+    statusDatum: datum(r.Laatste_wijziging_externe_status), wijzigingDoor: String(r.Gebruiker_laatste_wijziging ?? '').trim(),
+    afgerond: ja(r.Workflow_afgerond), kritiek: ja(r.Kritieke_storing), extern: String(r.Extern_ticket ?? '').trim(),
+    ...extra };
+  x.emmer = emmer(x.status);
+  x.afgesloten = x.afgerond || lijst(INST.st_afgesloten).includes(norm(x.status));
+  x.sla = !lijst(INST.slaSoorten).length || lijst(INST.slaSoorten).includes(norm(x.soort));
+  const t = taakPerSb.get(String(x.sbid)); x.taak = t ? t.taak : ''; x.taakBij = t ? t.bij : [];
+  x.zoek = norm([x.nr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.emma, ...x.taakBij].join(' '));
+  return x;
 }
-function foutTekst(r){
-  const m = (r.json && (r.json.externalMessage || r.json.message)) || r.tekst.slice(0,200);
-  return `HTTP ${r.status}${m ? ': ' + m : ''}`;
-}
-
-async function leestests(){
-  zet('Connectoren in app connector', 'wacht', 'Bezig…');
-  let meta;
-  try{ meta = await api('/metainfo'); }catch(e){ zet('Connectoren in app connector', 'fout', 'Verzoek geblokkeerd: ' + e.message); return; }
-  if(meta.status !== 200 || !meta.json){ zet('Connectoren in app connector', 'fout', foutTekst(meta)); return; }
-  const gets = (meta.json.getConnectors || []).map(c => c.id), upds = (meta.json.updateConnectors || []).map(c => c.id);
-  log('Metainfo · GetConnectoren: ' + gets.join(', ') + '\nMetainfo · UpdateConnectoren: ' + upds.join(', '));
-  const misG = VERWACHT_GET.filter(c => !gets.includes(c)), misU = VERWACHT_UPDATE.filter(c => !upds.includes(c));
-  zet('Connectoren in app connector', misG.length || misU.length ? 'let' : 'ok',
-    `${gets.length} Get, ${upds.length} Update.` + (misG.length || misU.length ? ` Ontbreekt: <b>${[...misG, ...misU].join(', ')}</b>` : ' Alle verwachte connectoren aanwezig.'));
-
-  for(const c of gets){
-    zet('Lezen: ' + c, 'wacht', 'Bezig…');
-    try{
-      const r = await api(`/connectors/${encodeURIComponent(c)}?skip=0&take=50`);
-      if(r.status === 200 && r.json){
-        const n = (r.json.rows || []).length, kol = n ? Object.keys(r.json.rows[0]).length : 0;
-        zet('Lezen: ' + c, n ? 'ok' : 'let', n ? `${n}${n === 50 ? '+' : ''} rijen zichtbaar, ${kol} kolommen.` : '0 rijen: connector werkt, maar deze gebruiker ziet geen gegevens (filterautorisatie?).');
-        if(n) log(`${c} · kolommen: ${Object.keys(r.json.rows[0]).join(', ')}`);
-      }else zet('Lezen: ' + c, 'fout', foutTekst(r));
-    }catch(e){ zet('Lezen: ' + c, 'fout', e.message); }
-  }
-  for(const c of upds){
-    try{
-      const r = await api(`/metainfo/update/${encodeURIComponent(c)}`);
-      zet('Schrijfrecht: ' + c, r.status === 200 ? 'ok' : 'fout', r.status === 200 ? 'Gekoppeld aan de app connector.' : foutTekst(r));
-    }catch(e){ zet('Schrijfrecht: ' + c, 'fout', e.message); }
-  }
-}
-$('btnTesten').onclick = () => leestests();
-
-/* ---------- token vernieuwen ---------- */
-$('btnRefresh').onclick = async () => {
-  if(!tok || !tok.refresh_token){ zet('Token vernieuwen', 'fout', 'Geen refresh token ontvangen.'); return; }
-  zet('Token vernieuwen', 'wacht', 'Bezig…');
+async function laadGegevens(){
+  $('#live').classList.add('uit'); $('#bijgewerkt').textContent = 'Bezig met laden…';
   try{
-    const res = await tokenAanvraag({grant_type:'refresh_token', refresh_token:tok.refresh_token});
-    if(res.status === 200 && res.json && res.json.access_token){
-      const nieuw = res.json.refresh_token && res.json.refresh_token !== tok.refresh_token;
-      tok = res.json;
-      zet('Token vernieuwen', 'ok', 'Nieuw access token ontvangen' + (nieuw ? ', met nieuwe refresh token (roterend).' : '.'));
-      log('Vernieuwd token (gemaskeerd):\n' + JSON.stringify(maskeer(tok), null, 2));
-    }else zet('Token vernieuwen', 'fout', `HTTP ${res.status}: ${res.tekst.slice(0,200)}`);
-  }catch(e){ zet('Token vernieuwen', 'fout', e.message); }
-};
-
-/* ---------- schrijftest ---------- */
-async function rijenWaar(connector, veld, waarde, take = 5){
-  const f = new URLSearchParams({filterfieldids:veld, filtervalues:String(waarde), operatortypes:'1', skip:'0', take:String(take)});
-  const r = await api(`/connectors/${connector}?` + f);
-  if(r.status !== 200 || !r.json) throw new Error(`${connector} (${veld}): ${foutTekst(r)}`);
-  return r.json.rows || [];
-}
-const kort = v => v == null || v === '' ? '–' : String(v).replace(/\s+/g, ' ').slice(0, 120);
-
-async function controleerTicket(sbId){
-  // invoer = SbId (het nummer uit de ticket-url); zoek het bijbehorende ticketnummer op
-  let rows = [];
-  try{ rows = await rijenWaar('Helpdesk_PowerBI', 'Dossieritem', sbId); }catch(e){ log('Zoeken op Dossieritem: ' + e.message); }
-  let via = 'Dossieritem';
-  if(!rows.length){ rows = await rijenWaar('Helpdesk_PowerBI', 'Nummer', sbId); via = 'Nummer'; }
-  log(`SbId ${sbId} · gevonden via ${via}: ${JSON.stringify(rows.map(r => ({Nummer:r.Nummer, Dossieritem:r.Dossieritem, Onderwerp:r.Onderwerp})))}`);
-  if(!rows.length){ zet('Ticket opzoeken', 'let', `SbId ${sbId} niet gevonden in Helpdesk_PowerBI (op Dossieritem of Nummer). Reactie wordt wel op dit SbId geplaatst.`); return {Nummer:null}; }
-  const t = rows[0];
-  zet('Ticket opzoeken', 'ok', `SbId ${sbId}: ticket <b>${kort(t.Nummer)}</b> "${kort(t.Onderwerp)}" (gevonden via ${via}).`);
-  return t;
-}
-async function laatsteReactie(nr, label){
-  const rows = await rijenWaar('PowerBI_ICT_SLA_Dashboard', 'Nummer', nr, 1);
-  if(!rows.length){ zet(label, 'let', `Ticket ${nr} niet gevonden in PowerBI_ICT_SLA_Dashboard.`); return; }
-  const r = rows[0];
-  log(`Laatste reactie ${nr}: ${JSON.stringify({Laatste_reactie:r.Laatste_reactie, Gebruiker_laatste_reactie:r.Gebruiker_laatste_reactie, Gebruiker_laatste_wijziging:r.Gebruiker_laatste_wijziging})}`);
-  zet(label, 'ok', `Laatste reactie: ${kort(r.Laatste_reactie)} · door <b>${kort(r.Gebruiker_laatste_reactie)}</b>`);
+    const [sla, tickets, taken] = await Promise.all([connectorAlles(INST.connSla), connectorAlles(INST.connTickets), connectorAlles(INST.connTaken).catch(() => [])]);
+    const sbPerNr = new Map(tickets.map(t => [String(t.Nummer), t]));
+    taakPerSb = new Map();
+    taken.forEach(t => { const k = String(t.SubjectId); const o = taakPerSb.get(k) || {taak: t.TaskDescription || t.WfDescription || '', bij: []};
+      if(t.UserName && !o.bij.includes(t.UserName)) o.bij.push(t.UserName); taakPerSb.set(k, o); });
+    // afdeling Zorgadministratie hoort niet bij ICT: zelfde aanpak als het SLA-dashboard, zoek het veld waarin die waarde staat
+    const verbergen = lijst(INST.afdVerbergen);
+    const afdVeld = verbergen.length && sla[0] ? Object.keys(sla[0]).find(k => sla.some(r => verbergen.includes(norm(r[k])))) : '';
+    items = sla.filter(r => !afdVeld || !verbergen.includes(norm(r[afdVeld])))
+      .map(r => { const t = sbPerNr.get(String(r.Nummer)) || {}; return maakItem(r, {sbid: t.Dossieritem ?? null}); });
+    const tel = {}; items.forEach(x => { if(x.verantw) tel[x.verantw] = (tel[x.verantw] || 0) + 1; x.taakBij.forEach(b => tel[b] = (tel[b] || 0) + 0.5); });
+    mensen = Object.keys(tel).sort((a, b) => a.localeCompare(b, 'nl'));
+    const g = new Map();
+    items.forEach(x => [['Focusgebied', x.categorie], ['Afdeling/systeem', x.afdeling], ['Emma', x.emma]].forEach(([s, w]) => { if(w) g.set(w, s); }));
+    gebieden = [...g.keys()].sort((a, b) => a.localeCompare(b, 'nl'));
+    status = {bijgewerkt: new Date(), fout: null};
+    $('#live').classList.remove('uit');
+  }catch(e){ status.fout = e.message; toast('Laden mislukt: ' + e.message, true); }
+  $('#bijgewerkt').textContent = status.fout ? 'Laden mislukt: ' + status.fout : 'Live · bijgewerkt om ' + fmtTijd(status.bijgewerkt);
 }
 
-$('btnControle').onclick = async () => {
-  const nr = $('ticket').value.trim();
-  if(!/^\d+$/.test(nr)){ zet('Ticket opzoeken', 'fout', 'Vul een geldig ticketnummer in.'); return; }
-  try{ const t = await controleerTicket(nr); if(t.Nummer != null) await laatsteReactie(t.Nummer, 'Laatste reactie (vooraf)'); }catch(e){ zet('Ticket opzoeken', 'fout', e.message); }
-};
+/* ================= profiel: wie ben ik en waar ben ik verantwoordelijk voor ================= */
+const profielSleutel = () => 'mict-profiel-' + (sub || 'demo');
+let profiel = null;
+const benIk = naam => !!profiel && !!norm(naam) && (norm(naam) === norm(profiel.naam) || (profiel.alias || []).some(a => norm(a) === norm(naam)));
+const isMijn = x => benIk(x.verantw) || x.taakBij.some(benIk);
+const inGebied = x => !!profiel && (profiel.gebieden || []).some(g => [x.categorie, x.afdeling, x.emma].some(w => norm(w) === norm(g)));
 
-$('btnSchrijf').onclick = async () => {
-  const nr = $('ticket').value.trim();
-  if(!/^\d+$/.test(nr)){ zet('Schrijftest reactie', 'fout', 'Vul een geldig ticketnummer in.'); return; }
-  let t;
-  try{ t = await controleerTicket(nr); }catch(e){ zet('Ticket opzoeken', 'fout', e.message); return; }
-  const sbId = +nr;
-  zet('Schrijftest reactie', 'wacht', 'Bezig…');
-  const tekst = 'Test Mijn ICT-Omgeving: rechtencheck ' + new Date().toLocaleString('nl-NL');
-  const soort = $('soort').value;
-  const body = soort === 'workflow'
-    ? {KnWorkflow:{Element:{Fields:{SbId:sbId, Tx:tekst}}}}
-    : {KnReaction:{Element:{Fields:{SbId:sbId, Tx:tekst}}}};
-  const connector = soort === 'workflow' ? 'KnSubjectWorkflowReaction' : 'KnSubjectReaction';
+/* ================= signalen: dezelfde normen als het SLA-dashboard, per ticket ================= */
+const stilSinds = x => x.reactieDatum || x.statusDatum || x.aangemaakt;
+function signalen(x){
+  const s = [], nu = Date.now(); if(x.afgesloten) return s;
+  const wd = ms => Math.floor(ms / werkdagMs());
+  if(x.sla && x.emmer === 'nieuw' && x.aangemaakt){
+    const voor = plusWerk(x.aangemaakt, INST.nieuwUren * UUR);
+    if(voor && voor < nu) s.push({ernst:3, code:'nieuw', tekst:'Nieuw · te laat opgepakt'});
+    else s.push({ernst:2, code:'nieuw', tekst:'Nieuw · oppakken vóór ' + (voor ? (beginDag(voor) > beginDag(nu) ? fmtDatum(new Date(voor)) + ' ' : '') + fmtTijd(new Date(voor)) : '?')});
+  }
+  if(x.sla && x.emmer === 'opvolging' && !x.gepland){ const ms = werkMs(stilSinds(x), nu);
+    if(ms >= INST.opvolgingDagen * werkdagMs()) s.push({ernst:3, code:'opvolging', tekst:`${wd(ms)} werkdagen geen reactie`}); }
+  if(x.sla && x.emmer === 'melder'){ const ms = werkMs(stilSinds(x), nu);
+    if(ms >= INST.melderDagen * werkdagMs()) s.push({ernst:3, code:'melder', tekst:`Melder ${wd(ms)} werkdagen stil`}); }
+  if(x.sla && x.emmer === 'leverancier'){ const ms = werkMs(stilSinds(x), nu);
+    if(ms >= INST.leverancierDagen * werkdagMs()) s.push({ernst:3, code:'leverancier', tekst:`Leverancier ${wd(ms)} werkdagen stil`}); }
+  if(x.gepland && +x.gepland < nu) s.push({ernst:3, code:'planning', tekst:`Planning verlopen · ${fmtDatum(x.gepland)}`});
+  else if(!x.gepland && x.emmer === 'planning') s.push({ernst:3, code:'planning', tekst:'Planning ontbreekt'});
+  else if(x.gepland && (beginDag(x.gepland) - beginDag(nu)) / DAG <= 1) s.push({ernst:1, code:'binnenkort', tekst:`Gepland ${beginDag(x.gepland) - beginDag(nu) < DAG ? 'vandaag' : 'morgen'}`});
+  if(x.reactieDoor && profiel && !benIk(x.reactieDoor) && x.reactieDatum && Date.now() - x.reactieDatum < 7 * DAG && isMijn(x))
+    s.push({ernst:1, code:'reactie', tekst:`Reactie van ${x.reactieDoor.split(' ')[0]} · ${fmtDatum(x.reactieDatum)}`});
+  if(x.kritiek) s.unshift({ernst:3, code:'kritiek', tekst:'Kritieke storing'});
+  return s;
+}
+const ernst = x => Math.max(0, ...(x._sg || []).map(s => s.ernst));
+const actie = x => ernst(x) >= 2;
+
+/* ================= tekenen ================= */
+const KLEUR = {3:'rood', 2:'oranje', 1:'blauw', 0:''};
+const chipKleur = s => s.ernst >= 3 ? 'rood' : s.ernst === 2 ? 'oranje' : '';
+function rij(x, toonWie = true){
+  const sg = x._sg || [], wie = x.verantw || (x.taakBij[0] ? 'taak bij ' + x.taakBij[0] : 'nog niemand');
+  const meta = [x.status || 'Open', toonWie ? wie : '', x.melder ? 'melder ' + x.melder : '', x.aangemaakt ? 'gemeld ' + fmtDatum(x.aangemaakt) : ''].filter(Boolean).join(' · ');
+  return `<button type="button" class="rij ${KLEUR[ernst(x)]}" data-nr="${esc(x.nr)}"><span class="balk"></span><span class="nr">${esc(x.nr)}</span>
+    <span class="titel"><b>${esc(x.onderwerp)}</b><small>${esc(meta)}</small></span>
+    <span class="chips">${sg.map(s => `<span class="chip ${chipKleur(s)}">${esc(s.tekst)}</span>`).join('')}${!sg.length && x.categorie ? `<span class="chip grijs">${esc(x.categorie)}</span>` : ''}</span></button>`;
+}
+function blok(id, titel, lijstItems, opties = {}){
+  const max = opties.max || 8, open = blokOpen.has(id);
+  const zicht = open ? lijstItems : lijstItems.slice(0, max);
+  return `<section class="blok ${opties.rood && lijstItems.length ? 'rood' : ''}"><header><h2>${esc(titel)}</h2><b>${lijstItems.length}</b><small>${esc(opties.sub || '')}</small></header>
+    ${lijstItems.length ? zicht.map(x => rij(x, opties.toonWie !== false)).join('') : `<p class="leeg">${esc(opties.leeg || 'Niets te doen.')}</p>`}
+    ${lijstItems.length > max ? `<button type="button" class="meer" data-blok="${id}">${open ? 'Minder tonen' : `Alle ${lijstItems.length} tonen`}</button>` : ''}</section>`;
+}
+const blokOpen = new Set();
+const sorteer = (a, b) => ernst(b) - ernst(a) || (a.gepland || a.aangemaakt || 0) - (b.gepland || b.aangemaakt || 0);
+
+function tekenMij(){
+  const open = items.filter(x => !x.afgesloten);
+  open.forEach(x => x._sg = signalen(x));
+  const mijn = open.filter(isMijn).sort(sorteer);
+  const mijnActie = mijn.filter(actie);
+  const nieuwLos = open.filter(x => x.sla && x.emmer === 'nieuw' && !x.verantw && (profiel.servicedesk || inGebied(x))).sort(sorteer);
+  const gebied = open.filter(x => !isMijn(x) && inGebied(x) && !(x.emmer === 'nieuw' && !x.verantw)).sort(sorteer);
+  const gebiedActie = gebied.filter(x => ernst(x) >= 2);
+  const mijnRust = mijn.filter(x => !actie(x));
+  const tegel = (n, t, sub, kl) => `<div class="tegel ${n ? kl : 'nul'}"><span>${t}</span><b>${n}</b><small>${esc(sub)}</small></div>`;
+  $('#tegels').innerHTML = tegel(mijnActie.length, 'Actie nodig', 'op jouw naam', 'rood')
+    + tegel(nieuwLos.length, 'Nieuw op te pakken', profiel.servicedesk ? 'zonder behandelaar' : 'in jouw gebied', 'oranje')
+    + tegel(gebiedActie.length, 'Aandacht in jouw gebied', (profiel.gebieden || []).join(', ') || 'geen gebied gekozen', 'oranje')
+    + tegel(mijn.length, 'Mijn open tickets', 'verantwoordelijk of taak bij jou', '');
+  let html = blok('actie', 'Actie nodig', mijnActie, {rood:true, toonWie:false, leeg:'Niets dat over een norm gaat. Mooi zo.', sub:'Verlopen planning, te lang geen reactie, nieuwe meldingen'});
+  if(profiel.servicedesk || nieuwLos.length) html += blok('nieuw', 'Nieuwe meldingen zonder behandelaar', nieuwLos, {leeg:'Geen nieuwe meldingen die wachten.', sub:`Binnen ${INST.nieuwUren} werkuren oppakken`});
+  if((profiel.gebieden || []).length) html += blok('gebied', 'In jouw aandachtsgebied', gebied.filter(x => ernst(x) >= 1).concat(gebied.filter(x => !ernst(x))), {leeg:'Niets open in jouw gebied.', sub:'Ook als het bij een collega ligt', max:6});
+  html += blok('rust', 'Mijn overige open tickets', mijnRust, {toonWie:false, leeg:'Geen andere open tickets.', max:10});
+  $('#blokken').innerHTML = html;
+  $('#tel-mij').textContent = mijnActie.length || '';
+  $('#subtitel').textContent = `${mijnActie.length ? mijnActie.length + ' ticket' + (mijnActie.length === 1 ? '' : 's') + ' vraagt actie' : 'Alles binnen de normen'}`;
+}
+const filt = {scope:'alle', open:'open', zoek:''};
+function tekenAlle(){
+  const grens = Date.now() - 90 * DAG, w = norm(filt.zoek);
+  let l = items.filter(x => filt.open === 'open' ? !x.afgesloten : x.afgesloten && (x.statusDatum || x.aangemaakt || 0) >= grens);
+  if(filt.scope === 'mijn') l = l.filter(isMijn); if(filt.scope === 'gebied') l = l.filter(inGebied);
+  if(w) l = l.filter(x => x.zoek.includes(w));
+  l.forEach(x => x._sg = signalen(x));
+  l.sort(filt.open === 'open' ? sorteer : (a, b) => (b.statusDatum || 0) - (a.statusDatum || 0));
+  const max = 300;
+  $('#alle-n').textContent = l.length; $('#alle-sub').textContent = l.length > max ? `eerste ${max} getoond, zoek om te verfijnen` : '';
+  $('#alle-titel').textContent = filt.open === 'open' ? 'Open tickets' : 'Afgesloten, afgelopen 90 dagen';
+  $('#alle-lijst').innerHTML = l.length ? l.slice(0, max).map(x => `<button type="button" class="rij ${KLEUR[ernst(x)]}" data-nr="${esc(x.nr)}"><span class="balk"></span><span class="nr">${esc(x.nr)}</span>
+      <span class="titel"><b>${esc(x.onderwerp)}</b><small>${esc([x.status, x.melder ? 'melder ' + x.melder : '', x.categorie].filter(Boolean).join(' · '))}</small></span>
+      <span class="kol">${esc(x.verantw || (x.taakBij[0] ? 'taak: ' + x.taakBij[0] : '–'))}</span><span class="kol">${x.gepland ? 'gepland ' + fmtDatum(x.gepland) : 'gemeld ' + fmtDatum(x.aangemaakt)}</span>
+      <span class="chips">${(x._sg || []).filter(s => s.ernst >= 2).slice(0, 2).map(s => `<span class="chip ${chipKleur(s)}">${esc(s.tekst)}</span>`).join('')}</span></button>`).join('')
+    : '<p class="leeg">Geen tickets gevonden.</p>';
+}
+let tab = 'mij';
+function teken(){
+  if(!profiel) return;
+  $('#ik span').textContent = profiel.naam; $('#ik i').textContent = profiel.naam.split(' ').map(w => w[0]).filter(c => c && c === c.toUpperCase()).slice(0, 2).join('');
+  document.querySelectorAll('.rail [data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === tab));
+  $('#v-mij').hidden = tab !== 'mij'; $('#v-alle').hidden = tab !== 'alle';
+  $('#titel').textContent = tab === 'mij' ? 'Voor ' + profiel.naam.split(' ')[0] : 'Alle tickets';
+  tekenMij(); if(tab === 'alle'){ tekenAlle(); $('#subtitel').textContent = ''; }
+}
+
+/* ================= detail: bekijken, reageren, workflowactie ================= */
+const actieCache = {};
+let zichtVeld;   // veld in KnSubjectWorkflowReaction voor zichtbaarheid; undefined = nog niet gezocht
+async function zoekZichtVeld(){
+  if(zichtVeld !== undefined) return zichtVeld;
+  zichtVeld = null;
+  try{ const m = await afas('/metainfo/update/KnSubjectWorkflowReaction');
+    const velden = []; (function loop(o){ if(!o || typeof o !== 'object') return; if(Array.isArray(o)) return o.forEach(loop);
+      if((o.fieldId || o.id) && (o.label || o.description)) velden.push({code:o.fieldId || o.id, label:norm(o.label || o.description), type:norm(o.dataType || o.type)}); Object.values(o).forEach(loop); })(m);
+    const v = velden.find(f => /zichtbaar|extern|intern|outsite|portal/.test(f.label) && /bool|ja|yes/.test(f.type + ' boolean'));
+    if(v) zichtVeld = {code:v.code, label:v.label, intern: /intern/.test(v.label) && !/extern/.test(v.label)};
+  }catch(e){}
+  return zichtVeld;
+}
+async function workflow(x){
+  if(DEMO) return {taak:'Behandelen ICT', bij:[profiel.naam], acties:[{naam:'In behandeling nemen'}, {naam:'Wacht op melder'}, {naam:'Wacht op leverancier'}, {naam:'Afhandelen', afhandelen:true}].map((a, i) => ({...a, wf:'d', tk:'d', ac:'d' + i}))};
+  const taken = (await afas(`/connectors/${INST.connTaken}?skip=0&take=20${filterOp('SubjectId', x.sbid)}`)).rows || [];
+  if(!taken.length) return {taak:'', bij:[], acties:[]};
+  const t = taken[0], k = t.WorkflowName + '|' + t.TaskName;
+  if(!actieCache[k]) actieCache[k] = ((await afas(`/connectors/${INST.connActies}?skip=0&take=100${filterOp('TaskName', t.TaskName)}`)).rows || [])
+    .filter(a => !a.WorkflowName || a.WorkflowName === t.WorkflowName).sort((a, b) => (a.SeqNo || 0) - (b.SeqNo || 0))
+    .map(a => ({naam:a.ActionDescription, afhandelen: +a.ActionType === 1, wf:t.WorkflowName, tk:t.TaskName, ac:a.ActionName}));
+  return {taak: t.TaskDescription || t.WfDescription || '', bij:[...new Set(taken.map(y => y.UserName).filter(Boolean))], acties: actieCache[k]};
+}
+let huidig = null;
+function openDetail(nr){
+  const x = items.find(y => String(y.nr) === String(nr)); if(!x) return; huidig = {x, wf:null};
+  x._sg = signalen(x);
+  const veld = (t, w) => `<div><span>${t}</span><b>${esc(w || '–')}</b></div>`;
+  const link = INST.ticketUrl && x.sbid ? INST.ticketUrl.replace('{sbid}', encodeURIComponent(x.sbid)).replace('{nr}', encodeURIComponent(x.nr)) : '';
+  $('#detail-in').innerHTML = `
+    <div class="dlg-kop"><div><small>Ticket ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.soort ? ' · ' + esc(x.soort) : ''}</small><h2>${esc(x.onderwerp)}</h2></div><button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
+    ${x._sg.length ? `<div class="chips" style="justify-content:flex-start;max-width:none">${x._sg.map(s => `<span class="chip ${chipKleur(s)}">${esc(s.tekst)}</span>`).join('')}</div>` : ''}
+    <div class="velden">${veld('Status', x.status)}${veld('Verantwoordelijke', x.verantw)}${veld('Melder', x.melder)}
+      ${veld('Gemeld', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '')}${veld('Gepland', x.gepland ? fmtDatum(x.gepland) : '')}${veld('Focusgebied', [x.categorie, x.afdeling, x.emma].filter(Boolean).join(' · '))}
+      ${veld('Laatste reactie', x.reactieDatum ? fmtDatum(x.reactieDatum) + (x.reactieDoor ? ' · ' + x.reactieDoor : '') : '')}${veld('Laatste wijziging', x.statusDatum ? fmtDatum(x.statusDatum) + (x.wijzigingDoor ? ' · ' + x.wijzigingDoor : '') : '')}${veld('Extern ticket', x.extern)}</div>
+    ${link ? `<a class="hint" href="${esc(link)}" target="_blank" rel="noopener">Openen in AFAS ↗</a>` : ''}
+    ${x.afgesloten ? '<p class="hint">Dit ticket is afgesloten.</p>' : `
+    <div class="wf" id="wf"><span class="wfkop"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Workflow ophalen…</span></div>
+    <textarea id="tekst" placeholder="Schrijf een reactie of toelichting…"></textarea>
+    <label class="vink" id="zicht" hidden><input type="checkbox" id="ookMelder"> Ook zichtbaar voor de melder</label>
+    <div class="acties"><button class="knop" id="k-reageer">Alleen reactie plaatsen</button></div>
+    <p class="hint">Alles wat je hier doet, staat in AFAS op jouw naam.</p><p class="fout" id="d-fout"></p>`}`;
+  $('#detail').showModal();
+  if(!x.afgesloten) laadWorkflow(x);
+}
+async function laadWorkflow(x){
+  const el = $('#wf');
+  if(!x.sbid && !DEMO){ el.innerHTML = '<span class="fout">Het interne nummer (Dossieritem) van dit ticket ontbreekt in Helpdesk_PowerBI; bijwerken kan niet.</span>'; return; }
   try{
-    const r = await api('/connectors/' + connector, {method:'POST', body:JSON.stringify(body)});
-    log(`Schrijftest ${connector} op ticket ${nr} (SbId ${sbId}): HTTP ${r.status} ${r.tekst.slice(0,400)}`);
-    if(r.status < 200 || r.status >= 300){ zet('Schrijftest reactie', 'fout', foutTekst(r)); return; }
-    zet('Schrijftest reactie', 'ok', `${connector}: AFAS accepteerde de reactie (HTTP ${r.status}) op SbId ${sbId}.`);
-  }catch(e){ zet('Schrijftest reactie', 'fout', e.message); return; }
-  zet('Laatste reactie (na schrijven)', 'wacht', 'Even wachten en opnieuw lezen…');
-  await new Promise(res => setTimeout(res, 3000));
-  if(t.Nummer == null){ zet('Laatste reactie (na schrijven)', 'let', 'Ticketnummer onbekend, kan niet teruglezen. Kijk in AFAS.'); return; }
-  try{ await laatsteReactie(t.Nummer, 'Laatste reactie (na schrijven)'); }catch(e){ zet('Laatste reactie (na schrijven)', 'fout', e.message); }
-};
+    const [wf, zv] = await Promise.all([workflow(x), zoekZichtVeld()]); if(!huidig || huidig.x !== x) return; huidig.wf = wf;
+    el.innerHTML = `<span class="wfkop">${wf.taak ? `Taak <b>${esc(wf.taak)}</b>${wf.bij.length ? ' · bij ' + esc(wf.bij.join(', ')) : ''}` : 'Geen openstaande workflowtaak voor dit ticket.'}</span>
+      ${wf.acties.length ? `<div class="acties">${wf.acties.map((a, i) => `<button class="knop ${a.afhandelen ? 'vol' : ''}" data-actie="${i}">${esc(a.naam)}</button>`).join('')}</div>` : ''}`;
+    if(zv){ $('#zicht').hidden = false; }
+    if(wf.taak && wf.bij.length && !wf.bij.some(benIk)) el.insertAdjacentHTML('beforeend', '<span class="hint">Let op: de taak staat niet bij jou. AFAS staat een actie alleen toe als je rechten op deze taak hebt.</span>');
+  }catch(e){ el.innerHTML = `<span class="fout">Workflow ophalen mislukt: ${esc(e.message)}</span>`; }
+}
+async function voerUit(actieIdx){
+  const {x, wf} = huidig, tekst = $('#tekst').value.trim(), a = actieIdx == null ? null : wf.acties[actieIdx];
+  if(!a && !tekst){ $('#d-fout').textContent = 'Schrijf eerst een reactie.'; return; }
+  if(a && a.afhandelen && !confirm(`Ticket ${x.nr} afhandelen?`)) return;
+  const velden = {SbId: isNaN(+x.sbid) ? x.sbid : +x.sbid, ...(a ? {WfNm:a.wf, TkNm:a.tk, AcNm:a.ac} : {}), ...(tekst ? {Tx:tekst} : {})};
+  const zv = zichtVeld, ook = $('#ookMelder') && $('#ookMelder').checked;
+  if(zv && tekst) velden[zv.code] = zv.intern ? !ook : ook;
+  document.querySelectorAll('#detail button').forEach(b => b.disabled = true); $('#d-fout').textContent = '';
+  try{
+    await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body:JSON.stringify({KnWorkflow:{Element:{Fields:velden}}})});
+    $('#detail').close(); toast(a ? `${a.naam}: verwerkt in AFAS` : 'Reactie geplaatst');
+    await laadGegevens(); teken();
+  }catch(e){ $('#d-fout').textContent = e.message; document.querySelectorAll('#detail button').forEach(b => b.disabled = false); }
+}
 
-/* ---------- kopiëren ---------- */
-$('btnKopieer').onclick = async () => {
-  const t = rijen.map(r => `${{ok:'OK',fout:'FOUT',let:'LET OP',wacht:'...'}[r.status]} | ${r.naam} | ${r.detail.replace(/<[^>]+>/g,'')}`).join('\n') + '\n\n' + logRegels.join('\n');
-  try{ await navigator.clipboard.writeText(t); $('btnKopieer').textContent = 'Gekopieerd ✓'; }catch(e){ $('log').textContent = t; }
-};
+/* ================= start- en profielscherm ================= */
+function toonStart(html){ $('#app').hidden = true; $('#s-start').hidden = false; $('#kaart-start').innerHTML = html; }
+function startInlog(fout){
+  toonStart(`<h1>Mijn ICT-Omgeving</h1><p>Jouw tickets en taken uit AFAS op één plek. Je logt in met je gewone werkaccount; alles wat je hier doet, staat in AFAS op jouw naam.</p>
+    ${fout ? `<p class="fout">${esc(fout)}</p>` : ''}<div><button class="knop vol" id="k-in">Inloggen met AFAS</button></div>`);
+  $('#k-in').onclick = () => inloggen();
+}
+function startProfiel(eerste){
+  const p = profiel || {naam:'', gebieden:[], servicedesk:false};
+  const gekozen = new Set(p.gebieden || []);
+  toonStart(`<h1>${eerste ? 'Welkom bij Mijn ICT-Omgeving' : 'Mijn profiel'}</h1>
+    <p>${eerste ? 'Eén keer instellen: wie je bent en waar je verantwoordelijk voor bent. Dit bepaalt wat je op je voorpagina ziet.' : 'Pas aan wat je op je voorpagina ziet.'}</p>
+    <label for="p-naam">Wie ben jij?</label>
+    <select id="p-naam"><option value="">Kies je naam…</option>${mensen.map(m => `<option ${norm(m) === norm(p.naam) ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>
+    <label>Waar ben je verantwoordelijk voor? <span class="hint">Tickets in deze gebieden zie je ook als ze bij een collega liggen.</span></label>
+    <div class="keuzes" id="p-geb">${gebieden.map(g => `<button type="button" aria-pressed="${gekozen.has(g)}">${esc(g)}</button>`).join('') || '<span class="hint">Geen gebieden gevonden.</span>'}</div>
+    <label class="vink"><input type="checkbox" id="p-sd" ${p.servicedesk ? 'checked' : ''}> Ik pak nieuwe meldingen zonder behandelaar op (servicedesk)</label>
+    <p class="fout" id="p-fout"></p>
+    <div style="display:flex;gap:8px"><button class="knop vol" id="p-ok">${eerste ? 'Aan de slag' : 'Opslaan'}</button>${eerste ? '' : '<button class="knop" id="p-terug">Annuleren</button>'}</div>`);
+  $('#p-geb').onclick = e => { const b = e.target.closest('button'); if(b) b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'); };
+  if($('#p-terug')) $('#p-terug').onclick = () => toonApp();
+  $('#p-ok').onclick = () => {
+    const naam = $('#p-naam').value; if(!naam){ $('#p-fout').textContent = 'Kies je naam.'; return; }
+    profiel = {naam, gebieden:[...document.querySelectorAll('#p-geb button[aria-pressed="true"]')].map(b => b.textContent), servicedesk:$('#p-sd').checked};
+    opslag.set(profielSleutel(), profiel); toonApp();
+  };
+}
+function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken(); }
 
-terugVanAfas();
+/* ================= bediening ================= */
+document.addEventListener('click', e => {
+  const r = e.target.closest('.rij[data-nr]'); if(r){ openDetail(r.dataset.nr); return; }
+  const m = e.target.closest('.meer'); if(m){ const id = m.dataset.blok; blokOpen.has(id) ? blokOpen.delete(id) : blokOpen.add(id); teken(); return; }
+  const t = e.target.closest('.rail [data-tab]'); if(t){ tab = t.dataset.tab; teken(); return; }
+  if(e.target.closest('[data-sluit]')){ $('#detail').close(); return; }
+  const a = e.target.closest('[data-actie]'); if(a){ voerUit(+a.dataset.actie); return; }
+  if(e.target.closest('#k-reageer')){ voerUit(null); return; }
+  const s = e.target.closest('.schakel button'); if(s){ const g = s.parentElement; g.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b === s));
+    filt[g.id === 'f-scope' ? 'scope' : 'open'] = s.dataset.v; tekenAlle(); }
+});
+$('#detail').addEventListener('close', () => huidig = null);
+$('#f-zoek').addEventListener('input', e => { filt.zoek = e.target.value; tekenAlle(); });
+$('#k-ververs').onclick = async () => { await laadGegevens(); teken(); };
+$('#k-profiel').onclick = () => startProfiel(false);
+$('#k-uit').onclick = () => uitloggen();
+$('#k-thema').onclick = () => { const d = document.documentElement, nu = d.dataset.thema || (matchMedia('(prefers-color-scheme: dark)').matches ? 'donker' : 'licht');
+  d.dataset.thema = nu === 'donker' ? 'licht' : 'donker'; opslag.set('mict-thema', d.dataset.thema); };
+{ const t = opslag.get('mict-thema'); if(t) document.documentElement.dataset.thema = t; }
+setInterval(() => { $('#klok').textContent = new Date().toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'}) + ' · ' + fmtTijd(new Date()); }, 1000);
+setInterval(async () => { if(!$('#app').hidden && !$('#detail').open){ await laadGegevens(); teken(); } }, INST.verversMinuten * 60e3);
+
+/* ================= opstarten ================= */
+(async function start(){
+  toonStart('<div class="laden"><span class="spin"></span>Bezig met inloggen…</div>');
+  try{
+    if(!DEMO){
+      const terug = await terugVanAfas();
+      if(!terug){ if(!opslag.get(RT)){ startInlog(); return; } try{ await vernieuw(); }catch(e){ opslag.weg(RT); startInlog('Je sessie is verlopen. Log opnieuw in.'); return; } }
+    } else sub = 'demo';
+    toonStart('<div class="laden"><span class="spin"></span>Tickets ophalen uit AFAS…</div>');
+    await laadGegevens();
+    if(status.fout && !items.length){ startInlog('Tickets ophalen mislukt: ' + status.fout); return; }
+    profiel = opslag.get(profielSleutel());
+    if(!profiel || !profiel.naam) startProfiel(true); else toonApp();
+  }catch(e){ startInlog(e.message); }
+})();
+
+/* ================= demodata (alleen met ?demo in de adresbalk) ================= */
+function demoAfas(pad, opties){
+  if(opties.method === 'POST'){ return new Promise(r => setTimeout(() => r({}), 300)); }
+  if(pad.startsWith('/metainfo')) return {fields:[{fieldId:'VaIn', label:'Zichtbaar extern', dataType:'boolean'}]};
+  const nu = Date.now(), lok = x => `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}T${String(x.getHours()).padStart(2,'0')}:${String(x.getMinutes()).padStart(2,'0')}:00`,
+    d = (dagen, uur = 10) => { const x = new Date(nu - dagen * DAG); x.setHours(uur, 15, 0, 0); return lok(x); };
+  if(!window._demo){
+    const r = [], mens = ['Robert van der Veen','Kelly Groen','Glenn Brons','Eleandro Martis','Mehmet Ceylan'];
+    const add = (nr, o, st, v, extra = {}) => r.push({Nummer:nr, Onderwerp:o, Status:st, Omschrijving_4:v, Omschrijving_2:extra.melder || 'Anouk de Vries', Omschrijving:extra.soort || 'Aanvraag ICT',
+      Type_ticket_ICT:extra.type || 'Incident', Focusgebied_ICT:extra.cat || 'Werkplek', AFAS_Afdeling:extra.afd || '', Focusgebied_EMMA:extra.emma || '', Instuurdatum:extra.in || d(4),
+      Gepland:extra.gepland || null, Laatste_reactie:extra.reactie || d(1), Gebruiker_laatste_reactie:extra.door || v, Laatste_wijziging_externe_status:extra.wijz || d(1), Workflow_afgerond:!!extra.af, Kritieke_storing:!!extra.krit});
+    add(12601, 'Monitor blijft zwart na docking', 'In behandeling', mens[0], {reactie:d(6), wijz:d(6)});
+    add(12602, 'Toegang gedeelde map Financiën', 'In behandeling', mens[0], {gepland:d(2)});
+    add(12603, 'Nieuwe laptop voor locatiemanager', 'In behandeling', mens[0], {gepland:d(-1), cat:'Hardware'});
+    add(12604, 'Vraag over rechten in InSite', 'Wachten op melder', mens[0], {reactie:d(9), wijz:d(9)});
+    add(12605, 'Headset werkt niet in Teams', 'In behandeling', mens[0], {reactie:d(0, 9), door:'Anouk de Vries'});
+    add(12606, 'Emma loopt vast bij opslaan decursus', 'In behandeling', mens[2], {cat:'Emma EPD', reactie:d(7), wijz:d(7)});
+    add(12607, 'Sjabloon ontslagbrief aanpassen', 'In behandeling', mens[1], {cat:'Emma EPD', type:'Change', soort:'Change', gepland:d(3)});
+    add(12608, 'Labuitslagen komen niet binnen', 'Nieuw', '', {cat:'Emma EPD', in:lok(new Date(nu - 3 * UUR)), krit:true});
+    add(12609, 'Printer balie Hanzeplein', 'Nieuw', '', {in:lok(new Date(nu - 40 * 60e3)), cat:'Printers'});
+    add(12610, 'Storing faxkoppeling huisartsen', 'Wachten op leverancier', mens[3], {cat:'Koppelingen', reactie:d(12), wijz:d(12)});
+    add(12611, 'Outlook-handtekening', 'Afgehandeld', mens[0], {af:true, wijz:d(3)});
+    for(let i = 0; i < 18; i++) add(12620 + i, ['Wachtwoord resetten','Scanner leest niet','Wifi valt weg','Telefoon doorschakelen'][i % 4], i % 3 ? 'In behandeling' : 'Afgehandeld', mens[i % 5], {af:!(i % 3), cat:['Werkplek','Netwerk','Telefonie'][i % 3], wijz:d(i % 4)});
+    window._demo = {sla:r, tickets:r.map(x => ({Nummer:x.Nummer, Dossieritem:400000 + x.Nummer})), taken:[{SubjectId:412605, TaskDescription:'Behandelen ICT', UserName:mens[0]}]};
+  }
+  const D = window._demo;
+  if(pad.includes(INST.connSla)) return {rows: pad.includes('skip=0') ? D.sla : []};
+  if(pad.includes(INST.connTickets)) return {rows: pad.includes('skip=0') ? D.tickets : []};
+  if(pad.includes(INST.connTaken)) return {rows: pad.includes('skip=0') && !pad.includes('filter') ? D.taken : []};
+  return {rows:[]};
+}
 </script>
 </body>
 </html>
