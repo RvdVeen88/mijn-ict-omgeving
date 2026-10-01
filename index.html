@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mijn ICT-Omgeving · Rechtentest</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f6fb;--vlak:#fff;--tekst:#1c2533;--zacht:#6b7689;--lijn:#e3e8f0;--blauw:#053787;--groen:#1f9d55;--rood:#d64545;--oranje:#d98a1c}
+*{box-sizing:border-box}
+body{margin:0;font-family:Poppins,Segoe UI,sans-serif;background:linear-gradient(160deg,#eef3fa,#f7f9fc);color:var(--tekst);font-size:14px}
+.top{height:4px;background:var(--blauw)}
+main{max-width:920px;margin:0 auto;padding:28px 16px 60px}
+h1{font-size:22px;font-weight:600;margin:0 0 4px}
+.sub{color:var(--zacht);margin:0 0 22px}
+.vlak{background:var(--vlak);border-radius:14px;box-shadow:0 2px 10px rgba(20,40,80,.06);padding:20px 22px;margin-bottom:16px}
+h2{font-size:15px;font-weight:600;margin:0 0 12px}
+label{display:block;font-size:12px;color:var(--zacht);margin:10px 0 4px}
+input{width:100%;padding:9px 11px;border:1px solid var(--lijn);border-radius:8px;font:inherit}
+.rij{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.rij{grid-template-columns:1fr}}
+button{background:var(--blauw);color:#fff;border:0;border-radius:8px;padding:9px 16px;font:inherit;font-weight:500;cursor:pointer;margin:14px 8px 0 0}
+button.licht{background:#e8eef8;color:var(--blauw)}
+button:disabled{opacity:.45;cursor:default}
+.hint{font-size:12px;color:var(--zacht);margin-top:6px}
+table{width:100%;border-collapse:collapse}
+td{padding:8px 6px;border-top:1px solid var(--lijn);vertical-align:top}
+tr:first-child td{border-top:0}
+td.s{width:28px;font-size:16px;font-weight:600}
+td.n{width:230px;font-weight:500}
+td.d{color:var(--zacht);font-size:12.5px;word-break:break-word}
+.ok{color:var(--groen)}.fout{color:var(--rood)}.let{color:var(--oranje)}.wacht{color:var(--zacht)}
+pre{background:#f6f8fb;border:1px solid var(--lijn);border-radius:8px;padding:10px;font-size:12px;overflow:auto;max-height:260px;white-space:pre-wrap;word-break:break-all}
+.voet{color:var(--zacht);font-size:12px;text-align:center;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="top"></div>
+<main>
+  <h1>Mijn ICT-Omgeving · Rechtentest</h1>
+  <p class="sub">Controleert of inloggen via AFAS (OAuth, Authorization code flow) werkt en of de app connector alle rechten heeft.</p>
+
+  <section class="vlak" id="stap-inlog">
+    <h2>1. Inloggen</h2>
+    <div class="rij">
+      <div><label>Omgeving</label><input id="omgeving" value="88406"></div>
+      <div><label>OAuth client id</label><input id="clientId" placeholder="van de AFAS-beheerder"></div>
+    </div>
+    <label>OAuth client secret</label>
+    <input id="secret" type="password" autocomplete="off" placeholder="wordt niet opgeslagen, alleen gebruikt voor deze test">
+    <label>Scope (leeg laten, tenzij AFAS erom vraagt)</label>
+    <input id="scope" value="">
+    <button id="btnLogin">Inloggen met AFAS</button>
+    <div class="hint">Je gaat naar het AFAS-inlogscherm en komt daarna automatisch hier terug. De secret staat alleen tijdelijk in dit tabblad en wordt na het inloggen gewist.</div>
+  </section>
+
+  <section class="vlak">
+    <h2>2. Resultaten</h2>
+    <table id="resultaten"><tr><td class="s wacht">·</td><td class="n">Nog niet ingelogd</td><td class="d">Log eerst in bij stap 1.</td></tr></table>
+    <button id="btnTesten" class="licht" disabled>Leestests opnieuw uitvoeren</button>
+    <button id="btnRefresh" class="licht" disabled>Test token vernieuwen</button>
+    <button id="btnKopieer" class="licht" disabled>Kopieer resultaten</button>
+  </section>
+
+  <section class="vlak">
+    <h2>3. Schrijftest (optioneel)</h2>
+    <p class="hint" style="margin-top:0">Plaatst één reactie op een testticket. Controleer daarna in AFAS of de reactie op <b>jouw naam</b> staat; dat is het bewijs dat acties onder de ingelogde medewerker lopen. Er wordt niets gewijzigd of afgesloten.</p>
+    <label>Ticketnummer van een testticket</label>
+    <input id="ticket" placeholder="bijv. 12345">
+    <button id="btnSchrijf" disabled>Plaats testreactie</button>
+  </section>
+
+  <section class="vlak">
+    <h2>Details</h2>
+    <pre id="log">–</pre>
+  </section>
+  <div class="voet">Rechtentest v1.1 · 01-10-2026</div>
+</main>
+
+<script>
+const VERWACHT_GET = ['Helpdesk_PowerBI','PowerBI_ICT_SLA_Dashboard','Profit_Subject_Tasks','Profit_Workflowactions'];
+const VERWACHT_UPDATE = ['KnSubject','KnSubjectReaction','KnSubjectWorkflowReaction'];
+const $ = id => document.getElementById(id);
+const opslag = { get:(k)=>{try{return localStorage.getItem(k)}catch(e){return null}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}} };
+const sessie = { get:(k)=>{try{return sessionStorage.getItem(k)}catch(e){return null}}, set:(k,v)=>{try{sessionStorage.setItem(k,v)}catch(e){}}, del:(k)=>{try{sessionStorage.removeItem(k)}catch(e){}} };
+let tok = null, rijen = [], logRegels = [];
+
+const redirectUri = location.origin + location.pathname.replace(/index\.html$/i, '');
+const basis = () => `https://${$('omgeving').value.trim()}.rest.afas.online/ProfitRestServices`;
+
+function log(t){ logRegels.push(t); $('log').textContent = logRegels.join('\n'); }
+function zet(naam, status, detail){
+  const i = rijen.findIndex(r => r.naam === naam);
+  const r = {naam, status, detail};
+  if(i >= 0) rijen[i] = r; else rijen.push(r);
+  const sym = {ok:'✓', fout:'✗', let:'!', wacht:'…'};
+  $('resultaten').innerHTML = rijen.map(r => `<tr><td class="s ${r.status}">${sym[r.status]}</td><td class="n">${r.naam}</td><td class="d">${r.detail}</td></tr>`).join('');
+}
+function b64url(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function willekeurig(n){ const a = new Uint8Array(n); crypto.getRandomValues(a); return b64url(a); }
+function jwtClaims(t){
+  if(!t || t.split('.').length !== 3) return null;
+  try{ return JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))))); }catch(e){ return null; }
+}
+function maskeer(o){ const c = {...o}; ['access_token','refresh_token','id_token'].forEach(k => { if(c[k]) c[k] = String(c[k]).slice(0,12) + '… (' + String(c[k]).length + ' tekens)'; }); return c; }
+
+/* ---------- inloggen ---------- */
+['omgeving','clientId','scope'].forEach(id => { const v = opslag.get('mict_' + id); if(v !== null) $(id).value = v; });
+
+$('btnLogin').onclick = async () => {
+  const clientId = $('clientId').value.trim(), secret = $('secret').value;
+  if(!clientId || !secret){ alertKort('Vul client id en client secret in.'); return; }
+  ['omgeving','clientId','scope'].forEach(id => opslag.set('mict_' + id, $(id).value.trim()));
+  const verifier = willekeurig(48), state = willekeurig(16);
+  const challenge = b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
+  sessie.set('mict_verifier', verifier); sessie.set('mict_state', state); sessie.set('mict_secret', secret);
+  const p = new URLSearchParams({response_type:'code', client_id:clientId, redirect_uri:redirectUri, state, code_challenge:challenge, code_challenge_method:'S256'});
+  const scope = $('scope').value.trim(); if(scope) p.set('scope', scope);
+  location.href = `${basis()}/oauth/authorize?${p}`;
+};
+function alertKort(t){ zet('Invoer', 'fout', t); }
+
+async function tokenAanvraag(velden){
+  const r = await fetch(`${basis()}/oauth/token`, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams(velden)});
+  const tekst = await r.text(); let json = null; try{ json = JSON.parse(tekst); }catch(e){}
+  return {status:r.status, json, tekst};
+}
+
+async function terugVanAfas(){
+  const q = new URLSearchParams(location.search);
+  if(!q.has('code') && !q.has('error')) return;
+  history.replaceState(null, '', redirectUri);
+  if(q.has('error')){ zet('Inloggen bij AFAS', 'fout', `${q.get('error')}: ${q.get('error_description') || ''}`); log('Fout bij authorize: ' + q.toString()); return; }
+  if(q.get('state') !== sessie.get('mict_state')){ zet('Inloggen bij AFAS', 'fout', 'State komt niet overeen. Probeer opnieuw in te loggen vanuit dit tabblad.'); return; }
+  zet('Inloggen bij AFAS', 'ok', 'Ingelogd, AFAS gaf een code terug.');
+  zet('Token ophalen', 'wacht', 'Bezig…');
+  const secret = sessie.get('mict_secret');
+  let res;
+  try{
+    res = await tokenAanvraag({grant_type:'authorization_code', code:q.get('code'), redirect_uri:redirectUri, client_id:$('clientId').value.trim(), client_secret:secret, code_verifier:sessie.get('mict_verifier')});
+  }catch(e){
+    zet('Token ophalen', 'fout', 'Verzoek geblokkeerd (' + e.message + '). Waarschijnlijk CORS: de code moet dan via de Azure-functie worden ingewisseld.'); return;
+  }finally{ sessie.del('mict_secret'); sessie.del('mict_verifier'); sessie.del('mict_state'); }
+  if(res.status !== 200 || !res.json || !res.json.access_token){ zet('Token ophalen', 'fout', `HTTP ${res.status}: ${res.tekst.slice(0,300)}`); return; }
+  tok = res.json;
+  zet('Token ophalen', 'ok', `Access token ${tok.expires_in ? 'geldig ' + Math.round(tok.expires_in/60) + ' min' : 'ontvangen'}; refresh token ${tok.refresh_token ? 'ontvangen' : '<b>niet</b> ontvangen'}.`);
+  log('Tokenresponse (gemaskeerd):\n' + JSON.stringify(maskeer(tok), null, 2));
+  wieBenIk();
+  ['btnTesten','btnRefresh','btnKopieer','btnSchrijf'].forEach(id => $(id).disabled = false);
+  await leestests();
+}
+
+function wieBenIk(){
+  const claims = jwtClaims(tok.access_token);
+  const extra = Object.keys(tok).filter(k => !['access_token','refresh_token','token_type','expires_in','scope'].includes(k));
+  if(claims){
+    log('Claims in het access token:\n' + JSON.stringify(claims, null, 2));
+    const kandidaat = ['userId','userid','user_id','preferred_username','upn','unique_name','name','sub'].find(k => claims[k]);
+    zet('Wie is ingelogd', kandidaat ? 'ok' : 'let', kandidaat ? `Gevonden in token: <b>${kandidaat}</b> = ${claims[kandidaat]}` : 'Token bevat claims, maar geen herkenbare gebruiker. Zie Details.');
+  }else if(extra.length){
+    zet('Wie is ingelogd', 'let', 'Token is niet leesbaar (geen JWT); extra velden in de response: ' + extra.join(', ') + '. Zie Details.');
+  }else{
+    zet('Wie is ingelogd', 'let', 'Het token zegt niet wie er is ingelogd. Dan bepalen we dat via een GetConnector (bijv. MijnICT_Gebruikers).');
+  }
+}
+
+/* ---------- leestests ---------- */
+async function api(pad, opties = {}){
+  const r = await fetch(basis() + pad, {...opties, headers:{'Authorization':'Bearer ' + tok.access_token, 'Accept':'application/json', ...(opties.body ? {'Content-Type':'application/json'} : {})}});
+  const tekst = await r.text(); let json = null; try{ json = JSON.parse(tekst); }catch(e){}
+  return {status:r.status, json, tekst};
+}
+function foutTekst(r){
+  const m = (r.json && (r.json.externalMessage || r.json.message)) || r.tekst.slice(0,200);
+  return `HTTP ${r.status}${m ? ': ' + m : ''}`;
+}
+
+async function leestests(){
+  zet('Connectoren in app connector', 'wacht', 'Bezig…');
+  let meta;
+  try{ meta = await api('/metainfo'); }catch(e){ zet('Connectoren in app connector', 'fout', 'Verzoek geblokkeerd: ' + e.message); return; }
+  if(meta.status !== 200 || !meta.json){ zet('Connectoren in app connector', 'fout', foutTekst(meta)); return; }
+  const gets = (meta.json.getConnectors || []).map(c => c.id), upds = (meta.json.updateConnectors || []).map(c => c.id);
+  log('Metainfo · GetConnectoren: ' + gets.join(', ') + '\nMetainfo · UpdateConnectoren: ' + upds.join(', '));
+  const misG = VERWACHT_GET.filter(c => !gets.includes(c)), misU = VERWACHT_UPDATE.filter(c => !upds.includes(c));
+  zet('Connectoren in app connector', misG.length || misU.length ? 'let' : 'ok',
+    `${gets.length} Get, ${upds.length} Update.` + (misG.length || misU.length ? ` Ontbreekt: <b>${[...misG, ...misU].join(', ')}</b>` : ' Alle verwachte connectoren aanwezig.'));
+
+  for(const c of gets){
+    zet('Lezen: ' + c, 'wacht', 'Bezig…');
+    try{
+      const r = await api(`/connectors/${encodeURIComponent(c)}?skip=0&take=50`);
+      if(r.status === 200 && r.json){
+        const n = (r.json.rows || []).length, kol = n ? Object.keys(r.json.rows[0]).length : 0;
+        zet('Lezen: ' + c, n ? 'ok' : 'let', n ? `${n}${n === 50 ? '+' : ''} rijen zichtbaar, ${kol} kolommen.` : '0 rijen: connector werkt, maar deze gebruiker ziet geen gegevens (filterautorisatie?).');
+        if(n) log(`${c} · kolommen: ${Object.keys(r.json.rows[0]).join(', ')}`);
+      }else zet('Lezen: ' + c, 'fout', foutTekst(r));
+    }catch(e){ zet('Lezen: ' + c, 'fout', e.message); }
+  }
+  for(const c of upds){
+    try{
+      const r = await api(`/metainfo/update/${encodeURIComponent(c)}`);
+      zet('Schrijfrecht: ' + c, r.status === 200 ? 'ok' : 'fout', r.status === 200 ? 'Gekoppeld aan de app connector.' : foutTekst(r));
+    }catch(e){ zet('Schrijfrecht: ' + c, 'fout', e.message); }
+  }
+}
+$('btnTesten').onclick = () => leestests();
+
+/* ---------- token vernieuwen ---------- */
+$('btnRefresh').onclick = async () => {
+  if(!tok || !tok.refresh_token){ zet('Token vernieuwen', 'fout', 'Geen refresh token ontvangen.'); return; }
+  const secret = $('secret').value || prompt('Client secret (alleen voor deze test)') || '';
+  zet('Token vernieuwen', 'wacht', 'Bezig…');
+  try{
+    const res = await tokenAanvraag({grant_type:'refresh_token', refresh_token:tok.refresh_token, client_id:$('clientId').value.trim(), client_secret:secret});
+    if(res.status === 200 && res.json && res.json.access_token){
+      const nieuw = res.json.refresh_token && res.json.refresh_token !== tok.refresh_token;
+      tok = res.json;
+      zet('Token vernieuwen', 'ok', 'Nieuw access token ontvangen' + (nieuw ? ', met nieuwe refresh token (roterend).' : '.'));
+      log('Vernieuwd token (gemaskeerd):\n' + JSON.stringify(maskeer(tok), null, 2));
+    }else zet('Token vernieuwen', 'fout', `HTTP ${res.status}: ${res.tekst.slice(0,200)}`);
+  }catch(e){ zet('Token vernieuwen', 'fout', e.message); }
+};
+
+/* ---------- schrijftest ---------- */
+$('btnSchrijf').onclick = async () => {
+  const nr = $('ticket').value.trim();
+  if(!/^\d+$/.test(nr)){ zet('Schrijftest reactie', 'fout', 'Vul een geldig ticketnummer in.'); return; }
+  zet('Schrijftest reactie', 'wacht', 'Bezig…');
+  const tekst = 'Test Mijn ICT-Omgeving: rechtencheck ' + new Date().toLocaleString('nl-NL');
+  try{
+    const r = await api('/connectors/KnSubjectReaction', {method:'POST', body:JSON.stringify({KnReaction:{Element:{Fields:{SbId:+nr, Tx:tekst}}}})});
+    if(r.status >= 200 && r.status < 300) zet('Schrijftest reactie', 'ok', `Reactie geplaatst op ticket ${nr}. Controleer in AFAS of hij op jouw naam staat.`);
+    else zet('Schrijftest reactie', 'fout', foutTekst(r));
+    log(`Schrijftest op ${nr}: HTTP ${r.status} ${r.tekst.slice(0,300)}`);
+  }catch(e){ zet('Schrijftest reactie', 'fout', e.message); }
+  try{
+    const f = new URLSearchParams({filterfieldids:'SubjectId', filtervalues:nr, operatortypes:'1', skip:'0', take:'10'});
+    const t = await api('/connectors/Profit_Subject_Tasks?' + f);
+    if(t.status === 200 && t.json){
+      const rows = t.json.rows || [];
+      zet('Workflowtaak van ticket', rows.length ? 'ok' : 'let', rows.length ? `Taak: ${rows[0].TaskDescription || rows[0].TaskName || '?'}${rows[0].UserName ? ' · bij ' + rows[0].UserName : ''}` : 'Geen openstaande workflowtaak gevonden voor dit ticket.');
+    }else zet('Workflowtaak van ticket', 'fout', foutTekst(t));
+  }catch(e){ zet('Workflowtaak van ticket', 'fout', e.message); }
+};
+
+/* ---------- kopiëren ---------- */
+$('btnKopieer').onclick = async () => {
+  const t = rijen.map(r => `${{ok:'OK',fout:'FOUT',let:'LET OP',wacht:'...'}[r.status]} | ${r.naam} | ${r.detail.replace(/<[^>]+>/g,'')}`).join('\n') + '\n\n' + logRegels.join('\n');
+  try{ await navigator.clipboard.writeText(t); $('btnKopieer').textContent = 'Gekopieerd ✓'; }catch(e){ $('log').textContent = t; }
+};
+
+terugVanAfas();
+</script>
+</body>
+</html>
