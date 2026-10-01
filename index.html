@@ -341,6 +341,9 @@ dialog#detail{width:min(1080px,calc(100vw - 32px))}
 .bericht .kopje{display:flex;gap:8px;align-items:baseline;font-size:12.5px;color:var(--grijs);margin-bottom:3px}
 .bericht .kopje b{color:var(--inkt);font-weight:600}
 .bericht .tekst{white-space:pre-wrap;font-size:13.5px;line-height:1.5;overflow-wrap:anywhere}
+.actie-extra{display:inline-flex;align-items:center}
+.actie-extra input{border:1.5px solid var(--lijn);border-radius:0 999px 999px 0;padding:6px 12px;background:var(--vlak);color:var(--inkt);min-width:220px}
+.actie-extra input.metpijl{padding-right:34px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7A99' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:14px}
 .composer .onder{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .composer .onder .knop{margin-left:auto}
 .vink.notitie{background:var(--goud-licht);border-radius:0 999px 999px 0;padding:4px 12px 4px 8px;color:var(--bruin)}
@@ -389,7 +392,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.33 · 01-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.34 · 01-10-2026</span></div>
   </div>
 </div>
 
@@ -437,7 +440,7 @@ const INST = Object.assign({
   connMedewerkers: 'PowerBI_ICT_Verjaardag',   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.33';
+const VERSIE = 'v3.34';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -728,10 +731,14 @@ function markeerGelezen(x){ gelezen[x.nr] = Date.now();
   const bk = opslag.get(BEKEND) || []; if(!bk.includes(String(x.nr))) opslag.set(BEKEND, [String(x.nr), ...bk].slice(0, 800)); const oud = Date.now() - 120 * DAG;
   Object.keys(gelezen).forEach(k => { if(k !== '_start' && gelezen[k] < oud) delete gelezen[k]; }); opslag.set(GELEZEN, gelezen); }
 const BEKEND = 'mict-mijn-bekend';   // tickets die je al eens als 'mijn ticket' hebt gezien of geopend
+// 'Nieuw voor jou' alleen als er ná het begin van het bijhouden iets met het ticket gebeurde (anders zijn oude tickets ineens 'nieuw')
+const BEKEND_SINDS = 'mict-mijn-bekend-sinds';
+if(!opslag.get(BEKEND_SINDS)) opslag.set(BEKEND_SINDS, Date.now());
 function ongelezen(x){
   if(!profiel || x.afgesloten || !isMijn(x)) return null;
   const bekend = opslag.get(BEKEND);
-  if(bekend && !bekend.includes(String(x.nr)) && !gelezen[x.nr]) return {wat:'toegewezen', wie:x.wijzigingDoor || '', t:x.statusDatum || x.aangemaakt};
+  const laatst = Math.max(+x.statusDatum || 0, +x.reactieDatum || 0, +x.aangemaakt || 0);
+  if(bekend && !bekend.includes(String(x.nr)) && !gelezen[x.nr] && laatst > (opslag.get(BEKEND_SINDS) || Date.now())) return {wat:'toegewezen', wie:x.wijzigingDoor || '', t:x.statusDatum || x.aangemaakt};
   const sinds = gelezen[x.nr] || gelezen._start;
   if(x.reactieDatum && +x.reactieDatum > sinds && x.reactieDoor && !benIk(x.reactieDoor)) return {wat:'reactie', wie:x.reactieDoor, t:x.reactieDatum};
   if(x.statusDatum && +x.statusDatum > sinds && x.wijzigingDoor && !benIk(x.wijzigingDoor)) return {wat:'wijziging', wie:x.wijzigingDoor, t:x.statusDatum};
@@ -1005,7 +1012,7 @@ async function zoekZichtVeld(){
   return zichtVeld;
 }
 async function workflow(x){
-  if(DEMO) return {taak:'Behandelen ICT', bij:[profiel.naam], acties:[{naam:'In behandeling nemen'}, {naam:'Doorzetten naar Radiologie'}, {naam:'Toewijzen aan collega'}, {naam:'Afhandelen', afhandelen:true}].map((a, i) => ({...a, wf:'d', tk:'d', ac:'d' + i}))};
+  if(DEMO) return {taak:'Behandelen ICT', bij:[profiel.naam], acties:['Afhandelen','Reactie plaatsen','Vraag aan melder','Toewijzen aan mij','Toewijzen aan collega','Wachten op leverancier','Inplannen','Accorderen RFC','Interne release','Externe release','Interne notitie'].map((n, i) => ({naam:n, afhandelen: i === 0, wf:'d', tk:'d', ac:'d' + i}))};
   const taken = (await afas(`/connectors/${INST.connTaken}?skip=0&take=20${filterOp('SubjectId', x.sbid)}`)).rows || [];
   if(!taken.length) return {taak:'', bij:[], acties:[]};
   const t = taken[0], k = t.WorkflowName + '|' + t.TaskName;
@@ -1049,6 +1056,8 @@ const STAPPEN = ['Open', 'Actief', 'Afgehandeld'];
 const stapVan = x => x.afgesloten ? 2 : (x.emmer === 'nieuw' || (!x.verantw && !x.emmer)) ? 0 : 1;
 const isReactieActie = a => /reactie plaatsen|^reageren/i.test(a.naam), isNotitieActie = a => /interne notitie/i.test(a.naam);
 const isOppakActie = a => !a.afhandelen && /toewijzen aan mij|in behandeling|oppakken|behandel/i.test(a.naam);
+// wat een actie in deze pagina doet: behandelaar zetten, datum plannen of (via de workflow) de status wijzigen
+const soortActie = a => /toewijzen aan mij/i.test(a.naam) ? 'mij' : /toewijzen aan collega|doorzetten naar collega|collega/i.test(a.naam) ? 'collega' : /inplannen|plannen/i.test(a.naam) ? 'plannen' : 'status';
 function openDetail(nr){
   const x = items.find(y => String(y.nr) === String(nr)); if(!x) return; huidig = {x, wf:null};
   x._sg = signalen(x); markeerGelezen(x);
@@ -1090,17 +1099,67 @@ async function laadWorkflow(x){
     $('#d-taak').textContent = wf.taak ? wf.taak + (bijMij ? ' · bij jou' : '') : 'geen open taak';
     const st = stapVan(x);
     const hoofd = st === 0 ? wf.acties.find(isOppakActie) : wf.acties.find(a => a.afhandelen);
-    const rest = wf.acties.filter(a => a !== hoofd && !isReactieActie(a) && !isNotitieActie(a));
+    const rest = wf.acties.filter(a => a !== hoofd && !isReactieActie(a) && !isNotitieActie(a) && !(a.afhandelen && st === 1));
     el.innerHTML = !wf.acties.length ? '<span class="hint">Geen workflowacties beschikbaar voor dit ticket.</span>' :
       `${hoofd ? `<button class="knop vol" data-actie="${wf.acties.indexOf(hoofd)}">${esc(hoofd.naam)}</button>` : ''}
-       ${rest.length ? `<select id="actie-keuze"><option value="">Andere actie…</option>${rest.map(a => `<option value="${wf.acties.indexOf(a)}">${esc(a.naam)}</option>`).join('')}</select><button class="knop" id="k-actie" disabled>Uitvoeren</button>` : ''}
+       ${rest.length ? `<select id="actie-keuze"><option value="">Andere actie…</option>${rest.map(a => `<option value="${wf.acties.indexOf(a)}">${esc(a.naam)}</option>`).join('')}</select><span id="actie-extra" class="actie-extra"></span><button class="knop" id="k-actie" disabled>Uitvoeren</button>` : ''}
        <span class="wfinfo">Tekst in het veld hierboven gaat mee met de actie</span>`;
-    const kies = $('#actie-keuze'); if(kies) kies.onchange = () => $('#k-actie').disabled = !kies.value;
+    const kies = $('#actie-keuze'); if(kies) kies.onchange = () => toonActieExtra(kies.value === '' ? null : wf.acties[+kies.value]);
   }catch(e){ el.innerHTML = `<span class="fout">Acties ophalen mislukt: ${esc(e.message)}</span>`; $('#d-taak').textContent = '?'; }
+}
+/* ---- velden van het dossieritem zelf (UpdateConnector KnSubject): behandelaar, geplande datum, status ---- */
+let subjMeta = null;
+async function laadSubjMeta(){
+  if(subjMeta) return subjMeta;
+  const alle = velden(await afas('/metainfo/update/KnSubject')).filter(f => f.pad !== 'KnSubjectLink');
+  const st = String(INST.nieuwStId || '');
+  const zoek = (re, extra = () => true) => { const l = alle.filter(f => re.test(norm(f.label)) && extra(f)); return l.find(f => f.pad === 'KnS' + st) || l.find(f => !f.pad || f.pad === 'KnSubject') || l[0]; };
+  return (subjMeta = {verantw: zoek(/^verantwoordelijke$|^behandelaar$/), gepland: zoek(/werkzaamheden|gepland|planning|inplan/, f => /date/i.test(f.dataType || 'date')),
+    status: zoek(/^(externe )?status$/, f => waardenVan(f.values).length > 0), alle});
+}
+async function zetVelden(x, w){
+  const top = {}, obj = {};
+  Object.entries(w).forEach(([c, v]) => { const i = c.indexOf('/'); if(i > 0) (obj[c.slice(0, i)] = obj[c.slice(0, i)] || {})[c.slice(i + 1)] = v; else top[c] = v; });
+  const objecten = Object.entries(obj).map(([o, f]) => ({[o]: {Element: {Fields: f}}}));
+  await afas('/connectors/KnSubject', {method:'PUT', body: JSON.stringify({KnSubject: {Element: {'@SbId': isNaN(+x.sbid) ? x.sbid : +x.sbid, Fields: top, ...(objecten.length ? {Objects: objecten} : {})}}})});
+}
+// ICT-collega's: de waarden van het veld Verantwoordelijke, beperkt tot mensen die bij ICT-tickets behandelaar zijn
+async function ictCollegas(){
+  const m = await laadSubjMeta(), waarden = m.verantw ? waardenVan(m.verantw.values) : [];
+  const behandelaars = new Set(items.map(x => norm(x.verantw)).filter(Boolean));
+  let l = waarden.filter(w => behandelaars.has(norm(w.naam)));
+  if(!l.length && waarden.length) l = waarden;
+  if(!l.length){   // geen keuzelijst in AFAS: gebruikerscodes uit de workflowtaken van de behandelaars
+    const namen = [...behandelaars].map(n => items.find(x => norm(x.verantw) === n).verantw);
+    try{ const rows = (await afas(`/connectors/${INST.connTaken}?skip=0&take=2000&filterfieldids=UserName&filtervalues=${encodeURIComponent(namen.join(';'))}&operatortypes=1`)).rows || [];
+      const kaart = new Map(); rows.forEach(r => { if(r.User && r.UserName) kaart.set(r.User, r.UserName); }); l = [...kaart].map(([code, naam]) => ({code, naam})); }catch(e){}
+  }
+  return l.sort((a, b) => a.naam.localeCompare(b.naam, 'nl'));
+}
+let actieKeuze = null;   // gekozen collega of datum voor de actie
+async function toonActieExtra(a){
+  const el = $('#actie-extra'), knop = $('#k-actie'); actieKeuze = null; el.innerHTML = '';
+  if(!a){ knop.disabled = true; return; }
+  const sa = soortActie(a);
+  if(sa === 'collega'){
+    knop.disabled = true; el.innerHTML = '<input id="actie-collega" class="metpijl" placeholder="Kies een ICT-collega…" autocomplete="off">';
+    const inp = $('#actie-collega'); let l = [];
+    try{ l = await ictCollegas(); }catch(e){ el.innerHTML = `<span class="fout">Collega's ophalen lukte niet: ${esc(e.message)}</span>`; return; }
+    if(!l.length){ el.innerHTML = '<span class="fout">Geen ICT-collega’s gevonden in het veld Verantwoordelijke van AFAS.</span>'; return; }
+    comboKoppel(inp, () => l.filter(c => !benIk(c.naam)).map(c => ({waarde: c.naam, sub: c.code, code: c.code})), k => { inp.value = k.waarde; actieKeuze = {code: k.code, naam: k.waarde}; knop.disabled = false; },
+      () => { actieKeuze = null; knop.disabled = true; });
+    inp.focus();
+  } else if(sa === 'plannen'){
+    knop.disabled = true; el.innerHTML = `<input type="date" id="actie-datum" min="${isoD(new Date())}">`;
+    $('#actie-datum').addEventListener('input', e => { actieKeuze = e.target.value ? {datum: e.target.value} : null; knop.disabled = !actieKeuze; });
+  } else knop.disabled = false;
 }
 async function voerUit(actieIdx){
   const {x, wf} = huidig, tekst = $('#tekst').value.trim(), notitie = $('#notitie').checked;
   let a = actieIdx == null ? null : wf && wf.acties[actieIdx];
+  const sa = a ? soortActie(a) : null;
+  if(sa === 'collega' && !actieKeuze){ $('#d-fout').textContent = 'Kies eerst een collega.'; return; }
+  if(sa === 'plannen' && !actieKeuze){ $('#d-fout').textContent = 'Kies eerst een datum.'; return; }
   if(!a && !tekst){ $('#d-fout').textContent = 'Schrijf eerst een reactie.'; return; }
   if(a && a.afhandelen && !confirm(`Ticket ${x.nr} afhandelen?`)) return;
   // interne notitie: alleen plaatsen als we de zichtbaarheid zeker op intern kunnen zetten
@@ -1110,9 +1169,31 @@ async function voerUit(actieIdx){
   if(zv && tekst) velden[zv.code] = zv.soort === 'lijst' ? (notitie ? zv.intern : zv.extern) : (zv.omgekeerd ? notitie : !notitie);
   document.querySelectorAll('#detail button, #detail select').forEach(b => b.disabled = true); $('#d-fout').textContent = '';
   try{
-    await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body:JSON.stringify({KnWorkflow:{Element:{Fields:velden}}})});
+    let waarschuwing = '';
+    // 1. eerst het dossieritem zelf bijwerken (behandelaar / datum), dan de workflowstap
+    if(sa === 'mij' || sa === 'collega' || sa === 'plannen'){
+      const m = await laadSubjMeta();
+      if(sa === 'plannen'){ if(!m.gepland) throw new Error('Het veld voor de geplande datum is niet gevonden in KnSubject.'); await zetVelden(x, {[veldCode(m.gepland)]: actieKeuze.datum}); }
+      else { if(!m.verantw) throw new Error('Het veld Verantwoordelijke is niet gevonden in KnSubject.');
+        let code = actieKeuze && actieKeuze.code;
+        if(sa === 'mij'){ const w = waardenVan(m.verantw.values); code = (w.find(v => benIk(v.naam)) || {}).code || (profiel.alias || [])[0]; }
+        if(!code) throw new Error('Je gebruikerscode is onbekend; toewijzen lukt niet.');
+        await zetVelden(x, {[veldCode(m.verantw)]: code}); }
+    }
+    try{ await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body:JSON.stringify({KnWorkflow:{Element:{Fields:velden}}})}); }
+    catch(e){
+      if(sa === 'mij' || sa === 'collega' || sa === 'plannen'){ waarschuwing = ` (workflowstap niet uitgevoerd: ${e.message})`; }
+      else if(sa === 'status'){   // workflow weigert: status direct op het dossieritem zetten
+        const m = await laadSubjMeta(), woorden = norm(a.naam).split(' ').filter(w => w.length > 3);
+        const w = m.status && waardenVan(m.status.values).find(v => woorden.every(d => norm(v.naam).includes(d)));
+        if(!w) throw e;
+        await zetVelden(x, {[veldCode(m.status)]: w.code}); if(tekst) await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body:JSON.stringify({KnWorkflow:{Element:{Fields:{SbId:velden.SbId, Tx:tekst}}}})}).catch(() => {});
+      } else throw e;
+    }
     const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect:$('#detail').getBoundingClientRect()};
-    $('#detail').close(); toast(actieIdx != null && a ? `${a.naam}: verwerkt in AFAS` : notitie ? 'Interne notitie geplaatst' : 'Reactie geplaatst');
+    $('#detail').close();
+    const wat = sa === 'collega' ? `Toegewezen aan ${actieKeuze.naam}` : sa === 'mij' ? 'Aan jou toegewezen' : sa === 'plannen' ? `Ingepland op ${fmtDatum(new Date(actieKeuze.datum))}` : a ? `${a.naam}: verwerkt in AFAS` : notitie ? 'Interne notitie geplaatst' : 'Reactie geplaatst';
+    toast(wat + waarschuwing, !!waarschuwing);
     await laadGegevens(); teken();
     toonVerplaatsing(voor);
   }catch(e){ $('#d-fout').textContent = e.message; document.querySelectorAll('#detail button, #detail select').forEach(b => b.disabled = false); }
@@ -1562,10 +1643,15 @@ function demoAfas(pad, opties){
     const afdC = ((b.Objects || []).find(o => o.KnS38) || {KnS38:{Element:{Fields:{}}}}).KnS38.Element.Fields.UAfd;
     D.sla.push({Nummer:nr, Onderwerp:b.Fields.Ds, Status:'Nieuw', Omschrijving_4:'', Omschrijving_2:'Robert van der Veen', Omschrijving:'Aanvraag ICT', Type_ticket_ICT:'Incident', Focusgebied_ICT:'', AFAS_Afdeling:'', Omschrijving_3:{1:'ICT',2:'Radiologie',3:'AFAS'}[afdC] || 'ICT', Focusgebied_EMMA:'', Instuurdatum:new Date().toISOString().slice(0, 19), Gepland:null, Laatste_reactie:null, Gebruiker_laatste_reactie:'', Laatste_wijziging_externe_status:null, Workflow_afgerond:false, Kritieke_storing:false});
     return new Promise(r => setTimeout(() => r({results:{KnSubject:{SbId: 400000 + nr}}}), 400)); }
-  if(pad === '/metainfo/update/KnSubject') return {name:'KnSubject', fields:[{fieldId:'StId', label:'Type dossier', dataType:'int', mandatory:true, values:[{id:'26', description:'Aanvraag ICT'},{id:'31', description:'Change'}]},{fieldId:'Ds', label:'Onderwerp', mandatory:true},{fieldId:'SbTx', label:'Toelichting'}],
-    objects:[{name:'KnSubjectLink', fields:[{fieldId:'SfTp', label:'Type bestemming'}]},{name:'KnS38', fields:[{fieldId:'UAfd', label:'Afdeling', dataType:'string', values:[{id:'1', description:'ICT'},{id:'2', description:'Radiologie'},{id:'3', description:'AFAS'}]},{fieldId:'UTyp', label:'Type ticket ICT', values:[{id:'I', description:'Incident'},{id:'V', description:'Vraag'},{id:'C', description:'Change'}]}]},{name:'KnS26', fields:[{fieldId:'UPrj', label:'Begindatum project', mandatory:true}]}]};
+  if(pad === '/metainfo/update/KnSubject') return {name:'KnSubject', fields:[{fieldId:'StId', label:'Type dossier', dataType:'int', mandatory:true, values:[{id:'26', description:'Aanvraag ICT'},{id:'31', description:'Change'}]},{fieldId:'Ds', label:'Onderwerp', mandatory:true},{fieldId:'SbTx', label:'Toelichting'},{fieldId:'USt', label:'Status', values:[{id:'Nieuw', description:'Nieuw'},{id:'In behandeling ICT', description:'In behandeling ICT'},{id:'Wachten op leverancier', description:'Wachten op leverancier'},{id:'Interne release', description:'Interne release'},{id:'Externe release', description:'Externe release'}]}],
+    objects:[{name:'KnSubjectLink', fields:[{fieldId:'SfTp', label:'Type bestemming'}]},{name:'KnS38', fields:[{fieldId:'UAfd', label:'Afdeling', dataType:'string', values:[{id:'1', description:'ICT'},{id:'2', description:'Radiologie'},{id:'3', description:'AFAS'}]},{fieldId:'UVer', label:'Verantwoordelijke', values:[{id:'88406.rvanderveen', description:'Robert van der Veen'},{id:'88406.kgroen', description:'Kelly Groen'},{id:'88406.gbrons', description:'Glenn Brons'},{id:'88406.gleer', description:'Guillonard Leer'},{id:'88406.anders', description:'Iemand Buiten ICT'}]},{fieldId:'UGep', label:'Werkzaamheden gepland', dataType:'date'},{fieldId:'UTyp', label:'Type ticket ICT', values:[{id:'I', description:'Incident'},{id:'V', description:'Vraag'},{id:'C', description:'Change'}]}]},{name:'KnS26', fields:[{fieldId:'UPrj', label:'Begindatum project', mandatory:true}]}]};
+  if(opties.method === 'PUT' && pad === '/connectors/KnSubject'){ const el = JSON.parse(opties.body).KnSubject.Element, D = window._demo, r = D.sla.find(x => 400000 + x.Nummer === +el['@SbId']);
+    const alle = {...el.Fields}; (el.Objects || []).forEach(o => Object.values(o).forEach(v => Object.assign(alle, v.Element.Fields)));
+    if(r && alle.UVer) r.Omschrijving_4 = {'88406.rvanderveen':'Robert van der Veen','88406.kgroen':'Kelly Groen','88406.gbrons':'Glenn Brons','88406.gleer':'Guillonard Leer'}[alle.UVer] || alle.UVer;
+    if(r && alle.UGep) r.Gepland = alle.UGep + 'T00:00:00'; if(r && alle.USt) r.Status = alle.USt;
+    window._put = opties.body; return new Promise(res => setTimeout(() => res({}), 300)); }
   if(opties.method === 'POST'){ try{ const f = JSON.parse(opties.body).KnWorkflow.Element.Fields, D = window._demo, r = D && D.sla.find(x => 400000 + x.Nummer === f.SbId);
-      if(r && f.AcNm === 'd1') r.Omschrijving_3 = 'Radiologie'; if(r && f.AcNm === 'd2') r.Omschrijving_4 = 'Kelly Groen'; if(r && f.AcNm === 'd3') r.Workflow_afgerond = true; }catch(e){}
+      if(r && f.AcNm === 'd5') r.Status = 'Wachten op leverancier'; if(r && f.AcNm === 'd0') r.Workflow_afgerond = true; if(r && f.AcNm === 'd8') r.Status = 'Interne release'; }catch(e){}
     return new Promise(r => setTimeout(() => r({}), 300)); }
   if(pad.startsWith('/metainfo/get/')) return {fields:[{id:'Dossieritem', label:'Dossieritem'},{id:'Reactie', label:'Reactie'},{id:'Instuurdatum', label:'Instuurdatum'},{id:'Instuurder', label:'Instuurder'}]};
   if(pad.includes(INST.connReacties)) return {rows:[{Dossieritem:1, Reactie:'Mijn headset geeft geen geluid in Teams, wel in andere apps.', Instuurdatum:'2026-09-29T09:12:00', Instuurder:'Anouk de Vries'},
