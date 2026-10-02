@@ -719,7 +719,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v3.99 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.00 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -778,7 +778,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.99';
+const VERSIE = 'v4.00';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1200,6 +1200,15 @@ function ontbreekt(x){
 }
 // nieuw = nog niet compleet; oudere onvolledige meldingen alleen als er ook nog niemand op staat (anders loopt de lijst vol met oude meldingen)
 const isNieuw = x => !x.afgesloten && !x.inuit && ontbreekt(x).length > 0 && (!x.verantw || (x.aangemaakt && Date.now() - x.aangemaakt < (INST.nieuwDagen || 30) * DAG));
+// sorteren op Signaal: eerst de ernst, dan hoe lang het al speelt (werkdagen stil of over de planning), dan het soort signaal
+function sigGewicht(x){
+  const e = ernst(x); if(!e) return 0;
+  const sg = x._sg || [], nu = Date.now(); let dagen = 0;
+  if(sg.some(s => ['opvolging', 'melder', 'leverancier'].includes(s.code))) dagen = Math.max(dagen, werkMs(stilSinds(x), nu) / werkdagMs());
+  if(sg.some(s => s.code === 'planning') && x.gepland) dagen = Math.max(dagen, werkMs(x.gepland, nu) / werkdagMs());
+  if(sg.some(s => s.code === 'nieuw') && x.aangemaakt) dagen = Math.max(dagen, werkMs(x.aangemaakt, nu) / werkdagMs());
+  return e * 1e6 + Math.min(99999, Math.round(dagen * 10)) + (sg.some(s => s.code === 'kritiek') ? 5e5 : 0);
+}
 const ernst = x => Math.max(0, ...(x._sg || []).map(s => s.ernst));
 const isChange = x => /change/i.test(x.type) || /change/i.test(x.soort);   // Changes en Requests for Change vallen buiten Aandacht nodig
 const actie = x => ernst(x) >= 2 && !isChange(x);
@@ -1228,7 +1237,7 @@ const KOLOMMEN = [
   {k:'pstart', bw:'96px', t:'Startdatum', ch:true, w:x => +x.projStart || 0, html:x => x.projStart ? kortDatum(x.projStart) : '–', cls:'zacht k-pstart'},
   {k:'peind', bw:'96px', t:'Deadline', ch:true, w:x => +x.projEind || 0, html:x => x.projEind ? `<span${!x.afgesloten && +x.projEind < +beginDag(new Date()) ? ' style="color:var(--rood);font-weight:600"' : ''}>${kortDatum(x.projEind)}</span>` : '–', cls:'k-peind'},
   {k:'gepland', bw:'86px', t:'Gepland', w:x => +x.gepland || 0, html:x => x.gepland ? kortDatum(x.gepland) : '', cls:'zacht k-gepland'},
-  {k:'sig', bw:'196px', t:'Signaal', w:x => ernst(x), html:x => (x._sg || []).filter(s => s.ernst >= 1).slice(0, 2).map(chip).join(' '), cls:'sig'}
+  {k:'sig', bw:'196px', t:'Signaal', w:x => sigGewicht(x), html:x => (x._sg || []).filter(s => s.ernst >= 1).slice(0, 2).map(chip).join(' '), cls:'sig'}
 ];
 KOLOMMEN.forEach(c => { if(!c.cls.split(' ').includes('k-' + c.k)) c.cls = (c.cls + ' k-' + c.k).trim(); });
 /* kolommen kiezen: per gebruiker te verbergen (Nr. en Onderwerp blijven altijd staan) */
