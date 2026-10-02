@@ -266,6 +266,12 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .onderbalk .actiebalk{flex:1;border:0;padding:0;margin:0}
 #k-opslaan{margin-left:auto;padding:8px 26px 8px 22px}
 select.afdkeuze.gewijzigd{background-color:var(--lichtblauw-2);border-bottom-style:solid;padding-left:6px}
+dialog.vraagdlg{width:min(440px, calc(100vw - 32px))}
+dialog.vraagdlg .dlg-in{gap:10px;padding:24px 26px 20px}
+dialog.vraagdlg h2{font-size:18px;color:var(--blauw)}
+dialog.vraagdlg p{margin:0;color:var(--grijs);line-height:1.5}
+.vraag-knoppen{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+.knop.vol.gevaar{background:var(--rood);border-color:var(--rood);color:#fff}
 .afdbevestig{display:inline-flex;align-items:center;gap:8px;margin-left:10px}
 .knop.klein{padding:3px 12px 3px 10px;font-size:12.5px}
 #sleepvraag textarea{min-height:90px}
@@ -410,12 +416,13 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.49 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.50 · 02-10-2026</span></div>
   </div>
 </div>
 
 <dialog id="detail"><div class="dlg-in" id="detail-in"></div></dialog>
 <dialog id="sleepvraag" class="smal"></dialog>
+<dialog id="vraag" class="vraagdlg"></dialog>
 <dialog id="nieuw" class="smal"><div class="dlg-in" id="nieuw-in"></div></dialog>
 <div id="toast" role="status"></div>
 <div id="uitleg" role="tooltip"></div>
@@ -461,7 +468,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.49';
+const VERSIE = 'v3.50';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1280,7 +1287,6 @@ async function voerUit(actieIdx, nieuweAfd = ''){
   if(sa === 'collega' && !actieKeuze){ $('#d-fout').textContent = 'Kies eerst een collega.'; return; }
   if(sa === 'plannen' && !actieKeuze){ $('#d-fout').textContent = 'Kies eerst een datum.'; return; }
   if(!a && !tekst){ $('#d-fout').textContent = 'Schrijf eerst een reactie.'; return; }
-  if(a && a.afhandelen && !confirm(`Ticket ${x.nr} afhandelen?`)) return;
   // interne notitie: alleen plaatsen als we de zichtbaarheid zeker op intern kunnen zetten
   if(notitie && tekst && !zichtVeld){ $('#d-fout').textContent = `Interne notitie kan niet worden geplaatst: de pagina weet niet hoe AFAS "intern" wil hebben (${zichtDiag}). Stuur deze melding door.`; return; }
   const velden = {SbId: isNaN(+x.sbid) ? x.sbid : +x.sbid, ...(a ? {WfNm:a.wf, TkNm:a.tk, AcNm:a.ac} : {}), ...(tekst ? {Tx:tekst} : {})};
@@ -1580,6 +1586,8 @@ async function opslaanAlles(knopActie = null){
   const actieIdx = knopActie != null ? knopActie : kies && kies.value !== '' ? +kies.value : null;
   const ss = $('#d-status'), nieuweStatus = ss && ss.value && ss.value !== ss.dataset.oud ? ss.value : '', statusNaam = nieuweStatus ? ss.options[ss.selectedIndex].textContent : '';
   if(!nieuweAfd && !nieuweStatus && actieIdx == null && !tekst){ $('#d-fout').textContent = 'Er is niets gewijzigd: pas afdeling of status aan, kies een actie of schrijf een reactie.'; return; }
+  const act = actieIdx != null && huidig.wf ? huidig.wf.acties[actieIdx] : null;
+  if(act && act.afhandelen && !(await vraag(`Ticket ${x.nr} afhandelen?`, 'Het ticket wordt afgesloten' + (tekst ? ' en je reactie gaat mee naar de melder.' : '.'), 'Afhandelen', 'Annuleren'))) return;
   const knop = $('#k-opslaan'); knop.disabled = true; $('#d-fout').textContent = '';
   try{
     const voorAlles = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect:$('#detail').getBoundingClientRect()};
@@ -1813,9 +1821,21 @@ document.addEventListener('input', e => {
 });
 $('#detail').addEventListener('close', () => huidig = null);
 /* vensters sluiten: klik naast het venster, Esc, × of Annuleren; met niet-opgeslagen wijzigingen eerst vragen */
-function sluitDialoog(d){
+/* eigen bevestigingsvenster midden in beeld (i.p.v. de browsermelding met het webadres erin) */
+function vraag(titel, tekst, ja = 'OK', nee = 'Annuleren', gevaar = false){
+  return new Promise(klaar => {
+    const d = $('#vraag');
+    d.innerHTML = `<div class="dlg-in"><h2>${esc(titel)}</h2>${tekst ? `<p>${esc(tekst)}</p>` : ''}
+      <div class="vraag-knoppen"><button type="button" class="knop" data-v="nee">${esc(nee)}</button><button type="button" class="knop vol ${gevaar ? 'gevaar' : ''}" data-v="ja">${esc(ja)}</button></div></div>`;
+    const af = w => { d.onclick = null; d.oncancel = null; d.close(); klaar(w); };
+    d.onclick = e => { const b = e.target.closest('[data-v]'); if(b) af(b.dataset.v === 'ja'); else if(e.target === d) af(false); };
+    d.oncancel = e => { e.preventDefault(); af(false); };
+    d.showModal(); d.querySelector('[data-v="ja"]').focus();
+  });
+}
+async function sluitDialoog(d){
   if(!d.open) return;
-  if(d.dataset.gewijzigd === '1' && !confirm('Je hebt iets ingevuld of gewijzigd dat nog niet is opgeslagen. Weet je zeker dat je het venster wilt sluiten?')) return;
+  if(d.dataset.gewijzigd === '1' && !(await vraag('Wijzigingen niet opgeslagen', 'Je hebt iets ingevuld of gewijzigd dat nog niet is opgeslagen. Weet je zeker dat je het venster wilt sluiten?', 'Sluiten zonder opslaan', 'Terug', true))) return;
   comboSluit(); d.close(); if(d.id === 'detail') teken();
 }
 ['detail', 'nieuw'].forEach(id => { const d = $('#' + id);
