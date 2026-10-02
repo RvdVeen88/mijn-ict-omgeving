@@ -262,6 +262,7 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .tabel .chip.ongelezen{display:inline-flex}
 .chip[data-uitleg]{cursor:help}
 .tabel tr[draggable="true"]{cursor:grab}
+kbd{font:inherit;font-size:10.5px;font-weight:600;opacity:.7;margin-left:8px;border:1px solid currentColor;border-radius:4px;padding:0 4px}
 .aanmij{margin-left:10px;font-size:12.5px}
 input.datumkeuze{border:0;border-bottom:1.5px dashed var(--lichtblauw);background:transparent;font:inherit;font-weight:600;color:var(--blauw);padding:0;cursor:pointer}
 input.datumkeuze.gewijzigd{background:var(--lichtblauw-2);border-bottom-style:solid;padding:0 4px}
@@ -420,7 +421,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.54 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.55 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -472,7 +473,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.54';
+const VERSIE = 'v3.55';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1146,7 +1147,7 @@ function openDetail(nr){
         <span class="hint">Standaard is een reactie zichtbaar voor melder én ICT.</span></div>
     </div>
     <div class="onderbalk"><div class="actiebalk" id="actiebalk"><span class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Acties ophalen…</span></div>
-      <button type="button" class="knop vol" id="k-opslaan" title="Voert in één keer door: gewijzigde afdeling, gekozen actie en je reactie">Opslaan</button></div>
+      <button type="button" class="knop vol" id="k-opslaan" title="Voert alles in één keer door (Ctrl+Enter)">Opslaan <kbd>Ctrl+Enter</kbd></button></div>
     <p class="fout" id="d-fout"></p>`}`;
   $('#detail').dataset.gewijzigd = ''; $('#detail').showModal();
   (DEMO ? Promise.resolve() : zorgSbId(x)).then(() => toonReacties(x)).catch(e => { const el = $('#tijdlijn'); if(el) el.innerHTML = `<h3>Reacties</h3><p class="hint">Het interne nummer van dit ticket kon niet worden opgezocht: ${esc(e.message)}</p>`; });
@@ -1435,7 +1436,7 @@ async function nieuweMelding(){
     <label>Melder<input name="melder" id="n-melder" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Zoek een medewerker op naam of nummer"><input type="hidden" name="melderId"><span class="hint" id="n-melder-hint">Medewerkers ophalen…</span></label>
     <label>Behandelaar<input name="beh" id="n-beh" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Nog niet toewijzen (komt bij Nieuwe tickets)"><input type="hidden" name="behCode"><span class="hint" id="n-beh-hint">Laat leeg om het ticket bij Nieuwe tickets te zetten.</span></label>
     <div class="fout" id="n-fout">${m.stId ? '' : `Het type dossieritem "Aanvraag ICT" is niet gevonden in AFAS (gevonden: ${esc(m.typen.map(t => t.naam).join(', ') || 'geen')}). Zet nieuwStId in mijn-ict-config.js.`}</div>
-    <div style="display:flex;gap:10px;justify-content:flex-end"><button type="button" class="knop" data-sluitnieuw>Annuleren</button><button type="button" class="knop vol" id="n-maak" ${m.stId ? '' : 'disabled'}>Melding aanmaken</button></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end"><button type="button" class="knop" data-sluitnieuw>Annuleren</button><button type="button" class="knop vol" id="n-maak" title="Ctrl+Enter" ${m.stId ? '' : 'disabled'}>Melding aanmaken <kbd>Ctrl+Enter</kbd></button></div>
   </form>`;
   $('#n-form').ond.focus();
   koppelMelder(); koppelBehandelaar();
@@ -1837,6 +1838,15 @@ document.addEventListener('drop', e => {
   e.preventDefault(); const {x, rect} = sleep; doel.classList.remove('sleepdoel'); const naam = doel.dataset.weergave.slice(4);
   if(x.reactieDatum && Date.now() - x.reactieDatum < 15 * 60e3) zetAfdeling(x, naam, rect);
   else vraagReactie(x, naam, rect);
+});
+/* Ctrl+Enter (Cmd+Enter op Mac) = opslaan in het venster dat openstaat */
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Enter' || !(e.ctrlKey || e.metaKey)) return;
+  const vr = $('#vraag'), sv = $('#sleepvraag');
+  if(vr.open){ e.preventDefault(); vr.querySelector('[data-v="ja"]').click(); return; }
+  if(sv.open){ e.preventDefault(); const met = sv.querySelector('[data-sv="met"]'); (met && !met.disabled ? met : sv.querySelector('[data-sv="zonder"]')).click(); return; }
+  if($('#nieuw').open){ e.preventDefault(); const k = $('#n-maak'); if(k && !k.disabled) k.click(); return; }
+  if($('#detail').open){ e.preventDefault(); const k = $('#k-opslaan'); if(k && !k.disabled) k.click(); }
 });
 document.addEventListener('mouseover', e => {
   const c = e.target.closest('[data-uitleg]'), t = $('#uitleg');
