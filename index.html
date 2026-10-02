@@ -268,6 +268,11 @@ kbd{font:inherit;font-size:10.5px;font-weight:600;opacity:.7;margin-left:8px;bor
 .checklist .ok{color:var(--groen)} .checklist .mist{color:var(--oranje);font-weight:600}
 select.afdkeuze.mist{border-bottom:2px solid var(--oranje);color:var(--oranje)}
 textarea.mist{border-color:var(--oranje)}
+.mailregel{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 2px 42px;padding:6px 12px;border:1.5px dashed var(--lichtblauw);border-radius:0 12px 12px 0;font-size:12.5px;color:var(--blauw);background:var(--vlak)}
+.mailregel small{margin-left:auto;color:var(--grijs)}
+.mailicoon{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--blauw);color:#fff;font-size:11px;flex:none}
+.mailvooraf{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--blauw);background:var(--lichtblauw-2);border-radius:0 999px 999px 0;padding:4px 12px 4px 6px;margin-left:auto}
+.mailvooraf:not([hidden]) + #k-opslaan{margin-left:0}
 .aanmij{margin-left:10px;font-size:12.5px}
 input.datumkeuze{border:0;border-bottom:1.5px dashed var(--lichtblauw);background:transparent;font:inherit;font-weight:600;color:var(--blauw);padding:0;cursor:pointer}
 input.datumkeuze.gewijzigd{background:var(--lichtblauw-2);border-bottom-style:solid;padding:0 4px}
@@ -382,6 +387,39 @@ dialog#detail{width:min(1080px,calc(100vw - 32px))}
 .composer .onder .knop{margin-left:auto}
 .vink.notitie{background:var(--goud-licht);border-radius:0 999px 999px 0;padding:4px 12px 4px 8px;color:var(--bruin)}
 textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
+/* bijlagen */
+.bijlagen{background:var(--achtergrond);border-radius:0 18px 18px 0;padding:12px 18px;display:flex;flex-direction:column;gap:8px;border:1.5px dashed transparent;transition:border-color .15s,background .15s}
+.bijlagen.erover,.composer.erover{border-color:var(--blauw-2);background:var(--lichtblauw-2)}
+.composer{border:1.5px dashed transparent;border-radius:0 14px 14px 0;transition:border-color .15s,background .15s}
+.bijlkop{display:flex;align-items:center;gap:12px}
+.bijlkop h3{font-size:13px;color:var(--blauw)}
+.bijlkop .hint{margin-left:auto;font-size:12px}
+.bijlrij{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.bijlchip{display:inline-flex;align-items:center;gap:6px;max-width:280px;border:1.5px solid var(--lijn);background:var(--vlak);color:var(--inkt);border-radius:0 999px 999px 0;padding:4px 12px 4px 8px;font-size:12.5px;cursor:pointer}
+.bijlchip:hover{border-color:var(--blauw-2);color:var(--blauw)}
+.bijlchip b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bijlchip small{color:var(--grijs);white-space:nowrap}
+.bijlchip.klaar{border-style:dashed;cursor:default;background:var(--lichtblauw-2)}
+.bijlchip .weg{border:0;background:none;color:var(--grijs);font-size:15px;line-height:1;cursor:pointer;padding:0 0 0 2px}
+.bijlchip .weg:hover{color:var(--rood,#c0392b)}
+.reactiebijl{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.klaarzet:empty{display:none}
+.klaarzet{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.klaarzet::before{content:'Wordt toegevoegd bij Opslaan:';font-size:12px;color:var(--grijs)}
+#klaar-reactie::before{content:'Gaat mee met de reactie:'}
+.paperclip{display:inline-flex;align-items:center;gap:4px}
+.paperclip svg{width:15px;height:15px}
+.nform input[type=file]{font-size:13px}
+.bekijkdlg{width:min(1000px,94vw);height:min(86vh,900px);padding:0;border:0;border-radius:0 22px 22px 0;background:var(--vlak);color:var(--inkt);box-shadow:0 24px 60px rgba(3,31,77,.35)}
+.bekijkdlg[open]{display:flex;flex-direction:column}
+.bekijkdlg::backdrop{background:rgba(3,31,77,.45)}
+.bekijkkop{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--lijn)}
+.bekijkkop a{text-decoration:none}
+.bekijkkop b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bekijkin{flex:1;min-height:0;overflow:auto;display:grid;place-items:center;background:var(--achtergrond)}
+.bekijkin img{max-width:100%;max-height:100%;object-fit:contain}
+.bekijkin iframe{width:100%;height:100%;border:0;background:#fff}
+.bekijkin pre{align-self:start;justify-self:stretch;margin:0;padding:16px;white-space:pre-wrap;font-size:12.5px;overflow-wrap:anywhere}
 
 @media (max-width:700px){.rail{display:none}.bovenbalk,main,.voet{padding-left:16px;padding-right:16px}.rij{padding-right:16px}.chips{display:none}}
 </style>
@@ -426,13 +464,14 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.59 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.63 · 02-10-2026</span></div>
   </div>
 </div>
 
 <dialog id="detail"><div class="dlg-in" id="detail-in"></div></dialog>
 <dialog id="sleepvraag" class="smal"></dialog>
 <dialog id="vraag" class="vraagdlg"></dialog>
+<dialog id="bekijk" class="bekijkdlg"></dialog>
 <dialog id="nieuw" class="smal"><div class="dlg-in" id="nieuw-in"></div></dialog>
 <div id="toast" role="status"></div>
 <div id="uitleg" role="tooltip"></div>
@@ -472,6 +511,10 @@ const INST = Object.assign({
   soortVeld: 'Omschrijving', slaSoorten: 'Aanvraag ICT', afdVerbergen: 'Zorgadministratie',
   ticketUrl: 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}',   // leeg = geen link
   connReacties: 'Helpdesk_Reacties',
+  connToelichting: 'Helpdesk_Toelichting',
+  connBijlagen: 'Profit_Subject_Attachments',                 // standaard GetConnector: bijlagen bij het dossieritem
+  connReactieBijlagen: 'Profit_Subject_Reaction_Attachments', // standaard GetConnector: bijlagen bij reacties
+  maxBijlageMB: 75,                                           // grens van AFAS per bestand   // GetConnector zonder groepering met Dossieritem + Toelichting (memovelden mogen niet in een gegroepeerde connector)
   nieuwStId: '26',
   nieuwDagen: 30,                        // een ticket dat nog niet compleet is (afdeling, locatie, reactie) telt zo lang als nieuw
   vrijeVelden: 'KnS38',                  // vrije-veldentabel van type Aanvraag ICT (AFAS weigert velden uit andere KnS-tabellen)                       // type dossieritem Aanvraag ICT
@@ -479,7 +522,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.59';
+const VERSIE = 'v3.63';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -681,12 +724,14 @@ async function haalMijnTaken(){
 }
 /* interne nummers (Dossieritem) alleen ophalen voor de tickets waar we ze nodig hebben */
 const sbCache = new Map();
+const toelCache = new Map();   // toelichting per ticketnummer, komt mee met het opzoeken van het interne nummer in Helpdesk_PowerBI
 async function sbIdsVoor(veld, waarden){
   const uit = new Map(); const lijstW = [...new Set(waarden.map(String))];
   for(let i = 0; i < lijstW.length; i += 40){
     const deel = lijstW.slice(i, i + 40);
     try{ const rows = (await afas(`/connectors/${INST.connTickets}?skip=0&take=200&filterfieldids=${veld}&filtervalues=${encodeURIComponent(deel.join(';'))}&operatortypes=1`)).rows || [];
-      rows.forEach(r => { uit.set(String(r.Nummer), r.Dossieritem); sbCache.set(String(r.Nummer), r.Dossieritem); }); }catch(e){}
+      rows.forEach(r => { uit.set(String(r.Nummer), r.Dossieritem); sbCache.set(String(r.Nummer), r.Dossieritem);
+        const tk = Object.keys(r).find(k => /^toelichting/i.test(k)); if(tk) toelCache.set(String(r.Nummer), kaal(r[tk])); }); }catch(e){}
   }
   return uit;
 }
@@ -1101,12 +1146,17 @@ async function workflow(x){
 }
 /* reacties uit AFAS (GetConnector Helpdesk_Reacties); kolommen zoeken op hun label */
 let reactieKol = null;
+const MAILLOG = 'mict-mails';
+function logMail(x, aan, wat, actie){ const l = opslag.get(MAILLOG) || {}, k = String(x.nr);
+  l[k] = [{t: Date.now(), aan, wat, actie, door: profiel.naam}, ...(l[k] || [])].slice(0, 30);
+  const sleutels = Object.keys(l); if(sleutels.length > 400) sleutels.sort((a, b) => l[a][0].t - l[b][0].t).slice(0, 50).forEach(s => delete l[s]);
+  opslag.set(MAILLOG, l); }
 const NOTITIES = 'mict-interne-notities', notitieSleutel = (sbid, t) => String(sbid) + '|' + norm(t).slice(0, 80);
 // gebruikerscode (88406.rvanderveen) als naam tonen waar we die kennen
 const wieNaam = w => { if(!w || !/^\d+\.\S+$/.test(w)) return w; if(profiel && (profiel.alias || []).some(a => norm(a) === norm(w))) return profiel.naam;
   for(const [naam, code] of gebruikerCode) if(code && norm(code) === norm(w)) return items.map(x => x.verantw).find(v => norm(v) === naam) || naam.replace(/\b\w/g, c => c.toUpperCase());
   return w; };
-const RE_KOL = {sbid:/^dossieritem$/, tekst:/^(reactie|tekst reactie|reactietekst|tekst)$/, datum:/^(instuurdatum|datum reactie|datum|aangemaakt op|reactiedatum|tijdstip)/, wie:/^(instuurder|naam instuurder|gebruiker|aangemaakt door|medewerker|gebruiker reactie|naam)/, zicht:/zichtbaar|zichtbaarheid|intern|extern|vertrouwelijk/};
+const RE_KOL = {sbid:/^dossieritem$/, tekst:/^(reactie|tekst reactie|reactietekst|tekst)$/, datum:/^(instuurdatum|datum reactie|datum|aangemaakt op|reactiedatum|tijdstip)/, wie:/^(instuurder|naam instuurder|gebruiker|aangemaakt door|medewerker|gebruiker reactie|naam)/, zicht:/zichtbaar|zichtbaarheid|intern|extern|vertrouwelijk/, rid:/^(reactie ?-?id|id reactie|reactienummer|nummer reactie|volgnummer( reactie)?|reaction.?id|reactie ?code)$/};
 const kaal = s => { const d = document.createElement('div'); d.innerHTML = String(s ?? '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>/gi, '\n'); return (d.textContent || '').replace(/\n{3,}/g, '\n\n').trim(); };
 let reactieDiag = '';
 async function haalReacties(x){
@@ -1128,7 +1178,7 @@ async function haalReacties(x){
     if(/alleen intern|intern|vertrouwelijk/.test(lab) && !/extern|melder/.test(lab)) return ja(v);   // ja/nee-veld 'Alleen intern'
     if(/extern|melder|zichtbaar/.test(lab) && /^(false|0|nee|n)$/i.test(v)) return true;          // ja/nee-veld 'Zichtbaar voor melder' = nee
     return eigen; };
-  return (d.rows || []).map(r => { const tekst = kaal(r[k.tekst]); return {t: datum(r[k.datum]), tekst, wie: wieNaam(String(r[k.wie] ?? '').trim()), intern: isIntern(r, tekst)}; })
+  return (d.rows || []).map(r => { const tekst = kaal(r[k.tekst]); return {t: datum(r[k.datum]), tekst, wie: wieNaam(String(r[k.wie] ?? '').trim()), intern: isIntern(r, tekst), rid: k.rid ? String(r[k.rid] ?? '') : ''}; })
     .filter(r => r.tekst).sort((a, b) => (a.t || 0) - (b.t || 0));
 }
 const initialen = n => String(n || '?').split(/\s+/).filter(w => w && w[0] === w[0].toUpperCase()).map(w => w[0]).slice(0, 2).join('') || '?';
@@ -1136,10 +1186,13 @@ async function toonReacties(x){
   const el = $('#tijdlijn'); if(!el) return;
   try{
     const l = await haalReacties(x); if(!huidig || huidig.x !== x) return;
-    el.innerHTML = `<h3>Reacties (${l.length}) <small class="hint">nieuwste bovenaan</small></h3>` + (l.length ? [...l].reverse().map(r => `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''} ${r.intern ? 'intern' : ''}"><i>${esc(initialen(r.wie))}</i>
+    const mails = ((opslag.get(MAILLOG) || {})[String(x.nr)] || []).map(m => ({...m, t: new Date(m.t), mail: true}));
+    const alles = [...l, ...mails].sort((a, b) => (a.t || 0) - (b.t || 0));
+    el.innerHTML = `<h3>Reacties (${l.length})${mails.length ? ` · ✉ ${mails.length} mail${mails.length === 1 ? '' : 's'}` : ''} <small class="hint">nieuwste bovenaan</small></h3>` + (alles.length ? [...alles].reverse().map(r => r.mail ? `<div class="mailregel" title="Verstuurd door AFAS (noreply@dcklinieken.nl) via de actie '${esc(r.actie)}', uitgevoerd door ${esc(r.door || '')} vanuit Mijn ICT-Omgeving"><span class="mailicoon">✉</span><span>Mail ${/^volgens/.test(r.aan) ? esc(r.aan) : `naar <b>${esc(r.aan)}</b>`} · ${esc(r.wat)}</span><small>${fmtDatum(r.t)} ${fmtTijd(r.t)} · actie ${esc(r.actie)}</small></div>` : `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''} ${r.intern ? 'intern' : ''}"${r.rid ? ` data-rid="${esc(r.rid)}"` : ''}><i>${esc(initialen(r.wie))}</i>
       <div class="wolk"><div class="kopje"><b>${esc(r.wie || 'Onbekend')}</b><span>${r.t ? fmtDatum(r.t) + ' ' + fmtTijd(r.t) : ''}</span>${r.intern ? '<span class="internlabel">Intern</span>' : ''}</div><div class="tekst">${esc(r.tekst)}</div></div></div>`).join('') : `<p class="hint">Nog geen reacties.</p>${DEMO ? '' : `<p class="hint" style="font-size:11.5px;opacity:.7">${esc(reactieDiag)}</p>`}`);
     if(!DEMO && reactieKol && !reactieKol.zicht) el.insertAdjacentHTML('beforeend', `<p class="hint" style="font-size:11.5px">Of een reactie intern is, staat niet in ${esc(INST.connReacties)}; alleen jouw eigen interne notities zijn herkend. Laat het veld "Reactie zichtbaar" aan die GetConnector toevoegen.</p>`);
     el.scrollTop = 0;   // nieuwste reactie bovenaan, ouder = naar beneden scrollen
+    el.dataset.klaar = '1'; verdeelBijlagen(x);
   }catch(e){ el.innerHTML = `<h3>Reacties</h3><p class="hint">Reacties ophalen lukte niet: ${esc(e.message)} Laat GetConnector ${esc(INST.connReacties)} koppelen aan de app connector van Mijn ICT-Omgeving.</p>`; }
 }
 let huidig = null;
@@ -1148,6 +1201,17 @@ const stapVan = x => x.afgesloten ? 2 : (x.emmer === 'nieuw' || (!x.verantw && !
 const isReactieActie = a => /reactie plaatsen|^reageren/i.test(a.naam), isNotitieActie = a => /interne notitie/i.test(a.naam);
 const isOppakActie = a => !a.afhandelen && /toewijzen aan mij|in behandeling|oppakken|behandel/i.test(a.naam);
 // wat een actie in deze pagina doet: behandelaar zetten, datum plannen of (via de workflow) de status wijzigen
+/* statussen zoals in de workflow van Aanvraag ICT: welke actie leidt tot welke status */
+const STATUS_NA = [[/^afhandelen$/i, 'Afgehandeld'], [/vraag aan melder/i, 'In afwachting melder'], [/wachten op leverancier/i, 'In afwachting leverancier'], [/inplannen|plannen/i, 'Werkzaamheden gepland'],
+  [/accorderen rfc|ter akkoord/i, 'In afwachting akkoord'], [/interne release/i, 'In interne release'], [/externe release/i, 'In externe release'], [/ticket sluiten|^akkoord$/i, 'Gesloten'],
+  [/informatie toevoegen|heropenen|toewijzen aan mij|reactie plaatsen/i, 'In behandeling ICT']];
+const STATUS_VOLGORDE = ['In behandeling ICT', 'In afwachting melder', 'In afwachting leverancier', 'Werkzaamheden gepland', 'In afwachting akkoord', 'In interne release', 'In externe release', 'Afgehandeld', 'Gesloten'];
+const statusNa = a => (STATUS_NA.find(([re]) => re.test(a.naam)) || [, a.afhandelen ? 'Afgehandeld' : ''])[1];
+// per status de beste actie uit de huidige taak (bij 'In behandeling' liefst een actie zonder mail aan de melder)
+function statusKeuzes(wf, x){
+  const voorkeur = a => /informatie toevoegen/i.test(a.naam) ? 0 : /heropenen/i.test(a.naam) ? 1 : /toewijzen aan mij/i.test(a.naam) ? (!x.verantw || benIk(x.verantw) ? 2 : 9) : /reactie plaatsen/i.test(a.naam) ? 3 : 5;
+  return STATUS_VOLGORDE.map(st => ({st, a: wf.acties.filter(a => statusNa(a) === st && voorkeur(a) < 9).sort((p, q) => voorkeur(p) - voorkeur(q))[0] || null}));
+}
 const soortActie = a => /toewijzen aan mij/i.test(a.naam) ? 'mij' : /toewijzen aan collega|doorzetten naar collega|collega/i.test(a.naam) ? 'collega' : /inplannen|plannen/i.test(a.naam) ? 'plannen' : 'status';
 function openDetail(nr){
   const x = items.find(y => String(y.nr) === String(nr)); if(!x) return; huidig = {x, wf:null};
@@ -1158,7 +1222,7 @@ function openDetail(nr){
   $('#detail-in').innerHTML = `
     <div class="dlg-kop"><div><small>Ticket ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.afdeling ? ' · ' + esc(x.afdeling) : ''}</small><h2>${esc(x.onderwerp)}</h2></div><button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
     <div class="stappen">${STAPPEN.map((t, i) => `${i ? `<span class="lijntje ${i <= st ? 'klaar' : ''}"></span>` : ''}<span class="stap ${i < st ? 'klaar' : i === st ? 'nu' : ''}"><i>${i < st ? '✓' : ''}</i>${t}</span>`).join('')}
-      ${x._sg.length ? `<span class="chips" style="margin-left:auto">${x._sg.map(chip).join('')}</span>` : ''}</div>
+      ${(() => { const sg = x._sg.filter(s => s.code !== 'onvolledig'); return sg.length ? `<span class="chips" style="margin-left:auto">${sg.map(chip).join('')}</span>` : ''; })()}</div>
     ${!x.afgesloten && isNieuw(x) ? `<div class="checklist" id="d-check">${checklist(x)}</div>` : ''}
     <div class="kaarten">
       <div class="kaart2"><h3>Melding</h3>${r('Melder', x.melder, {altijd:true})}${r('Type ticket', x.type)}${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}<span>Locatie</span><b>${x.afgesloten ? esc(x.locatie || '–') : `<select id="d-loc" class="afdkeuze" title="Klik om de locatie te wijzigen"><option value="">${esc(x.locatie || '– kies locatie –')}</option></select>`}</b>
@@ -1166,19 +1230,25 @@ function openDetail(nr){
       <div class="kaart2"><h3>Behandeling</h3><span>Afdeling</span><b>${x.afgesloten ? esc(x.afdeling || '–') : `<select id="d-afd" class="afdkeuze" title="Klik om de afdeling te wijzigen"><option>${esc(x.afdeling || '– kies afdeling –')}</option></select>`}</b><span>Verantwoordelijke</span><b>${x.afgesloten ? esc(x.verantw || '–') : `<select id="d-verantw" class="afdkeuze" title="Klik om de verantwoordelijke te wijzigen"><option value="">${esc(x.verantw || '– niemand –')}</option></select>${benIk(x.verantw) ? '' : '<button type="button" class="linkknop aanmij" id="d-aanmij">Aan mij toewijzen</button>'}`}</b><span>Status</span><b>${x.afgesloten ? esc(toonStatus(x.status) || '–') : `<select id="d-status" class="afdkeuze" title="Klik om de status te wijzigen"><option value="">${esc(toonStatus(x.status) || '– kies status –')}</option></select>`}</b>
         ${x.afgesloten ? r('Gepland', x.gepland ? fmtDatum(x.gepland) : '') : `<span>Gepland</span><b><input type="date" id="d-gepland" class="datumkeuze" value="${x.gepland ? isoD(x.gepland) : ''}" data-oud="${x.gepland ? isoD(x.gepland) : ''}" title="Datum waarop het werk gepland staat"></b>`}${r('Laatste reactie', x.reactieDatum ? fmtDatum(x.reactieDatum) + (x.reactieDoor ? ' · ' + x.reactieDoor : '') : '')}${r('Extern ticket', x.extern)}${x.kritiek ? r('Kritieke storing', 'Ja') : ''}</div>
     </div>
+    <div class="bijlagen" id="d-bijl"><div class="bijlkop"><h3 id="bijl-titel">Bijlagen</h3>${x.afgesloten ? '' : `<button type="button" class="linkknop paperclip" id="k-bijl">${CLIP}Bijlage toevoegen</button><input type="file" id="f-ticket" multiple hidden><span class="hint">of sleep bestanden hierheen</span>`}</div>
+      <div id="bijl-lijst"><span class="hint">Bijlagen ophalen…</span></div><div class="klaarzet" id="klaar-ticket"></div></div>
     ${link ? `<a class="hint" href="${esc(link)}" target="_blank" rel="noopener">Openen in AFAS ↗</a>` : ''}
     ${x.afgesloten ? '<div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3></div><p class="hint">Dit ticket is afgehandeld.</p>' : `
     <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>
     <div class="composer">
       <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
-      <div class="onder"><label class="vink notitie"><input type="checkbox" id="notitie"> Interne notitie <small>(alleen zichtbaar voor ICT)</small></label>
-        <span class="hint">Standaard is een reactie zichtbaar voor melder én ICT.</span></div>
+      <div class="klaarzet" id="klaar-reactie"></div>
+      <div class="onder"><button type="button" class="linkknop paperclip" id="k-clip" title="Bestand meesturen met deze reactie (of sleep/plak het in het tekstvak)">${CLIP}Bijlage bij reactie</button><input type="file" id="f-reactie" multiple hidden><label class="vink notitie"><input type="checkbox" id="notitie"> Interne notitie <small>(alleen zichtbaar voor ICT)</small></label>
+        <span class="hint" id="notitie-uitleg">Standaard is een reactie zichtbaar voor melder én ICT.</span></div>
     </div>
     <div class="onderbalk"><div class="actiebalk" id="actiebalk"><span class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Acties ophalen…</span></div>
-      <button type="button" class="knop vol" id="k-opslaan" title="Voert alles in één keer door (Ctrl+Enter)">Opslaan <kbd>Ctrl+Enter</kbd></button></div>
+      <span class="mailvooraf" id="mailvooraf" hidden></span>
+      <button type="button" class="knop vol" id="k-opslaan" title="Voert alles in één keer door (Ctrl+Enter)"><span class="opslaanmail" hidden>✉ </span>Opslaan <kbd>Ctrl+Enter</kbd></button></div>
     <p class="fout" id="d-fout"></p>`}`;
   $('#detail').dataset.gewijzigd = ''; $('#detail').showModal();
-  (DEMO ? Promise.resolve() : zorgSbId(x)).then(() => toonReacties(x)).catch(e => { const el = $('#tijdlijn'); if(el) el.innerHTML = `<h3>Reacties</h3><p class="hint">Het interne nummer van dit ticket kon niet worden opgezocht: ${esc(e.message)}</p>`; });
+  $('#detail').oninput = mailVooraf; $('#detail').onchange = mailVooraf;
+  huidig.klaar = {ticket: [], reactie: []}; huidig.bijl = null;
+  (DEMO ? Promise.resolve() : zorgSbId(x)).then(() => { laadBijlagen(x); return toonReacties(x); }).catch(e => { const el = $('#tijdlijn'); if(el) el.innerHTML = `<h3>Reacties</h3><p class="hint">Het interne nummer van dit ticket kon niet worden opgezocht: ${esc(e.message)}</p>`; const bl = $('#bijl-lijst'); if(bl) bl.innerHTML = '<span class="hint">Bijlagen ophalen kan niet zonder het interne nummer van het ticket.</span>'; });
   if(!x.afgesloten){ vulAfdKeuze(x); vulStatusKeuze(x); vulVerantwKeuze(x); vulLocKeuze(x); setTimeout(() => markeerOntbrekend(x), 0); }
   if(!x.toelichting) toonToelichting(x);
   if(!x.afgesloten){ laadWorkflow(x); $('#notitie').onchange = e => { $('#tekst').classList.toggle('intern', e.target.checked); $('#tekst').placeholder = e.target.checked ? 'Interne notitie voor collega’s…' : 'Schrijf een reactie aan de melder…'; }; }
@@ -1189,11 +1259,13 @@ let toelBron;   // {conn, veld, filter} of null als geen connector het veld leve
 async function zoekToelBron(){
   if(toelBron !== undefined) return toelBron;
   toelBron = null;
-  for(const [conn, filter] of [[INST.connTickets, 'Nummer'], [INST.connSla, 'Nummer']]){
+  for(const conn of [INST.connTickets, INST.connToelichting, INST.connSla].filter(Boolean)){
     try{ const m = await afas(`/metainfo/get/${encodeURIComponent(conn)}`), velden = [];
       (function loop(o){ if(!o || typeof o !== 'object') return; if(Array.isArray(o)) return o.forEach(loop); const id = o.id || o.fieldId; if(id && typeof id === 'string' && 'label' in o) velden.push({id, label: String(o.label || id)}); Object.values(o).forEach(loop); })(m);
       const f = velden.find(v => /^toelichting|^sbtx$|^omschrijving melding|^memo|^tekst melding/i.test(v.label) || /^(Toelichting|SbTx)/i.test(v.id));
-      if(f){ toelBron = {conn, veld: f.id, filter}; break; }
+      // zoeken op het interne nummer (Dossieritem) als dat veld er is, anders op het ticketnummer
+      const sb = velden.find(v => /^dossieritem$|^sbid$/i.test(v.label) || /^(Dossieritem|SbId)$/i.test(v.id)), nr = velden.find(v => /^nummer$/i.test(v.label) || /^Nummer$/.test(v.id));
+      if(f && (sb || nr)){ toelBron = {conn, veld: f.id, filter: sb ? sb.id : nr.id, opSbid: !!sb}; break; }
     }catch(e){}
   }
   return toelBron;
@@ -1202,14 +1274,141 @@ async function toonToelichting(x){
   const el = $('#d-toel'); if(!el) return;
   try{
     if(DEMO){ x.toelichting = 'Sinds vanochtend valt de wifi op de 2e verdieping steeds weg. Collega’s op de poli hebben hetzelfde probleem.'; }
+    else if(toelCache.has(String(x.nr))){ x.toelichting = toelCache.get(String(x.nr)); }
     else { const b = await zoekToelBron();
-      if(!b){ el.innerHTML = '<span class="hint">De toelichting staat niet in de AFAS-connectors van deze pagina. Laat de beheerder het veld Toelichting toevoegen aan GetConnector ' + esc(INST.connTickets) + '.</span>'; return; }
-      const rows = (await afas(`/connectors/${encodeURIComponent(b.conn)}?skip=0&take=1${filterOp(b.filter, x.nr)}`)).rows || [];
+      if(!b){ el.innerHTML = '<span class="hint">De toelichting staat niet in de AFAS-connectors van deze pagina. Laat de beheerder een GetConnector ' + esc(INST.connToelichting) + ' maken (zonder groepering) met de velden Dossieritem en Toelichting.</span>'; return; }
+      if(b.opSbid) await zorgSbId(x);
+      const rows = (await afas(`/connectors/${encodeURIComponent(b.conn)}?skip=0&take=1${filterOp(b.filter, b.opSbid ? x.sbid : x.nr)}`)).rows || [];
       x.toelichting = rows[0] ? kaal(rows[0][b.veld]) : ''; }
     if(!$('#d-toel') || !huidig || huidig.x !== x) return;
     $('#d-toel').innerHTML = x.toelichting ? esc(x.toelichting) : '<span class="hint">Geen toelichting ingevuld.</span>';
   }catch(e){ el.innerHTML = `<span class="hint">Toelichting ophalen lukte niet: ${esc(e.message)}</span>`; }
 }
+/* ================= bijlagen: bekijken en toevoegen ================= */
+const CLIP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.1l-8.5 8.5a5.5 5.5 0 0 1-7.8-7.8l8.5-8.5a3.7 3.7 0 0 1 5.2 5.2l-8.5 8.5a1.8 1.8 0 0 1-2.6-2.6l7.8-7.8"/></svg>';
+const MAXB = () => (INST.maxBijlageMB || 75) * 1048576;
+const fmtGrootte = b => !b ? '' : b < 1024 ? b + ' B' : b < 1048576 ? Math.round(b / 1024) + ' kB' : (b / 1048576).toFixed(1).replace('.', ',') + ' MB';
+const bestIcoon = n => /\.(png|jpe?g|gif|bmp|webp|heic|svg)$/i.test(n) ? '🖼️' : /\.pdf$/i.test(n) ? '📄' : /\.(xlsx?|csv)$/i.test(n) ? '📊' : /\.(docx?|rtf|odt)$/i.test(n) ? '📝' : /\.(txt|log|json|xml)$/i.test(n) ? '🧾' : /\.(msg|eml)$/i.test(n) ? '✉️' : /\.(zip|7z|rar)$/i.test(n) ? '🗜️' : '📎';
+const raadMime = n => ({png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', gif:'image/gif', bmp:'image/bmp', webp:'image/webp', svg:'image/svg+xml', pdf:'application/pdf', txt:'text/plain', log:'text/plain', csv:'text/csv', json:'application/json', xml:'text/xml'})[String(n).split('.').pop().toLowerCase()] || 'application/octet-stream';
+async function haalBijlagen(x){
+  const uit = [], fouten = [];
+  const op = async (conn, soort) => { if(!conn) return;
+    try{ const d = await afas(`/connectors/${encodeURIComponent(conn)}?skip=0&take=500${filterOp('subject_id', x.sbid)}`);
+      (d.rows || []).forEach(r => uit.push({soort, rid: r.reaction_id != null ? String(r.reaction_id) : '', sbid: r.subject_id ?? x.sbid, file: r.file_id, naam: String(r.file_name || 'bijlage').split(/[\\/]/).pop(), grootte: +r.file_size || 0})); }
+    catch(e){ fouten.push({conn, fout: e.message}); } };
+  await Promise.all([op(INST.connBijlagen, 'ticket'), op(INST.connReactieBijlagen, 'reactie')]);
+  // staat een bestand in beide lijsten, dan hoort het bij de reactie
+  const m = new Map(); uit.forEach(b => { const o = m.get(b.file); if(!o || b.soort === 'reactie') m.set(b.file, b); });
+  return {lijst: [...m.values()], fouten};
+}
+async function laadBijlagen(x){
+  if(!huidig || huidig.x !== x) return;
+  huidig.bijl = null;
+  const r = await haalBijlagen(x); if(!huidig || huidig.x !== x) return;
+  huidig.bijl = r; verdeelBijlagen(x);
+}
+const bijlChip = (b, i) => `<button type="button" class="bijlchip" data-bijl="${i}" title="${esc(b.naam)} — klik om te bekijken of te downloaden"><span>${bestIcoon(b.naam)}</span><b>${esc(b.naam)}</b>${b.grootte ? `<small>${fmtGrootte(b.grootte)}</small>` : ''}</button>`;
+// bijlagen bij een reactie komen onder die reactie (als Helpdesk_Reacties een reactie-id heeft); de rest in het blok Bijlagen
+function verdeelBijlagen(x){
+  if(!huidig || huidig.x !== x || !huidig.bijl) return;
+  const el = $('#bijl-lijst'); if(!el) return;
+  const {lijst, fouten} = huidig.bijl;
+  document.querySelectorAll('#tijdlijn .reactiebijl').forEach(n => n.remove());
+  const los = [];
+  lijst.forEach((b, i) => { const doel = b.soort === 'reactie' && b.rid && document.querySelector(`#tijdlijn .bericht[data-rid="${CSS.escape(b.rid)}"] .wolk`);
+    if(doel){ let c = doel.querySelector('.reactiebijl'); if(!c){ c = document.createElement('div'); c.className = 'reactiebijl'; doel.append(c); } c.insertAdjacentHTML('beforeend', bijlChip(b, i)); }
+    else los.push([b, i]); });
+  const tk = los.filter(([b]) => b.soort === 'ticket'), rc = los.filter(([b]) => b.soort === 'reactie');
+  const geenRechten = fouten.length && fouten.every(f => /niet ondersteund|geautoriseerd|403|401|404/i.test(f.fout));
+  el.innerHTML = (tk.length ? `<div class="bijlrij">${tk.map(([b, i]) => bijlChip(b, i)).join('')}</div>` : '')
+    + (rc.length ? `<div class="bijlrij"><small class="hint">Bij een reactie:</small>${rc.map(([b, i]) => bijlChip(b, i)).join('')}</div>` : '')
+    + (!los.length && !fouten.length ? `<span class="hint">${lijst.length ? 'De bijlagen staan bij de reacties hieronder.' : 'Geen bijlagen.'}</span>` : '')
+    + (fouten.length ? `<span class="hint">${geenRechten ? `Bijlagen kunnen nog niet worden gelezen: laat de beheerder GetConnector ${fouten.map(f => esc(f.conn)).join(' en ')} aan de app connector koppelen.` : `Bijlagen ophalen lukte niet: ${fouten.map(f => esc(f.conn + ': ' + f.fout)).join('; ')}`}</span>` : '');
+  const t = $('#bijl-titel'); if(t) t.textContent = lijst.length ? `Bijlagen (${lijst.length})` : 'Bijlagen';
+}
+async function haalBestand(b){
+  const pad = id => `/SubjectConnector/${encodeURIComponent(id)}/${encodeURIComponent(b.file)}`;
+  let r;
+  try{ r = await afas(pad(b.sbid)); }
+  catch(e){ // bij een reactie verwacht AFAS soms het reactienummer in plaats van het dossieritem
+    if(b.rid && /404/.test(e.message)){ try{ r = await afas(pad(b.rid)); }catch(e2){ throw e; } } else throw e; }
+  const bin = atob(r.filedata || r.FileData || ''), u = new Uint8Array(bin.length); for(let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return new Blob([u], {type: r.mimetype || raadMime(r.filename || b.naam)});
+}
+let bekijkUrl = null;
+async function toonBestand(b){
+  const d = $('#bekijk');
+  const kop = extra => `<div class="bekijkkop"><span>${bestIcoon(b.naam)}</span><b title="${esc(b.naam)}">${esc(b.naam)}</b>${b.grootte ? `<small class="hint">${fmtGrootte(b.grootte)}</small>` : ''}${extra}<button type="button" class="sluit" data-bekijkdicht aria-label="Sluiten">×</button></div>`;
+  d.innerHTML = kop('') + '<div class="bekijkin"><span class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Bestand ophalen uit AFAS…</span></div>';
+  if(!d.open) d.showModal();
+  try{
+    const blob = await haalBestand(b); if(!d.open) return;
+    if(bekijkUrl) URL.revokeObjectURL(bekijkUrl); bekijkUrl = URL.createObjectURL(blob);
+    const t = blob.type || raadMime(b.naam);
+    const inhoud = /^image\//.test(t) ? `<img src="${bekijkUrl}" alt="${esc(b.naam)}">`
+      : t === 'application/pdf' ? `<iframe src="${bekijkUrl}" title="${esc(b.naam)}"></iframe>`
+      : /^text\/|json|xml/.test(t) ? `<pre>${esc((await blob.text()).slice(0, 200000))}</pre>`
+      : `<p class="hint">Van dit bestandstype kan geen voorbeeld worden getoond. Download het om het te openen.</p>`;
+    d.innerHTML = kop(`<a class="knop vol klein" href="${bekijkUrl}" download="${esc(b.naam)}">Downloaden</a>`) + `<div class="bekijkin">${inhoud}</div>`;
+  }catch(e){
+    const uitleg = /404/.test(e.message) ? 'Het bestand is niet beschikbaar in AFAS, of je hebt er geen rechten op.'
+      : /niet ondersteund|geautoriseerd|403/i.test(e.message) ? 'Bestanden openen kan nog niet: laat de beheerder AppConnectorSubject (SubjectConnector) aan de app connector toevoegen (tabblad Connectoren).' : '';
+    d.innerHTML = kop('') + `<div class="bekijkin"><p class="fout" style="padding:20px">${esc(uitleg || 'Bestand ophalen lukte niet.')}<br><small>${esc(e.message)}</small></p></div>`;
+  }
+}
+function sluitBekijk(){ const d = $('#bekijk'); if(d.open) d.close(); }
+$('#bekijk').addEventListener('close', () => { if(bekijkUrl){ URL.revokeObjectURL(bekijkUrl); bekijkUrl = null; } $('#bekijk').innerHTML = ''; });
+$('#bekijk').addEventListener('click', e => { if(e.target.closest('[data-bekijkdicht]') || e.target === $('#bekijk')) sluitBekijk(); });
+// bestanden klaarzetten: 'ticket' = algemene bijlage, 'reactie' = gaat mee met de reactie
+function zetKlaar(files, soort){
+  if(!huidig || !huidig.klaar) return;
+  const te = [], l = huidig.klaar[soort];
+  [...files].forEach(f => { if(f.size > MAXB()) te.push(f.name); else if(!l.some(g => g.name === f.name && g.size === f.size)) l.push(f); });
+  if(te.length) toast(`Te groot (max. ${INST.maxBijlageMB || 75} MB): ${te.join(', ')}`, true);
+  $('#detail').dataset.gewijzigd = '1'; tekenKlaar(); mailVooraf();
+}
+function tekenKlaar(){
+  if(!huidig || !huidig.klaar) return;
+  ['ticket', 'reactie'].forEach(s => { const el = $('#klaar-' + s); if(el) el.innerHTML = huidig.klaar[s].map((f, i) => `<span class="bijlchip klaar" title="${esc(f.name)}"><span>${bestIcoon(f.name)}</span><b>${esc(f.name)}</b><small>${fmtGrootte(f.size)}</small><button type="button" class="weg" data-klaarweg="${s}:${i}" aria-label="Weghalen">×</button></span>`).join(''); });
+}
+const naarBase64 = f => new Promise((ok, nok) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1] || ''); r.onerror = () => nok(new Error('Bestand ' + f.name + ' kon niet worden gelezen.')); r.readAsDataURL(f); });
+const bijlElementen = async files => Promise.all(files.map(async f => ({Fields: {FileName: f.name.replace(/[\\/:*?"<>|]/g, '_'), FileStream: await naarBase64(f)}})));
+// algemene bijlagen bij het ticket (UpdateConnector KnSubject, element KnSubjectAttachment)
+async function voegBijlagenToe(x, files){
+  const body = JSON.stringify({KnSubject: {Element: {'@SbId': isNaN(+x.sbid) ? x.sbid : +x.sbid, Fields: {}, Objects: [{KnSubjectAttachment: {Element: await bijlElementen(files)}}]}}});
+  try{ await afas('/connectors/KnSubject/KnSubjectAttachment', {method: 'POST', body}); }
+  catch(e){ try{ await afas('/connectors/KnSubject', {method: 'PUT', body}); }catch(e2){ throw e; } }
+}
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-bijl]'); if(c && huidig && huidig.bijl){ toonBestand(huidig.bijl.lijst[+c.dataset.bijl]); return; }
+  const w = e.target.closest('[data-klaarweg]'); if(w && huidig){ const [s, i] = w.dataset.klaarweg.split(':'); huidig.klaar[s].splice(+i, 1); tekenKlaar(); mailVooraf(); return; }
+  if(e.target.closest('#k-bijl')){ $('#f-ticket').click(); return; }
+  if(e.target.closest('#k-clip')){ $('#f-reactie').click(); return; }
+});
+document.addEventListener('change', e => {
+  if(e.target.id === 'f-ticket' || e.target.id === 'f-reactie'){ zetKlaar(e.target.files, e.target.id === 'f-ticket' ? 'ticket' : 'reactie'); e.target.value = ''; }
+});
+// slepen: op het blok Bijlagen = algemeen, op het reactievak = bij de reactie
+const metBestanden = e => e.dataTransfer && [...(e.dataTransfer.types || [])].includes('Files');
+['dragenter', 'dragover'].forEach(t => $('#detail').addEventListener(t, e => {
+  if(!metBestanden(e)) return; const z = e.target.closest('#d-bijl, .composer');
+  document.querySelectorAll('#detail .erover').forEach(n => n !== z && n.classList.remove('erover'));
+  e.preventDefault();   // nooit het bestand zelf in de browser openen
+  if(z && !(z.id === 'd-bijl' && !$('#k-bijl'))){ e.dataTransfer.dropEffect = 'copy'; z.classList.add('erover'); } else e.dataTransfer.dropEffect = 'none'; }));
+['dragover', 'drop'].forEach(t => document.addEventListener(t, e => { if(metBestanden(e) && !e.target.closest('#detail')) e.preventDefault(); }));
+$('#detail').addEventListener('dragleave', e => { const z = e.target.closest('#d-bijl, .composer'); if(z && !z.contains(e.relatedTarget)) z.classList.remove('erover'); });
+$('#detail').addEventListener('drop', e => {
+  if(!metBestanden(e)) return; const z = e.target.closest('#d-bijl, .composer'); e.preventDefault();
+  document.querySelectorAll('#detail .erover').forEach(n => n.classList.remove('erover'));
+  if(z && !(z.id === 'd-bijl' && !$('#k-bijl')) && e.dataTransfer.files.length) zetKlaar(e.dataTransfer.files, z.id === 'd-bijl' ? 'ticket' : 'reactie');
+});
+// schermafbeelding plakken in het reactievak
+document.addEventListener('paste', e => {
+  if(e.target.id !== 'tekst' || !e.clipboardData) return;
+  const f = [...e.clipboardData.files]; if(!f.length) return; e.preventDefault();
+  const stempel = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '-');
+  zetKlaar(f.map((b, i) => /^image\.\w+$/i.test(b.name) || !b.name ? new File([b], `schermafbeelding-${stempel}${f.length > 1 ? '-' + (i + 1) : ''}.${(b.type.split('/')[1] || 'png').replace('jpeg', 'jpg')}`, {type: b.type}) : b), 'reactie');
+});
 function checklist(x){
   const mist = ontbreekt(x), punt = (k, t) => `<span class="${mist.includes(k) ? 'mist' : 'ok'}">${mist.includes(k) ? '○' : '✓'} ${t}</span>`;
   return `<b>${mist.length ? 'Nieuw ticket compleet maken' : 'Nieuw ticket is compleet'}</b>${punt('afdeling', 'Afdeling')}${heeftLocKolom ? punt('locatie', 'Locatie') : '<span class="hint" title="Locatie staat niet in de GetConnector; vraag de beheerder het veld Locatie toe te voegen aan ' + esc(INST.connSla) + '.">Locatie ?</span>'}${punt('reactie', 'Reactie aan melder')}`;
@@ -1230,6 +1429,18 @@ async function vulLocKeuze(x){
     sel.dataset.oud = nu ? nu.code : '';
     sel.onchange = () => { sel.classList.toggle('gewijzigd', !!sel.value && sel.value !== sel.dataset.oud); if(sel.value) sel.classList.remove('mist'); };
   }catch(e){ sel.disabled = true; sel.title = e.message; }
+}
+// voorspelling: welke mails gaan er uit als je nu op Opslaan klikt
+function mailVooraf(){
+  const el = $('#mailvooraf'); if(!el || !huidig) return;
+  const x = huidig.x, uit = [], nb = huidig.klaar ? huidig.klaar.reactie.length : 0, tekst = ($('#tekst') && $('#tekst').value.trim()) || (nb ? 'bijlage' : ''), notitie = !!($('#notitie') && $('#notitie').checked);
+  const vs = $('#d-verantw'); if(vs && vs.value && vs.value !== vs.dataset.oud){ const naam = vs.options[vs.selectedIndex].textContent; if(!benIk(naam)) uit.push(`${naam} (toegewezen)`); }
+  const ss = $('#d-status'); const stap = ss && ss.value.startsWith('a:') ? ss.options[ss.selectedIndex].textContent : '';
+  if(tekst && !notitie) uit.push(`${x.melder || 'melder'} (reactie${nb ? ` + ${nb} bijlage${nb === 1 ? '' : 'n'}` : ''})`);
+  if(stap && !(tekst && !notitie)) uit.push(`volgens sjabloon van "${stap}"`);
+  el.hidden = !uit.length; el.innerHTML = uit.length ? `<span class="mailicoon">✉</span> Bij opslaan mailt AFAS: ${uit.map(esc).join(', ')}` : '';
+  const k = $('#k-opslaan .opslaanmail'); if(k) k.hidden = !uit.length;
+  const na = $('#notitie-uitleg'); if(na) na.textContent = tekst ? (notitie ? 'Interne notitie: de melder krijgt géén mail.' : '✉ De melder krijgt deze reactie per mail.') : 'Standaard is een reactie zichtbaar voor melder én ICT.';
 }
 async function vulVerantwKeuze(x){
   const sel = $('#d-verantw'); if(!sel) return;
@@ -1291,8 +1502,9 @@ async function laadWorkflow(x){
     const ss = $('#d-status');
     if(viaWf && ss){
       ss.dataset.wf = '1';
-      if(statusActies.length){ ss.disabled = false; ss.title = 'Kies de nieuwe status; dit voert de bijbehorende workflowstap uit';
-        ss.innerHTML = `<option value="">${esc(toonStatus(x.status) || '–')}</option>` + statusActies.map(a => `<option value="a:${wf.acties.indexOf(a)}">${esc(a.naam)}</option>`).join('');
+      const keuzes = statusKeuzes(wf, x).filter(k => norm(toonStatus(k.st)) !== norm(toonStatus(x.status)));
+      if(keuzes.some(k => k.a)){ ss.disabled = false; ss.title = 'Kies de nieuwe status; dit voert de bijbehorende workflowstap uit (met de mail die daarbij hoort)';
+        ss.innerHTML = `<option value="">${esc(toonStatus(x.status) || '–')}</option>` + keuzes.map(k => k.a ? `<option value="a:${wf.acties.indexOf(k.a)}" title="via de actie '${esc(k.a.naam)}'">${esc(toonStatus(k.st))}</option>` : `<option disabled title="Niet mogelijk vanuit de huidige workflowtaak${wf.taak ? ' (' + esc(wf.taak) + ')' : ''}">${esc(toonStatus(k.st))}</option>`).join('');
         ss.dataset.oud = ''; ss.onchange = () => ss.classList.toggle('gewijzigd', !!ss.value); }
       else ss.outerHTML = `<span>${esc(toonStatus(x.status) || '–')}</span> <span class="hint" title="De huidige workflowtaak van dit ticket heeft geen stappen die de status wijzigen${wf.taak ? ' (taak: ' + esc(wf.taak) + ')' : ''}." style="cursor:help">ⓘ</span>`;
     }
@@ -1484,6 +1696,7 @@ async function nieuweMelding(){
     </div>
     ${m.extra.map((f, i) => `<label>${esc(f.label || f.code)}${keuze(f, 'x' + i, '')}</label>`).join('')}
     <label>Toelichting<textarea name="tx" placeholder="Wat is er aan de hand, sinds wanneer, welke locatie of werkplek?"></textarea></label>
+    <label>Bijlagen<input type="file" name="bijl" multiple><span class="hint">Max. ${INST.maxBijlageMB || 75} MB per bestand.</span></label>
     <label>Melder<input name="melder" id="n-melder" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Zoek een medewerker op naam of nummer"><input type="hidden" name="melderId"><span class="hint" id="n-melder-hint">Medewerkers ophalen…</span></label>
     <label>Behandelaar<input name="beh" id="n-beh" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Nog niet toewijzen (komt bij Nieuwe tickets)"><input type="hidden" name="behCode"><span class="hint" id="n-beh-hint">Laat leeg om het ticket bij Nieuwe tickets te zetten.</span></label>
     <div class="fout" id="n-fout">${m.stId ? '' : `Het type dossieritem "Aanvraag ICT" is niet gevonden in AFAS (gevonden: ${esc(m.typen.map(t => t.naam).join(', ') || 'geen')}). Zet nieuwStId in mijn-ict-config.js.`}</div>
@@ -1510,6 +1723,9 @@ async function maakMelding(){
   if(!melder && !medewerkers){ fout.textContent = $('#n-mijnnr') ? 'Vul je medewerkernummer in (eenmalig), of typ het medewerkernummer van de melder.' : 'Typ het medewerkernummer van de melder.'; return; }
   const mijnNr = $('#n-mijnnr') && $('#n-mijnnr').value.trim(); if(mijnNr && /^\d+$/.test(mijnNr)){ profiel.emId = mijnNr; opslag.set(profielSleutel(), profiel); }
   if(melder) objecten.unshift({KnSubjectLink: {Element: {Fields: {SfTp: 17, SfId: isNaN(+melder) ? melder : +melder}}}});
+  const bestanden = f.bijl ? [...f.bijl.files] : [], teGroot = bestanden.filter(b => b.size > MAXB());
+  if(teGroot.length){ fout.textContent = `Te groot (max. ${INST.maxBijlageMB || 75} MB): ${teGroot.map(b => b.name).join(', ')}`; return; }
+  if(bestanden.length) objecten.push({KnSubjectAttachment: {Element: await bijlElementen(bestanden)}});
   const body = {KnSubject: {Element: {Fields: top, ...(objecten.length ? {Objects: objecten} : {})}}};
   f.querySelectorAll('button, input, select, textarea').forEach(b => b.disabled = true); fout.textContent = '';
   try{
@@ -1681,24 +1897,27 @@ async function zetAfdelingVeld(x, naam){
 /* Opslaan in het ticket: afdeling, gekozen actie en reactie in één keer */
 /* ---- AFAS-workflowacties uitvoeren, zodat de berichtsjablonen (mails vanuit noreply@) net als in InSite meegaan ---- */
 const zichtVelden = notitie => { const zv = zichtVeld; return zv ? {[zv.code]: zv.soort === 'lijst' ? (notitie ? zv.intern : zv.extern) : (zv.omgekeerd ? notitie : !notitie)} : {}; };
-async function wfActie(x, kies, extra = {}){
+async function wfActie(x, kies, extra = {}, objecten = null){
   // altijd de actuele taak ophalen: na een vorige actie kan de workflow al een stap verder zijn
   const wf = await workflow(x), a = typeof kies === 'function' ? wf.acties.find(kies) : wf.acties.find(a => kies.test(a.naam));
   if(!a) return null;
-  await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body: JSON.stringify({KnWorkflow:{Element:{Fields:{SbId: isNaN(+x.sbid) ? x.sbid : +x.sbid, WfNm:a.wf, TkNm:a.tk, AcNm:a.ac, ...extra}}}})});
+  await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body: JSON.stringify({KnWorkflow:{Element:{Fields:{SbId: isNaN(+x.sbid) ? x.sbid : +x.sbid, WfNm:a.wf, TkNm:a.tk, AcNm:a.ac, ...extra}, ...(objecten ? {Objects: objecten} : {})}}})});
   return a.naam;
 }
 // reactie via de actie 'Reactie plaatsen' of 'Interne notitie' (met mail); bestaat die actie niet, dan een losse reactie (zonder mail)
-async function reactieMetMail(x, tekst, notitie = false){
+async function reactieMetMail(x, tekst, notitie = false, objecten = null){
   await zoekZichtVeld();
-  const naam = await wfActie(x, notitie ? isNotitieActie : isReactieActie, {Tx: tekst, ...zichtVelden(notitie)});
-  if(!naam) await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body: JSON.stringify({KnWorkflow:{Element:{Fields:{SbId: isNaN(+x.sbid) ? x.sbid : +x.sbid, Tx: tekst, ...zichtVelden(notitie)}}}})});
+  const naam = await wfActie(x, notitie ? isNotitieActie : isReactieActie, {Tx: tekst, ...zichtVelden(notitie)}, objecten);
+  if(!naam) await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body: JSON.stringify({KnWorkflow:{Element:{Fields:{SbId: isNaN(+x.sbid) ? x.sbid : +x.sbid, Tx: tekst, ...zichtVelden(notitie)}, ...(objecten ? {Objects: objecten} : {})}}})});
   if(notitie) opslag.set(NOTITIES, [notitieSleutel(x.sbid, tekst), ...(opslag.get(NOTITIES) || [])].slice(0, 500));
   return naam;
 }
 /* Opslaan in het ticket: alle wijzigingen, elk via de AFAS-actie die erbij hoort */
 async function opslaanAlles(knopActie = null){
-  const {x} = huidig, sel = $('#d-afd'), tekst = ($('#tekst') && $('#tekst').value.trim()) || '', notitie = !!($('#notitie') && $('#notitie').checked);
+  const {x} = huidig, sel = $('#d-afd'), notitie = !!($('#notitie') && $('#notitie').checked);
+  const klaar = huidig.klaar || {ticket: [], reactie: []}, bijlT = [...klaar.ticket], bijlR = [...klaar.reactie];
+  // bijlage bij een reactie zonder tekst: korte standaardtekst, want AFAS wil een reactie
+  const tekst = ($('#tekst') && $('#tekst').value.trim()) || (bijlR.length ? `Bijlage${bijlR.length === 1 ? '' : 'n'}: ${bijlR.map(f => f.name).join(', ')}` : '');
   const nieuweAfd = sel && sel.value && norm(sel.value) !== norm(x.afdeling) ? sel.value : '';
   const ss = $('#d-status');
   let actieIdx = knopActie;
@@ -1707,8 +1926,10 @@ async function opslaanAlles(knopActie = null){
   const ls = $('#d-loc'), nieuweLoc = ls && ls.value && ls.value !== ls.dataset.oud ? {code: ls.value, naam: ls.options[ls.selectedIndex].textContent} : null;
   const gs = $('#d-gepland'), nieuwGepland = gs && gs.value !== gs.dataset.oud ? {datum: gs.value} : null;
   const vs = $('#d-verantw'), nieuweVerantw = vs && vs.value && vs.value !== vs.dataset.oud ? {code: vs.value, naam: vs.options[vs.selectedIndex].textContent} : null;
-  if(!nieuweAfd && !nieuweStatus && !nieuweVerantw && !nieuwGepland && !nieuweLoc && actieIdx == null && !tekst){ $('#d-fout').textContent = 'Er is niets gewijzigd: pas een veld aan of schrijf een reactie.'; return; }
+  if(!nieuweAfd && !nieuweStatus && !nieuweVerantw && !nieuwGepland && !nieuweLoc && actieIdx == null && !tekst && !bijlT.length){ $('#d-fout').textContent = 'Er is niets gewijzigd: pas een veld aan, schrijf een reactie of voeg een bijlage toe.'; return; }
   const act = actieIdx != null && huidig.wf ? huidig.wf.acties[actieIdx] : null;
+  if(act && /reactie plaatsen/i.test(act.naam) && !tekst){ $('#d-fout').textContent = `Voor de status "${toonStatus(statusNa(act))}" schrijft AFAS een reactie aan de melder: vul eerst een reactie in.`; return; }
+  if(act && soortActie(act) === 'plannen' && !(nieuwGepland && nieuwGepland.datum) && !x.gepland){ $('#d-fout').textContent = 'Kies eerst bij Gepland de datum van de werkzaamheden.'; return; }
   if(act && act.afhandelen && !(await vraag(`Ticket ${x.nr} afhandelen?`, 'Het ticket wordt afgesloten' + (tekst ? ' en je reactie gaat mee naar de melder.' : '.'), 'Afhandelen', 'Annuleren'))) return;
   if(notitie && tekst){ await zoekZichtVeld(); if(!zichtVeld){ $('#d-fout').textContent = `Interne notitie kan niet worden geplaatst: de pagina weet niet hoe AFAS "intern" wil hebben (${zichtDiag}).`; return; } }
   document.querySelectorAll('#detail button, #detail select, #detail input').forEach(b => b.disabled = true); $('#d-fout').textContent = '';
@@ -1730,24 +1951,32 @@ async function opslaanAlles(knopActie = null){
       await zetVelden(x, {[veldCode(m.verantw)]: nieuweVerantw.code}); lok.verantw = nieuweVerantw.naam;
       const ikZelf = benIk(nieuweVerantw.naam) || (profiel.alias || []).some(a => norm(a) === norm(nieuweVerantw.code));
       const n = await wfActie(x, ikZelf ? /toewijzen aan mij|in behandeling nemen|oppakken/i : /toewijzen aan collega|doorzetten naar collega|collega/i).catch(e => { zonderMail.push('toewijzen (' + e.message + ')'); return ''; });
-      if(n) viaActie.push(n); else if(n === null) zonderMail.push('toewijzen');
+      if(n){ viaActie.push(n); if(!ikZelf) logMail(x, nieuweVerantw.naam, 'ticket aan hem/haar toegewezen', n); } else if(n === null) zonderMail.push('toewijzen');
       gedaan.push(ikZelf ? 'aan jou toegewezen' : 'toegewezen aan ' + nieuweVerantw.naam); }
     // 4. geplande datum: veld en, als die er is, de actie Inplannen
     if(nieuwGepland){ stap = 'gepland'; const m = await laadSubjMeta(); if(!m.gepland) throw new Error('Het veld voor de geplande datum is niet gevonden in AFAS.');
       await zetVelden(x, {[veldCode(m.gepland)]: nieuwGepland.datum || null}); lok.gepland = nieuwGepland.datum ? new Date(nieuwGepland.datum + 'T00:00:00') : null;
       if(nieuwGepland.datum){ const n = await wfActie(x, /inplannen|plannen/i).catch(() => ''); if(n) viaActie.push(n); }
       gedaan.push(nieuwGepland.datum ? 'gepland op ' + fmtDatum(lok.gepland) : 'planning gewist'); }
+    // 4b. algemene bijlagen bij het ticket
+    if(bijlT.length){ stap = 'bijlagen uploaden'; $('#d-fout').innerHTML = `<span class="hint">Bijlage${bijlT.length === 1 ? '' : 'n'} uploaden…</span>`;
+      await voegBijlagenToe(x, bijlT); klaar.ticket = []; tekenKlaar(); $('#d-fout').textContent = '';
+      gedaan.push(`${bijlT.length} bijlage${bijlT.length === 1 ? '' : 'n'} toegevoegd`); }
+    const reactieObj = bijlR.length ? [{KnReactionAttachment: {Element: await bijlElementen(bijlR)}}] : null;
     // 5. gekozen workflowstap (status, afhandelen, oppakken), met de reactie erbij
     let reactieGedaan = false;
-    if(act){ stap = act.naam;
-      const n = await wfActie(x, a => norm(a.naam) === norm(act.naam), tekst ? {Tx: tekst, ...zichtVelden(notitie)} : {});
+    if(act && viaActie.some(v => norm(v) === norm(act.naam))){ gedaan.push('status ' + toonStatus(statusNa(act))); lok.status = statusNa(act) || lok.status; gok = true; }   // al uitgevoerd bij toewijzen/inplannen
+    else if(act){ stap = act.naam;
+      const n = await wfActie(x, a => norm(a.naam) === norm(act.naam), tekst ? {Tx: tekst, ...zichtVelden(notitie)} : {}, tekst ? reactieObj : null);
       if(!n) throw new Error(`De actie "${act.naam}" is niet (meer) beschikbaar bij dit ticket.`);
-      viaActie.push(n); reactieGedaan = !!tekst; gedaan.push(n);
+      viaActie.push(n); reactieGedaan = !!tekst; gedaan.push(n); if(tekst && bijlR.length){ klaar.reactie = []; gedaan.push(`${bijlR.length} bijlage${bijlR.length === 1 ? '' : 'n'} bij de reactie`); }
+      if(tekst && !notitie) logMail(x, x.melder || 'melder', 'reactie bij "' + n + '"', n);
+      else logMail(x, 'volgens AFAS-sjabloon', 'stap "' + n + '"', n);
       if(act.afhandelen) lok.afgesloten = true;
-      else if(soortActie(act) === 'status'){ gok = true; lok.status = /melder/i.test(act.naam) ? 'Wachten op melder' : /leverancier/i.test(act.naam) ? 'Wachten op leverancier' : act.naam; } }
+      else { gok = true; lok.status = statusNa(act) || act.naam; } }
     // 6. alleen een reactie: via 'Reactie plaatsen' / 'Interne notitie'
-    if(tekst && !reactieGedaan){ stap = 'reactie'; const n = await reactieMetMail(x, tekst, notitie);
-      if(n) viaActie.push(n); else zonderMail.push(notitie ? 'interne notitie' : 'reactie');
+    if(tekst && !reactieGedaan){ stap = 'reactie'; const n = await reactieMetMail(x, tekst, notitie, reactieObj); if(bijlR.length){ klaar.reactie = []; gedaan.push(`${bijlR.length} bijlage${bijlR.length === 1 ? '' : 'n'} bij de reactie`); }
+      if(n){ viaActie.push(n); if(!notitie) logMail(x, x.melder || 'melder', 'nieuwe reactie', n); } else zonderMail.push(notitie ? 'interne notitie' : 'reactie');
       gedaan.push(notitie ? 'interne notitie geplaatst' : 'reactie geplaatst'); }
     if(tekst){ lok.reactieDatum = new Date(); lok.reactieDoor = profiel.naam; if(notitie) opslag.set(NOTITIES, [notitieSleutel(x.sbid, tekst), ...(opslag.get(NOTITIES) || [])].slice(0, 500)); }
     $('#detail').dataset.gewijzigd = ''; $('#detail').close();
@@ -1770,7 +1999,7 @@ async function zetAfdeling(x, naam, van, tekst = ''){
     if(!DEMO) await zorgSbId(x); if(!x.sbid) throw new Error('Het interne nummer van dit ticket is onbekend.');
     await zetVelden(x, {[veldCode(veld)]: veld.dataType === 'int' && !isNaN(+w.code) ? +w.code : w.code});
     let mail = '';
-    if(tekst){ const n = await reactieMetMail(x, tekst, false); mail = n ? ' · ✉ via ' + n : ' (reactie zonder mail: geen actie Reactie plaatsen gevonden)'; }
+    if(tekst){ const n = await reactieMetMail(x, tekst, false); if(n) logMail(x, x.melder || 'melder', 'nieuwe reactie', n); mail = n ? ' · ✉ via ' + n : ' (reactie zonder mail: geen actie Reactie plaatsen gevonden)'; }
     const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect: van};
     toast(`Ticket ${x.nr} → ${w.naam}${tekst ? ' (met reactie)' : ''}${mail}`);
     onthoudLokaal(x, {afdeling: w.naam, ...(tekst ? {reactieDatum: new Date(), reactieDoor: profiel.naam} : {})}); teken(); toonVerplaatsing(voor); naAchtergrond();
@@ -2063,7 +2292,7 @@ function demoAfas(pad, opties){
     const afdC = ((b.Objects || []).find(o => o.KnS38) || {KnS38:{Element:{Fields:{}}}}).KnS38.Element.Fields.UAfd;
     D.sla.push({Nummer:nr, Onderwerp:b.Fields.Ds, Status:'Nieuw', Omschrijving_4:({'88406.rvanderveen':'Robert van der Veen','88406.kgroen':'Kelly Groen','88406.gbrons':'Glenn Brons','88406.gleer':'Guillonard Leer'})[((b.Objects || []).find(o => o.KnS38) || {KnS38:{Element:{Fields:{}}}}).KnS38.Element.Fields.UVer] || '', Omschrijving_2:'Robert van der Veen', Omschrijving:'Aanvraag ICT', Type_ticket_ICT:'Incident', Focusgebied_ICT:'', AFAS_Afdeling:'', Omschrijving_3:INST.afdelingen[+afdC - 1] || 'ICT', Focusgebied_EMMA:'', Instuurdatum:new Date().toISOString().slice(0, 19), Gepland:null, Laatste_reactie:null, Gebruiker_laatste_reactie:'', Laatste_wijziging_externe_status:null, Workflow_afgerond:false, Kritieke_storing:false});
     return new Promise(r => setTimeout(() => r({results:{KnSubject:{SbId: 400000 + nr}}}), 400)); }
-  if(pad === '/metainfo/update/KnSubject') return {name:'KnSubject', fields:[{fieldId:'StId', label:'Type dossier', dataType:'int', mandatory:true, values:[{id:'26', description:'Aanvraag ICT'},{id:'31', description:'Change'}]},{fieldId:'Ds', label:'Onderwerp', mandatory:true},{fieldId:'SbTx', label:'Toelichting'},{fieldId:'USt', label:'Status', values:[{id:'Nieuw', description:'Nieuw'},{id:'In behandeling ICT', description:'In behandeling ICT'},{id:'Wachten op leverancier', description:'Wachten op leverancier'},{id:'Interne release', description:'Interne release'},{id:'Externe release', description:'Externe release'}]}],
+  if(pad === '/metainfo/update/KnSubject') return {name:'KnSubject', fields:[{fieldId:'StId', label:'Type dossier', dataType:'int', mandatory:true, values:[{id:'26', description:'Aanvraag ICT'},{id:'31', description:'Change'}]},{fieldId:'Ds', label:'Onderwerp', mandatory:true},{fieldId:'SbTx', label:'Toelichting'}],
     objects:[{name:'KnSubjectLink', fields:[{fieldId:'SfTp', label:'Type bestemming'}]},{name:'KnS38', fields:[{fieldId:'UAfd', label:'Afdeling', dataType:'string', values:INST.afdelingen.map((n, i) => ({id:String(i + 1), description:n}))},{fieldId:'UVer', label:'Verantwoordelijke', values:[{id:'88406.rvanderveen', description:'Robert van der Veen'},{id:'88406.kgroen', description:'Kelly Groen'},{id:'88406.gbrons', description:'Glenn Brons'},{id:'88406.gleer', description:'Guillonard Leer'},{id:'88406.anders', description:'Iemand Buiten ICT'}]},{fieldId:'UGep', label:'Werkzaamheden gepland', dataType:'date'},{fieldId:'ULoc', label:'Locatie', values:['Almere','Amsterdam','Breda','Utrecht','Hanzeplein'].map((n, i) => ({id:'L' + i, description:n}))},{fieldId:'UTyp', label:'Type ticket ICT', values:[{id:'I', description:'Incident'},{id:'V', description:'Vraag'},{id:'C', description:'Change'}]}]},{name:'KnS26', fields:[{fieldId:'UPrj', label:'Begindatum project', mandatory:true}]}]};
   if(opties.method === 'PUT' && pad === '/connectors/KnSubject'){ const el = JSON.parse(opties.body).KnSubject.Element, D = window._demo, r = D.sla.find(x => 400000 + x.Nummer === +el['@SbId']);
     const alle = {...el.Fields}; (el.Objects || []).forEach(o => Object.values(o).forEach(v => Object.assign(alle, v.Element.Fields)));
@@ -2072,13 +2301,27 @@ function demoAfas(pad, opties){
     if(r && alle.UAfd) r.Omschrijving_3 = INST.afdelingen[+alle.UAfd - 1] || r.Omschrijving_3;
     if(r && alle.UGep) r.Gepland = alle.UGep + 'T00:00:00'; if(r && alle.USt) r.Status = alle.USt;
     window._put = opties.body; return new Promise(res => setTimeout(() => res({}), 300)); }
+  if(pad.startsWith('/connectors/KnSubject/KnSubjectAttachment')){ const el = JSON.parse(opties.body).KnSubject.Element, sb = String(el['@SbId']);
+    (window._demoBijl = window._demoBijl || {})[sb] = [...(window._demoBijl[sb] || []), ...el.Objects[0].KnSubjectAttachment.Element.map(e => e.Fields)];
+    window._upload = opties.body; return new Promise(r => setTimeout(() => r({}), 400)); }
+  if(opties.method === 'POST' && pad.includes('KnSubjectWorkflowReaction')) (window._wfPosts = window._wfPosts || []).push(opties.body);
   if(opties.method === 'POST'){ try{ const f = JSON.parse(opties.body).KnWorkflow.Element.Fields, D = window._demo, r = D && D.sla.find(x => 400000 + x.Nummer === f.SbId);
       if(r && f.AcNm === 'd5') r.Status = 'Wachten op leverancier'; if(r && f.AcNm === 'd0') r.Workflow_afgerond = true; if(r && f.AcNm === 'd8') r.Status = 'Interne release'; }catch(e){}
     return new Promise(r => setTimeout(() => r({}), 300)); }
-  if(pad.startsWith('/metainfo/get/')) return {fields:[{id:'Dossieritem', label:'Dossieritem'},{id:'Reactie', label:'Reactie'},{id:'Instuurdatum', label:'Instuurdatum'},{id:'Instuurder', label:'Instuurder'},{id:'Zichtbaar', label:'Reactie zichtbaar'}]};
+  if(pad.includes(INST.connBijlagen)){ const sb = (pad.match(/filtervalues=([^&]*)/) || [])[1] || '';
+    return {rows:[{attachment_id:1, subject_id:+sb, file_id:'A1', file_name:'Instellingen Teams.txt', file_size:812}, ...(window._demoBijl && window._demoBijl[sb] || []).map((f, i) => ({attachment_id:10 + i, subject_id:+sb, file_id:'U' + i + f.FileName, file_name:f.FileName, file_size:Math.round(f.FileStream.length * .75)}))]}; }
+  if(pad.includes(INST.connReactieBijlagen)){ const sb = (pad.match(/filtervalues=([^&]*)/) || [])[1] || '';
+    return {rows:[{attachment_id:7, reaction_id:103, subject_id:+sb, file_id:'R1', file_name:'foto-headset.svg', file_size:640}, {attachment_id:8, reaction_id:999, subject_id:+sb, file_id:'R2', file_name:'logboek.zip', file_size:20480}]}; }
+  if(pad.startsWith('/SubjectConnector/')){ const id = decodeURIComponent(pad.split('/').pop());
+    if(id === 'R1') return {filename:'foto-headset.svg', mimetype:'image/svg+xml', filedata:btoa('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="260"><rect width="400" height="260" fill="#E5EEFA"/><circle cx="200" cy="120" r="70" fill="none" stroke="#031F4D" stroke-width="14"/><rect x="118" y="120" width="30" height="60" rx="8" fill="#2E5FB0"/><rect x="252" y="120" width="30" height="60" rx="8" fill="#2E5FB0"/><text x="200" y="240" text-anchor="middle" font-family="sans-serif" fill="#031F4D">Headset</text></svg>')};
+    if(id === 'A1') return {filename:'Instellingen Teams.txt', mimetype:'text/plain', filedata:btoa('Teams > Instellingen > Apparaten\nLuidspreker: Jabra Evolve2\nMicrofoon: Jabra Evolve2\n')};
+    if(id === 'R2') return {filename:'logboek.zip', mimetype:'application/zip', filedata:btoa('PK')};
+    const f = Object.values(window._demoBijl || {}).flat().find(f => id.endsWith(f.FileName)); if(f) return {filename:f.FileName, mimetype:raadMime(f.FileName), filedata:f.FileStream};
+    return Promise.reject(new Error('AFAS gaf HTTP 404')); }
+  if(pad.startsWith('/metainfo/get/')) return {fields:[{id:'ReactieId', label:'Reactie-id'},{id:'Dossieritem', label:'Dossieritem'},{id:'Reactie', label:'Reactie'},{id:'Instuurdatum', label:'Instuurdatum'},{id:'Instuurder', label:'Instuurder'},{id:'Zichtbaar', label:'Reactie zichtbaar'}]};
   if(pad.includes(INST.connReacties)) return {rows:[{Dossieritem:1, Reactie:'Mijn headset geeft geen geluid in Teams, wel in andere apps.', Instuurdatum:'2026-09-29T09:12:00', Instuurder:'Anouk de Vries'},
     {Dossieritem:1, Reactie:'Kun je in Teams onder Instellingen > Apparaten de headset kiezen?', Instuurdatum:'2026-09-30T10:02:00', Instuurder:'Robert van der Veen'},
-    {Dossieritem:1, Reactie:'Gedaan, maar nog steeds niets.', Instuurdatum:'2026-10-01T09:20:00', Instuurder:'Anouk de Vries', Zichtbaar:'Extern en intern'},
+    {Dossieritem:1, Reactie:'Gedaan, maar nog steeds niets.', Instuurdatum:'2026-10-01T09:20:00', Instuurder:'Anouk de Vries', Zichtbaar:'Extern en intern', ReactieId:103},
     {Dossieritem:1, Reactie:'Graag aangeven wat we gaan doen met dit ticket, staat al geruime tijd stil.', Instuurdatum:'2026-10-01T10:27:00', Instuurder:'88406.rvanderveen', Zichtbaar:'Intern'}]};
   if(pad.startsWith('/metainfo')) return {fields:[{fieldId:'ViRe', label:'Reactie zichtbaar', dataType:'string', values:[{id:'I', description:'Intern'},{id:'E', description:'Extern en intern'}]}]};
   const nu = Date.now(), lok = x => `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}T${String(x.getHours()).padStart(2,'0')}:${String(x.getMinutes()).padStart(2,'0')}:00`,
