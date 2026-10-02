@@ -653,7 +653,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.78 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.79 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -712,7 +712,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.78';
+const VERSIE = 'v3.79';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1810,7 +1810,7 @@ async function toonMelderInfo(x){
   const wacht = () => new Promise(r => { let n = 0; const t = setInterval(() => { const s = $('#d-loc'); if(!s || s.options.length > 1 || ++n > 40){ clearInterval(t); r(); } }, 100); });
   await wacht();
   const loc = locTekst(m);
-  knop.dataset.uitleg = [`${m.vol || m.naam} (${m.id})`, `Functie: ${m.functie || (heeftFunctieKol ? 'niet ingevuld' : 'nog niet beschikbaar (veld Functie ontbreekt in de medewerkersconnector)')}`, `Organisatorische eenheid: ${m.oe || 'niet ingevuld'}`, `Werklocatie: ${loc || 'niet te bepalen'}`].join('\n');
+  knop.dataset.uitleg = [loc || 'Locatie onbekend', m.oe || 'Geen organisatorische eenheid'].join('\n');
   if(uitlegBij === knop && $('#uitleg').className) toonUitleg(knop);
   // lege locatie in het ticket: voorstel uit de medewerkersgegevens (wordt pas opgeslagen met Opslaan)
   const sel = $('#d-loc');
