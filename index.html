@@ -421,7 +421,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.55 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.56 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -473,7 +473,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.55';
+const VERSIE = 'v3.56';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -581,19 +581,27 @@ function maakVoortgang(namen, naarScherm){
     return v ? Math.min(.97, s.rijen / v) : 1 - Math.pow(.55, s.pagina) * .9; };
   const gewicht = n => verwacht[n] || 1000;
   const totaal = () => namen.reduce((t, n) => t + gewicht(n), 0);
+  // AFAS levert vaak alles in één keer (één pagina): dan loopt de balk op tijd, op basis van hoe lang het de vorige keer duurde
+  const DUUR = 'mict-laadduur', duren = opslag.get(DUUR) || {}, sleutel = namen.join('+'), verwachtMs = Math.max(2500, duren[sleutel] || 6000);
+  let start = 0, echt = 0, tik = null, laatst = {geteld: 0, schat: 0};
+  const toon = () => { const t = Date.now() - start, opTijd = .93 * (1 - Math.exp(-1.6 * t / verwachtMs));   // ~75% na de verwachte tijd, daarna steeds langzamer
+    naarScherm(Math.round(Math.max(echt, opTijd) * 100), laatst.geteld, laatst.schat); };
+  const stop = () => { if(tik){ clearInterval(tik); tik = null; } };
   return {
     stap(n, rijen, klaar){ const s = stand[n]; if(!s) return; s.rijen = rijen; s.pagina++; s.klaar = klaar;
-      const p = namen.reduce((t, x) => t + deel(x) * gewicht(x), 0) / totaal();
-      const geteld = namen.reduce((t, x) => t + stand[x].rijen, 0), schat = namen.reduce((t, x) => t + (stand[x].klaar ? stand[x].rijen : Math.max(verwacht[x] || 0, stand[x].rijen)), 0);
-      naarScherm(Math.round(p * 100), geteld, Object.keys(verwacht).length ? schat : 0);
-      if(klaar){ verwacht[n] = rijen; opslag.set(AANTAL, verwacht); } },
-    begin(){ naarScherm(0, 0, namen.reduce((t, n) => t + (verwacht[n] || 0), 0)); }
+      echt = namen.reduce((t, x) => t + deel(x) * gewicht(x), 0) / totaal();
+      laatst.geteld = namen.reduce((t, x) => t + stand[x].rijen, 0); laatst.schat = Object.keys(verwacht).length ? namen.reduce((t, x) => t + (stand[x].klaar ? stand[x].rijen : Math.max(verwacht[x] || 0, stand[x].rijen)), 0) : 0;
+      if(klaar){ verwacht[n] = rijen; opslag.set(AANTAL, verwacht); }
+      if(namen.every(x => stand[x].klaar)){ stop(); duren[sleutel] = Date.now() - start; opslag.set(DUUR, duren); naarScherm(100, laatst.geteld, laatst.schat); }
+      else toon(); },
+    begin(){ start = Date.now(); laatst.schat = namen.reduce((t, n) => t + (verwacht[n] || 0), 0); naarScherm(0, 0, laatst.schat); stop(); tik = setInterval(toon, 150); },
+    stop
   };
 }
 const fmtGetal = n => n.toLocaleString('nl-NL');
 function laadScherm(p, geteld, schat){
   const el = $('#laad-voortgang'); if(el){ el.querySelector('i').style.width = p + '%'; el.querySelector('b').textContent = p + '%';
-    el.querySelector('small').textContent = geteld ? `${fmtGetal(geteld)}${schat ? ' van ~' + fmtGetal(schat) : ''} regels opgehaald` : 'Verbinding maken met AFAS…'; }
+    el.querySelector('small').textContent = geteld ? `${fmtGetal(geteld)}${schat ? ' van ~' + fmtGetal(schat) : ''} regels opgehaald` : p > 3 ? 'Openstaande tickets ophalen uit AFAS…' : 'Verbinding maken met AFAS…'; }
   const tb = $('#topbalk'); tb.classList.toggle('aan', !$('#app').hidden && p < 100); tb.querySelector('i').style.width = p + '%';
   if(!$('#app').hidden && p < 100) $('#bijgewerkt').textContent = `Bezig met verversen… ${p}%`;
 }
@@ -696,8 +704,8 @@ async function laadGegevens(fase = 'open'){
     else items = nieuw;
     if(fase === 'alles') alleGeladen = true;
     status = {bijgewerkt: new Date(), fout: null};
-    $('#live').classList.remove('uit'); laadScherm(100, 0, 0);
-  }catch(e){ status.fout = e.message; toast('Laden mislukt: ' + e.message, true); $('#topbalk').classList.remove('aan'); }
+    vg.stop(); $('#live').classList.remove('uit'); laadScherm(100, 0, 0);
+  }catch(e){ vg.stop(); status.fout = e.message; toast('Laden mislukt: ' + e.message, true); $('#topbalk').classList.remove('aan'); }
   $('#bijgewerkt').textContent = status.fout ? 'Laden mislukt: ' + status.fout : 'Live · bijgewerkt om ' + fmtTijd(status.bijgewerkt);
   return fase;
 }
@@ -731,9 +739,9 @@ function laadRestOpAchtergrond(){
       const nrs = new Set(items.map(x => String(x.nr)));
       items = [...items, ...bouwItems(dicht.filter(r => !nrs.has(String(r.Nummer))), new Map(sbCache))];
       alleGeladen = true;
-      el.querySelector('span').textContent = 'Alle meldingen geladen'; setTimeout(() => el.hidden = true, 2500);
+      vg.stop(); el.querySelector('span').textContent = 'Alle meldingen geladen'; setTimeout(() => el.hidden = true, 2500);
       if(!$('#detail').open) teken(); }
-    catch(e){ el.querySelector('span').textContent = 'Gesloten meldingen ophalen mislukt'; }
+    catch(e){ vg.stop(); el.querySelector('span').textContent = 'Gesloten meldingen ophalen mislukt'; }
     achterBezig = null;
   })();
 }
