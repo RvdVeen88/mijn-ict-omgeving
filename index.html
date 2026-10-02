@@ -262,6 +262,9 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .tabel .chip.ongelezen{display:inline-flex}
 .chip[data-uitleg]{cursor:help}
 .tabel tr[draggable="true"]{cursor:grab}
+.afdbevestig{display:inline-flex;align-items:center;gap:8px;margin-left:10px}
+.knop.klein{padding:3px 12px 3px 10px;font-size:12.5px}
+#sleepvraag textarea{min-height:90px}
 .tabel tr.wordtgesleept td{opacity:.45}
 body.slepen #nav [data-weergave^="afd:"]{outline:1.5px dashed var(--lichtblauw);outline-offset:-2px}
 #nav .sleepdoel{background:var(--blauw)!important;color:var(--opaccent)!important;outline:0!important;transform:scale(1.03);transition:transform .12s}
@@ -402,11 +405,12 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.42 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.43 · 02-10-2026</span></div>
   </div>
 </div>
 
 <dialog id="detail"><div class="dlg-in" id="detail-in"></div></dialog>
+<dialog id="sleepvraag" class="smal"></dialog>
 <dialog id="nieuw" class="smal"><div class="dlg-in" id="nieuw-in"></div></dialog>
 <div id="toast" role="status"></div>
 <div id="uitleg" role="tooltip"></div>
@@ -451,7 +455,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.42';
+const VERSIE = 'v3.43';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1107,7 +1111,14 @@ async function vulAfdKeuze(x){
   try{ const {waarden} = await afdelingKeuzes(); if(!huidig || huidig.x !== x) return;
     const l = [...waarden].sort((a, b) => a.naam.localeCompare(b.naam, 'nl'));
     sel.innerHTML = (x.afdeling && l.some(w => norm(w.naam) === norm(x.afdeling)) ? '' : `<option value="">${esc(x.afdeling || '– kies afdeling –')}</option>`) + l.map(w => `<option ${norm(w.naam) === norm(x.afdeling) ? 'selected' : ''}>${esc(w.naam)}</option>`).join('');
-    sel.onchange = () => { if(!sel.value) return; const rect = $('#detail').getBoundingClientRect(); $('#detail').dataset.gewijzigd = ''; $('#detail').close(); zetAfdeling(x, sel.value, rect); };
+    // niet meteen opslaan: eerst bevestigen (een reactie in het tekstveld gaat mee)
+    sel.onchange = () => { const b = $('#d-afd-ok');
+      if(!sel.value || norm(sel.value) === norm(x.afdeling)){ if(b) b.remove(); return; }
+      if(!b) sel.insertAdjacentHTML('afterend', `<span id="d-afd-ok" class="afdbevestig"><button type="button" class="knop vol klein" id="d-afd-opslaan">Opslaan</button><button type="button" class="linkknop" id="d-afd-terug">Annuleren</button></span>`);
+      $('#d-afd-terug').onclick = () => { sel.value = [...sel.options].find(o => norm(o.textContent) === norm(x.afdeling)) ? [...sel.options].find(o => norm(o.textContent) === norm(x.afdeling)).value : ''; $('#d-afd-ok').remove(); };
+      $('#d-afd-opslaan').onclick = () => { const tekst = ($('#tekst') && $('#tekst').value.trim()) || '', rect = $('#detail').getBoundingClientRect();
+        $('#detail').dataset.gewijzigd = ''; $('#detail').close(); zetAfdeling(x, sel.value, rect, tekst); };
+    };
   }catch(e){ sel.disabled = true; sel.title = e.message; }
 }
 async function laadWorkflow(x){
@@ -1480,17 +1491,36 @@ document.addEventListener('mousedown', e => { const b = e.target.closest('#combo
 /* ================= verplaatsing zichtbaar maken: het ticket vliegt naar zijn nieuwe plek in het menu ================= */
 /* ================= afdeling van een ticket wijzigen (keuzelijst in het ticket of slepen naar het menu) ================= */
 async function afdelingKeuzes(){ const m = await laadNieuwMeta(); if(!m.afd) throw new Error('Het veld Afdeling is niet gevonden in AFAS (KnSubject).'); return {veld: m.afd, waarden: waardenVan(m.afd.values)}; }
-async function zetAfdeling(x, naam, van){
+async function plaatsReactie(x, tekst){
+  const zv = await zoekZichtVeld(), f = {SbId: isNaN(+x.sbid) ? x.sbid : +x.sbid, Tx: tekst};
+  if(zv) f[zv.code] = zv.soort === 'lijst' ? zv.extern : (zv.omgekeerd ? false : true);
+  await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body: JSON.stringify({KnWorkflow:{Element:{Fields:f}}})});
+}
+async function zetAfdeling(x, naam, van, tekst = ''){
   if(norm(naam) === norm(x.afdeling)) return;
   try{
     const {veld, waarden} = await afdelingKeuzes(), w = waarden.find(v => norm(v.naam) === norm(naam));
     if(!w) throw new Error(`Afdeling "${naam}" staat niet in de keuzelijst van AFAS.`);
     if(!DEMO) await zorgSbId(x); if(!x.sbid) throw new Error('Het interne nummer van dit ticket is onbekend.');
     await zetVelden(x, {[veldCode(veld)]: veld.dataType === 'int' && !isNaN(+w.code) ? +w.code : w.code});
+    if(tekst) await plaatsReactie(x, tekst);
     const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect: van};
-    toast(`Ticket ${x.nr} → ${w.naam}`);
+    toast(`Ticket ${x.nr} → ${w.naam}${tekst ? ' (met reactie)' : ''}`);
     await laadGegevens(); teken(); toonVerplaatsing(voor);
   }catch(e){ toast('Afdeling wijzigen lukte niet: ' + e.message, true); }
+}
+// na slepen zonder recente reactie: reactie toevoegen of doorgaan zonder
+function vraagReactie(x, naam, rect){
+  const d = $('#sleepvraag');
+  d.innerHTML = `<div class="dlg-in"><div class="dlg-kop"><div><small>Ticket ${esc(x.nr)} · ${esc(x.afdeling || 'geen afdeling')} → ${esc(naam)}</small><h2>Reactie bij het doorzetten?</h2></div><button class="sluit" data-sv="annuleer" aria-label="Annuleren">×</button></div>
+    <p class="hint" style="margin:0">Er is de afgelopen 15 minuten niet gereageerd op dit ticket. Laat de melder (en de nieuwe afdeling) weten waarom het ticket verhuist.</p>
+    <textarea id="sv-tekst" placeholder="Bijvoorbeeld: Doorgezet naar ${esc(naam)}, zij pakken dit verder op."></textarea>
+    <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap"><button type="button" class="knop" data-sv="annuleer">Annuleren</button><button type="button" class="knop" data-sv="zonder">Doorgaan zonder reactie</button><button type="button" class="knop vol" data-sv="met" disabled>Met reactie doorzetten</button></div></div>`;
+  d.showModal(); $('#sv-tekst').focus();
+  $('#sv-tekst').oninput = e => d.querySelector('[data-sv="met"]').disabled = !e.target.value.trim();
+  d.onclick = e => { const b = e.target.closest('[data-sv]'); if(!b){ if(e.target === d) d.close(); return; }
+    const keuze = b.dataset.sv, tekst = $('#sv-tekst').value.trim(); d.close();
+    if(keuze === 'met') zetAfdeling(x, naam, rect, tekst); else if(keuze === 'zonder') zetAfdeling(x, naam, rect); };
 }
 function toonVerplaatsing(voor){
   const na = items.find(y => String(y.nr) === String(voor.nr));
@@ -1638,7 +1668,9 @@ document.addEventListener('dragover', e => {
 });
 document.addEventListener('drop', e => {
   const doel = e.target.closest && e.target.closest('#nav [data-weergave^="afd:"]'); if(!sleep || !doel) return;
-  e.preventDefault(); const {x, rect} = sleep; doel.classList.remove('sleepdoel'); zetAfdeling(x, doel.dataset.weergave.slice(4), rect);
+  e.preventDefault(); const {x, rect} = sleep; doel.classList.remove('sleepdoel'); const naam = doel.dataset.weergave.slice(4);
+  if(x.reactieDatum && Date.now() - x.reactieDatum < 15 * 60e3) zetAfdeling(x, naam, rect);
+  else vraagReactie(x, naam, rect);
 });
 document.addEventListener('mouseover', e => {
   const c = e.target.closest('[data-uitleg]'), t = $('#uitleg');
