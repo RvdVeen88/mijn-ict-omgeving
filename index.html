@@ -92,6 +92,28 @@ dialog.smal{width:min(560px, calc(100vw - 32px))}
 main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;min-width:0}
 
 .tegels{display:flex;flex-wrap:wrap;gap:10px}
+.tegels:empty{display:none}
+.voorblad{padding:28px 8px 40px;max-width:1100px}
+.vb-groet{margin:0;font-size:15px;color:var(--grijs);font-weight:500}
+.vb-dag{margin:4px 0 44px;font-size:34px;font-weight:300;color:var(--blauw);letter-spacing:-.5px;line-height:1.2}
+.vb-dag::first-letter{text-transform:uppercase}
+.vb-dag small{display:block;font-size:14px;font-weight:400;color:var(--grijs);margin-top:8px;letter-spacing:0}
+.vb-cijfers{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:40px 28px}
+.vb-c{display:flex;flex-direction:column;justify-content:flex-start;align-items:flex-start;background:none;border:0;padding:0;text-align:left;cursor:pointer;font-family:inherit;color:inherit}
+.vb-c b{display:block;font-size:60px;line-height:1;font-weight:200;color:var(--blauw);letter-spacing:-2px;transition:transform .2s}
+.vb-c span{display:block;margin-top:10px;font-size:13px;color:var(--grijs);font-weight:500}
+.vb-c:hover b{transform:translateY(-2px)}
+.vb-c:hover span{color:var(--blauw)}
+.vb-c.rood b{color:var(--rood)} .vb-c.groen b{color:var(--groen)} .vb-c.blauw b{color:var(--blauw-2)}
+.vb-c.nul b{color:var(--lijn)}
+.vb-lijsten{margin-top:56px;border-top:1px solid var(--lijn);padding-top:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px 40px}
+.vb-lijsten h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--grijs);margin:0 0 10px;font-weight:600}
+.voorregel{margin:0;padding:7px 0;display:flex;gap:12px;align-items:baseline;font-size:14px;cursor:pointer;border-bottom:1px solid transparent}
+.voorregel:hover em{color:var(--blauw);text-decoration:underline}
+.voorregel .vnr{font-weight:600;color:var(--blauw);font-size:13px;min-width:46px}
+.voorregel em{font-style:normal;color:var(--inkt);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.voorregel small{color:var(--grijs);font-size:12.5px;white-space:nowrap}
+@media (max-width:600px){.vb-c b{font-size:46px}.vb-dag{font-size:26px}}
 .tegel{background:var(--vlak);border-radius:0 999px 999px 0;border:0;border-left:4px solid var(--lichtblauw);padding:7px 20px 7px 12px;display:inline-flex;align-items:baseline;gap:8px;text-align:left;box-shadow:var(--schaduw)}
 .tegel:hover{box-shadow:0 4px 14px rgba(5,55,135,.14)}
 .tegel span{font-size:13.5px;color:var(--inkt);font-weight:500;white-space:nowrap;order:2}
@@ -1111,6 +1133,7 @@ const afdelingen = () => { const basis = (INST.afdelingen || []).filter(a => nav
   const volg = a => { const i = (INST.afdelingen || []).indexOf(a); return i < 0 ? 999 : i; };
   return [...t.entries()].sort((a, b) => volg(a[0]) - volg(b[0]) || a[0].localeCompare(b[0], 'nl')); };
 function weergave(id){
+  const kp = KPI.find(k => k.id === id); if(kp) return {titel: kp.t, lijst: kp.f()};
   const v = [...VAST, ...ONDER].find(v => v.id === id); if(v) return {titel:v.t, lijst:v.f ? v.f() : []};
   if(id.startsWith('afd:')){ const a = id.slice(4); return {titel:a, lijst:open().filter(x => !x.inuit && norm(navAfd(x.afdeling)) === norm(a))}; }
   return {titel:'Tickets', lijst:[]};
@@ -1172,7 +1195,45 @@ function tekenNav(){
     <h4>Overzicht</h4>${ONDER.map(v => it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}`;
 }
 
+/* ================= Overzicht: rustig voorblad met persoonlijke cijfers (zoals in Mijn changes) ================= */
+const vandaagBegin = () => beginDag(new Date());
+const eindWeek = () => { const d = vandaagBegin(), dag = (d.getDay() + 6) % 7; d.setDate(d.getDate() + (6 - dag)); d.setHours(23, 59, 59, 999); return d; };
+const beginWeek = () => { const d = vandaagBegin(), dag = (d.getDay() + 6) % 7; d.setDate(d.getDate() - dag); return d; };
+const mijnOpen = () => open().filter(isMijn);
+// elk cijfer is ook een lijst: klik erop en je ziet precies die tickets
+const KPI = [
+  {id:'k:actie', t:'Actie nodig', kl:'rood', f:() => mijnOpen().filter(actie), uitleg:'Over een norm: te lang geen reactie, verlopen planning of nieuwe melding'},
+  {id:'k:verlopen', t:'Planning verlopen', kl:'rood', f:() => mijnOpen().filter(x => x.gepland && +x.gepland < +vandaagBegin())},
+  {id:'k:vandaag', t:'Vandaag gepland', f:() => mijnOpen().filter(x => x.gepland && beginDag(x.gepland).getTime() === vandaagBegin().getTime())},
+  {id:'k:week', t:'Nog gepland deze week', f:() => mijnOpen().filter(x => x.gepland && +x.gepland > +vandaagBegin() + DAG - 1 && +x.gepland <= +eindWeek())},
+  {id:'k:wacht', t:'Wacht op melder/leverancier', f:() => mijnOpen().filter(x => x.emmer === 'melder' || x.emmer === 'leverancier')},
+  {id:'k:nieuw', t:'Nieuw of ongelezen', kl:'blauw', f:() => mijnOpen().filter(x => (x._sg || []).some(s => s.code === 'ongelezen'))},
+  {id:'k:open', t:'Open op jouw naam', f:() => mijnOpen()},
+  {id:'k:klaar', t:'Afgehandeld deze week', kl:'groen', f:() => items.filter(x => x.afgesloten && isMijn(x) && x.statusDatum && +x.statusDatum >= +beginWeek())}
+];
 function tekenMij(){
+  const nu = new Date(), u = nu.getHours(), voornaam = String(profiel.naam || '').split(' ')[0];
+  const groet = u < 6 ? 'Goedenacht' : u < 12 ? 'Goedemorgen' : u < 18 ? 'Goedemiddag' : 'Goedenavond';
+  const dag = nu.toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'});
+  const waarden = KPI.map(k => ({...k, n: k.f().length}));
+  const actieN = waarden[0].n;
+  const zin = actieN ? `${actieN} ticket${actieN === 1 ? ' vraagt' : 's vragen'} nu je aandacht.` : 'Alles op jouw naam zit binnen de normen.';
+  // eerst oppakken: de drie belangrijkste tickets op jouw naam
+  const prio = mijnOpen().filter(x => ernst(x) >= 1).sort(sorteer).slice(0, 3);
+  const plan = mijnOpen().filter(x => x.gepland && +x.gepland >= +vandaagBegin()).sort((a, b) => a.gepland - b.gepland).slice(0, 3);
+  const regel = (x, extra) => `<p data-nr="${esc(x.nr)}" class="voorregel"><span class="vnr">${esc(x.nr)}</span><em>${esc(x.onderwerp)}</em><small>${extra}</small></p>`;
+  $('#tegels').innerHTML = '';
+  $('#blokken').innerHTML = `<div class="voorblad">
+    <p class="vb-groet">${groet}, ${esc(voornaam)}</p><p class="vb-dag">${dag}<small>${esc(zin)}</small></p>
+    <div class="vb-cijfers">${waarden.map(k => `<button type="button" class="vb-c ${k.n ? (k.kl || '') : 'nul'}" data-weergave="${k.id}" title="${esc(k.uitleg || 'Toon deze tickets')}"><b>${k.n}</b><span>${esc(k.t)}</span></button>`).join('')}</div>
+    ${prio.length || plan.length ? `<div class="vb-lijsten">
+      ${prio.length ? `<div><h3>Eerst oppakken</h3>${prio.map(x => regel(x, esc(((x._sg || []).find(s => s.ernst >= 1) || {}).tekst || ''))).join('')}</div>` : ''}
+      ${plan.length ? `<div><h3>Eerstvolgende werkzaamheden</h3>${plan.map(x => regel(x, beginDag(x.gepland).getTime() === vandaagBegin().getTime() ? 'vandaag' : fmtDatum(x.gepland))).join('')}</div>` : ''}
+    </div>` : ''}
+  </div>`;
+  $('#titel').textContent = 'Overzicht'; $('#subtitel').textContent = '';
+}
+function tekenMijOud(){
   const o = open();
   const mijn = o.filter(isMijn).sort(sorteer);
   const mijnActie = mijn.filter(actie);
@@ -1198,13 +1259,13 @@ const filt = {zoek:''};
 /* één filter rechtsboven voor alle lijsten: Mij (jouw tickets), Afdelingen (ook alles in je ★-afdelingen) of Alles */
 let mijAllesStand = opslag.get('mict-filter3') || 'mij';
 const ZONDER_FILTER = new Set(['toegewezen', 'historie']);   // Mijn tickets is altijd van jou; Historie is persoonlijk
-const schuifAan = t => !ZONDER_FILTER.has(t) && mijAllesStand !== 'alles';
+const schuifAan = t => !ZONDER_FILTER.has(t) && !t.startsWith('k:') && mijAllesStand !== 'alles';
 // wat telt als 'Mij': alleen jouw tickets; bij nieuwe tickets ook wat nieuw binnenkomt in je ★-afdelingen
 const vanMij = (t, x) => isMijn(x) || (t === 'nieuw' && inGebied(x));
 const soortKeuze = opslag.get('mict-soort') || {};   // per afdeling: alle | meldingen | changes
 const soortVan = t => t.startsWith('afd:') ? (soortKeuze[t] || 'alle') : 'alle';
 function zichtbaar(t, l){
-  if(!ZONDER_FILTER.has(t)){
+  if(!ZONDER_FILTER.has(t) && !t.startsWith('k:')){   // de cijfers van het voorblad zijn altijd persoonlijk
     if(mijAllesStand === 'mij') l = l.filter(x => vanMij(t, x));
     else if(mijAllesStand === 'afd' && !t.startsWith('afd:')) l = l.filter(x => isMijn(x) || inGebied(x));   // in een afdeling zelf: alles van die afdeling
   }
@@ -1212,7 +1273,7 @@ function zichtbaar(t, l){
   return l;
 }
 // alleen eigen tickets in beeld: dan is de kolom Behandelaar overbodig (dat ben je zelf)
-const alleenEigen = t => t === 'toegewezen' || (mijAllesStand === 'mij' && t !== 'nieuw' && !ZONDER_FILTER.has(t));
+const alleenEigen = t => t === 'toegewezen' || t.startsWith('k:') || (mijAllesStand === 'mij' && t !== 'nieuw' && !ZONDER_FILTER.has(t));
 function tekenLijst(){
   if(tab === 'historie') return tekenHistorie();
   const v = weergave(tab), w = norm(filt.zoek);
@@ -1254,6 +1315,7 @@ function teken(){
   if(!profiel) return;
   pasLokaalToe();
   document.querySelectorAll('#mijalles-top button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === mijAllesStand));
+  $('#mijalles-top').style.visibility = tab === 'mij' || tab === 'historie' || tab === 'toegewezen' || tab.startsWith('k:') ? 'hidden' : '';   // geldt niet voor je persoonlijke pagina's
   if(takenKlaar && items.length && !opslag.get(bekendSleutel())) opslag.set(bekendSleutel(), items.filter(isMijn).map(x => String(x.nr)));   // eerste keer (na het laden van je taken): wat er nu staat is al bekend
   items.forEach(x => x._sg = signalen(x));
   $('#ik span').textContent = profiel.naam; $('#ik i').textContent = profiel.naam.split(' ').map(w => w[0]).filter(c => c && c === c.toUpperCase()).slice(0, 2).join('');
@@ -2435,6 +2497,7 @@ document.addEventListener('click', e => {
   if(e.target.closest('[data-kolbreedstd]')){ $('#kolkeuze').hidden = true; zetBreedtes({}); return; }
   const th = e.target.closest('th[data-sort]'); if(th){ const id = th.closest('table').dataset.tabel, k = th.dataset.sort, s = sortering[id];
     sortering[id] = s && s.k === k ? (s.op > 0 ? {k, op:-1} : undefined) : {k, op: ['in','reactie','gepland','sig'].includes(k) ? -1 : 1}; teken(); return; }
+  const vr = e.target.closest('.voorregel[data-nr]'); if(vr){ navLijst = [...vr.parentElement.querySelectorAll('.voorregel[data-nr]')].map(p => p.dataset.nr); openDetail(vr.dataset.nr); return; }
   const r = e.target.closest('tr[data-nr]'); if(r){ const tid = r.closest('table').dataset.tabel; navLijst = (tid && tabelVolgorde[tid]) || [...r.closest('tbody').querySelectorAll('tr[data-nr]')].map(t => t.dataset.nr); openDetail(r.dataset.nr); return; }
   const m = e.target.closest('.meer'); if(m){ const id = m.dataset.blok; blokOpen.has(id) ? blokOpen.delete(id) : blokOpen.add(id); teken(); return; }
   const w = e.target.closest('[data-weergave]'); if(w){ tab = w.dataset.weergave; filt.zoek = ''; $('#f-zoek').value = ''; teken(); scrollTo(0, 0); return; }
