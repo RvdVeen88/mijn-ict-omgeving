@@ -266,6 +266,7 @@ kbd{font:inherit;font-size:10.5px;font-weight:600;opacity:.7;margin-left:8px;bor
 .checklist{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--oranje-licht);border-radius:0 12px 12px 0;padding:8px 14px;font-size:13px}
 .checklist b{color:var(--oranje);font-weight:700}
 .checklist .ok{color:var(--groen)} .checklist .mist{color:var(--oranje);font-weight:600}
+i.verpl{font-style:normal;color:var(--oranje);margin-left:3px;font-weight:700}
 select.afdkeuze.mist{border-bottom:2px solid var(--oranje);color:var(--oranje)}
 textarea.mist{border-color:var(--oranje)}
 .mailregel{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 2px 42px;padding:6px 12px;border:1.5px dashed var(--lichtblauw);border-radius:0 12px 12px 0;font-size:12.5px;color:var(--blauw);background:var(--vlak)}
@@ -725,13 +726,15 @@ async function haalMijnTaken(){
 /* interne nummers (Dossieritem) alleen ophalen voor de tickets waar we ze nodig hebben */
 const sbCache = new Map();
 const toelCache = new Map();   // toelichting per ticketnummer, komt mee met het opzoeken van het interne nummer in Helpdesk_PowerBI
+const locCache = new Map();   // locatie per ticketnummer uit Helpdesk_PowerBI (als de SLA-connector geen Locatie heeft)
 async function sbIdsVoor(veld, waarden){
   const uit = new Map(); const lijstW = [...new Set(waarden.map(String))];
   for(let i = 0; i < lijstW.length; i += 40){
     const deel = lijstW.slice(i, i + 40);
     try{ const rows = (await afas(`/connectors/${INST.connTickets}?skip=0&take=200&filterfieldids=${veld}&filtervalues=${encodeURIComponent(deel.join(';'))}&operatortypes=1`)).rows || [];
       rows.forEach(r => { uit.set(String(r.Nummer), r.Dossieritem); sbCache.set(String(r.Nummer), r.Dossieritem);
-        const tk = Object.keys(r).find(k => /^toelichting/i.test(k)); if(tk) toelCache.set(String(r.Nummer), kaal(r[tk])); }); }catch(e){}
+        const tk = Object.keys(r).find(k => /^toelichting/i.test(k)); if(tk) toelCache.set(String(r.Nummer), kaal(r[tk]));
+        const lk = Object.keys(r).find(k => /^locatie$/i.test(k)); if(lk) locCache.set(String(r.Nummer), String(r[lk] ?? '').trim()); }); }catch(e){}
   }
   return uit;
 }
@@ -867,12 +870,17 @@ function signalen(x){
   if(x.kritiek) s.unshift({ernst:3, code:'kritiek', tekst:'Kritieke storing', uitleg:'In AFAS als kritieke storing gemarkeerd: direct oppakken.'});
   return s;
 }
+const ICTR = 'mict-ictreactie';
+const laatsteVanMelder = x => !!(x.melder && norm(x.reactieDoor) === norm(x.melder));
+const ictReactieBekend = nr => !!(opslag.get(ICTR) || {})[nr];
+function zetIctReactie(x, ja){ x.ictReactie = ja; if(ja && !ictReactieBekend(x.nr)){ const m = opslag.get(ICTR) || {}; m[x.nr] = 1; opslag.set(ICTR, m); } }
 /* een nieuw ticket is pas 'af' als afdeling, locatie en een reactie van ICT zijn ingevuld */
 function ontbreekt(x){
   const m = [];
   if(!x.afdeling) m.push('afdeling');
   if(heeftLocKolom && !x.locatie) m.push('locatie');
-  if(!x.reactieDatum || (x.melder && norm(x.reactieDoor) === norm(x.melder))) m.push('reactie');
+  // de laatste reactie kan van de melder zijn terwijl ICT eerder wél reageerde: dat weten we pas na het ophalen van de reacties
+  if(!x.reactieDatum || (laatsteVanMelder(x) && !(x.ictReactie || ictReactieBekend(x.nr)))) m.push('reactie');
   return m;
 }
 // nieuw = nog niet compleet; oudere onvolledige tickets alleen als er ook nog niemand op staat (anders loopt de lijst vol met oude tickets)
@@ -1159,33 +1167,65 @@ const wieNaam = w => { if(!w || !/^\d+\.\S+$/.test(w)) return w; if(profiel && (
 const RE_KOL = {sbid:/^dossieritem$/, tekst:/^(reactie|tekst reactie|reactietekst|tekst)$/, datum:/^(instuurdatum|datum reactie|datum|aangemaakt op|reactiedatum|tijdstip)/, wie:/^(instuurder|naam instuurder|gebruiker|aangemaakt door|medewerker|gebruiker reactie|naam)/, zicht:/zichtbaar|zichtbaarheid|intern|extern|vertrouwelijk/, rid:/^(reactie ?-?id|id reactie|reactienummer|nummer reactie|volgnummer( reactie)?|reaction.?id|reactie ?code)$/};
 const kaal = s => { const d = document.createElement('div'); d.innerHTML = String(s ?? '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>/gi, '\n'); return (d.textContent || '').replace(/\n{3,}/g, '\n\n').trim(); };
 let reactieDiag = '';
+async function zorgReactieKol(){
+  if(reactieKol) return reactieKol;
+  const m = await afas(`/metainfo/get/${encodeURIComponent(INST.connReacties)}`), velden = [];
+  (function loop(o){ if(!o || typeof o !== 'object') return; if(Array.isArray(o)) return o.forEach(loop); const id = o.id || o.fieldId; if(id && typeof id === 'string' && 'label' in o) velden.push({id, label:String(o.label || id)}); Object.values(o).forEach(loop); })(m);
+  // eerst op label, dan op veld-id (bij een eigen GetConnector heten de kolommen soms anders)
+  const k = {}; Object.entries(RE_KOL).forEach(([n, re]) => { const f = velden.find(f => re.test(norm(f.label))) || velden.find(f => re.test(norm(f.id.replace(/_/g, ' ')))); if(f){ k[n] = f.id; if(n === 'zicht') k.zichtLabel = f.label; } });
+  if(!k.tekst){ const t = velden.find(f => /reactie|tekst|omschrijving|bericht/.test(norm(f.label)) && !/datum|id|nummer|gebruiker/.test(norm(f.label))); if(t) k.tekst = t.id; }
+  reactieDiag = `kolommen in ${INST.connReacties}: ${velden.map(f => f.label + (f.label !== f.id ? ' (' + f.id + ')' : '')).join(', ')}`;
+  if(!k.sbid || !k.tekst) throw new Error(`In ${INST.connReacties} ontbreekt ${!k.sbid ? 'een kolom Dossieritem' : 'de reactietekst'} (${reactieDiag}).`);
+  return reactieKol = k;
+}
+// is een regel uit Helpdesk_Reacties een interne notitie?
+function rijIntern(r, sbid, tekst){
+  const k = reactieKol, eigen = (opslag.get(NOTITIES) || []).includes(notitieSleutel(sbid, tekst)); if(!k.zicht) return eigen;
+  const v = String(r[k.zicht] ?? '').trim(), lab = norm(k.zichtLabel || '');
+  if(/intern/i.test(v) && !/extern/i.test(v)) return true;          // keuzelijst: 'Intern' vs 'Extern en intern'
+  if(/^(i|int)$/i.test(v)) return true;
+  if(/alleen intern|intern|vertrouwelijk/.test(lab) && !/extern|melder/.test(lab)) return ja(v);   // ja/nee-veld 'Alleen intern'
+  if(/extern|melder|zichtbaar/.test(lab) && /^(false|0|nee|n)$/i.test(v)) return true;          // ja/nee-veld 'Zichtbaar voor melder' = nee
+  return eigen;
+}
+const rijNaarReactie = (r, sbid) => { const k = reactieKol, tekst = kaal(r[k.tekst]); return {t: datum(r[k.datum]), tekst, wie: wieNaam(String(r[k.wie] ?? '').trim()), intern: rijIntern(r, sbid, tekst), rid: k.rid ? String(r[k.rid] ?? '') : ''}; };
+// heeft ICT (iemand anders dan de melder) ooit een zichtbare reactie gegeven?
+const ictReageerde = (x, l) => l.some(r => r.tekst && !r.intern && norm(r.wie) !== norm(x.melder));
 async function haalReacties(x){
   if(!x.sbid) throw new Error('Het interne nummer (Dossieritem) van dit ticket is niet gevonden in ' + INST.connTickets + '.');
-  if(!reactieKol){ const m = await afas(`/metainfo/get/${encodeURIComponent(INST.connReacties)}`), velden = [];
-    (function loop(o){ if(!o || typeof o !== 'object') return; if(Array.isArray(o)) return o.forEach(loop); const id = o.id || o.fieldId; if(id && typeof id === 'string' && 'label' in o) velden.push({id, label:String(o.label || id)}); Object.values(o).forEach(loop); })(m);
-    // eerst op label, dan op veld-id (bij een eigen GetConnector heten de kolommen soms anders)
-    const k = {}; Object.entries(RE_KOL).forEach(([n, re]) => { const f = velden.find(f => re.test(norm(f.label))) || velden.find(f => re.test(norm(f.id.replace(/_/g, ' ')))); if(f){ k[n] = f.id; if(n === 'zicht') k.zichtLabel = f.label; } });
-    if(!k.tekst){ const t = velden.find(f => /reactie|tekst|omschrijving|bericht/.test(norm(f.label)) && !/datum|id|nummer|gebruiker/.test(norm(f.label))); if(t) k.tekst = t.id; }
-    reactieDiag = `kolommen in ${INST.connReacties}: ${velden.map(f => f.label + (f.label !== f.id ? ' (' + f.id + ')' : '')).join(', ')}`;
-    if(!k.sbid || !k.tekst) throw new Error(`In ${INST.connReacties} ontbreekt ${!k.sbid ? 'een kolom Dossieritem' : 'de reactietekst'} (${reactieDiag}).`);
-    reactieKol = k; }
-  const k = reactieKol, d = await afas(`/connectors/${encodeURIComponent(INST.connReacties)}?skip=0&take=500${filterOp(k.sbid, x.sbid)}`);
+  const k = await zorgReactieKol(), d = await afas(`/connectors/${encodeURIComponent(INST.connReacties)}?skip=0&take=500${filterOp(k.sbid, x.sbid)}`);
   if(!(d.rows || []).length) reactieDiag = `0 regels in ${INST.connReacties} voor ${k.sbid} = ${x.sbid}`;
-  const isIntern = (r, tekst) => { const eigen = (opslag.get(NOTITIES) || []).includes(notitieSleutel(x.sbid, tekst)); if(!k.zicht) return eigen;
-    const v = String(r[k.zicht] ?? '').trim(), lab = norm(k.zichtLabel || '');
-    if(/intern/i.test(v) && !/extern/i.test(v)) return true;          // keuzelijst: 'Intern' vs 'Extern en intern'
-    if(/^(i|int)$/i.test(v)) return true;
-    if(/alleen intern|intern|vertrouwelijk/.test(lab) && !/extern|melder/.test(lab)) return ja(v);   // ja/nee-veld 'Alleen intern'
-    if(/extern|melder|zichtbaar/.test(lab) && /^(false|0|nee|n)$/i.test(v)) return true;          // ja/nee-veld 'Zichtbaar voor melder' = nee
-    return eigen; };
-  return (d.rows || []).map(r => { const tekst = kaal(r[k.tekst]); return {t: datum(r[k.datum]), tekst, wie: wieNaam(String(r[k.wie] ?? '').trim()), intern: isIntern(r, tekst), rid: k.rid ? String(r[k.rid] ?? '') : ''}; })
-    .filter(r => r.tekst).sort((a, b) => (a.t || 0) - (b.t || 0));
+  return (d.rows || []).map(r => rijNaarReactie(r, x.sbid)).filter(r => r.tekst).sort((a, b) => (a.t || 0) - (b.t || 0));
+}
+/* tickets waarvan de laatste reactie van de melder is: in één keer nagaan of ICT eerder al reageerde */
+let ictBezig = false; const ictGecheckt = new Map();
+async function controleerIctReacties(){
+  if(ictBezig) return; ictBezig = true;
+  try{
+    const kand = items.filter(x => !x.afgesloten && !x.inuit && x.reactieDatum && laatsteVanMelder(x) && !ictReactieBekend(x.nr) && ictGecheckt.get(String(x.nr)) !== +x.reactieDatum);
+    if(!kand.length) return;
+    const k = await zorgReactieKol();
+    const zonder = kand.filter(x => !x.sbid && !sbCache.has(String(x.nr)));
+    if(zonder.length) await sbIdsVoor('Nummer', zonder.map(x => x.nr));
+    kand.forEach(x => { if(!x.sbid && sbCache.has(String(x.nr))) x.sbid = sbCache.get(String(x.nr)); });
+    const metSb = kand.filter(x => x.sbid); let veranderd = false;
+    for(let i = 0; i < metSb.length; i += 40){
+      const deel = metSb.slice(i, i + 40);
+      const rows = DEMO ? (await afas(`/connectors/${INST.connReacties}`)).rows || [] : (await afas(`/connectors/${encodeURIComponent(INST.connReacties)}?skip=0&take=5000&filterfieldids=${encodeURIComponent(k.sbid)}&filtervalues=${encodeURIComponent(deel.map(x => x.sbid).join(';'))}&operatortypes=1`)).rows || [];
+      deel.forEach(x => { const l = rows.filter(r => DEMO || String(r[k.sbid]) === String(x.sbid)).map(r => rijNaarReactie(r, x.sbid));
+        const ja = ictReageerde(x, l); if(ja) veranderd = true; zetIctReactie(x, ja); ictGecheckt.set(String(x.nr), +x.reactieDatum); });
+    }
+    if(veranderd && !$('#detail').open) teken();
+  }catch(e){ console.warn('ICT-reacties nagaan mislukt', e); }
+  finally{ ictBezig = false; }
 }
 const initialen = n => String(n || '?').split(/\s+/).filter(w => w && w[0] === w[0].toUpperCase()).map(w => w[0]).slice(0, 2).join('') || '?';
 async function toonReacties(x){
   const el = $('#tijdlijn'); if(!el) return;
   try{
     const l = await haalReacties(x); if(!huidig || huidig.x !== x) return;
+    { const voor = ontbreekt(x).includes('reactie'); zetIctReactie(x, ictReageerde(x, l));
+      if(voor && !ontbreekt(x).includes('reactie')){ x._sg = signalen(x); const c = $('#d-check'); if(c) c.innerHTML = checklist(x); const t = $('#tekst'); if(t && t.classList.contains('mist')){ t.classList.remove('mist'); t.placeholder = 'Schrijf een reactie aan de melder…'; } } }
     const mails = ((opslag.get(MAILLOG) || {})[String(x.nr)] || []).map(m => ({...m, t: new Date(m.t), mail: true}));
     const alles = [...l, ...mails].sort((a, b) => (a.t || 0) - (b.t || 0));
     el.innerHTML = `<h3>Reacties (${l.length})${mails.length ? ` · ✉ ${mails.length} mail${mails.length === 1 ? '' : 's'}` : ''} <small class="hint">nieuwste bovenaan</small></h3>` + (alles.length ? [...alles].reverse().map(r => r.mail ? `<div class="mailregel" title="Verstuurd door AFAS (noreply@dcklinieken.nl) via de actie '${esc(r.actie)}', uitgevoerd door ${esc(r.door || '')} vanuit Mijn ICT-Omgeving"><span class="mailicoon">✉</span><span>Mail ${/^volgens/.test(r.aan) ? esc(r.aan) : `naar <b>${esc(r.aan)}</b>`} · ${esc(r.wat)}</span><small>${fmtDatum(r.t)} ${fmtTijd(r.t)} · actie ${esc(r.actie)}</small></div>` : `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''} ${r.intern ? 'intern' : ''}"${r.rid ? ` data-rid="${esc(r.rid)}"` : ''}><i>${esc(initialen(r.wie))}</i>
@@ -1225,9 +1265,9 @@ function openDetail(nr){
       ${(() => { const sg = x._sg.filter(s => s.code !== 'onvolledig'); return sg.length ? `<span class="chips" style="margin-left:auto">${sg.map(chip).join('')}</span>` : ''; })()}</div>
     ${!x.afgesloten && isNieuw(x) ? `<div class="checklist" id="d-check">${checklist(x)}</div>` : ''}
     <div class="kaarten">
-      <div class="kaart2"><h3>Melding</h3>${r('Melder', x.melder, {altijd:true})}${r('Type ticket', x.type)}${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}<span>Locatie</span><b>${x.afgesloten ? esc(x.locatie || '–') : `<select id="d-loc" class="afdkeuze" title="Klik om de locatie te wijzigen"><option value="">${esc(x.locatie || '– kies locatie –')}</option></select>`}</b>
+      <div class="kaart2"><h3>Melding</h3>${r('Melder', x.melder, {altijd:true})}${r('Type ticket', x.type)}${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}<span>Locatie${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.locatie || '–') : `<select id="d-loc" class="afdkeuze" title="Klik om de locatie te wijzigen"><option value="">${esc(x.locatie || '– kies locatie –')}</option></select>`}</b>
         <span class="toelkop">Toelichting</span><div class="lang" id="d-toel">${x.toelichting ? esc(x.toelichting) : '<span class="hint">Toelichting ophalen…</span>'}</div></div>
-      <div class="kaart2"><h3>Behandeling</h3><span>Afdeling</span><b>${x.afgesloten ? esc(x.afdeling || '–') : `<select id="d-afd" class="afdkeuze" title="Klik om de afdeling te wijzigen"><option>${esc(x.afdeling || '– kies afdeling –')}</option></select>`}</b><span>Verantwoordelijke</span><b>${x.afgesloten ? esc(x.verantw || '–') : `<select id="d-verantw" class="afdkeuze" title="Klik om de verantwoordelijke te wijzigen"><option value="">${esc(x.verantw || '– niemand –')}</option></select>${benIk(x.verantw) ? '' : '<button type="button" class="linkknop aanmij" id="d-aanmij">Aan mij toewijzen</button>'}`}</b><span>Status</span><b>${x.afgesloten ? esc(toonStatus(x.status) || '–') : `<select id="d-status" class="afdkeuze" title="Klik om de status te wijzigen"><option value="">${esc(toonStatus(x.status) || '– kies status –')}</option></select>`}</b>
+      <div class="kaart2"><h3>Behandeling</h3><span>Afdeling${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.afdeling || '–') : `<select id="d-afd" class="afdkeuze" title="Klik om de afdeling te wijzigen"><option>${esc(x.afdeling || '– kies afdeling –')}</option></select>`}</b><span>Verantwoordelijke</span><b>${x.afgesloten ? esc(x.verantw || '–') : `<select id="d-verantw" class="afdkeuze" title="Klik om de verantwoordelijke te wijzigen"><option value="">${esc(x.verantw || '– niemand –')}</option></select>${benIk(x.verantw) ? '' : '<button type="button" class="linkknop aanmij" id="d-aanmij">Aan mij toewijzen</button>'}`}</b><span>Status${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(toonStatus(x.status) || '–') : `<select id="d-status" class="afdkeuze" title="Klik om de status te wijzigen"><option value="">${esc(toonStatus(x.status) || '– kies status –')}</option></select>`}</b>
         ${x.afgesloten ? r('Gepland', x.gepland ? fmtDatum(x.gepland) : '') : `<span>Gepland</span><b><input type="date" id="d-gepland" class="datumkeuze" value="${x.gepland ? isoD(x.gepland) : ''}" data-oud="${x.gepland ? isoD(x.gepland) : ''}" title="Datum waarop het werk gepland staat"></b>`}${r('Laatste reactie', x.reactieDatum ? fmtDatum(x.reactieDatum) + (x.reactieDoor ? ' · ' + x.reactieDoor : '') : '')}${r('Extern ticket', x.extern)}${x.kritiek ? r('Kritieke storing', 'Ja') : ''}</div>
     </div>
     <div class="bijlagen" id="d-bijl"><div class="bijlkop"><h3 id="bijl-titel">Bijlagen</h3>${x.afgesloten ? '' : `<button type="button" class="linkknop paperclip" id="k-bijl">${CLIP}Bijlage toevoegen</button><input type="file" id="f-ticket" multiple hidden><span class="hint">of sleep hierheen · Ctrl+V plakt</span>`}</div>
@@ -1488,7 +1528,7 @@ async function vulStatusKeuze(x){
     const l = waardenVan(m.status.values), huidigW = l.find(w => norm(w.naam) === norm(x.status) || norm(w.code) === norm(x.status)) || l.find(w => norm(toonStatus(w.naam)) === norm(toonStatus(x.status)));
     sel.innerHTML = (huidigW ? '' : `<option value="">${esc(toonStatus(x.status) || '– kies status –')}</option>`) + l.map(w => `<option value="${esc(w.code)}" ${w === huidigW ? 'selected' : ''}>${esc(toonStatus(w.naam))}</option>`).join('');
     sel.dataset.oud = huidigW ? huidigW.code : '';
-    sel.onchange = () => sel.classList.toggle('gewijzigd', !!sel.value && sel.value !== sel.dataset.oud);
+    sel.onchange = () => { sel.classList.toggle('gewijzigd', !!sel.value && sel.value !== sel.dataset.oud); if(sel.value) sel.classList.remove('mist'); };
   }catch(e){ sel.outerHTML = `<span>${esc(toonStatus(x.status) || '–')}</span> <span class="hint" title="${esc(e.message)}" style="cursor:help">ⓘ niet aan te passen</span>`; }
 }
 async function vulAfdKeuze(x){
@@ -1527,7 +1567,7 @@ async function laadWorkflow(x){
       const keuzes = statusKeuzes(wf, x).filter(k => norm(toonStatus(k.st)) !== norm(toonStatus(x.status)));
       if(keuzes.some(k => k.a)){ ss.disabled = false; ss.title = 'Kies de nieuwe status; dit voert de bijbehorende workflowstap uit (met de mail die daarbij hoort)';
         ss.innerHTML = `<option value="">${esc(toonStatus(x.status) || '–')}</option>` + keuzes.map(k => k.a ? `<option value="a:${wf.acties.indexOf(k.a)}" title="via de actie '${esc(k.a.naam)}'">${esc(toonStatus(k.st))}</option>` : `<option disabled title="Niet mogelijk vanuit de huidige workflowtaak${wf.taak ? ' (' + esc(wf.taak) + ')' : ''}">${esc(toonStatus(k.st))}</option>`).join('');
-        ss.dataset.oud = ''; ss.onchange = () => ss.classList.toggle('gewijzigd', !!ss.value); }
+        ss.dataset.oud = ''; ss.onchange = () => { ss.classList.toggle('gewijzigd', !!ss.value); if(ss.value) ss.classList.remove('mist'); }; }
       else ss.outerHTML = `<span>${esc(toonStatus(x.status) || '–')}</span> <span class="hint" title="De huidige workflowtaak van dit ticket heeft geen stappen die de status wijzigen${wf.taak ? ' (taak: ' + esc(wf.taak) + ')' : ''}." style="cursor:help">ⓘ</span>`;
     }
     el.innerHTML = !wf.acties.length ? '<span class="hint">Geen workflowacties beschikbaar voor dit ticket.</span>' :
@@ -1712,8 +1752,8 @@ async function nieuweMelding(){
   $('#nieuw-in').innerHTML = kop + `<form class="nform" id="n-form" onsubmit="return false">
     <label>Onderwerp<input name="ond" required maxlength="80" spellcheck="true" placeholder="Kort en duidelijk, bijvoorbeeld: Printer balie geeft papierstoring"></label>
     <div class="twee">
-      ${m.afd ? `<label>Afdeling${keuze(m.afd, 'afd', stdAfd)}</label>` : ''}
-      ${m.loc ? `<label>Locatie${keuze(m.loc, 'loc', '')}</label>` : ''}
+      ${m.afd ? `<label>Afdeling <i class="verpl" title="Verplicht">*</i>${keuze(m.afd, 'afd', stdAfd)}</label>` : ''}
+      ${m.loc ? `<label>Locatie <i class="verpl" title="Verplicht">*</i>${keuze(m.loc, 'loc', '')}</label>` : ''}
       ${m.type ? `<label>${esc(m.type.label)}${keuze(m.type, 'type', 'Incident')}</label>` : ''}
     </div>
     ${m.extra.map((f, i) => `<label>${esc(f.label || f.code)}${keuze(f, 'x' + i, '')}</label>`).join('')}
@@ -1733,6 +1773,8 @@ async function maakMelding(){
   const w = {StId: isNaN(+m.stId) ? m.stId : +m.stId, Ds: ond};
   if(f.tx.value.trim()) w.SbTx = f.tx.value.trim();
   const zet = (veld, v) => { if(veld && v !== '') w[veldCode(veld)] = veld.dataType === 'int' && !isNaN(+v) ? +v : v; };
+  { const leeg = [m.afd && f.afd && !f.afd.value ? 'Afdeling' : '', m.loc && f.loc && !f.loc.value ? 'Locatie' : ''].filter(Boolean);
+    if(leeg.length){ fout.textContent = `Vul ${leeg.join(' en ')} in; ${leeg.length === 1 ? 'dit veld is' : 'deze velden zijn'} verplicht.`; (leeg[0] === 'Afdeling' ? f.afd : f.loc).focus(); return; } }
   if(m.afd && f.afd) zet(m.afd, f.afd.value); if(m.loc && f.loc) zet(m.loc, f.loc.value); if(m.type && f.type) zet(m.type, f.type.value);
   m.extra.forEach((x, i) => zet(x, f['x' + i].value));
   if(f.behCode && f.behCode.value){ const sm = await laadSubjMeta(); if(!sm.verantw){ fout.textContent = 'Het veld Verantwoordelijke is niet gevonden in AFAS; laat Behandelaar leeg.'; return; } w[veldCode(sm.verantw)] = f.behCode.value; }
@@ -1950,6 +1992,15 @@ async function opslaanAlles(knopActie = null){
   const vs = $('#d-verantw'), nieuweVerantw = vs && vs.value && vs.value !== vs.dataset.oud ? {code: vs.value, naam: vs.options[vs.selectedIndex].textContent} : null;
   if(!nieuweAfd && !nieuweStatus && !nieuweVerantw && !nieuwGepland && !nieuweLoc && actieIdx == null && !tekst && !bijlT.length){ $('#d-fout').textContent = 'Er is niets gewijzigd: pas een veld aan, schrijf een reactie of voeg een bijlage toe.'; return; }
   const act = actieIdx != null && huidig.wf ? huidig.wf.acties[actieIdx] : null;
+  // verplicht bij opslaan: afdeling, locatie en status
+  { const leeg = [];
+    if(!nieuweAfd && !String(x.afdeling || '').trim()) leeg.push(['Afdeling', '#d-afd']);
+    const locBekend = heeftLocKolom || locCache.has(String(x.nr)), locNu = String(x.locatie || locCache.get(String(x.nr)) || '').trim();
+    if(!nieuweLoc && locBekend && !locNu) leeg.push(['Locatie', '#d-loc']);
+    if(!nieuweStatus && !act && !String(x.status || '').trim()) leeg.push(['Status', '#d-status']);
+    if(leeg.length){ leeg.forEach(([, sel]) => { const e = $(sel); if(e) e.classList.add('mist'); });
+      $('#d-fout').textContent = `Vul eerst ${leeg.map(l => l[0]).join(leeg.length > 2 ? ', ' : ' en ').replace(/, ([^,]*)$/, ' en $1')} in; ${leeg.length === 1 ? 'dit veld is' : 'deze velden zijn'} verplicht.`;
+      const e = $(leeg[0][1]); if(e){ e.focus(); e.scrollIntoView({block:'center', behavior:'smooth'}); } return; } }
   if(act && /reactie plaatsen/i.test(act.naam) && !tekst){ $('#d-fout').textContent = `Voor de status "${toonStatus(statusNa(act))}" schrijft AFAS een reactie aan de melder: vul eerst een reactie in.`; return; }
   if(act && soortActie(act) === 'plannen' && !(nieuwGepland && nieuwGepland.datum) && !x.gepland){ $('#d-fout').textContent = 'Kies eerst bij Gepland de datum van de werkzaamheden.'; return; }
   if(act && act.afhandelen && !(await vraag(`Ticket ${x.nr} afhandelen?`, 'Het ticket wordt afgesloten' + (tekst ? ' en je reactie gaat mee naar de melder.' : '.'), 'Afhandelen', 'Annuleren'))) return;
@@ -2277,7 +2328,7 @@ const isDonker = () => (document.documentElement.dataset.thema || (matchMedia('(
 $('#k-thema').onclick = () => { document.documentElement.dataset.thema = isDonker() ? 'licht' : 'donker'; opslag.set('mict-thema', document.documentElement.dataset.thema); };
 { const t = opslag.get('mict-thema'); document.documentElement.dataset.thema = t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'donker' : 'licht'); }
 setInterval(() => { $('#klok').textContent = new Date().toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'}) + ' · ' + fmtTijd(new Date()); }, 1000);
-setInterval(async () => { if(!$('#app').hidden && !$('#detail').open){ await laadGegevens(); teken(); } }, INST.verversMinuten * 60e3);
+setInterval(async () => { if(!$('#app').hidden && !$('#detail').open){ await laadGegevens(); teken(); controleerIctReacties(); } }, INST.verversMinuten * 60e3);
 
 /* ================= opstarten ================= */
 function laadKaart(naam){
@@ -2304,7 +2355,7 @@ function laadKaart(naam){
     await laadGegevens();
     if(status.fout && !items.length){ startInlog('Tickets ophalen mislukt: ' + status.fout); return; }
     if(!profiel.ingesteld) startProfiel(true); else toonApp();
-    verrijkMetTaken().then(() => laadRestOpAchtergrond());
+    verrijkMetTaken().then(() => { controleerIctReacties(); laadRestOpAchtergrond(); });
   }catch(e){ startInlog(e.message); }
 })();
 
