@@ -262,6 +262,10 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .tabel .chip.ongelezen{display:inline-flex}
 .chip[data-uitleg]{cursor:help}
 .tabel tr[draggable="true"]{cursor:grab}
+.onderbalk{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-top:1px solid var(--lijn);padding-top:14px}
+.onderbalk .actiebalk{flex:1;border:0;padding:0;margin:0}
+#k-opslaan{margin-left:auto;padding:8px 26px 8px 22px}
+select.afdkeuze.gewijzigd{background-color:var(--lichtblauw-2);border-bottom-style:solid;padding-left:6px}
 .afdbevestig{display:inline-flex;align-items:center;gap:8px;margin-left:10px}
 .knop.klein{padding:3px 12px 3px 10px;font-size:12.5px}
 #sleepvraag textarea{min-height:90px}
@@ -333,6 +337,7 @@ dialog#detail{width:min(1080px,calc(100vw - 32px))}
 .kaart2 h3{grid-column:1/-1;font-size:13px;color:var(--blauw);margin-bottom:2px}
 .kaart2 span{color:var(--grijs)}
 .kaart2 b{font-weight:500;overflow-wrap:anywhere}
+.kaart2 .toelkop{grid-column:1/-1;margin-top:6px}
 .kaart2 .lang{grid-column:1/-1;white-space:pre-wrap;font-weight:400;line-height:1.5;max-height:180px;overflow:auto;background:var(--vlak);border-radius:0 12px 12px 0;padding:10px 12px}
 .actiebalk{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 0 2px;border-top:1px solid var(--lijn)}
 .actiebalk select{border:1.5px solid var(--lijn);background:var(--vlak);border-radius:0 999px 999px 0;padding:7px 14px;min-width:220px}
@@ -405,7 +410,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.43 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.47 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -455,7 +460,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.43';
+const VERSIE = 'v3.47';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1062,9 +1067,9 @@ async function toonReacties(x){
   const el = $('#tijdlijn'); if(!el) return;
   try{
     const l = await haalReacties(x); if(!huidig || huidig.x !== x) return;
-    el.innerHTML = `<h3>Reacties (${l.length})</h3>` + (l.length ? l.map(r => `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''} ${r.intern ? 'intern' : ''}"><i>${esc(initialen(r.wie))}</i>
+    el.innerHTML = `<h3>Reacties (${l.length}) <small class="hint">nieuwste bovenaan</small></h3>` + (l.length ? [...l].reverse().map(r => `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''} ${r.intern ? 'intern' : ''}"><i>${esc(initialen(r.wie))}</i>
       <div class="wolk"><div class="kopje"><b>${esc(r.wie || 'Onbekend')}</b><span>${r.t ? fmtDatum(r.t) + ' ' + fmtTijd(r.t) : ''}</span>${r.intern ? '<span>· interne notitie</span>' : ''}</div><div class="tekst">${esc(r.tekst)}</div></div></div>`).join('') : `<p class="hint">Nog geen reacties.</p>${DEMO ? '' : `<p class="hint" style="font-size:11.5px;opacity:.7">${esc(reactieDiag)}</p>`}`);
-    el.scrollTop = el.scrollHeight;
+    el.scrollTop = 0;   // nieuwste reactie bovenaan, ouder = naar beneden scrollen
   }catch(e){ el.innerHTML = `<h3>Reacties</h3><p class="hint">Reacties ophalen lukte niet: ${esc(e.message)} Laat GetConnector ${esc(INST.connReacties)} koppelen aan de app connector van Mijn ICT-Omgeving.</p>`; }
 }
 let huidig = null;
@@ -1086,8 +1091,8 @@ function openDetail(nr){
       ${x._sg.length ? `<span class="chips" style="margin-left:auto">${x._sg.map(chip).join('')}</span>` : ''}</div>
     <div class="kaarten">
       <div class="kaart2"><h3>Melding</h3>${r('Melder', x.melder, {altijd:true})}${r('Type ticket', x.type)}${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}${r('Locatie', x.locatie)}
-        ${x.toelichting ? `<div class="lang">${esc(x.toelichting)}</div>` : ''}</div>
-      <div class="kaart2"><h3>Behandeling</h3><span>Afdeling</span><b>${x.afgesloten ? esc(x.afdeling || '–') : `<select id="d-afd" class="afdkeuze" title="Klik om de afdeling te wijzigen"><option>${esc(x.afdeling || '– kies afdeling –')}</option></select>`}</b>${r('Verantwoordelijke', x.verantw, {altijd:true})}${r('Status', toonStatus(x.status), {altijd:true})}<span>Taak</span><b id="d-taak">…</b>
+        <span class="toelkop">Toelichting</span><div class="lang" id="d-toel">${x.toelichting ? esc(x.toelichting) : '<span class="hint">Toelichting ophalen…</span>'}</div></div>
+      <div class="kaart2"><h3>Behandeling</h3><span>Afdeling</span><b>${x.afgesloten ? esc(x.afdeling || '–') : `<select id="d-afd" class="afdkeuze" title="Klik om de afdeling te wijzigen"><option>${esc(x.afdeling || '– kies afdeling –')}</option></select>`}</b>${r('Verantwoordelijke', x.verantw, {altijd:true})}<span>Status</span><b>${x.afgesloten ? esc(toonStatus(x.status) || '–') : `<select id="d-status" class="afdkeuze" title="Klik om de status te wijzigen"><option value="">${esc(toonStatus(x.status) || '– kies status –')}</option></select>`}</b>
         ${r('Gepland', x.gepland ? fmtDatum(x.gepland) : '')}${r('Laatste reactie', x.reactieDatum ? fmtDatum(x.reactieDatum) + (x.reactieDoor ? ' · ' + x.reactieDoor : '') : '')}${r('Extern ticket', x.extern)}${x.kritiek ? r('Kritieke storing', 'Ja') : ''}</div>
     </div>
     ${link ? `<a class="hint" href="${esc(link)}" target="_blank" rel="noopener">Openen in AFAS ↗</a>` : ''}
@@ -1096,15 +1101,53 @@ function openDetail(nr){
     <div class="composer">
       <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
       <div class="onder"><label class="vink notitie"><input type="checkbox" id="notitie"> Interne notitie <small>(alleen zichtbaar voor ICT)</small></label>
-        <span class="hint">Standaard is een reactie zichtbaar voor melder én ICT.</span><button class="knop" id="k-reageer">Plaats reactie</button></div>
+        <span class="hint">Standaard is een reactie zichtbaar voor melder én ICT.</span></div>
     </div>
-    <div class="actiebalk" id="actiebalk"><span class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Acties ophalen…</span></div>
+    <div class="onderbalk"><div class="actiebalk" id="actiebalk"><span class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Acties ophalen…</span></div>
+      <button type="button" class="knop vol" id="k-opslaan" title="Voert in één keer door: gewijzigde afdeling, gekozen actie en je reactie">Opslaan</button></div>
     <p class="fout" id="d-fout"></p>`}`;
   $('#detail').dataset.gewijzigd = ''; $('#detail').showModal();
   (DEMO ? Promise.resolve() : zorgSbId(x)).then(() => toonReacties(x)).catch(e => { const el = $('#tijdlijn'); if(el) el.innerHTML = `<h3>Reacties</h3><p class="hint">Het interne nummer van dit ticket kon niet worden opgezocht: ${esc(e.message)}</p>`; });
-  if(!x.afgesloten) vulAfdKeuze(x);
+  if(!x.afgesloten){ vulAfdKeuze(x); vulStatusKeuze(x); }
+  if(!x.toelichting) toonToelichting(x);
   if(!x.afgesloten){ laadWorkflow(x); $('#notitie').onchange = e => { $('#tekst').classList.toggle('intern', e.target.checked); $('#tekst').placeholder = e.target.checked ? 'Interne notitie voor collega’s…' : 'Schrijf een reactie aan de melder…'; }; }
-  else $('#d-taak').textContent = '–';
+  else ($('#d-taak') || {}).textContent = '–';
+}
+/* toelichting staat niet in de SLA-connector: per ticket ophalen uit een connector die het veld wel heeft */
+let toelBron;   // {conn, veld, filter} of null als geen connector het veld levert
+async function zoekToelBron(){
+  if(toelBron !== undefined) return toelBron;
+  toelBron = null;
+  for(const [conn, filter] of [[INST.connTickets, 'Nummer'], [INST.connSla, 'Nummer']]){
+    try{ const m = await afas(`/metainfo/get/${encodeURIComponent(conn)}`), velden = [];
+      (function loop(o){ if(!o || typeof o !== 'object') return; if(Array.isArray(o)) return o.forEach(loop); const id = o.id || o.fieldId; if(id && typeof id === 'string' && 'label' in o) velden.push({id, label: String(o.label || id)}); Object.values(o).forEach(loop); })(m);
+      const f = velden.find(v => /^toelichting|^sbtx$|^omschrijving melding|^memo|^tekst melding/i.test(v.label) || /^(Toelichting|SbTx)/i.test(v.id));
+      if(f){ toelBron = {conn, veld: f.id, filter}; break; }
+    }catch(e){}
+  }
+  return toelBron;
+}
+async function toonToelichting(x){
+  const el = $('#d-toel'); if(!el) return;
+  try{
+    if(DEMO){ x.toelichting = 'Sinds vanochtend valt de wifi op de 2e verdieping steeds weg. Collega’s op de poli hebben hetzelfde probleem.'; }
+    else { const b = await zoekToelBron();
+      if(!b){ el.innerHTML = '<span class="hint">De toelichting staat niet in de AFAS-connectors van deze pagina. Laat de beheerder het veld Toelichting toevoegen aan GetConnector ' + esc(INST.connTickets) + '.</span>'; return; }
+      const rows = (await afas(`/connectors/${encodeURIComponent(b.conn)}?skip=0&take=1${filterOp(b.filter, x.nr)}`)).rows || [];
+      x.toelichting = rows[0] ? kaal(rows[0][b.veld]) : ''; }
+    if(!$('#d-toel') || !huidig || huidig.x !== x) return;
+    $('#d-toel').innerHTML = x.toelichting ? esc(x.toelichting) : '<span class="hint">Geen toelichting ingevuld.</span>';
+  }catch(e){ el.innerHTML = `<span class="hint">Toelichting ophalen lukte niet: ${esc(e.message)}</span>`; }
+}
+async function vulStatusKeuze(x){
+  const sel = $('#d-status'); if(!sel) return;
+  try{ const m = await laadSubjMeta(); if(!huidig || huidig.x !== x) return;
+    if(!m.status) throw new Error('Het veld Status is niet gevonden in AFAS (KnSubject).');
+    const l = waardenVan(m.status.values), huidigW = l.find(w => norm(w.naam) === norm(x.status) || norm(w.code) === norm(x.status)) || l.find(w => norm(toonStatus(w.naam)) === norm(toonStatus(x.status)));
+    sel.innerHTML = (huidigW ? '' : `<option value="">${esc(toonStatus(x.status) || '– kies status –')}</option>`) + l.map(w => `<option value="${esc(w.code)}" ${w === huidigW ? 'selected' : ''}>${esc(toonStatus(w.naam))}</option>`).join('');
+    sel.dataset.oud = huidigW ? huidigW.code : '';
+    sel.onchange = () => sel.classList.toggle('gewijzigd', !!sel.value && sel.value !== sel.dataset.oud);
+  }catch(e){ sel.disabled = true; sel.title = e.message; }
 }
 async function vulAfdKeuze(x){
   const sel = $('#d-afd'); if(!sel) return;
@@ -1112,7 +1155,8 @@ async function vulAfdKeuze(x){
     const l = [...waarden].sort((a, b) => a.naam.localeCompare(b.naam, 'nl'));
     sel.innerHTML = (x.afdeling && l.some(w => norm(w.naam) === norm(x.afdeling)) ? '' : `<option value="">${esc(x.afdeling || '– kies afdeling –')}</option>`) + l.map(w => `<option ${norm(w.naam) === norm(x.afdeling) ? 'selected' : ''}>${esc(w.naam)}</option>`).join('');
     // niet meteen opslaan: eerst bevestigen (een reactie in het tekstveld gaat mee)
-    sel.onchange = () => { const b = $('#d-afd-ok');
+    sel.onchange = () => { sel.classList.toggle('gewijzigd', !!sel.value && norm(sel.value) !== norm(x.afdeling)); };
+    sel.onchangeOud = () => { const b = $('#d-afd-ok');
       if(!sel.value || norm(sel.value) === norm(x.afdeling)){ if(b) b.remove(); return; }
       if(!b) sel.insertAdjacentHTML('afterend', `<span id="d-afd-ok" class="afdbevestig"><button type="button" class="knop vol klein" id="d-afd-opslaan">Opslaan</button><button type="button" class="linkknop" id="d-afd-terug">Annuleren</button></span>`);
       $('#d-afd-terug').onclick = () => { sel.value = [...sel.options].find(o => norm(o.textContent) === norm(x.afdeling)) ? [...sel.options].find(o => norm(o.textContent) === norm(x.afdeling)).value : ''; $('#d-afd-ok').remove(); };
@@ -1124,20 +1168,19 @@ async function vulAfdKeuze(x){
 async function laadWorkflow(x){
   const el = $('#actiebalk');
   if(!DEMO) await zorgSbId(x).catch(() => null);
-  if(!x.sbid && !DEMO){ el.innerHTML = '<span class="fout">Het interne nummer (Dossieritem) van dit ticket is niet gevonden in Helpdesk_PowerBI; bijwerken kan niet.</span>'; $('#d-taak').textContent = '–'; return; }
+  if(!x.sbid && !DEMO){ el.innerHTML = '<span class="fout">Het interne nummer (Dossieritem) van dit ticket is niet gevonden in Helpdesk_PowerBI; bijwerken kan niet.</span>'; ($('#d-taak') || {}).textContent = '–'; return; }
   try{
     const [wf] = await Promise.all([workflow(x), zoekZichtVeld()]); if(!huidig || huidig.x !== x) return; huidig.wf = wf;
     const bijMij = wf.bij.some(benIk);
-    $('#d-taak').textContent = wf.taak ? wf.taak + (bijMij ? ' · bij jou' : '') : 'geen open taak';
+    ($('#d-taak') || {}).textContent = wf.taak ? wf.taak + (bijMij ? ' · bij jou' : '') : 'geen open taak';
     const st = stapVan(x);
     const hoofd = st === 0 ? wf.acties.find(isOppakActie) : wf.acties.find(a => a.afhandelen);
     const rest = wf.acties.filter(a => a !== hoofd && !isReactieActie(a) && !isNotitieActie(a) && !(a.afhandelen && st === 1));
     el.innerHTML = !wf.acties.length ? '<span class="hint">Geen workflowacties beschikbaar voor dit ticket.</span>' :
-      `${hoofd ? `<button class="knop vol" data-actie="${wf.acties.indexOf(hoofd)}">${esc(hoofd.naam)}</button>` : ''}
-       ${rest.length ? `<select id="actie-keuze"><option value="">Andere actie…</option>${rest.map(a => `<option value="${wf.acties.indexOf(a)}">${esc(a.naam)}</option>`).join('')}</select><span id="actie-extra" class="actie-extra"></span><button class="knop" id="k-actie" disabled>Uitvoeren</button>` : ''}
-       <span class="wfinfo">Tekst in het veld hierboven gaat mee met de actie</span>`;
+      `${hoofd ? `<button class="knop" data-actie="${wf.acties.indexOf(hoofd)}" title="Voert deze actie direct uit, samen met een gewijzigde afdeling en je reactie">${esc(hoofd.naam)}</button>` : ''}
+       ${rest.length ? `<select id="actie-keuze"><option value="">Andere actie…</option>${rest.map(a => `<option value="${wf.acties.indexOf(a)}">${esc(a.naam)}</option>`).join('')}</select><span id="actie-extra" class="actie-extra"></span>` : ''}`;
     const kies = $('#actie-keuze'); if(kies) kies.onchange = () => toonActieExtra(kies.value === '' ? null : wf.acties[+kies.value]);
-  }catch(e){ el.innerHTML = `<span class="fout">Acties ophalen mislukt: ${esc(e.message)}</span>`; $('#d-taak').textContent = '?'; }
+  }catch(e){ el.innerHTML = `<span class="fout">Acties ophalen mislukt: ${esc(e.message)}</span>`; ($('#d-taak') || {}).textContent = '?'; }
 }
 /* ---- velden van het dossieritem zelf (UpdateConnector KnSubject): behandelaar, geplande datum, status ---- */
 let subjMeta = null;
@@ -1194,7 +1237,7 @@ async function ictCollegas(){
 }
 let actieKeuze = null;   // gekozen collega of datum voor de actie
 async function toonActieExtra(a){
-  const el = $('#actie-extra'), knop = $('#k-actie'); actieKeuze = null; el.innerHTML = '';
+  const el = $('#actie-extra'), knop = $('#k-actie') || {}; actieKeuze = null; el.innerHTML = '';
   if(!a){ knop.disabled = true; return; }
   const sa = soortActie(a);
   if(sa === 'collega'){
@@ -1211,7 +1254,7 @@ async function toonActieExtra(a){
     $('#actie-datum').addEventListener('input', e => { actieKeuze = e.target.value ? {datum: e.target.value} : null; knop.disabled = !actieKeuze; });
   } else knop.disabled = false;
 }
-async function voerUit(actieIdx){
+async function voerUit(actieIdx, nieuweAfd = ''){
   const {x, wf} = huidig, tekst = $('#tekst').value.trim(), notitie = $('#notitie').checked;
   let a = actieIdx == null ? null : wf && wf.acties[actieIdx];
   const sa = a ? soortActie(a) : null;
@@ -1250,10 +1293,10 @@ async function voerUit(actieIdx){
     const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect:$('#detail').getBoundingClientRect()};
     $('#detail').close();
     const wat = sa === 'collega' ? `Toegewezen aan ${actieKeuze.naam}` : sa === 'mij' ? 'Aan jou toegewezen' : sa === 'plannen' ? `Ingepland op ${fmtDatum(new Date(actieKeuze.datum))}` : a ? `${a.naam}: verwerkt in AFAS` : notitie ? 'Interne notitie geplaatst' : 'Reactie geplaatst';
-    toast(wat + waarschuwing, !!waarschuwing);
+    toast((nieuweAfd ? `${nieuweAfd} · ` : '') + wat + waarschuwing, !!waarschuwing);
     await laadGegevens(); teken();
     toonVerplaatsing(voor);
-  }catch(e){ $('#d-fout').textContent = e.message; document.querySelectorAll('#detail button, #detail select').forEach(b => b.disabled = false); }
+  }catch(e){ $('#d-fout').textContent = (nieuweAfd ? `Al doorgevoerd (${nieuweAfd}), maar: ` : '') + e.message; document.querySelectorAll('#detail button, #detail select').forEach(b => b.disabled = false); }
 }
 
 /* ================= nieuwe melding aanmaken (UpdateConnector KnSubject) ================= */
@@ -1496,6 +1539,32 @@ async function plaatsReactie(x, tekst){
   if(zv) f[zv.code] = zv.soort === 'lijst' ? zv.extern : (zv.omgekeerd ? false : true);
   await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body: JSON.stringify({KnWorkflow:{Element:{Fields:f}}})});
 }
+async function zetAfdelingVeld(x, naam){
+  const {veld, waarden} = await afdelingKeuzes(), w = waarden.find(v => norm(v.naam) === norm(naam));
+  if(!w) throw new Error(`Afdeling "${naam}" staat niet in de keuzelijst van AFAS.`);
+  if(!DEMO) await zorgSbId(x); if(!x.sbid) throw new Error('Het interne nummer van dit ticket is onbekend.');
+  await zetVelden(x, {[veldCode(veld)]: veld.dataType === 'int' && !isNaN(+w.code) ? +w.code : w.code});
+  return w.naam;
+}
+/* Opslaan in het ticket: afdeling, gekozen actie en reactie in één keer */
+async function opslaanAlles(knopActie = null){
+  const {x} = huidig, sel = $('#d-afd'), kies = $('#actie-keuze'), tekst = ($('#tekst') && $('#tekst').value.trim()) || '';
+  const nieuweAfd = sel && sel.value && norm(sel.value) !== norm(x.afdeling) ? sel.value : '';
+  const actieIdx = knopActie != null ? knopActie : kies && kies.value !== '' ? +kies.value : null;
+  const ss = $('#d-status'), nieuweStatus = ss && ss.value && ss.value !== ss.dataset.oud ? ss.value : '', statusNaam = nieuweStatus ? ss.options[ss.selectedIndex].textContent : '';
+  if(!nieuweAfd && !nieuweStatus && actieIdx == null && !tekst){ $('#d-fout').textContent = 'Er is niets gewijzigd: pas afdeling of status aan, kies een actie of schrijf een reactie.'; return; }
+  const knop = $('#k-opslaan'); knop.disabled = true; $('#d-fout').textContent = '';
+  try{
+    if(nieuweAfd){ await zetAfdelingVeld(x, nieuweAfd); }
+    if(nieuweStatus){ const m = await laadSubjMeta(); if(!DEMO) await zorgSbId(x); await zetVelden(x, {[veldCode(m.status)]: nieuweStatus}); }
+    const gedaan = [nieuweAfd && '→ ' + nieuweAfd, statusNaam && 'status ' + statusNaam].filter(Boolean).join(' · ');
+    if(actieIdx != null || tekst){ await voerUit(actieIdx, gedaan); return; }
+    // alleen de afdeling gewijzigd
+    const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect:$('#detail').getBoundingClientRect()};
+    $('#detail').dataset.gewijzigd = ''; $('#detail').close(); toast(`Ticket ${x.nr}: ${gedaan}`);
+    await laadGegevens(); teken(); toonVerplaatsing(voor);
+  }catch(e){ $('#d-fout').textContent = e.message; knop.disabled = false; }
+}
 async function zetAfdeling(x, naam, van, tekst = ''){
   if(norm(naam) === norm(x.afdeling)) return;
   try{
@@ -1634,9 +1703,10 @@ document.addEventListener('click', e => {
   const m = e.target.closest('.meer'); if(m){ const id = m.dataset.blok; blokOpen.has(id) ? blokOpen.delete(id) : blokOpen.add(id); teken(); return; }
   const w = e.target.closest('[data-weergave]'); if(w){ tab = w.dataset.weergave; filt.zoek = ''; $('#f-zoek').value = ''; teken(); scrollTo(0, 0); return; }
   if(e.target.closest('[data-sluit]')){ sluitDialoog($('#detail')); return; }
-  const a = e.target.closest('[data-actie]'); if(a){ voerUit(+a.dataset.actie); return; }
+  const a = e.target.closest('[data-actie]'); if(a){ opslaanAlles(+a.dataset.actie); return; }   // bv. Afhandelen: neemt afdeling en reactie mee
   if(e.target.closest('#k-actie')){ const v = $('#actie-keuze').value; if(v !== '') voerUit(+v); return; }
   if(e.target.closest('#k-reageer')){ voerUit(null); return; }
+  if(e.target.closest('#k-opslaan')){ opslaanAlles(); return; }
   const sb = e.target.closest('#f-soort button'); if(sb){ soortKeuze[tab] = sb.dataset.v; opslag.set('mict-soort', soortKeuze); teken(); return; }
   const kk = e.target.closest('[data-kolkeuze]'); if(kk){ kolKeuze(kk); return; }
   if(e.target.closest('[data-kolstd]')){ verborgenKol = new Set(); opslag.set('mict-kolommen-uit', []); $('#kolkeuze').hidden = true; teken(); return; }
