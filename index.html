@@ -546,7 +546,12 @@ dialog#detail.groot .toelblok .lang{max-height:40vh}
 .vink.notitie{white-space:nowrap;flex:none;background:var(--goud-licht);border-radius:0 999px 999px 0;padding:4px 12px 4px 8px;color:var(--bruin)}
 textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
 /* bijlagen */
-.bijlbalk{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;padding:5px 14px;border-radius:0 999px 999px 0;background:var(--achtergrond);border:1.5px dashed transparent;font-size:12.5px;min-height:34px;transition:border-color .15s,background .15s}
+.bijlbalk{display:flex;align-items:center;gap:4px 8px;flex-wrap:wrap;padding:0 2px;border-radius:0 14px 14px 0;background:transparent;border:1.5px dashed transparent;font-size:12px;min-height:22px;transition:min-height .15s,border-color .15s,background .15s,padding .15s}
+.bijlbalk .bijlchip{padding:1px 8px 1px 5px!important;font-size:11.5px!important}
+dialog#detail.sleept .bijlbalk{min-height:84px;padding:8px 16px;border-color:var(--blauw-2);background:var(--lichtblauw-2);position:relative}
+dialog#detail.sleept .bijlbalk::after{content:'Sleep je bestand hierheen om het aan het ticket toe te voegen';position:absolute;left:0;right:0;bottom:8px;text-align:center;color:var(--blauw);font-weight:600;font-size:13px;pointer-events:none}
+dialog#detail.sleept .composer{outline:1.5px dashed var(--lijn);outline-offset:4px;border-radius:12px}
+.onderbalk{position:sticky;bottom:-24px;background:var(--vlak);padding-bottom:4px;z-index:3}
 .bijlbalk.erover{border-color:var(--blauw-2);background:var(--lichtblauw-2)}
 .bijlbalk .bijltitel{display:inline-flex;align-items:center;gap:5px;color:var(--blauw)}
 .bijlbalk .bijltitel svg{width:14px;height:14px}
@@ -654,7 +659,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.81 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.82 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -713,7 +718,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.81';
+const VERSIE = 'v3.82';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1786,7 +1791,6 @@ function openDetail(nr){
       ${x.afgesloten ? '' : `<button type="button" class="linkknop" id="k-bijl" title="Bestand kiezen. Je kunt ook bestanden op het ticket slepen of een schermafbeelding plakken met Ctrl+V.">+ Toevoegen</button><input type="file" id="f-ticket" multiple hidden>`}</div>
     
     ${x.afgesloten ? '<div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3></div><p class="hint">Dit ticket is afgehandeld.</p>' : `
-    <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>
     <div class="composer">
       <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
       <div class="klaarzet" id="klaar-reactie"></div>
@@ -1794,6 +1798,7 @@ function openDetail(nr){
         <select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select>
         <span class="hint" id="notitie-uitleg">Standaard is een reactie zichtbaar voor melder én ICT.</span></div>
     </div>
+    <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>
     <div class="onderbalk"><div class="actiebalk" id="actiebalk"><button class="knop" data-snel="${st === 0 ? 'oppak' : 'sluit'}" title="Kan meteen: wacht zo nodig even op de workflow uit AFAS">${st === 0 ? 'Toewijzen aan mij' : 'Afhandelen'}</button></div>
       <span class="mailvooraf" id="mailvooraf" hidden></span>
       <span class="opslaanknoppen"><button type="button" class="knop" id="k-opslaan-blijf" title="Alles doorvoeren en het ticket open houden"><span class="opslaanmail" hidden>✉ </span>Opslaan</button>
@@ -1974,11 +1979,11 @@ function sleepDoel(e){
 const wisErover = (behalve) => document.querySelectorAll('.erover').forEach(n => n !== behalve && n.classList.remove('erover'));
 ['dragenter', 'dragover'].forEach(t => document.addEventListener(t, e => {
   if(!metBestanden(e)) return; e.preventDefault();   // nooit het bestand zelf in de browser openen
-  const d = sleepDoel(e); wisErover(d && d.el);
+  const d = sleepDoel(e); wisErover(d && d.el); $('#detail').classList.toggle('sleept', !!e.target.closest('#detail'));
   if(d){ e.dataTransfer.dropEffect = 'copy'; d.el.classList.add('erover'); } else e.dataTransfer.dropEffect = 'none'; }));
-document.addEventListener('dragleave', e => { if(metBestanden(e) && !e.relatedTarget) wisErover(); });
+document.addEventListener('dragleave', e => { if(metBestanden(e) && !e.relatedTarget){ wisErover(); $('#detail').classList.remove('sleept'); } });
 document.addEventListener('drop', e => {
-  if(!metBestanden(e)) return; e.preventDefault(); const d = sleepDoel(e); wisErover();
+  if(!metBestanden(e)) return; e.preventDefault(); const d = sleepDoel(e); wisErover(); $('#detail').classList.remove('sleept');
   if(d && e.dataTransfer.files.length) (d.soort === 'nieuw' ? zetNieuwBijl : f => zetKlaar(f, d.soort))(e.dataTransfer.files);
 });
 // plakken (Ctrl+V) van een schermafbeelding of gekopieerd bestand
