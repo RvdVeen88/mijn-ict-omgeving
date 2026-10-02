@@ -391,6 +391,10 @@ dialog#detail .navpijl[hidden]{display:none}
 .kaart2 span{color:var(--grijs)}
 .kaart2 b{font-weight:500;overflow-wrap:anywhere}
 .kaart2 .toelkop{grid-column:1/-1;margin-top:6px}
+.toelblok{display:flex;flex-direction:column;gap:6px}
+.toelblok h3{font-size:13px;color:var(--blauw)}
+.toelblok .lang{white-space:pre-wrap;font-size:13.5px;line-height:1.5;max-height:220px;overflow:auto;background:var(--achtergrond);border-radius:0 14px 14px 14px;padding:10px 14px;overflow-wrap:anywhere}
+dialog#detail.groot .toelblok .lang{max-height:40vh}
 .kaart2 .lang{grid-column:1/-1;white-space:pre-wrap;font-weight:400;line-height:1.5;max-height:180px;overflow:auto;background:var(--vlak);border-radius:0 12px 12px 0;padding:10px 12px}
 .actiebalk{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 0 2px;border-top:1px solid var(--lijn)}
 .actiebalk select{border:1.5px solid var(--lijn);background:var(--vlak);border-radius:0 999px 999px 0;padding:7px 14px;min-width:220px}
@@ -490,7 +494,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
   <div class="werk">
     <div class="bovenbalk">
       <h1 id="titel">Voor mij</h1><span class="sub" id="subtitel"></span>
-      <div class="rechts"><span class="klok" id="klok"></span><div class="schakel klein" id="mijalles-top" role="group" title="Geldt voor Aandacht nodig. Mij = alleen jouw tickets."><button type="button" data-v="mij">Mij</button><button type="button" data-v="alles">Alles</button></div><button type="button" class="ik" id="ik" title="Mijn instellingen"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
+      <div class="rechts"><span class="klok" id="klok"></span><div class="schakel klein" id="mijalles-top" role="group" aria-label="Welke tickets je ziet"><button type="button" data-v="mij" title="Alleen tickets waar jij behandelaar bent of een taak hebt">Mij</button><button type="button" data-v="afd" title="Jouw tickets plus alles in je ★-afdelingen, wie de behandelaar ook is">Afdelingen</button><button type="button" data-v="alles" title="Alle tickets">Alles</button></div><button type="button" class="ik" id="ik" title="Mijn instellingen"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
     </div>
     <main>
       <section id="v-mij">
@@ -1165,7 +1169,7 @@ function tekenNav(){
     <h4>Mijn afdelingen</h4>${favL.map(rijA).join('') || '<p class="favhint"><b style="color:var(--inkt);font-weight:500">Geen afdeling geselecteerd</b><br>Zet een ★ bij een afdeling om hem hier te tonen.</p>'}
     <h4><button type="button" id="k-overige" aria-expanded="${restOpen}">${ico('<path d="M6 9l6 6 6-6"/>')}Overige afdelingen (${rest.length})</button></h4>
     ${restOpen ? rest.map(rijA).join('') : ''}
-    <h4>Overzicht</h4>${ONDER.map(v => it(v.id, v.t, v.geenTel ? null : v.f().length, v)).join('')}`;
+    <h4>Overzicht</h4>${ONDER.map(v => it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}`;
 }
 
 function tekenMij(){
@@ -1191,30 +1195,29 @@ function tekenMij(){
 }
 const filt = {zoek:''};
 // schuifje 'Alleen mijn tickets': per afdeling (standaard uit) en bij Aandacht nodig (standaard aan); onthouden per weergave
-const alleenMijn = opslag.get('mict-alleenmijn') || {};
-const heeftSchuif = t => t.startsWith('afd:');
-const heeftMijAlles = t => t === 'norm';
-let mijAllesStand = opslag.get('mict-mijalles-v2') || 'mij';
-const schuifAan = t => heeftSchuif(t) ? !!alleenMijn[t] : heeftMijAlles(t) ? mijAllesStand === 'mij' : false;
+/* één filter rechtsboven voor alle lijsten: Mij (jouw tickets), Afdelingen (ook alles in je ★-afdelingen) of Alles */
+let mijAllesStand = opslag.get('mict-filter3') || 'mij';
+const ZONDER_FILTER = new Set(['toegewezen', 'historie']);   // Mijn tickets is altijd van jou; Historie is persoonlijk
+const schuifAan = t => !ZONDER_FILTER.has(t) && mijAllesStand !== 'alles';
 // wat telt als 'Mij': alleen jouw tickets; bij nieuwe tickets ook wat nieuw binnenkomt in je ★-afdelingen
 const vanMij = (t, x) => isMijn(x) || (t === 'nieuw' && inGebied(x));
 const soortKeuze = opslag.get('mict-soort') || {};   // per afdeling: alle | meldingen | changes
 const soortVan = t => t.startsWith('afd:') ? (soortKeuze[t] || 'alle') : 'alle';
 function zichtbaar(t, l){
-  if(schuifAan(t)) l = heeftMijAlles(t) ? l.filter(x => vanMij(t, x)) : l.filter(isMijn);
+  if(!ZONDER_FILTER.has(t)){
+    if(mijAllesStand === 'mij') l = l.filter(x => vanMij(t, x));
+    else if(mijAllesStand === 'afd' && !t.startsWith('afd:')) l = l.filter(x => isMijn(x) || inGebied(x));   // in een afdeling zelf: alles van die afdeling
+  }
   const sk = soortVan(t); if(sk === 'changes') l = l.filter(isChange); if(sk === 'meldingen') l = l.filter(x => !isChange(x));
   return l;
 }
 // alleen eigen tickets in beeld: dan is de kolom Behandelaar overbodig (dat ben je zelf)
-const alleenEigen = t => t === 'toegewezen' || (t === 'norm' && schuifAan(t)) || (t.startsWith('afd:') && schuifAan(t));
+const alleenEigen = t => t === 'toegewezen' || (mijAllesStand === 'mij' && t !== 'nieuw' && !ZONDER_FILTER.has(t));
 function tekenLijst(){
   if(tab === 'historie') return tekenHistorie();
   const v = weergave(tab), w = norm(filt.zoek);
   let l = v.lijst;
-  $('#f-mijn').hidden = !heeftSchuif(tab); $('#f-mijn input').checked = schuifAan(tab);
-  $('#f-mijalles').hidden = true;
-  if(heeftMijAlles(tab)){ const alle = l.length, mij = l.filter(x => vanMij(tab, x)).length;
-    $('#f-mijalles').querySelectorAll('button').forEach(b => { b.setAttribute('aria-pressed', (b.dataset.v === 'mij') === schuifAan(tab)); b.querySelector('b').textContent = b.dataset.v === 'mij' ? mij : alle; }); }
+  $('#f-mijn').hidden = true; $('#f-mijalles').hidden = true;
   $('#f-soort').hidden = !tab.startsWith('afd:'); $('#f-soort').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === soortVan(tab)));
   l = zichtbaar(tab, l);
   if(w) l = l.filter(x => x.zoek.includes(w));
@@ -1455,11 +1458,11 @@ function openDetail(nr){
       ${(() => { const sg = x._sg.filter(s => s.code !== 'onvolledig'); return sg.length ? `<span class="chips" style="margin-left:auto">${sg.map(chip).join('')}</span>` : ''; })()}</div>
     ${!x.afgesloten && isNieuw(x) ? `<div class="checklist" id="d-check">${checklist(x)}</div>` : ''}
     <div class="kaarten">
-      <div class="kaart2"><h3>Melding</h3>${r('Melder', x.melder, {altijd:true})}${r('Type ticket', x.type)}${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}<span>Locatie${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.locatie || '–') : `<select id="d-loc" class="afdkeuze" title="Klik om de locatie te wijzigen"><option value="">${esc(x.locatie || '– kies locatie –')}</option></select>`}</b>
-        <span class="toelkop">Toelichting</span><div class="lang" id="d-toel">${x.toelichting ? esc(x.toelichting) : '<span class="hint">Toelichting ophalen…</span>'}</div></div>
+      <div class="kaart2"><h3>Melding</h3>${r('Melder', x.melder, {altijd:true})}${r('Type ticket', x.type)}${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}<span>Locatie${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.locatie || '–') : `<select id="d-loc" class="afdkeuze" title="Klik om de locatie te wijzigen"><option value="">${esc(x.locatie || '– kies locatie –')}</option></select>`}</b></div>
       <div class="kaart2"><h3>Behandeling</h3><span>Afdeling${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.afdeling || '–') : `<select id="d-afd" class="afdkeuze" title="Klik om de afdeling te wijzigen"><option>${esc(x.afdeling || '– kies afdeling –')}</option></select>`}</b><span>Verantwoordelijke</span><b>${x.afgesloten ? esc(x.verantw || '–') : `<select id="d-verantw" class="afdkeuze" title="Klik om de verantwoordelijke te wijzigen"><option value="">${esc(x.verantw || '– niemand –')}</option></select>${benIk(x.verantw) ? '' : '<button type="button" class="linkknop aanmij" id="d-aanmij">Aan mij toewijzen</button>'}`}</b><span>Status${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(toonStatus(x.status) || '–') : `<select id="d-status" class="afdkeuze" title="Klik om de status te wijzigen"><option value="">${esc(toonStatus(x.status) || '– kies status –')}</option></select>`}</b>
         ${x.afgesloten ? r('Gepland', x.gepland ? fmtDatum(x.gepland) : '') : `<span>Gepland</span><b><input type="date" id="d-gepland" class="datumkeuze" value="${x.gepland ? isoD(x.gepland) : ''}" data-oud="${x.gepland ? isoD(x.gepland) : ''}" title="Datum waarop het werk gepland staat"></b>`}${r('Laatste reactie', x.reactieDatum ? fmtDatum(x.reactieDatum) + (x.reactieDoor ? ' · ' + x.reactieDoor : '') : '')}${r('Extern ticket', x.extern)}${x.kritiek ? r('Kritieke storing', 'Ja') : ''}</div>
     </div>
+    <div class="toelblok"><h3>Toelichting</h3><div class="lang" id="d-toel">${x.toelichting ? esc(x.toelichting) : '<span class="hint">Toelichting ophalen…</span>'}</div></div>
     <div class="bijlbalk" id="d-bijl"><span class="bijltitel">${CLIP}<b id="bijl-titel">Bijlagen</b></span>
       <span id="bijl-lijst" class="bijlrij"><span class="hint">ophalen…</span></span><span class="klaarzet" id="klaar-ticket"></span>
       ${x.afgesloten ? '' : `<button type="button" class="linkknop" id="k-bijl" title="Bestand kiezen. Je kunt ook bestanden op het ticket slepen of een schermafbeelding plakken met Ctrl+V.">+ Toevoegen</button><input type="file" id="f-ticket" multiple hidden>`}</div>
@@ -2422,7 +2425,7 @@ function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken
 /* ================= bediening ================= */
 document.addEventListener('click', e => {
   if(!e.target.closest('#kolkeuze') && !e.target.closest('[data-kolkeuze]')) $('#kolkeuze').hidden = true;
-  const ma = e.target.closest('#mijalles-top button'); if(ma){ mijAllesStand = ma.dataset.v; opslag.set('mict-mijalles-v2', mijAllesStand); teken(); return; }
+  const ma = e.target.closest('#mijalles-top button'); if(ma){ mijAllesStand = ma.dataset.v; opslag.set('mict-filter3', mijAllesStand); teken(); return; }
   const fv = e.target.closest('[data-fav]'); if(fv){ wisselFavoriet(fv.dataset.fav); return; }
   if(e.target.closest('#k-overige')){ overigeOpen = !overigeOpen; tekenNav(); return; }
   const wf = e.target.closest('[data-wisfilter]'); if(wf){ delete kolFilter[wf.dataset.wisfilter]; teken(); return; }
@@ -2498,7 +2501,7 @@ document.addEventListener('mouseover', e => {
 });
 document.addEventListener('change', e => {
   const kc = e.target.closest('#kolkeuze [data-kol]'); if(kc){ kc.checked ? verborgenKol.delete(kc.dataset.kol) : verborgenKol.add(kc.dataset.kol); opslag.set('mict-kolommen-uit', [...verborgenKol]); teken(); return; }
-  if(e.target.closest('#f-mijn')){ alleenMijn[tab] = e.target.checked; opslag.set('mict-alleenmijn', alleenMijn); teken(); }
+
 });
 function zetKolFilter(id, k, v, focus = true, pos){
   (kolFilter[id] = kolFilter[id] || {})[k] = v; teken();
