@@ -407,7 +407,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
 .klaarzet{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .klaarzet::before{content:'Wordt toegevoegd bij Opslaan:';font-size:12px;color:var(--grijs)}
 #klaar-reactie::before{content:'Gaat mee met de reactie:'}
-.paperclip{display:inline-flex;align-items:center;gap:4px}
+.paperclip{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
 .paperclip svg{width:15px;height:15px}
 .nform input[type=file]{font-size:13px}
 .bekijkdlg{width:min(1000px,94vw);height:min(86vh,900px);padding:0;border:0;border-radius:0 22px 22px 0;background:var(--vlak);color:var(--inkt);box-shadow:0 24px 60px rgba(3,31,77,.35)}
@@ -1230,7 +1230,7 @@ function openDetail(nr){
       <div class="kaart2"><h3>Behandeling</h3><span>Afdeling</span><b>${x.afgesloten ? esc(x.afdeling || '–') : `<select id="d-afd" class="afdkeuze" title="Klik om de afdeling te wijzigen"><option>${esc(x.afdeling || '– kies afdeling –')}</option></select>`}</b><span>Verantwoordelijke</span><b>${x.afgesloten ? esc(x.verantw || '–') : `<select id="d-verantw" class="afdkeuze" title="Klik om de verantwoordelijke te wijzigen"><option value="">${esc(x.verantw || '– niemand –')}</option></select>${benIk(x.verantw) ? '' : '<button type="button" class="linkknop aanmij" id="d-aanmij">Aan mij toewijzen</button>'}`}</b><span>Status</span><b>${x.afgesloten ? esc(toonStatus(x.status) || '–') : `<select id="d-status" class="afdkeuze" title="Klik om de status te wijzigen"><option value="">${esc(toonStatus(x.status) || '– kies status –')}</option></select>`}</b>
         ${x.afgesloten ? r('Gepland', x.gepland ? fmtDatum(x.gepland) : '') : `<span>Gepland</span><b><input type="date" id="d-gepland" class="datumkeuze" value="${x.gepland ? isoD(x.gepland) : ''}" data-oud="${x.gepland ? isoD(x.gepland) : ''}" title="Datum waarop het werk gepland staat"></b>`}${r('Laatste reactie', x.reactieDatum ? fmtDatum(x.reactieDatum) + (x.reactieDoor ? ' · ' + x.reactieDoor : '') : '')}${r('Extern ticket', x.extern)}${x.kritiek ? r('Kritieke storing', 'Ja') : ''}</div>
     </div>
-    <div class="bijlagen" id="d-bijl"><div class="bijlkop"><h3 id="bijl-titel">Bijlagen</h3>${x.afgesloten ? '' : `<button type="button" class="linkknop paperclip" id="k-bijl">${CLIP}Bijlage toevoegen</button><input type="file" id="f-ticket" multiple hidden><span class="hint">of sleep bestanden hierheen</span>`}</div>
+    <div class="bijlagen" id="d-bijl"><div class="bijlkop"><h3 id="bijl-titel">Bijlagen</h3>${x.afgesloten ? '' : `<button type="button" class="linkknop paperclip" id="k-bijl">${CLIP}Bijlage toevoegen</button><input type="file" id="f-ticket" multiple hidden><span class="hint">of sleep hierheen · Ctrl+V plakt</span>`}</div>
       <div id="bijl-lijst"><span class="hint">Bijlagen ophalen…</span></div><div class="klaarzet" id="klaar-ticket"></div></div>
     ${link ? `<a class="hint" href="${esc(link)}" target="_blank" rel="noopener">Openen in AFAS ↗</a>` : ''}
     ${x.afgesloten ? '<div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3></div><p class="hint">Dit ticket is afgehandeld.</p>' : `
@@ -1238,7 +1238,7 @@ function openDetail(nr){
     <div class="composer">
       <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
       <div class="klaarzet" id="klaar-reactie"></div>
-      <div class="onder"><button type="button" class="linkknop paperclip" id="k-clip" title="Bestand meesturen met deze reactie (of sleep/plak het in het tekstvak)">${CLIP}Bijlage bij reactie</button><input type="file" id="f-reactie" multiple hidden><label class="vink notitie"><input type="checkbox" id="notitie"> Interne notitie <small>(alleen zichtbaar voor ICT)</small></label>
+      <div class="onder"><button type="button" class="linkknop paperclip" id="k-clip" title="Bestand meesturen met deze reactie. Je kunt ook een bestand op het reactievak slepen of een schermafbeelding plakken met Ctrl+V.">${CLIP}Bijlage bij reactie</button><input type="file" id="f-reactie" multiple hidden><label class="vink notitie"><input type="checkbox" id="notitie"> Interne notitie <small>(alleen zichtbaar voor ICT)</small></label>
         <span class="hint" id="notitie-uitleg">Standaard is een reactie zichtbaar voor melder én ICT.</span></div>
     </div>
     <div class="onderbalk"><div class="actiebalk" id="actiebalk"><span class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Acties ophalen…</span></div>
@@ -1388,27 +1388,49 @@ document.addEventListener('click', e => {
 document.addEventListener('change', e => {
   if(e.target.id === 'f-ticket' || e.target.id === 'f-reactie'){ zetKlaar(e.target.files, e.target.id === 'f-ticket' ? 'ticket' : 'reactie'); e.target.value = ''; }
 });
-// slepen: op het blok Bijlagen = algemeen, op het reactievak = bij de reactie
+// slepen: op het reactievak = bij de reactie, ergens anders in het ticket = algemene bijlage; in Nieuwe melding = bij de melding
 const metBestanden = e => e.dataTransfer && [...(e.dataTransfer.types || [])].includes('Files');
-['dragenter', 'dragover'].forEach(t => $('#detail').addEventListener(t, e => {
-  if(!metBestanden(e)) return; const z = e.target.closest('#d-bijl, .composer');
-  document.querySelectorAll('#detail .erover').forEach(n => n !== z && n.classList.remove('erover'));
-  e.preventDefault();   // nooit het bestand zelf in de browser openen
-  if(z && !(z.id === 'd-bijl' && !$('#k-bijl'))){ e.dataTransfer.dropEffect = 'copy'; z.classList.add('erover'); } else e.dataTransfer.dropEffect = 'none'; }));
-['dragover', 'drop'].forEach(t => document.addEventListener(t, e => { if(metBestanden(e) && !e.target.closest('#detail')) e.preventDefault(); }));
-$('#detail').addEventListener('dragleave', e => { const z = e.target.closest('#d-bijl, .composer'); if(z && !z.contains(e.relatedTarget)) z.classList.remove('erover'); });
-$('#detail').addEventListener('drop', e => {
-  if(!metBestanden(e)) return; const z = e.target.closest('#d-bijl, .composer'); e.preventDefault();
-  document.querySelectorAll('#detail .erover').forEach(n => n.classList.remove('erover'));
-  if(z && !(z.id === 'd-bijl' && !$('#k-bijl')) && e.dataTransfer.files.length) zetKlaar(e.dataTransfer.files, z.id === 'd-bijl' ? 'ticket' : 'reactie');
+const magTicketBijl = () => !!$('#k-bijl');
+function sleepDoel(e){
+  const nd = e.target.closest('#nieuw'); if(nd) return $('#n-bijl') ? {el: $('#n-bijl'), soort: 'nieuw'} : null;
+  if(!e.target.closest('#detail') || !huidig) return null;
+  const c = e.target.closest('.composer'); if(c) return {el: c, soort: 'reactie'};
+  return magTicketBijl() ? {el: $('#d-bijl'), soort: 'ticket'} : null;
+}
+const wisErover = (behalve) => document.querySelectorAll('.erover').forEach(n => n !== behalve && n.classList.remove('erover'));
+['dragenter', 'dragover'].forEach(t => document.addEventListener(t, e => {
+  if(!metBestanden(e)) return; e.preventDefault();   // nooit het bestand zelf in de browser openen
+  const d = sleepDoel(e); wisErover(d && d.el);
+  if(d){ e.dataTransfer.dropEffect = 'copy'; d.el.classList.add('erover'); } else e.dataTransfer.dropEffect = 'none'; }));
+document.addEventListener('dragleave', e => { if(metBestanden(e) && !e.relatedTarget) wisErover(); });
+document.addEventListener('drop', e => {
+  if(!metBestanden(e)) return; e.preventDefault(); const d = sleepDoel(e); wisErover();
+  if(d && e.dataTransfer.files.length) (d.soort === 'nieuw' ? zetNieuwBijl : f => zetKlaar(f, d.soort))(e.dataTransfer.files);
 });
-// schermafbeelding plakken in het reactievak
+// plakken (Ctrl+V) van een schermafbeelding of gekopieerd bestand
+const plakNamen = f => { const n = new Date(), tw = v => String(v).padStart(2, '0'), stempel = `${n.getFullYear()}${tw(n.getMonth() + 1)}${tw(n.getDate())}-${tw(n.getHours())}${tw(n.getMinutes())}${tw(n.getSeconds())}`;
+  return f.map((b, i) => /^image\.\w+$/i.test(b.name) || !b.name ? new File([b], `schermafbeelding-${stempel}${f.length > 1 ? '-' + (i + 1) : ''}.${(b.type.split('/')[1] || 'png').replace('jpeg', 'jpg')}`, {type: b.type}) : b); };
 document.addEventListener('paste', e => {
-  if(e.target.id !== 'tekst' || !e.clipboardData) return;
-  const f = [...e.clipboardData.files]; if(!f.length) return; e.preventDefault();
-  const stempel = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '-');
-  zetKlaar(f.map((b, i) => /^image\.\w+$/i.test(b.name) || !b.name ? new File([b], `schermafbeelding-${stempel}${f.length > 1 ? '-' + (i + 1) : ''}.${(b.type.split('/')[1] || 'png').replace('jpeg', 'jpg')}`, {type: b.type}) : b), 'reactie');
+  if(!e.clipboardData) return; const f = [...e.clipboardData.files]; if(!f.length) return;
+  if($('#nieuw').open && $('#n-bijl')){ e.preventDefault(); zetNieuwBijl(plakNamen(f)); return; }
+  if(!$('#detail').open || !huidig) return;
+  if(e.target.id === 'tekst'){ e.preventDefault(); zetKlaar(plakNamen(f), 'reactie'); return; }
+  if(magTicketBijl()){ e.preventDefault(); zetKlaar(plakNamen(f), 'ticket'); }
 });
+// Nieuwe melding: bijlagen klaarzetten
+let nieuwBijl = [];
+function zetNieuwBijl(files){
+  const te = [];
+  [...files].forEach(f => { if(f.size > MAXB()) te.push(f.name); else if(!nieuwBijl.some(g => g.name === f.name && g.size === f.size)) nieuwBijl.push(f); });
+  if(te.length) toast(`Te groot (max. ${INST.maxBijlageMB || 75} MB): ${te.join(', ')}`, true);
+  $('#nieuw').dataset.gewijzigd = '1'; tekenNieuwBijl();
+}
+function tekenNieuwBijl(){ const el = $('#n-bijl-lijst'); if(el) el.innerHTML = nieuwBijl.map((f, i) => `<span class="bijlchip klaar" title="${esc(f.name)}"><span>${bestIcoon(f.name)}</span><b>${esc(f.name)}</b><small>${fmtGrootte(f.size)}</small><button type="button" class="weg" data-nieuwweg="${i}" aria-label="Weghalen">×</button></span>`).join(''); }
+document.addEventListener('click', e => {
+  if(e.target.closest('#k-nbijl')){ $('#f-nieuw').click(); return; }
+  const w = e.target.closest('[data-nieuwweg]'); if(w){ nieuwBijl.splice(+w.dataset.nieuwweg, 1); tekenNieuwBijl(); }
+});
+document.addEventListener('change', e => { if(e.target.id === 'f-nieuw'){ zetNieuwBijl(e.target.files); e.target.value = ''; } });
 function checklist(x){
   const mist = ontbreekt(x), punt = (k, t) => `<span class="${mist.includes(k) ? 'mist' : 'ok'}">${mist.includes(k) ? '○' : '✓'} ${t}</span>`;
   return `<b>${mist.length ? 'Nieuw ticket compleet maken' : 'Nieuw ticket is compleet'}</b>${punt('afdeling', 'Afdeling')}${heeftLocKolom ? punt('locatie', 'Locatie') : '<span class="hint" title="Locatie staat niet in de GetConnector; vraag de beheerder het veld Locatie toe te voegen aan ' + esc(INST.connSla) + '.">Locatie ?</span>'}${punt('reactie', 'Reactie aan melder')}`;
@@ -1682,7 +1704,7 @@ function keuze(f, naam, std){
 }
 async function nieuweMelding(){
   const d = $('#nieuw'), kop = `<div class="dlg-kop"><div><small>Aanvraag ICT</small><h2>Nieuwe melding</h2></div><button class="sluit" data-sluitnieuw aria-label="Sluiten">×</button></div>`;
-  $('#nieuw-in').innerHTML = kop + '<p class="leeg">Velden ophalen uit AFAS…</p>'; d.dataset.gewijzigd = ''; d.showModal();
+  $('#nieuw-in').innerHTML = kop + '<p class="leeg">Velden ophalen uit AFAS…</p>'; d.dataset.gewijzigd = ''; nieuwBijl = []; d.showModal();
   let m;
   try{ m = await laadNieuwMeta(); }
   catch(e){ $('#nieuw-in').innerHTML = kop + `<p class="fout">De velden van een nieuw ticket kunnen niet worden gelezen (${esc(e.message)}). Staat UpdateConnector KnSubject in de app connector?</p>`; return; }
@@ -1695,8 +1717,8 @@ async function nieuweMelding(){
       ${m.type ? `<label>${esc(m.type.label)}${keuze(m.type, 'type', 'Incident')}</label>` : ''}
     </div>
     ${m.extra.map((f, i) => `<label>${esc(f.label || f.code)}${keuze(f, 'x' + i, '')}</label>`).join('')}
-    <label>Toelichting<textarea name="tx" placeholder="Wat is er aan de hand, sinds wanneer, welke locatie of werkplek?"></textarea></label>
-    <label>Bijlagen<input type="file" name="bijl" multiple><span class="hint">Max. ${INST.maxBijlageMB || 75} MB per bestand.</span></label>
+    <label>Toelichting<textarea name="tx" placeholder="Wat is er aan de hand, sinds wanneer, welke locatie of werkplek? (Ctrl+V plakt een schermafbeelding als bijlage)"></textarea></label>
+    <div class="bijlagen" id="n-bijl"><div class="bijlkop"><h3>Bijlagen</h3><button type="button" class="linkknop paperclip" id="k-nbijl">${CLIP}Bestand kiezen</button><input type="file" id="f-nieuw" multiple hidden><span class="hint">of sleep hierheen · Ctrl+V plakt een schermafbeelding</span></div><div class="bijlrij" id="n-bijl-lijst"></div></div>
     <label>Melder<input name="melder" id="n-melder" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Zoek een medewerker op naam of nummer"><input type="hidden" name="melderId"><span class="hint" id="n-melder-hint">Medewerkers ophalen…</span></label>
     <label>Behandelaar<input name="beh" id="n-beh" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Nog niet toewijzen (komt bij Nieuwe tickets)"><input type="hidden" name="behCode"><span class="hint" id="n-beh-hint">Laat leeg om het ticket bij Nieuwe tickets te zetten.</span></label>
     <div class="fout" id="n-fout">${m.stId ? '' : `Het type dossieritem "Aanvraag ICT" is niet gevonden in AFAS (gevonden: ${esc(m.typen.map(t => t.naam).join(', ') || 'geen')}). Zet nieuwStId in mijn-ict-config.js.`}</div>
@@ -1723,7 +1745,7 @@ async function maakMelding(){
   if(!melder && !medewerkers){ fout.textContent = $('#n-mijnnr') ? 'Vul je medewerkernummer in (eenmalig), of typ het medewerkernummer van de melder.' : 'Typ het medewerkernummer van de melder.'; return; }
   const mijnNr = $('#n-mijnnr') && $('#n-mijnnr').value.trim(); if(mijnNr && /^\d+$/.test(mijnNr)){ profiel.emId = mijnNr; opslag.set(profielSleutel(), profiel); }
   if(melder) objecten.unshift({KnSubjectLink: {Element: {Fields: {SfTp: 17, SfId: isNaN(+melder) ? melder : +melder}}}});
-  const bestanden = f.bijl ? [...f.bijl.files] : [], teGroot = bestanden.filter(b => b.size > MAXB());
+  const bestanden = [...nieuwBijl], teGroot = bestanden.filter(b => b.size > MAXB());
   if(teGroot.length){ fout.textContent = `Te groot (max. ${INST.maxBijlageMB || 75} MB): ${teGroot.map(b => b.name).join(', ')}`; return; }
   if(bestanden.length) objecten.push({KnSubjectAttachment: {Element: await bijlElementen(bestanden)}});
   const body = {KnSubject: {Element: {Fields: top, ...(objecten.length ? {Objects: objecten} : {})}}};
