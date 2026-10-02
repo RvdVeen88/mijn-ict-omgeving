@@ -649,7 +649,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.74 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.76 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -708,7 +708,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.74';
+const VERSIE = 'v3.76';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1768,7 +1768,7 @@ function openDetail(nr){
     <div class="composer">
       <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
       <div class="klaarzet" id="klaar-reactie"></div>
-      <div class="onder"><button type="button" class="linkknop paperclip" id="k-clip" title="Bestand meesturen met deze reactie. Je kunt ook een bestand op het reactievak slepen of een schermafbeelding plakken met Ctrl+V.">${CLIP}Bijlage bij reactie</button><input type="file" id="f-reactie" multiple hidden><label class="vink notitie"><input type="checkbox" id="notitie"> Interne notitie <small>(alleen zichtbaar voor ICT)</small></label>
+      <div class="onder"><button type="button" class="linkknop paperclip" id="k-clip" title="Bestand meesturen met deze reactie. Je kunt ook een bestand op het reactievak slepen of een schermafbeelding plakken met Ctrl+V.">${CLIP}Bijlage bij reactie</button><input type="file" id="f-reactie" multiple hidden><label class="vink notitie" data-uitleg="Alleen zichtbaar voor de afdeling ICT. De melder ziet deze notitie niet en krijgt geen mail."><input type="checkbox" id="notitie"> Interne notitie</label>
         <select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select>
         <span class="hint" id="notitie-uitleg">Standaard is een reactie zichtbaar voor melder én ICT.</span></div>
     </div>
@@ -1975,6 +1975,8 @@ function zetNieuwBijl(files){
   [...files].forEach(f => { if(f.size > MAXB()) te.push(f.name); else if(!nieuwBijl.some(g => g.name === f.name && g.size === f.size)) nieuwBijl.push(f); });
   if(te.length) toast(`Te groot (max. ${INST.maxBijlageMB || 75} MB): ${te.join(', ')}`, true);
   $('#nieuw').dataset.gewijzigd = '1'; tekenNieuwBijl();
+  const mail = [...files].find(f => /\.(msg|eml)$/i.test(f.name) && f.size <= MAXB());
+  if(mail) mailNaarMelding(mail);
 }
 function tekenNieuwBijl(){ const el = $('#n-bijl-lijst'); if(el) el.innerHTML = nieuwBijl.map((f, i) => `<span class="bijlchip klaar" title="${esc(f.name)}"><span>${bestIcoon(f.name)}</span><b>${esc(f.name)}</b><small>${fmtGrootte(f.size)}</small><button type="button" class="weg" data-nieuwweg="${i}" aria-label="Weghalen">×</button></span>`).join(''); }
 document.addEventListener('click', e => {
@@ -2267,13 +2269,13 @@ async function nieuweMelding(){
   $('#nieuw-in').innerHTML = kop + `<form class="nform" id="n-form" onsubmit="return false">
     <label>Onderwerp<input name="ond" required maxlength="80" spellcheck="true" placeholder="Kort en duidelijk, bijvoorbeeld: Printer balie geeft papierstoring"></label>
     <div class="twee">
-      ${m.afd ? `<label>Afdeling <i class="verpl" title="Verplicht">*</i>${keuze(m.afd, 'afd', stdAfd)}</label>` : ''}
-      ${m.loc ? `<label>Locatie <i class="verpl" title="Verplicht">*</i>${keuze(m.loc, 'loc', '')}</label>` : ''}
+      ${m.afd ? `<label><span>Afdeling <i class="verpl" title="Verplicht">*</i></span>${keuze(m.afd, 'afd', stdAfd)}</label>` : ''}
+      ${m.loc ? `<label><span>Locatie <i class="verpl" title="Verplicht">*</i></span>${keuze(m.loc, 'loc', '')}</label>` : ''}
       ${m.type ? `<label>${esc(m.type.label)}${keuze(m.type, 'type', 'Incident')}</label>` : ''}
     </div>
     ${m.extra.map((f, i) => `<label>${esc(f.label || f.code)}${keuze(f, 'x' + i, '')}</label>`).join('')}
     <label>Toelichting<textarea name="tx" placeholder="Wat is er aan de hand, sinds wanneer, welke locatie of werkplek? (Ctrl+V plakt een schermafbeelding als bijlage)"></textarea></label>
-    <div class="bijlagen" id="n-bijl"><div class="bijlkop"><h3>Bijlagen</h3><button type="button" class="linkknop paperclip" id="k-nbijl">${CLIP}Bestand kiezen</button><input type="file" id="f-nieuw" multiple hidden><span class="hint">of sleep hierheen · Ctrl+V plakt een schermafbeelding</span></div><div class="bijlrij" id="n-bijl-lijst"></div></div>
+    <div class="bijlagen" id="n-bijl"><div class="bijlkop"><h3>Bijlagen</h3><button type="button" class="linkknop paperclip" id="k-nbijl">${CLIP}Bestand kiezen</button><input type="file" id="f-nieuw" multiple hidden><span class="hint">of sleep hierheen (ook een mail uit Outlook) · Ctrl+V plakt een schermafbeelding</span></div><div class="bijlrij" id="n-bijl-lijst"></div></div>
     <label>Melder<input name="melder" id="n-melder" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Zoek een medewerker op naam of nummer"><input type="hidden" name="melderId"><span class="hint" id="n-melder-hint">Medewerkers ophalen…</span></label>
     <label>Behandelaar<input name="beh" id="n-beh" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Nog niet toewijzen (komt bij Nieuwe tickets)"><input type="hidden" name="behCode"><span class="hint" id="n-beh-hint">Laat leeg om het ticket bij Nieuwe tickets te zetten.</span></label>
     <div class="fout" id="n-fout">${m.stId ? '' : `Het type dossieritem "Aanvraag ICT" is niet gevonden in AFAS (gevonden: ${esc(m.typen.map(t => t.naam).join(', ') || 'geen')}). Zet nieuwStId in mijn-ict-config.js.`}</div>
@@ -3157,6 +3159,82 @@ function tekenAanwezig(){
 }
 setInterval(() => { if(!document.hidden) seinAanwezig(); }, 20000);
 document.addEventListener('visibilitychange', () => { if(!document.hidden) seinAanwezig(); });
+
+/* ================= Outlook-mail (.msg / .eml) omzetten naar een melding ================= */
+// .msg = Outlook-bestand (Compound File); .eml = standaard mailbestand. Alles wordt in de browser gelezen, er gaat niets naar een server.
+function leesCfb(buf){
+  const dv = new DataView(buf), u8 = new Uint8Array(buf);
+  if(dv.getUint32(0, true) !== 0xE011CFD0) throw new Error('Geen Outlook-bestand (.msg).');
+  const ss = 1 << dv.getUint16(0x1E, true), mss = 1 << dv.getUint16(0x20, true), cutoff = dv.getUint32(0x38, true);
+  const off = n => (n + 1) * ss, EIND = 0xFFFFFFFE;
+  // FAT opbouwen via de DIFAT
+  const fatSect = []; for(let i = 0; i < 109; i++){ const v = dv.getUint32(0x4C + i * 4, true); if(v < 0xFFFFFFFA) fatSect.push(v); }
+  let di = dv.getUint32(0x44, true), dn = dv.getUint32(0x48, true);
+  while(dn-- > 0 && di < 0xFFFFFFFA){ const o = off(di); for(let i = 0; i < ss / 4 - 1; i++){ const v = dv.getUint32(o + i * 4, true); if(v < 0xFFFFFFFA) fatSect.push(v); } di = dv.getUint32(o + ss - 4, true); }
+  const fat = []; fatSect.forEach(sct => { const o = off(sct); for(let i = 0; i < ss / 4; i++) fat.push(dv.getUint32(o + i * 4, true)); });
+  const keten = (start, tabel) => { const l = []; let n = start, max = 1e6; while(n < 0xFFFFFFFA && max--){ l.push(n); n = tabel[n]; } return l; };
+  const leesKeten = start => { const l = keten(start, fat), out = new Uint8Array(l.length * ss); l.forEach((n, i) => out.set(u8.subarray(off(n), off(n) + ss), i * ss)); return out; };
+  const dir = leesKeten(dv.getUint32(0x30, true)), ddv = new DataView(dir.buffer);
+  const ent = []; for(let o = 0; o + 128 <= dir.length; o += 128){ const nl = ddv.getUint16(o + 64, true);
+    ent.push({naam: new TextDecoder('utf-16le').decode(dir.subarray(o, o + Math.max(0, nl - 2))), type: dir[o + 66], links: ddv.getUint32(o + 68, true), rechts: ddv.getUint32(o + 72, true), kind: ddv.getUint32(o + 76, true), start: ddv.getUint32(o + 116, true), grootte: ddv.getUint32(o + 120, true)}); }
+  const root = ent[0], mini = root.start < 0xFFFFFFFA ? leesKeten(root.start) : new Uint8Array(0);
+  const minifat = []; { let n = dv.getUint32(0x3C, true), max = 1e5; while(n < 0xFFFFFFFA && max--){ const o = off(n); for(let i = 0; i < ss / 4; i++) minifat.push(dv.getUint32(o + i * 4, true)); n = fat[n]; } }
+  const stroom = e => { if(e.grootte < cutoff){ const l = keten(e.start, minifat), out = new Uint8Array(l.length * mss); l.forEach((n, i) => out.set(mini.subarray(n * mss, n * mss + mss), i * mss)); return out.subarray(0, e.grootte); }
+    return leesKeten(e.start).subarray(0, e.grootte); };
+  // alleen de directe kinderen van de root (anders lezen we de velden van bijlagen of doorgestuurde mails)
+  const kinderen = {}; const loop = i => { if(i >= ent.length || i === 0xFFFFFFFF) return; const e = ent[i]; if(!e) return; kinderen[e.naam] = e; loop(e.links); loop(e.rechts); }; loop(root.kind);
+  return {kinderen, stroom};
+}
+function leesMsg(buf){
+  const {kinderen, stroom} = leesCfb(buf);
+  const prop = (id, bin) => { const u = kinderen['__substg1.0_' + id + '001F']; if(u) return new TextDecoder('utf-16le').decode(stroom(u)).replace(/\0+$/, '');
+    const a = kinderen['__substg1.0_' + id + '001E']; if(a) return new TextDecoder('windows-1252').decode(stroom(a)).replace(/\0+$/, '');
+    const b = bin && kinderen['__substg1.0_' + id + '0102']; if(b) return new TextDecoder('utf-8').decode(stroom(b)); return ''; };
+  let datum = null; const p = kinderen['__properties_version1.0'];
+  if(p){ const d = stroom(p), pv = new DataView(d.buffer, d.byteOffset, d.byteLength);
+    for(let o = 32; o + 16 <= d.length; o += 16){ const tag = pv.getUint32(o, true); if(tag === 0x00390040 || tag === 0x0E060040){ const lo = pv.getUint32(o + 8, true), hi = pv.getUint32(o + 12, true); datum = new Date((hi * 4294967296 + lo) / 1e4 - 11644473600000); if(tag === 0x00390040) break; } } }
+  const html = prop('1013', true);
+  return {onderwerp: prop('0037'), tekst: prop('1000') || (html ? kaal(html) : ''), van: prop('0C1A') || prop('0042'), vanMail: prop('5D01') || prop('0C1F') || prop('0065'), datum};
+}
+function leesEml(tekst){
+  const dekod = s => String(s || '').replace(/=\?([^?]+)\?([bq])\?([^?]*)\?=/gi, (m, cs, enc, d) => { try{ const bytes = /b/i.test(enc) ? Uint8Array.from(atob(d), c => c.charCodeAt(0)) : Uint8Array.from(d.replace(/_/g, ' ').replace(/=([0-9a-f]{2})/gi, (x, h) => String.fromCharCode(parseInt(h, 16))), c => c.charCodeAt(0)); return new TextDecoder(cs).decode(bytes); }catch(e){ return d; } }).replace(/\?=\s+=\?/g, '');
+  const deel = raw => { const i = raw.search(/\r?\n\r?\n/); const kop = (i < 0 ? raw : raw.slice(0, i)).replace(/\r?\n[ \t]+/g, ' '), body = i < 0 ? '' : raw.slice(i).replace(/^\r?\n\r?\n/, '');
+    const h = {}; kop.split(/\r?\n/).forEach(r => { const j = r.indexOf(':'); if(j > 0) h[r.slice(0, j).trim().toLowerCase()] = r.slice(j + 1).trim(); }); return {h, body}; };
+  const decodeer = (body, h) => { const ct = h['content-type'] || '', cs = (ct.match(/charset="?([^";]+)/i) || [])[1] || 'utf-8', te = (h['content-transfer-encoding'] || '').toLowerCase();
+    let bytes; if(te === 'base64') bytes = Uint8Array.from(atob(body.replace(/\s+/g, '')), c => c.charCodeAt(0));
+    else if(te === 'quoted-printable') bytes = Uint8Array.from(body.replace(/=\r?\n/g, '').replace(/=([0-9a-f]{2})/gi, (x, hx) => String.fromCharCode(parseInt(hx, 16))), c => c.charCodeAt(0) & 255);
+    else bytes = Uint8Array.from(body, c => c.charCodeAt(0) & 255);
+    try{ return new TextDecoder(cs).decode(bytes); }catch(e){ return new TextDecoder().decode(bytes); } };
+  const zoek = (raw, soort) => { const {h, body} = deel(raw), ct = h['content-type'] || 'text/plain';
+    const grens = (ct.match(/boundary="?([^";]+)"?/i) || [])[1];
+    if(/multipart/i.test(ct) && grens){ for(const p of body.split('--' + grens).slice(1)){ if(/^--/.test(p)) break; const r = zoek(p.replace(/^\r?\n/, ''), soort); if(r) return r; } return ''; }
+    return new RegExp(soort, 'i').test(ct) && !/attachment/i.test(h['content-disposition'] || '') ? decodeer(body, h) : ''; };
+  const {h} = deel(tekst), van = dekod(h.from || '');
+  const tekstDeel = zoek(tekst, 'text/plain'), htmlDeel = tekstDeel ? '' : zoek(tekst, 'text/html');
+  return {onderwerp: dekod(h.subject || ''), tekst: tekstDeel || kaal(htmlDeel), van: van.replace(/<[^>]*>/, '').replace(/"/g, '').trim(), vanMail: (van.match(/<([^>]+)>/) || [, ''])[1], datum: h.date ? new Date(h.date) : null};
+}
+async function leesMail(f){
+  if(/\.msg$/i.test(f.name)) return leesMsg(await f.arrayBuffer());
+  const b = new Uint8Array(await f.arrayBuffer()); let t = ''; for(let i = 0; i < b.length; i++) t += String.fromCharCode(b[i]);
+  return leesEml(t);
+}
+async function mailNaarMelding(f){
+  const f2 = $('#n-form'); if(!f2) return;
+  if(!(await vraag('Mail omzetten naar melding?', `"${f.name}" is een e-mail. Wil je het onderwerp en de inhoud van deze mail gebruiken voor de melding? De mail blijft in beide gevallen als bijlage bewaard.`, 'Ja, omzetten', 'Nee, alleen bijlage'))) return;
+  let m; try{ m = await leesMail(f); }catch(e){ toast('De mail kon niet worden gelezen: ' + e.message, true); return; }
+  const schoon = String(m.tekst || '').replace(/\r\n/g, '\n').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  const kop = [m.van || m.vanMail ? `Van: ${m.van || ''}${m.vanMail && !String(m.van).includes(m.vanMail) ? ` <${m.vanMail}>` : ''}`.trim() : '', m.datum && !isNaN(m.datum) ? `Verzonden: ${m.datum.toLocaleString('nl-NL', {dateStyle: 'long', timeStyle: 'short'})}` : '', m.onderwerp ? `Onderwerp: ${m.onderwerp}` : ''].filter(Boolean).join('\n');
+  f2.ond.value = String(m.onderwerp || '').replace(/^\s*((re|fw|fwd|antw|doorst)\s*:\s*)+/i, '').slice(0, 80);
+  f2.tx.value = (kop ? kop + '\n\n' : '') + schoon.slice(0, 30000);
+  // melder: de afzender, als die eenduidig in de medewerkerslijst staat
+  let gevonden = '';
+  try{ const lijst = await laadMedewerkers(), n = norm(m.van);
+    const kand = lijst.filter(x => n && (norm(x.vol) === n || norm(x.naam) === n));
+    if(kand.length === 1){ const x = kand[0]; $('#n-melder').value = `${x.naam} (${x.id})`; f2.melderId.value = x.id; $('#n-melder').dataset.std = '0'; stelLocatieVoor(x); gevonden = x.vol; } }catch(e){}
+  const h = $('#n-melder-hint'); if(h) h.textContent = gevonden ? `Melder overgenomen uit de mail: ${gevonden}.` : (m.van ? `Afzender "${m.van}" niet gevonden als medewerker; kies de melder zelf.` : h.textContent);
+  $('#nieuw').dataset.gewijzigd = '1'; f2.ond.focus();
+  toast('Mail omgezet: onderwerp en toelichting zijn ingevuld');
+}
 
 /* ================= opstarten ================= */
 function laadKaart(naam){
