@@ -421,7 +421,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.56 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.57 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -473,7 +473,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.56';
+const VERSIE = 'v3.57';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1210,7 +1210,7 @@ async function vulVerantwKeuze(x){
 async function vulStatusKeuze(x){
   const sel = $('#d-status'); if(!sel) return;
   try{ const m = await laadSubjMeta(); if(!huidig || huidig.x !== x) return;
-    if(!m.status){ sel.disabled = true; sel.title = 'Statussen ophalen…'; return; }   // status gaat via de workflow; laadWorkflow vult de keuzelijst
+    if(!m.status){ if(sel.dataset.wf !== '1'){ sel.disabled = true; sel.title = 'Statussen ophalen…'; } return; }   // status gaat via de workflow; laadWorkflow vult de keuzelijst (kan al eerder klaar zijn)
     const l = waardenVan(m.status.values), huidigW = l.find(w => norm(w.naam) === norm(x.status) || norm(w.code) === norm(x.status)) || l.find(w => norm(toonStatus(w.naam)) === norm(toonStatus(x.status)));
     sel.innerHTML = (huidigW ? '' : `<option value="">${esc(toonStatus(x.status) || '– kies status –')}</option>`) + l.map(w => `<option value="${esc(w.code)}" ${w === huidigW ? 'selected' : ''}>${esc(toonStatus(w.naam))}</option>`).join('');
     sel.dataset.oud = huidigW ? huidigW.code : '';
@@ -1249,10 +1249,11 @@ async function laadWorkflow(x){
     const rest = wf.acties.filter(a => a !== hoofd && !isReactieActie(a) && !isNotitieActie(a) && !(a.afhandelen && st === 1) && !statusActies.includes(a));
     const ss = $('#d-status');
     if(viaWf && ss){
+      ss.dataset.wf = '1';
       if(statusActies.length){ ss.disabled = false; ss.title = 'Kies de nieuwe status; dit voert de bijbehorende workflowstap uit';
         ss.innerHTML = `<option value="">${esc(toonStatus(x.status) || '–')}</option>` + statusActies.map(a => `<option value="a:${wf.acties.indexOf(a)}">${esc(a.naam)}</option>`).join('');
         ss.dataset.oud = ''; ss.onchange = () => ss.classList.toggle('gewijzigd', !!ss.value); }
-      else ss.outerHTML = `<span>${esc(toonStatus(x.status) || '–')}</span>`;
+      else ss.outerHTML = `<span>${esc(toonStatus(x.status) || '–')}</span> <span class="hint" title="De huidige workflowtaak van dit ticket heeft geen stappen die de status wijzigen${wf.taak ? ' (taak: ' + esc(wf.taak) + ')' : ''}." style="cursor:help">ⓘ</span>`;
     }
     el.innerHTML = !wf.acties.length ? '<span class="hint">Geen workflowacties beschikbaar voor dit ticket.</span>' :
       `${hoofd ? `<button class="knop" data-actie="${wf.acties.indexOf(hoofd)}" title="Voert deze actie direct uit, samen met een gewijzigde afdeling en je reactie">${esc(hoofd.naam)}</button>` : ''}
