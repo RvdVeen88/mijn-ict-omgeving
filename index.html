@@ -521,6 +521,9 @@ dialog#detail.groot .toelblok .lang{max-height:40vh}
 .actiebalk select{border:1.5px solid var(--lijn);background:var(--vlak);border-radius:0 999px 999px 0;padding:7px 14px;min-width:220px}
 .actiebalk .wfinfo{margin-left:auto;font-size:12.5px;color:var(--grijs)}
 .composer{display:flex;flex-direction:column;gap:8px}
+.voorstelvraag{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 14px;border-radius:0 999px 999px 0;background:var(--lichtblauw-2);color:var(--blauw);font-size:13px;font-weight:600;align-self:flex-start;animation:vvIn .15s ease}
+.voorstelvraag .knop.klein{padding:4px 14px;font-size:12.5px;min-height:0}
+@keyframes vvIn{from{opacity:0;transform:translateY(-3px)}}
 .vlieger{position:fixed;left:0;top:0;z-index:200;pointer-events:none;background:var(--vlak);border-left:4px solid var(--blauw-2);border-radius:0 999px 999px 0;box-shadow:0 12px 32px rgba(3,31,77,.28);padding:8px 18px 8px 12px;display:flex;align-items:center;gap:10px;max-width:420px;font-size:13.5px}
 .favvlieger{position:fixed;z-index:80;pointer-events:none;background:var(--vlak);border-radius:0 999px 999px 0;box-shadow:0 10px 28px rgba(3,31,77,.22)}
 .favvlieger .favknop{color:#F5B400}
@@ -659,7 +662,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.88 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.89 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -718,7 +721,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.88';
+const VERSIE = 'v3.89';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1737,8 +1740,24 @@ async function autoReactie(){
   const uniek = [...new Set(delen)];
   const t = $('#tekst');
   if(!uniek.length || (uniek.length === 1 && uniek[0] === SJ.ontvangen && !(status || (vs && vs.value !== vs.dataset.oud) || (sel && sel.value && norm(sel.value) !== norm(x.afdeling))))){
+    vraagVoorstel(null);
     if(t && huidig.autoTekst != null && t.value === huidig.autoTekst){ t.value = ''; huidig.autoTekst = null; t.classList.remove('voorstel'); mailVooraf(); } return; }
-  zetVoorstel(await maakBrief(x, uniek), false);
+  const brief = await maakBrief(x, uniek);
+  // al eerder 'ja' gezegd en de tekst is nog onaangeroerd: gewoon bijwerken; anders eerst kort vragen
+  if(huidig.autoJa && t && (t.value === huidig.autoTekst || !t.value.trim())) zetVoorstel(brief, false);
+  else vraagVoorstel(brief);
+}
+// korte vraag boven het reactievak: standaardtekst invullen? (Enter = ja, Esc = nee)
+function vraagVoorstel(brief){
+  let b = $('#voorstelvraag'); const t = $('#tekst');
+  if(!brief){ if(b) b.remove(); return; }
+  if(!t) return;
+  if(!b){ t.insertAdjacentHTML('beforebegin', `<div class="voorstelvraag" id="voorstelvraag"><span>Standaardtekst invullen?</span><button type="button" class="knop vol klein" data-vv="ja">Ja</button><button type="button" class="knop klein" data-vv="nee">Nee</button></div>`); b = $('#voorstelvraag');
+    b.onclick = e => { const k = e.target.closest('[data-vv]'); if(!k) return; const ja = k.dataset.vv === 'ja', tekst = b._brief; b.remove();
+      if(ja){ huidig.autoJa = true; zetVoorstel(tekst, false); } };
+    b.onkeydown = e => { if(e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); b.remove(); } }; }
+  b._brief = brief; b.title = brief;
+  b.querySelector('[data-vv="ja"]').focus({preventScroll: true});
 }
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-sjabloon]'); if(!b || !huidig) return;
