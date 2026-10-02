@@ -462,6 +462,11 @@ dialog#detail.groot .kaart2 select.afdkeuze,dialog#detail.groot .kaart2 input.da
 .melderinfo:hover{background:var(--lichtblauw-2)}
 .melderinfo.leeg{color:var(--grijs);opacity:.6}
 #uitleg{white-space:pre-line}
+textarea.voorstel{background:var(--lichtblauw-2)}
+.chipknop{border:0;background:none;padding:0;cursor:pointer;font:inherit}
+.chipknop .chip{text-decoration:underline dotted;text-underline-offset:3px}
+.chipknop:hover .chip{filter:brightness(.95);box-shadow:0 0 0 2px var(--lichtblauw)}
+.sjabloonkeuze{border:1.5px solid var(--lijn);background:var(--vlak);color:var(--blauw);border-radius:0 999px 999px 0;padding:4px 10px;font:inherit;font-size:12.5px;cursor:pointer}
 .tdform{display:flex;flex-direction:column;gap:10px}
 .tdform label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--grijs);font-weight:500}
 .tdform input,.tdform textarea{border:1.5px solid var(--lijn);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;color:var(--inkt);background:var(--vlak)}
@@ -634,7 +639,7 @@ dialog#detail .tijdlijn{min-height:120px}
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.69 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.70 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -693,7 +698,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.69';
+const VERSIE = 'v3.70';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1603,6 +1608,80 @@ async function snelActie(knop){
   if(!a){ knop.disabled = false; knop.textContent = oud; $('#d-fout').textContent = `De actie "${oud}" is bij dit ticket (nu) niet beschikbaar in AFAS.`; return; }
   opslaanAlles(l.indexOf(a));
 }
+/* ================= standaardteksten voor de reactie aan de melder ================= */
+// teksten aan te passen via mijn-ict-config.js (INST.sjablonen: {sleutel: 'tekst'}); {afdeling}, {naam}, {datum} worden ingevuld
+const SJ = Object.assign({
+  ontvangen: 'We hebben je melding in goede orde ontvangen en gaan ermee aan de slag. We houden je op de hoogte.',
+  afdeling: 'Je melding is doorgezet naar de afdeling {afdeling}. Zij pakken hem verder voor je op.',
+  verantwIk: 'Ik pak je melding verder voor je op.',
+  verantw: '{naam} gaat je melding verder voor je oppakken.',
+  'In behandeling ICT': 'We hebben je melding in goede orde ontvangen en gaan ermee aan de slag. We houden je op de hoogte.',
+  'In afwachting melder': 'Om je melding verder te kunnen oppakken, hebben we nog wat informatie van je nodig: [vul aan]. Wil je hierop reageren?',
+  'In afwachting leverancier': 'We hebben je melding voorgelegd aan de leverancier. Zodra we van hen horen, laten we het je weten.',
+  'Werkzaamheden gepland': 'De werkzaamheden voor je melding zijn ingepland op {datum}.',
+  'In afwachting akkoord': 'Je aanvraag ligt ter akkoord. Zodra er een besluit is, hoor je van ons.',
+  'In interne release': 'De wijziging staat klaar voor de interne release. We laten je weten wanneer deze beschikbaar is.',
+  'In externe release': 'De wijziging staat klaar voor de externe release. We laten je weten wanneer deze beschikbaar is.',
+  'Afgehandeld': 'Je melding is opgelost en we sluiten het ticket af. Is het toch nog niet in orde? Reageer dan op deze mail, dan pakken we het weer op.',
+  gepland: 'De werkzaamheden zijn ingepland op {datum}.',
+  'sig:opvolging': 'Excuses dat het even stil is geweest. We zijn nog met je melding bezig: [stand van zaken]. We houden je op de hoogte.',
+  'sig:melder': 'We hebben nog geen reactie van je ontvangen op onze vorige vraag. Is je probleem inmiddels opgelost, of kunnen we je nog ergens mee helpen? Als we binnen 5 werkdagen niets horen, sluiten we het ticket af.',
+  'sig:leverancier': 'Even een update: we wachten nog op een reactie van de leverancier en hebben hen opnieuw benaderd. Zodra we meer weten, hoor je het van ons.',
+  'sig:planning': 'De geplande werkzaamheden zijn helaas uitgelopen. We plannen opnieuw in en laten je de nieuwe datum zo snel mogelijk weten.',
+  'sig:nieuw': 'We hebben je melding in goede orde ontvangen en gaan ermee aan de slag. We houden je op de hoogte.'
+}, INST.sjablonen || {});
+const SJABLOON_SIG = {opvolging:1, melder:1, leverancier:1, planning:1, nieuw:1};
+const SJABLOON_LIJST = [['ontvangen', 'Melding ontvangen'], ['In afwachting melder', 'Vraag aan melder'], ['In afwachting leverancier', 'Uitgezet bij leverancier'], ['Werkzaamheden gepland', 'Werkzaamheden gepland'],
+  ['sig:opvolging', 'Excuses, nog mee bezig'], ['sig:melder', 'Herinnering aan melder'], ['sig:leverancier', 'Update leverancier'], ['sig:planning', 'Planning uitgelopen'], ['Afgehandeld', 'Opgelost / afgesloten']];
+const langeDatum = v => v ? new Date(v + 'T00:00:00').toLocaleDateString('nl-NL', {weekday: 'long', day: 'numeric', month: 'long'}) : '[datum]';
+let mijnHandtekening = null;
+async function handtekening(){
+  if(mijnHandtekening) return mijnHandtekening;
+  let functie = profiel.functie || '';
+  if(!functie){ try{ const l = await laadMedewerkers(); const m = (profiel.emId && l.find(y => y.id === String(profiel.emId))) || l.find(y => benIk(y.vol)); if(m && m.functie) functie = m.functie; }catch(e){} }
+  return mijnHandtekening = [profiel.naam, functie, INST.handtekeningAfdeling || 'Afdeling Digitale Zorg & ICT'].filter(Boolean).join('\n');
+}
+async function maakBrief(x, delen){
+  const voornaam = String(x.melder || '').trim().split(/\s+/)[0] || '';
+  return `Beste ${voornaam || 'collega'},\n\n${delen.join('\n\n')}\n\nMet vriendelijke groet,\n${await handtekening()}`;
+}
+const vulIn = (t, w) => String(t || '').replace(/\{(\w+)\}/g, (m, k) => w[k] ?? m);
+// tekst in het reactievak zetten: alleen als het leeg is of nog een eerder voorstel bevat; bij een expliciete keuze eerst vragen
+async function zetVoorstel(tekst, expliciet){
+  const t = $('#tekst'); if(!t || !huidig) return;
+  if(t.value.trim() && huidig.autoTekst !== t.value){ if(!expliciet || !(await vraag('Tekst vervangen?', 'In het reactievak staat al tekst. Wil je die vervangen door de standaardtekst?', 'Vervangen', 'Annuleren'))) return; }
+  if($('#notitie') && $('#notitie').checked && !expliciet) return;
+  t.value = tekst; huidig.autoTekst = tekst; t.classList.add('voorstel'); t.classList.remove('mist');
+  $('#detail').dataset.gewijzigd = '1'; mailVooraf();
+  if(expliciet){ t.focus(); const i = t.value.indexOf('['); if(i >= 0) t.setSelectionRange(i, t.value.indexOf(']', i) + 1); }
+}
+// automatisch voorstel bij het wijzigen van afdeling, behandelaar, status of planning
+async function autoReactie(){
+  if(!huidig) return; const x = huidig.x, delen = [];
+  const sel = $('#d-afd'), vs = $('#d-verantw'), ss = $('#d-status'), gs = $('#d-gepland');
+  const status = ss && ss.value.startsWith('a:') ? (statusNa(huidig.wf.acties[+ss.value.slice(2)]) || '') : '';
+  const nieuwTicket = stapVan(x) === 0 || isNieuw(x);
+  if(nieuwTicket && (status !== 'Afgehandeld')) delen.push(SJ.ontvangen);
+  if(sel && sel.value && norm(sel.value) !== norm(x.afdeling)) delen.push(vulIn(SJ.afdeling, {afdeling: sel.value}));
+  if(vs && vs.value && vs.value !== vs.dataset.oud){ const naam = vs.options[vs.selectedIndex].textContent; delen.push(benIk(naam) ? SJ.verantwIk : vulIn(SJ.verantw, {naam})); }
+  if(status && SJ[status] && !(status === 'In behandeling ICT' && nieuwTicket)) delen.push(vulIn(SJ[status], {datum: langeDatum(gs && gs.value)}));
+  else if(gs && gs.value && gs.value !== gs.dataset.oud && status !== 'Werkzaamheden gepland') delen.push(vulIn(SJ.gepland, {datum: langeDatum(gs.value)}));
+  const uniek = [...new Set(delen)];
+  const t = $('#tekst');
+  if(!uniek.length || (uniek.length === 1 && uniek[0] === SJ.ontvangen && !(status || (vs && vs.value !== vs.dataset.oud) || (sel && sel.value && norm(sel.value) !== norm(x.afdeling))))){
+    if(t && huidig.autoTekst != null && t.value === huidig.autoTekst){ t.value = ''; huidig.autoTekst = null; t.classList.remove('voorstel'); mailVooraf(); } return; }
+  zetVoorstel(await maakBrief(x, uniek), false);
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-sjabloon]'); if(!b || !huidig) return;
+  const k = b.dataset.sjabloon, gs = $('#d-gepland');
+  zetVoorstel(await maakBrief(huidig.x, [vulIn(SJ[k], {datum: langeDatum(gs && gs.value), afdeling: huidig.x.afdeling})]), true);
+});
+document.addEventListener('change', async e => {
+  if(e.target.id !== 'd-sjabloon' || !e.target.value || !huidig) return;
+  const k = e.target.value, gs = $('#d-gepland'); e.target.value = '';
+  zetVoorstel(await maakBrief(huidig.x, [vulIn(SJ[k], {datum: langeDatum(gs && gs.value), afdeling: huidig.x.afdeling})]), true);
+});
 /* ---- ticketvenster groter maken (onthouden per browser) ---- */
 const ICO_GROOT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>';
 const ICO_KLEIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7"/></svg>';
@@ -1658,7 +1737,7 @@ function openDetail(nr){
   $('#detail-in').innerHTML = `
     <div class="dlg-kop"><div><small>Ticket ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.afdeling ? ' · ' + esc(x.afdeling) : ''}</small><h2>${esc(x.onderwerp)}</h2></div><button type="button" class="todoknop" data-todovan="${esc(x.nr)}" title="To-do maken bij dit ticket" aria-label="To-do maken bij dit ticket">${TD_VINK_PLUS}</button><button type="button" class="grootknop" data-groot aria-label="Venster groter of kleiner" title="${$('#detail').classList.contains('groot') ? 'Kleiner venster' : 'Venster vergroten'}">${$('#detail').classList.contains('groot') ? ICO_KLEIN : ICO_GROOT}</button><button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
     <div class="stappen">${STAPPEN.map((t, i) => `${i ? `<span class="lijntje ${i <= st ? 'klaar' : ''}"></span>` : ''}<span class="stap ${i < st ? 'klaar' : i === st ? 'nu' : ''}"><i>${i < st ? '✓' : ''}</i>${t}</span>`).join('')}
-      ${(() => { const sg = x._sg.filter(s => s.code !== 'onvolledig'); return sg.length ? `<span class="chips" style="margin-left:auto">${sg.map(chip).join('')}</span>` : ''; })()}</div>
+      ${(() => { const sg = x._sg.filter(s => s.code !== 'onvolledig'); return sg.length ? `<span class="chips" style="margin-left:auto">${sg.map(c => SJABLOON_SIG[c.code] && !x.afgesloten ? `<button type="button" class="chipknop" data-sjabloon="sig:${c.code}" title="Klik voor een voorsteltekst aan de melder">${chip(c)}</button>` : chip(c)).join('')}</span>` : ''; })()}</div>
     ${!x.afgesloten && isNieuw(x) ? `<div class="checklist" id="d-check">${checklist(x)}</div>` : ''}
     <div class="kaarten">
       <div class="kaart2"><h3>Melding</h3><span>Melder</span><b class="meldercel">${esc(x.melder || '–')}${x.melder ? `<button type="button" class="melderinfo" id="d-melderinfo" aria-label="Gegevens van de melder" data-uitleg="Gegevens ophalen…"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 7.5h.01"></path></svg></button>` : ''}</b>${r('Type ticket', x.type)}${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}<span>Locatie${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.locatie || '–') : `<select id="d-loc" class="afdkeuze" title="Klik om de locatie te wijzigen"><option value="">${esc(x.locatie || '– kies locatie –')}</option></select>`}</b></div>
@@ -1676,6 +1755,7 @@ function openDetail(nr){
       <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
       <div class="klaarzet" id="klaar-reactie"></div>
       <div class="onder"><button type="button" class="linkknop paperclip" id="k-clip" title="Bestand meesturen met deze reactie. Je kunt ook een bestand op het reactievak slepen of een schermafbeelding plakken met Ctrl+V.">${CLIP}Bijlage bij reactie</button><input type="file" id="f-reactie" multiple hidden><label class="vink notitie"><input type="checkbox" id="notitie"> Interne notitie <small>(alleen zichtbaar voor ICT)</small></label>
+        <select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select>
         <span class="hint" id="notitie-uitleg">Standaard is een reactie zichtbaar voor melder én ICT.</span></div>
     </div>
     <div class="onderbalk"><div class="actiebalk" id="actiebalk"><button class="knop" data-snel="${st === 0 ? 'oppak' : 'sluit'}" title="Kan meteen: wacht zo nodig even op de workflow uit AFAS">${st === 0 ? 'Toewijzen aan mij' : 'Afhandelen'}</button></div>
@@ -1685,7 +1765,8 @@ function openDetail(nr){
     <p class="fout" id="d-fout"></p>`}`;
   $('#detail').dataset.gewijzigd = ''; if(!$('#detail').open) $('#detail').showModal();
   $('#detail-in').scrollTop = 0; zetNavPijlen(x);
-  $('#detail').oninput = mailVooraf; $('#detail').onchange = mailVooraf;
+  $('#detail').oninput = e => { if(e.target.id === 'tekst' && huidig && huidig.autoTekst != null && e.target.value !== huidig.autoTekst){ huidig.autoTekst = null; e.target.classList.remove('voorstel'); } mailVooraf(); };
+  $('#detail').onchange = e => { if(/^d-(afd|verantw|status|gepland)$/.test(e.target.id)) autoReactie(); mailVooraf(); };
   huidig.klaar = {ticket: [], reactie: []}; huidig.bijl = null;
   (DEMO ? Promise.resolve() : zorgSbId(x)).then(() => { laadBijlagen(x); return toonReacties(x); }).catch(e => { const el = $('#tijdlijn'); if(el) el.innerHTML = `<h3>Reacties</h3><p class="hint">Het interne nummer van dit ticket kon niet worden opgezocht: ${esc(e.message)}</p>`; const bl = $('#bijl-lijst'); if(bl) bl.innerHTML = '<span class="hint">Bijlagen ophalen kan niet zonder het interne nummer van het ticket.</span>'; });
   if(!x.afgesloten){ vulAfdKeuze(x); vulStatusKeuze(x); vulVerantwKeuze(x); vulLocKeuze(x); setTimeout(() => markeerOntbrekend(x), 0); }
@@ -2466,6 +2547,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){
   const vs = $('#d-verantw'), nieuweVerantw = vs && vs.value && vs.value !== vs.dataset.oud ? {code: vs.value, naam: vs.options[vs.selectedIndex].textContent} : null;
   if(!nieuweAfd && !nieuweStatus && !nieuweVerantw && !nieuwGepland && !nieuweLoc && actieIdx == null && !tekst && !bijlT.length){ $('#d-fout').textContent = 'Er is niets gewijzigd: pas een veld aan, schrijf een reactie of voeg een bijlage toe.'; return; }
   const act = actieIdx != null && huidig.wf ? huidig.wf.acties[actieIdx] : null;
+  { const plek = tekst.match(/\[(vul aan|stand van zaken|datum)\]/); if(plek){ $('#d-fout').textContent = `Vul in de reactie eerst "${plek[0]}" aan.`; const t = $('#tekst'); if(t){ t.focus(); const i = t.value.indexOf(plek[0]); if(i >= 0) t.setSelectionRange(i, i + plek[0].length); } return; } }
   // verplicht bij opslaan: afdeling, locatie en status
   { const leeg = [];
     if(!nieuweAfd && !String(x.afdeling || '').trim()) leeg.push(['Afdeling', '#d-afd']);
