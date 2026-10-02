@@ -1264,7 +1264,7 @@ function tekenNav(){
   const restOpen = overigeOpen;
   // kop = schakelaar: "Mijn ⇄ Ons werk"; het actieve woord vet, het andere licht doorgestreept
   const kop = (soort, aan, a, b, rest, uitleg) => `<button type="button" class="wisselkop${aan ? ' ons' : ''}" data-wissel="${soort}" aria-pressed="${aan}" title="${esc(uitleg)}"><span class="${aan ? 'uit' : 'aan'}">${a}</span>${ico('<path d="M7 7h11l-3-3M17 17H6l3 3"/>')}<span class="${aan ? 'aan' : 'uit'}">${b}</span><span class="rest">${rest}</span></button>`;
-  const vast = VAST.filter(v => !v.f), werk = [werkOns ? ALLE : VAST.find(v => v.id === 'toegewezen'), ...VAST.filter(v => v.f && v.id !== 'toegewezen')];
+  const vast = VAST.filter(v => !v.f), werk = [VAST.find(v => v.id === 'toegewezen'), ...(werkOns ? [ALLE] : []), ...VAST.filter(v => v.f && v.id !== 'toegewezen')];   // Mijn tickets blijft altijd staan (en is altijd van jou)
   $('#nav').innerHTML = `${vast.map(v => it(v.id, v.t, null, v)).join('')}
     ${kop('werk', werkOns, 'Mijn', 'Ons', 'werk', werkOns ? 'Je ziet het werk van het hele team. Klik om alleen jouw tickets te zien.' : 'Je ziet alleen jouw tickets. Klik om het werk van het hele team te zien.')}
     ${werk.map(v => it(v.id, v.t, zichtbaar(v.id, v.f()).length, v)).join('')}
@@ -2569,7 +2569,7 @@ document.addEventListener('click', e => {
   if(!e.target.closest('#kolkeuze') && !e.target.closest('[data-kolkeuze]')) $('#kolkeuze').hidden = true;
   const wk = e.target.closest('[data-wissel]'); if(wk){
     if(wk.dataset.wissel === 'werk'){ werkOns = !werkOns; opslag.set('mict-werk-ons', werkOns);
-      if(werkOns && tab === 'toegewezen') tab = 'alle'; else if(!werkOns && tab === 'alle') tab = 'toegewezen'; }
+      if(!werkOns && tab === 'alle') tab = 'toegewezen'; }
     else { afdOns = !afdOns; opslag.set('mict-afd-ons', afdOns); }
     teken(); return; }
   const fv = e.target.closest('[data-fav]'); if(fv){ wisselFavoriet(fv.dataset.fav); return; }
