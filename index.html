@@ -277,6 +277,10 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .it.stuiter b{--beep:rgba(46,95,176,.55);background:var(--blauw-2);color:#fff;animation:beep 2.6s ease-out infinite .9s,beepTik 2.6s ease-out infinite .9s}
 @media (prefers-reduced-motion:reduce){.it.rinkel b,.it.stuiter b{animation:none}}
 .voet .versie{margin-left:auto}
+.updateknop{margin-left:auto;display:inline-flex;align-items:center;gap:6px;border:0;background:var(--blauw);color:#fff;font:inherit;font-size:12px;font-weight:600;padding:4px 12px 4px 9px;border-radius:0 999px 999px 0;cursor:pointer;animation:updPuls 2s ease-in-out 3}
+.updateknop svg{width:14px;height:14px}
+.updateknop:not([hidden]) + .versie{margin-left:10px}
+@keyframes updPuls{50%{box-shadow:0 0 0 6px rgba(46,95,176,.25)}}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--inkt);color:var(--vlak);padding:10px 20px;border-radius:0 999px 999px 0;transition:all .25s;pointer-events:none;z-index:99;max-width:90vw}
 #toast.zichtbaar{opacity:1;transform:translateX(-50%)}
 #toast.fout{background:var(--rood);color:#fff}
@@ -715,7 +719,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.96 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v3.97 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -774,7 +778,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.96';
+const VERSIE = 'v3.97';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1926,6 +1930,27 @@ document.addEventListener('keydown', e => {
   const a = document.activeElement; if(a && a.matches('input, textarea, select, [contenteditable=""], [contenteditable="true"]')) return;
   e.preventDefault(); gaNaar(e.key === 'ArrowLeft' ? -1 : 1);
 });
+/* ---- nieuwe versie? Af en toe de gepubliceerde pagina (GitHub Pages) ophalen en het versienummer vergelijken ---- */
+const versieNr = v => String(v || '').replace(/^v/, '').split('.').map(n => +n || 0);
+const nieuwer = (a, b) => { const x = versieNr(a), y = versieNr(b); for(let i = 0; i < Math.max(x.length, y.length); i++){ if((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); } return false; };
+let laatsteCheck = 0;
+async function checkVersie(){
+  if(DEMO || location.protocol === 'file:' || Date.now() - laatsteCheck < 60e3) return; laatsteCheck = Date.now();
+  try{
+    // cache:'reload' haalt de pagina vers op én ververst de browsercache, zodat 'Bijwerken' daarna echt de nieuwe versie laadt
+    const t = await (await fetch(location.pathname, {cache: 'reload'})).text();
+    const m = t.match(/const VERSIE = '([^']+)'/); if(!m || !nieuwer(m[1], VERSIE)) return;
+    const k = $('#k-update'); k.hidden = false;
+    k.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v5h-5"/></svg>Nieuwe versie ${esc(m[1])}`;
+    k.title = `Je gebruikt ${VERSIE}. Klik om bij te werken naar ${m[1]}.`;
+  }catch(e){}
+}
+$('#k-update').onclick = async () => {
+  if($('#detail').open && $('#detail').dataset.gewijzigd === '1' && !(await vraag('Nu bijwerken?', 'Je hebt een melding open met wijzigingen die nog niet zijn opgeslagen. Die gaan verloren als je nu bijwerkt.', 'Toch bijwerken', 'Later', true))) return;
+  location.reload();
+};
+setTimeout(checkVersie, 8000); setInterval(checkVersie, 15 * 60e3);
+document.addEventListener('visibilitychange', () => { if(!document.hidden) checkVersie(); });
 /* ---- historie: de laatste 10 meldingen waarin jij iets hebt gewijzigd (per gebruiker, in deze browser) ---- */
 const histSleutel = () => 'mict-historie-' + (sub || 'demo');
 function logHistorie(x, wat){
