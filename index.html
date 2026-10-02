@@ -416,7 +416,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.50 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.51 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -468,7 +468,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.50';
+const VERSIE = 'v3.51';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1009,7 +1009,7 @@ let tab = 'mij';
 /* wat je zelf wijzigt staat meteen in beeld; de GetConnector van AFAS loopt vaak 5-10 seconden achter.
    Tot AFAS de wijziging teruggeeft (max. 3 minuten) houdt de pagina de eigen waarde vast. */
 const lokaalNieuw = new Map();
-function onthoudLokaal(x, v){ const k = String(x.nr), o = lokaalNieuw.get(k) || {velden:{}}; Object.assign(o.velden, v); o.tot = Date.now() + 3 * 60e3; lokaalNieuw.set(k, o); pasLokaalToe(); }
+function onthoudLokaal(x, v, duur = 3 * 60e3){ const k = String(x.nr), o = lokaalNieuw.get(k) || {velden:{}}; Object.assign(o.velden, v); o.tot = Math.max(o.tot || 0, Date.now() + duur); lokaalNieuw.set(k, o); pasLokaalToe(); }
 const zelfde = (k, a, b) => k === 'afgesloten' ? !!a === !!b : (k === 'gepland' || k === 'reactieDatum') ? (!!a && !!b && Math.abs(+a - +b) < (k === 'gepland' ? DAG : 10 * 60e3)) : norm(a) === norm(b);
 function pasLokaalToe(){
   lokaalNieuw.forEach((o, nr) => {
@@ -1167,8 +1167,7 @@ async function toonToelichting(x){
 async function vulStatusKeuze(x){
   const sel = $('#d-status'); if(!sel) return;
   try{ const m = await laadSubjMeta(); if(!huidig || huidig.x !== x) return;
-    if(!m.status){ const k = m.alle.filter(f => /status/i.test(f.label)).map(f => `${f.label} (${f.pad || 'KnSubject'}/${f.code})`);
-      throw new Error(`Geen statusveld met keuzelijst in KnSubject of ${INST.vrijeVelden}.` + (k.length ? ' Wel gevonden: ' + k.join(', ') : '')); }
+    if(!m.status){ sel.disabled = true; sel.title = 'Statussen ophalen…'; return; }   // status gaat via de workflow; laadWorkflow vult de keuzelijst
     const l = waardenVan(m.status.values), huidigW = l.find(w => norm(w.naam) === norm(x.status) || norm(w.code) === norm(x.status)) || l.find(w => norm(toonStatus(w.naam)) === norm(toonStatus(x.status)));
     sel.innerHTML = (huidigW ? '' : `<option value="">${esc(toonStatus(x.status) || '– kies status –')}</option>`) + l.map(w => `<option value="${esc(w.code)}" ${w === huidigW ? 'selected' : ''}>${esc(toonStatus(w.naam))}</option>`).join('');
     sel.dataset.oud = huidigW ? huidigW.code : '';
@@ -1196,12 +1195,22 @@ async function laadWorkflow(x){
   if(!DEMO) await zorgSbId(x).catch(() => null);
   if(!x.sbid && !DEMO){ el.innerHTML = '<span class="fout">Het interne nummer (Dossieritem) van dit ticket is niet gevonden in Helpdesk_PowerBI; bijwerken kan niet.</span>'; ($('#d-taak') || {}).textContent = '–'; return; }
   try{
-    const [wf] = await Promise.all([workflow(x), zoekZichtVeld()]); if(!huidig || huidig.x !== x) return; huidig.wf = wf;
+    const [wf, sm] = await Promise.all([workflow(x), laadSubjMeta().catch(() => ({})), zoekZichtVeld()]); if(!huidig || huidig.x !== x) return; huidig.wf = wf;
+    // de status van een Aanvraag ICT is geen veld maar wordt door de workflow gezet: statusacties horen dan in de statuskeuze
+    const viaWf = !sm.status; huidig.statusViaWf = viaWf;
     const bijMij = wf.bij.some(benIk);
     ($('#d-taak') || {}).textContent = wf.taak ? wf.taak + (bijMij ? ' · bij jou' : '') : 'geen open taak';
     const st = stapVan(x);
     const hoofd = st === 0 ? wf.acties.find(isOppakActie) : wf.acties.find(a => a.afhandelen);
-    const rest = wf.acties.filter(a => a !== hoofd && !isReactieActie(a) && !isNotitieActie(a) && !(a.afhandelen && st === 1));
+    const statusActies = viaWf ? wf.acties.filter(a => !a.afhandelen && a !== hoofd && !isReactieActie(a) && !isNotitieActie(a) && soortActie(a) === 'status') : [];
+    const rest = wf.acties.filter(a => a !== hoofd && !isReactieActie(a) && !isNotitieActie(a) && !(a.afhandelen && st === 1) && !statusActies.includes(a));
+    const ss = $('#d-status');
+    if(viaWf && ss){
+      if(statusActies.length){ ss.disabled = false; ss.title = 'Kies de nieuwe status; dit voert de bijbehorende workflowstap uit';
+        ss.innerHTML = `<option value="">${esc(toonStatus(x.status) || '–')}</option>` + statusActies.map(a => `<option value="a:${wf.acties.indexOf(a)}">${esc(a.naam)}</option>`).join('');
+        ss.dataset.oud = ''; ss.onchange = () => ss.classList.toggle('gewijzigd', !!ss.value); }
+      else ss.outerHTML = `<span>${esc(toonStatus(x.status) || '–')}</span>`;
+    }
     el.innerHTML = !wf.acties.length ? '<span class="hint">Geen workflowacties beschikbaar voor dit ticket.</span>' :
       `${hoofd ? `<button class="knop" data-actie="${wf.acties.indexOf(hoofd)}" title="Voert deze actie direct uit, samen met een gewijzigde afdeling en je reactie">${esc(hoofd.naam)}</button>` : ''}
        ${rest.length ? `<select id="actie-keuze"><option value="">Andere actie…</option>${rest.map(a => `<option value="${wf.acties.indexOf(a)}">${esc(a.naam)}</option>`).join('')}</select><span id="actie-extra" class="actie-extra"></span>` : ''}`;
@@ -1324,10 +1333,13 @@ async function voerUit(actieIdx, nieuweAfd = ''){
     if(sa === 'status' && a && subjMeta && subjMeta.status){ const woorden = norm(a.naam).split(' ').filter(w => w.length > 3);
       const w = waardenVan(subjMeta.status.values).find(v => woorden.length && woorden.every(d => norm(v.naam).includes(d))); if(w) lok.status = w.naam; }
     if(tekst){ lok.reactieDatum = new Date(); lok.reactieDoor = profiel.naam; }
+    // status via de workflow: de nieuwe statusnaam is een inschatting, die houden we maar kort vast (tot AFAS de echte geeft)
+    let gok = false;
+    if(sa === 'status' && a && !lok.status){ gok = true; lok.status = /melder/i.test(a.naam) ? 'Wachten op melder' : /leverancier/i.test(a.naam) ? 'Wachten op leverancier' : a.naam; }
     $('#detail').close();
     const wat = sa === 'collega' ? `Toegewezen aan ${actieKeuze.naam}` : sa === 'mij' ? 'Aan jou toegewezen' : sa === 'plannen' ? `Ingepland op ${fmtDatum(new Date(actieKeuze.datum))}` : a ? `${a.naam}: verwerkt in AFAS` : notitie ? 'Interne notitie geplaatst' : 'Reactie geplaatst';
     toast((nieuweAfd ? `${nieuweAfd} · ` : '') + wat + waarschuwing, !!waarschuwing);
-    onthoudLokaal(x, lok); teken(); toonVerplaatsing(voor); naAchtergrond();
+    onthoudLokaal(x, lok, gok ? 20e3 : undefined); teken(); toonVerplaatsing(voor); naAchtergrond();
   }catch(e){ $('#d-fout').textContent = (nieuweAfd ? `Al doorgevoerd (${nieuweAfd}), maar: ` : '') + e.message; document.querySelectorAll('#detail button, #detail select').forEach(b => b.disabled = false); }
 }
 
@@ -1583,8 +1595,13 @@ async function zetAfdelingVeld(x, naam){
 async function opslaanAlles(knopActie = null){
   const {x} = huidig, sel = $('#d-afd'), kies = $('#actie-keuze'), tekst = ($('#tekst') && $('#tekst').value.trim()) || '';
   const nieuweAfd = sel && sel.value && norm(sel.value) !== norm(x.afdeling) ? sel.value : '';
-  const actieIdx = knopActie != null ? knopActie : kies && kies.value !== '' ? +kies.value : null;
-  const ss = $('#d-status'), nieuweStatus = ss && ss.value && ss.value !== ss.dataset.oud ? ss.value : '', statusNaam = nieuweStatus ? ss.options[ss.selectedIndex].textContent : '';
+  let actieIdx = knopActie != null ? knopActie : kies && kies.value !== '' ? +kies.value : null;
+  const ss = $('#d-status');
+  if(ss && ss.value.startsWith('a:')){
+    if(actieIdx != null && knopActie == null){ $('#d-fout').textContent = 'Kies óf een nieuwe status óf een andere actie; ze voeren allebei een workflowstap uit.'; return; }
+    if(knopActie == null) actieIdx = +ss.value.slice(2);
+  }
+  const nieuweStatus = ss && ss.value && !ss.value.startsWith('a:') && ss.value !== ss.dataset.oud ? ss.value : '', statusNaam = nieuweStatus ? ss.options[ss.selectedIndex].textContent : '';
   if(!nieuweAfd && !nieuweStatus && actieIdx == null && !tekst){ $('#d-fout').textContent = 'Er is niets gewijzigd: pas afdeling of status aan, kies een actie of schrijf een reactie.'; return; }
   const act = actieIdx != null && huidig.wf ? huidig.wf.acties[actieIdx] : null;
   if(act && act.afhandelen && !(await vraag(`Ticket ${x.nr} afhandelen?`, 'Het ticket wordt afgesloten' + (tekst ? ' en je reactie gaat mee naar de melder.' : '.'), 'Afhandelen', 'Annuleren'))) return;
