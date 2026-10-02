@@ -715,7 +715,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.95 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.96 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -774,7 +774,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.95';
+const VERSIE = 'v3.96';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1909,11 +1909,16 @@ function zetNavPijlen(x){
   v.hidden = !vorig; n.hidden = !volg;
   if(vorig) v.title = `Vorige: ${vorig.nr} · ${vorig.onderwerp} (←)`; if(volg) n.title = `Volgende: ${volg.nr} · ${volg.onderwerp} (→)`;
 }
+let navNu = null;   // nummer van de melding die nu open staat (los van 'huidig', dat bij sluiten leeg wordt)
 async function gaNaar(r){
-  if(!huidig) return; const i = navLijst.indexOf(String(huidig.x.nr)), doel = navLijst[i + r]; if(i < 0 || !doel) return;
+  const nu = String((huidig && huidig.x && huidig.x.nr) || navNu || ''); const i = navLijst.indexOf(nu);
+  // volgende melding die (nog) in de gegevens staat; een melding die ondertussen verdween wordt overgeslagen
+  let k = i + r; while(i >= 0 && k >= 0 && k < navLijst.length && !items.some(y => String(y.nr) === navLijst[k])) k += r;
+  const doel = navLijst[k]; if(i < 0 || !doel){ toast('Geen ' + (r < 0 ? 'vorige' : 'volgende') + ' melding in deze lijst.'); return; }
   const d = $('#detail');
-  if(d.dataset.gewijzigd === '1' && !(await vraag('Wijzigingen niet opgeslagen', 'Je hebt iets ingevuld of gewijzigd dat nog niet is opgeslagen. Toch naar het ' + (r < 0 ? 'vorige' : 'volgende') + ' melding?', 'Doorgaan zonder opslaan', 'Terug', true))) return;
-  comboSluit(); openDetail(doel);
+  if(d.dataset.gewijzigd === '1' && !(await vraag('Wijzigingen niet opgeslagen', 'Je hebt iets ingevuld of gewijzigd dat nog niet is opgeslagen. Toch naar de ' + (r < 0 ? 'vorige' : 'volgende') + ' melding?', 'Doorgaan zonder opslaan', 'Terug', true))) return;
+  try{ comboSluit(); }catch(e){}
+  try{ openDetail(doel); }catch(e){ console.error(e); toast('Openen van melding ' + doel + ' mislukt: ' + e.message, true); }
 }
 document.addEventListener('keydown', e => {
   if((e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
@@ -1941,6 +1946,7 @@ function tekenHistorie(){
       return `<tr ${h.nr && x ? `data-nr="${esc(h.nr)}"` : ''} class="${x && x.afgesloten ? 'dicht' : ''}" title="${esc(h.regels.map(r => tijd(r.t) + ': ' + r.wat).join('\n'))}"><td class="zacht">${tijd(r0.t)}</td><td class="nr">${esc(h.nr || '–')}</td><td class="ond">${esc(h.ond)}</td><td>${esc(r0.wat)}${h.regels.length > 1 ? ` <small class="hint">+${h.regels.length - 1} eerder</small>` : ''}</td><td class="zacht">${x ? esc(x.afgesloten ? 'Afgehandeld' : toonStatus(x.status) || 'Open') : '<span class="hint">nog niet geladen</span>'}</td></tr>`; }).join('')}</tbody></table></div>`;
 }
 function openDetail(nr){
+  navNu = String(nr);
   const x = items.find(y => String(y.nr) === String(nr)); if(!x) return; huidig = {x, wf:null};
   x._sg = signalen(x); markeerGelezen(x);
   const st = stapVan(x);
@@ -3037,8 +3043,6 @@ document.addEventListener('click', e => {
   if(e.target.closest('#k-reageer')){ voerUit(null); return; }
   if(e.target.closest('#k-opslaan')){ opslaanAlles(null, true); return; }
   if(e.target.closest('#k-opslaan-blijf')){ opslaanAlles(null, false); return; }
-  if(e.target.closest('#nav-vorige')){ gaNaar(-1); return; }
-  if(e.target.closest('#nav-volgende')){ gaNaar(1); return; }
   const ctb = e.target.closest('[data-chtab]'); if(ctb){ soortKeuze.toegewezen = ctb.dataset.chtab; opslag.set('mict-soort', soortKeuze); teken(); return; }
   const chw = e.target.closest('[data-chw]'); if(chw){ chWeergave = chw.dataset.chw; opslag.set('mict-chweergave', chWeergave); teken(); return; }
   const wb = e.target.closest('#f-weergave button'); if(wb){ chWeergave = wb.dataset.w; opslag.set('mict-chweergave', chWeergave); teken(); return; }
@@ -3132,6 +3136,9 @@ document.addEventListener('input', e => {
   const nieuw = document.querySelector(`table[data-tabel="${CSS.escape(id)}"] .kolfilter input[data-kf="${k}"]`);
   if(nieuw){ nieuw.focus(); try{ nieuw.setSelectionRange(pos, pos); }catch(err){} }
 });
+// pijltjes: eigen klik-afhandeling, zodat niets anders de klik kan opvangen
+$('#nav-vorige').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); gaNaar(-1); });
+$('#nav-volgende').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); gaNaar(1); });
 $('#detail').addEventListener('close', () => { huidig = null; setTimeout(seinAanwezig, 50); });
 /* vensters sluiten: klik naast het venster, Esc, × of Annuleren; met niet-opgeslagen wijzigingen eerst vragen */
 /* eigen bevestigingsvenster midden in beeld (i.p.v. de browsermelding met het webadres erin) */
