@@ -653,7 +653,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.79 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.80 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -712,7 +712,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.79';
+const VERSIE = 'v3.80';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1146,8 +1146,16 @@ const breedteVan = c => kolBreedte[c.k] ? kolBreedte[c.k] + 'px' : eigenBreedtes
 function pasTabelBreedtes(){
   document.querySelectorAll('table.tabel[data-tabel]').forEach(t => {
     if(!eigenBreedtes()){ t.style.width = ''; return; }
-    const som = [...t.querySelectorAll('thead tr:first-child th')].filter(th => th.offsetParent !== null).reduce((n, th) => n + (parseFloat(th.style.width) || th.offsetWidth), 0);
-    t.style.width = som + 'px'; });
+    const kop = [...t.querySelectorAll('thead tr:first-child th')].filter(th => th.offsetParent !== null);
+    kop.forEach(th => { if(!th.dataset.basis) th.dataset.basis = parseFloat(th.style.width) || th.offsetWidth; th.style.width = th.dataset.basis + 'px'; });
+    const som = kop.reduce((n, th) => n + +th.dataset.basis, 0), ruimte = (t.parentElement && t.parentElement.clientWidth) || 0, over = ruimte - som;
+    if(over > 4){
+      // breder scherm: de extra ruimte naar Onderwerp en Signaal (anders de laatste kolom), zodat de tabel de hele breedte vult
+      let rek = kop.filter(th => th.dataset.sort === 'ond' || th.dataset.sort === 'sig'); if(!rek.length) rek = kop.slice(-1);
+      const totaal = rek.reduce((n, th) => n + +th.dataset.basis, 0) || 1;
+      let rest = Math.floor(over); rek.forEach((th, i) => { const plus = i === rek.length - 1 ? rest : Math.floor(over * th.dataset.basis / totaal); rest -= plus; th.style.width = (+th.dataset.basis + plus) + 'px'; });
+      t.style.width = Math.floor(ruimte) + 'px';
+    } else t.style.width = som + 'px'; });
 }
 addEventListener('resize', () => pasTabelBreedtes());
 function zetBreedtes(b){ kolBreedte = b; opslag.set(KOLBREED, b); teken(); }
@@ -1195,7 +1203,7 @@ document.addEventListener('mousedown', e => {
   const beweeg = ev => { const w = nieuw(ev); th.style.width = w + 'px'; tab.style.width = (som0 - w0 + w) + 'px'; };
   const los = ev => { document.removeEventListener('mousemove', beweeg); document.removeEventListener('mouseup', los); document.body.classList.remove('slepend');
     window._negeerKlik = Date.now();
-    if(Math.abs(ev.clientX - start) > 2) zetBreedtes({...vast, ...kolBreedte, [k]: nieuw(ev)}); else teken(); };
+    if(Math.abs(ev.clientX - start) > 2){ const basis = {}; kop.forEach(t => { if(t.dataset.basis) basis[t.dataset.sort] = Math.round(+t.dataset.basis); }); zetBreedtes({...vast, ...basis, ...kolBreedte, [k]: nieuw(ev)}); } else teken(); };
   document.addEventListener('mousemove', beweeg); document.addEventListener('mouseup', los);
 });
 // dubbelklik op de rand: deze kolom passend maken
