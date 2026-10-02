@@ -719,7 +719,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v3.98 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v3.99 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -778,7 +778,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.98';
+const VERSIE = 'v3.99';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1426,8 +1426,9 @@ function tekenNav(){
   const restOpen = overigeOpen;
   // kop = schakelaar: "Mijn ⇄ Ons werk"; het actieve woord vet, het andere licht doorgestreept
   const kop = (soort, aan, a, b, rest, uitleg) => `<button type="button" class="wisselkop${aan ? ' ons' : ''}" data-wissel="${soort}" aria-pressed="${aan}" title="${esc(uitleg)}"><span class="${aan ? 'uit' : 'aan'}">${a}</span>${ico('<path d="M7 7h11l-3-3M17 17H6l3 3"/>')}<span class="${aan ? 'aan' : 'uit'}">${b}</span><span class="rest">${rest}</span></button>`;
-  const vast = VAST.filter(v => !v.f), werk = [VAST.find(v => v.id === 'toegewezen'), ...VAST.filter(v => v.f && v.id !== 'toegewezen')];   // Mijn meldingen blijft altijd staan (en is altijd van jou)
-  $('#nav').innerHTML = `${vast.map(v => it(v.id, v.t, null, v)).join('')}
+  // Mijn meldingen staat bovenaan onder Overzicht: die is altijd van jou en valt dus niet onder het schuifje Mijn/Ons werk
+  const mijnM = VAST.find(v => v.id === 'toegewezen'), vast = VAST.filter(v => !v.f), werk = VAST.filter(v => v.f && v.id !== 'toegewezen');
+  $('#nav').innerHTML = `${it(vast[0].id, vast[0].t, null, vast[0])}${it(mijnM.id, mijnM.t, zichtbaar(mijnM.id, mijnM.f()).length, mijnM)}${vast.slice(1).map(v => it(v.id, v.t, null, v)).join('')}
     ${kop('werk', werkOns, 'Mijn', 'Ons', 'werk', werkOns ? 'Je ziet het werk van het hele team. Klik om alleen jouw meldingen te zien.' : 'Je ziet alleen jouw meldingen. Klik om het werk van het hele team te zien.')}
     ${werk.map(v => it(v.id, v.t, zichtbaar(v.id, v.f()).length, v)).join('')}
     ${kop('afd', afdOns, 'Mijn', 'Onze', 'afdelingen', afdOns ? 'Je ziet alles in deze afdelingen. Klik om alleen jouw meldingen erin te zien.' : 'Je ziet alleen jouw meldingen in deze afdelingen. Klik om alles erin te zien.')}
