@@ -148,12 +148,13 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .todo-verbind .knoppen{display:flex;gap:10px;flex-wrap:wrap}
 .tegels{display:flex;flex-wrap:wrap;gap:10px}
 .tegels:empty{display:none}
-.voorblad{padding:28px 8px 40px;max-width:1100px}
+.voorblad{padding:28px 8px 40px}
+@media (min-width:1600px){.vb-c b{font-size:72px}.vb-cijfers{gap:44px 36px}}
 .vb-groet{margin:0;font-size:15px;color:var(--grijs);font-weight:500}
 .vb-dag{margin:4px 0 44px;font-size:34px;font-weight:300;color:var(--blauw);letter-spacing:-.5px;line-height:1.2}
 .vb-dag::first-letter{text-transform:uppercase}
 .vb-dag small{display:block;font-size:14px;font-weight:400;color:var(--grijs);margin-top:8px;letter-spacing:0}
-.vb-cijfers{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:40px 28px}
+.vb-cijfers{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:40px 28px}
 .vb-c{display:flex;flex-direction:column;justify-content:flex-start;align-items:flex-start;background:none;border:0;padding:0;text-align:left;cursor:pointer;font-family:inherit;color:inherit}
 .vb-c b{display:block;font-size:60px;line-height:1;font-weight:200;color:var(--blauw);letter-spacing:-2px;transition:transform .2s}
 .vb-c span{display:block;margin-top:10px;font-size:13px;color:var(--grijs);font-weight:500}
@@ -161,7 +162,7 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .vb-c:hover span{color:var(--blauw)}
 .vb-c.rood b{color:var(--rood)} .vb-c.groen b{color:var(--groen)} .vb-c.blauw b{color:var(--blauw-2)}
 .vb-c.nul b{color:var(--lijn)}
-.vb-lijsten{margin-top:56px;border-top:1px solid var(--lijn);padding-top:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px 40px}
+.vb-lijsten{margin-top:56px;border-top:1px solid var(--lijn);padding-top:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:24px 56px}
 .vb-lijsten h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--grijs);margin:0 0 10px;font-weight:600}
 .voorregel{margin:0;padding:7px 0;display:flex;gap:12px;align-items:baseline;font-size:14px;cursor:pointer;border-bottom:1px solid transparent}
 .voorregel:hover em{color:var(--blauw);text-decoration:underline}
@@ -653,7 +654,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.80 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.81 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -712,7 +713,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.80';
+const VERSIE = 'v3.81';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1363,8 +1364,8 @@ function tekenMij(){
   const actieN = waarden[0].n;
   const zin = actieN ? `${actieN} ticket${actieN === 1 ? ' vraagt' : 's vragen'} nu je aandacht.` : 'Alles op jouw naam zit binnen de normen.';
   // eerst oppakken: de drie belangrijkste tickets op jouw naam
-  const prio = mijnOpen().filter(x => ernst(x) >= 1).sort(sorteer).slice(0, 3);
-  const plan = mijnOpen().filter(x => x.gepland && +x.gepland >= +vandaagBegin()).sort((a, b) => a.gepland - b.gepland).slice(0, 3);
+  const prio = mijnOpen().filter(x => ernst(x) >= 1).sort(sorteer).slice(0, 5);
+  const plan = mijnOpen().filter(x => x.gepland && +x.gepland >= +vandaagBegin()).sort((a, b) => a.gepland - b.gepland).slice(0, 5);
   const regel = (x, extra) => `<p data-nr="${esc(x.nr)}" class="voorregel"><span class="vnr">${esc(x.nr)}</span><em>${esc(x.onderwerp)}</em><small>${extra}</small></p>`;
   $('#tegels').innerHTML = '';
   $('#blokken').innerHTML = `<div class="voorblad">
