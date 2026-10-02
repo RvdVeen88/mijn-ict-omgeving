@@ -410,7 +410,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.48 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.49 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -461,7 +461,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.48';
+const VERSIE = 'v3.49';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -999,8 +999,25 @@ function tekenLijst(){
   $('#titel').textContent = v.titel; $('#subtitel').textContent = '';
 }
 let tab = 'mij';
+/* wat je zelf wijzigt staat meteen in beeld; de GetConnector van AFAS loopt vaak 5-10 seconden achter.
+   Tot AFAS de wijziging teruggeeft (max. 3 minuten) houdt de pagina de eigen waarde vast. */
+const lokaalNieuw = new Map();
+function onthoudLokaal(x, v){ const k = String(x.nr), o = lokaalNieuw.get(k) || {velden:{}}; Object.assign(o.velden, v); o.tot = Date.now() + 3 * 60e3; lokaalNieuw.set(k, o); pasLokaalToe(); }
+const zelfde = (k, a, b) => k === 'afgesloten' ? !!a === !!b : (k === 'gepland' || k === 'reactieDatum') ? (!!a && !!b && Math.abs(+a - +b) < (k === 'gepland' ? DAG : 10 * 60e3)) : norm(a) === norm(b);
+function pasLokaalToe(){
+  lokaalNieuw.forEach((o, nr) => {
+    if(Date.now() > o.tot){ lokaalNieuw.delete(nr); return; }
+    const x = items.find(y => String(y.nr) === nr); if(!x) return;
+    if(x._lokaal === o) return;   // dit ticketobject heeft de eigen waarden al
+    if(Object.entries(o.velden).every(([k, v]) => zelfde(k, x[k], v))){ lokaalNieuw.delete(nr); return; }   // verse AFAS-gegevens zijn bij
+    Object.assign(x, o.velden); x._lokaal = o; x.emmer = emmer(x.status);
+    x.zoek = norm([x.nr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.emma, ...(x.taakBij || [])].join(' '));
+  });
+}
+const naAchtergrond = () => { setTimeout(async () => { await laadGegevens(); if(!$('#detail').open) teken(); }, 4000); setTimeout(async () => { await laadGegevens(); if(!$('#detail').open) teken(); }, 15000); };
 function teken(){
   if(!profiel) return;
+  pasLokaalToe();
   document.querySelectorAll('#mijalles-top button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === mijAllesStand));
   if(takenKlaar && items.length && !opslag.get(bekendSleutel())) opslag.set(bekendSleutel(), items.filter(isMijn).map(x => String(x.nr)));   // eerste keer (na het laden van je taken): wat er nu staat is al bekend
   items.forEach(x => x._sg = signalen(x));
@@ -1292,12 +1309,19 @@ async function voerUit(actieIdx, nieuweAfd = ''){
         await zetVelden(x, {[veldCode(m.status)]: w.code}); if(tekst) await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body:JSON.stringify({KnWorkflow:{Element:{Fields:{SbId:velden.SbId, Tx:tekst}}}})}).catch(() => {});
       } else throw e;
     }
-    const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect:$('#detail').getBoundingClientRect()};
+    const voor = (huidig && huidig.voorAlles) || {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect:$('#detail').getBoundingClientRect()};
+    const lok = {...((huidig && huidig.lok) || {})};
+    if(sa === 'mij') lok.verantw = profiel.naam;
+    if(sa === 'collega') lok.verantw = actieKeuze.naam;
+    if(sa === 'plannen') lok.gepland = new Date(actieKeuze.datum + 'T00:00:00');
+    if(a && a.afhandelen) lok.afgesloten = true;
+    if(sa === 'status' && a && subjMeta && subjMeta.status){ const woorden = norm(a.naam).split(' ').filter(w => w.length > 3);
+      const w = waardenVan(subjMeta.status.values).find(v => woorden.length && woorden.every(d => norm(v.naam).includes(d))); if(w) lok.status = w.naam; }
+    if(tekst){ lok.reactieDatum = new Date(); lok.reactieDoor = profiel.naam; }
     $('#detail').close();
     const wat = sa === 'collega' ? `Toegewezen aan ${actieKeuze.naam}` : sa === 'mij' ? 'Aan jou toegewezen' : sa === 'plannen' ? `Ingepland op ${fmtDatum(new Date(actieKeuze.datum))}` : a ? `${a.naam}: verwerkt in AFAS` : notitie ? 'Interne notitie geplaatst' : 'Reactie geplaatst';
     toast((nieuweAfd ? `${nieuweAfd} · ` : '') + wat + waarschuwing, !!waarschuwing);
-    await laadGegevens(); teken();
-    toonVerplaatsing(voor);
+    onthoudLokaal(x, lok); teken(); toonVerplaatsing(voor); naAchtergrond();
   }catch(e){ $('#d-fout').textContent = (nieuweAfd ? `Al doorgevoerd (${nieuweAfd}), maar: ` : '') + e.message; document.querySelectorAll('#detail button, #detail select').forEach(b => b.disabled = false); }
 }
 
@@ -1558,14 +1582,17 @@ async function opslaanAlles(knopActie = null){
   if(!nieuweAfd && !nieuweStatus && actieIdx == null && !tekst){ $('#d-fout').textContent = 'Er is niets gewijzigd: pas afdeling of status aan, kies een actie of schrijf een reactie.'; return; }
   const knop = $('#k-opslaan'); knop.disabled = true; $('#d-fout').textContent = '';
   try{
-    if(nieuweAfd){ await zetAfdelingVeld(x, nieuweAfd); }
-    if(nieuweStatus){ const m = await laadSubjMeta(); if(!DEMO) await zorgSbId(x); await zetVelden(x, {[veldCode(m.status)]: nieuweStatus}); }
+    const voorAlles = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect:$('#detail').getBoundingClientRect()};
+    const lok = {};
+    if(nieuweAfd){ lok.afdeling = await zetAfdelingVeld(x, nieuweAfd); }
+    if(nieuweStatus){ const m = await laadSubjMeta(); if(!DEMO) await zorgSbId(x); await zetVelden(x, {[veldCode(m.status)]: nieuweStatus});
+      lok.status = (waardenVan(m.status.values).find(w => w.code === nieuweStatus) || {naam: statusNaam}).naam; }
+    huidig.voorAlles = voorAlles; huidig.lok = lok;
     const gedaan = [nieuweAfd && '→ ' + nieuweAfd, statusNaam && 'status ' + statusNaam].filter(Boolean).join(' · ');
     if(actieIdx != null || tekst){ await voerUit(actieIdx, gedaan); return; }
-    // alleen de afdeling gewijzigd
-    const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect:$('#detail').getBoundingClientRect()};
+    // alleen afdeling en/of status gewijzigd
     $('#detail').dataset.gewijzigd = ''; $('#detail').close(); toast(`Ticket ${x.nr}: ${gedaan}`);
-    await laadGegevens(); teken(); toonVerplaatsing(voor);
+    onthoudLokaal(x, lok); teken(); toonVerplaatsing(voorAlles); naAchtergrond();
   }catch(e){ $('#d-fout').textContent = e.message; knop.disabled = false; }
 }
 async function zetAfdeling(x, naam, van, tekst = ''){
@@ -1578,7 +1605,7 @@ async function zetAfdeling(x, naam, van, tekst = ''){
     if(tekst) await plaatsReactie(x, tekst);
     const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect: van};
     toast(`Ticket ${x.nr} → ${w.naam}${tekst ? ' (met reactie)' : ''}`);
-    await laadGegevens(); teken(); toonVerplaatsing(voor);
+    onthoudLokaal(x, {afdeling: w.naam, ...(tekst ? {reactieDatum: new Date(), reactieDoor: profiel.naam} : {})}); teken(); toonVerplaatsing(voor); naAchtergrond();
   }catch(e){ toast('Afdeling wijzigen lukte niet: ' + e.message, true); }
 }
 // na slepen zonder recente reactie: reactie toevoegen of doorgaan zonder
