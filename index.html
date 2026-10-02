@@ -11,6 +11,7 @@
   --goud:#EAC479; --goud-licht:#FBF3E2; --bruin:#7A5A12;
   --inkt:#16213E; --grijs:#5B6480; --lijn:#DFE5F0; --achtergrond:#F4F6FA;
   --rood:#B42318; --rood-licht:#FDECEA; --oranje:#B54708; --oranje-licht:#FEF0E3; --groen:#1E7F4F; --groen-licht:#E7F4EC;
+  --zebra:#F1F4F9; --greep:#C9D3E6;
   --vlak:#FFFFFF; --opaccent:#FFFFFF; --bg1:#FFFFFF; --bg2:#F4F6FA; --bg3:#E6EEFF;
   --rail-bg:rgba(255,255,255,.8); --rail-ico:#6B7899; --rail-hover:#EEF3FC; --rail-act:#053787; --rail-act-ink:#fff;
   --schaduw:0 8px 28px rgba(5,55,135,.08);
@@ -21,6 +22,7 @@
   --goud-licht:rgba(234,196,121,.16); --bruin:#EAC479;
   --inkt:#E6ECF8; --grijs:#98A3BE; --lijn:#29344F; --achtergrond:#0C1323;
   --rood:#FF7A6E; --rood-licht:rgba(255,122,110,.16); --oranje:#FFB067; --oranje-licht:rgba(255,176,103,.14); --groen:#52C98F; --groen-licht:rgba(82,201,143,.16);
+  --zebra:rgba(255,255,255,.035); --greep:#3A4868;
   --vlak:#141D33; --opaccent:#0B1633; --bg1:#0E1628; --bg2:#0C1323; --bg3:#101B35;
   --rail-bg:rgba(255,255,255,.05); --rail-ico:#7C88A6; --rail-hover:rgba(255,255,255,.06); --rail-act:#9DBEFF; --rail-act-ink:#0C1323;
   --schaduw:0 8px 28px rgba(0,0,0,.35); color-scheme:dark;
@@ -30,6 +32,7 @@
   --goud-licht:rgba(234,196,121,.16); --bruin:#EAC479;
   --inkt:#E6ECF8; --grijs:#98A3BE; --lijn:#29344F; --achtergrond:#0C1323;
   --rood:#FF7A6E; --rood-licht:rgba(255,122,110,.16); --oranje:#FFB067; --oranje-licht:rgba(255,176,103,.14); --groen:#52C98F; --groen-licht:rgba(82,201,143,.16);
+  --zebra:rgba(255,255,255,.035); --greep:#3A4868;
   --vlak:#141D33; --opaccent:#0B1633; --bg1:#0E1628; --bg2:#0C1323; --bg3:#101B35;
   --rail-bg:rgba(255,255,255,.05); --rail-ico:#7C88A6; --rail-hover:rgba(255,255,255,.06); --rail-act:#9DBEFF; --rail-act-ink:#0C1323;
   --schaduw:0 8px 28px rgba(0,0,0,.35); color-scheme:dark;
@@ -248,16 +251,17 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .tabel td{max-width:none}
 .tabel th{overflow:hidden;text-overflow:ellipsis;text-align:left;font-size:12px;font-weight:600;color:var(--blauw);padding:8px 10px;border-bottom:2px solid var(--lijn);white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--vlak)}
 .tabel th:hover{color:var(--blauw-2)}
-.kolgreep{position:absolute;top:0;right:-4px;width:9px;height:100%;cursor:col-resize;z-index:2}
-.kolgreep::after{content:'';position:absolute;left:4px;top:25%;height:50%;width:1.5px;background:var(--lijn);border-radius:2px}
-.tabel th:hover .kolgreep::after,.kolgreep:hover::after,body.slepend .kolgreep::after{background:var(--blauw-2)}
+.kolgreep{position:absolute;top:0;right:0;width:10px;height:100%;cursor:col-resize;z-index:2}
+.kolgreep::after{content:'';position:absolute;right:3px;top:22%;height:56%;width:3px;background:var(--greep);border-radius:2px;transition:background .12s}
+.kolgreep:hover::after,body.slepend .kolgreep::after{background:var(--blauw-2)}
 body.slepend,body.slepend *{cursor:col-resize!important;user-select:none!important}
 #kolkeuze .knoppenrij{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--lijn);padding-top:8px;margin-top:4px}
 .tabel th .pijl{opacity:.35;margin-left:4px;font-size:10px}
 .tabel th[aria-sort] .pijl{opacity:1}
 .tabel td{padding:8px 10px;border-bottom:1px solid var(--lijn);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;vertical-align:middle}
 .tabel tbody tr{cursor:pointer}
-.tabel tbody tr:hover td{background:var(--achtergrond)}
+.tabel tbody tr:nth-child(even) td{background:var(--zebra)}
+.tabel tbody tr:hover td{background:var(--lichtblauw-2)}
 .tabel td.nr{font-weight:600;color:var(--blauw);text-align:right;width:64px;box-shadow:inset 4px 0 0 transparent}
 .tabel tr.rood td.nr{box-shadow:inset 4px 0 0 var(--rood)} .tabel tr.oranje td.nr{box-shadow:inset 4px 0 0 var(--goud)} .tabel tr.blauw td.nr{box-shadow:inset 4px 0 0 var(--blauw-2)}
 .tabel td.ond{color:var(--inkt);font-weight:500}
@@ -353,6 +357,14 @@ dialog #combo{position:fixed}
 
 /* ---- ticketscherm ---- */
 dialog#detail{width:min(1080px,calc(100vw - 32px))}
+dialog#detail .navpijl{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:26px;height:64px;display:grid;place-items:center;border:0;background:transparent;color:var(--blauw);opacity:.3;cursor:pointer;border-radius:10px;padding:0;transition:opacity .15s,background .15s}
+dialog#detail .navpijl:hover,dialog#detail .navpijl:focus-visible{opacity:1;background:var(--lichtblauw-2)}
+dialog#detail .navpijl svg{width:20px;height:20px}
+dialog#detail .navpijl.links{left:1px} dialog#detail .navpijl.rechts{right:1px}
+dialog#detail .navpijl[hidden]{display:none}
+.opslaanknoppen{display:inline-flex;gap:8px;margin-left:auto}
+.tabel.hist td{white-space:normal}
+.tabel.hist tbody tr[data-nr]{cursor:pointer}
 .stappen{display:flex;align-items:center;gap:0;margin:2px 0 4px}
 .stap{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--grijs);font-weight:500}
 .stap i{width:22px;height:22px;border-radius:50%;border:2px solid var(--lijn);display:grid;place-items:center;font-style:normal;font-size:11px;background:var(--vlak)}
@@ -488,7 +500,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
   </div>
 </div>
 
-<dialog id="detail"><div class="dlg-in" id="detail-in"></div></dialog>
+<dialog id="detail"><button type="button" class="navpijl links" id="nav-vorige" hidden aria-label="Vorige ticket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button><div class="dlg-in" id="detail-in"></div><button type="button" class="navpijl rechts" id="nav-volgende" hidden aria-label="Volgende ticket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button></dialog>
 <dialog id="sleepvraag" class="smal"></dialog>
 <dialog id="vraag" class="vraagdlg"></dialog>
 <dialog id="bekijk" class="bekijkdlg"></dialog>
@@ -707,6 +719,24 @@ function maakItem(r, extra){
   x.zoek = norm([x.nr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.module, x.emma, ...x.taakBij].join(' '));
   return x;
 }
+let alleDichtGeladen = false, alleDichtBezig = null;
+/* alle gesloten tickets (zonder 90-dagengrens): pas ophalen als je die weergave opent */
+function laadAlleGesloten(){
+  if(alleDichtGeladen || alleDichtBezig) return alleDichtBezig;
+  return alleDichtBezig = (async () => {
+    try{
+      await laadRestOpAchtergrond();
+      let dicht = null;
+      for(const w of ['true', '1']){ try{ dicht = await connectorAlles(INST.connSla, filterEn([['Workflow_afgerond', w, 1]]), n => { if(tab === 'dichtalle') $('#lijst-sub').textContent = `Alle gesloten tickets ophalen… ${n.length} opgehaald`; }); if(dicht.length) break; dicht = null; }catch(e){ dicht = null; } }
+      if(!dicht) dicht = await connectorAlles(INST.connSla, '');
+      const nrs = new Set(items.map(x => String(x.nr)));
+      items = [...items, ...bouwItems(dicht.filter(r => !nrs.has(String(r.Nummer))), new Map(sbCache)).filter(x => x.afgesloten)];
+      alleDichtGeladen = true;
+    }catch(e){ toast('Alle gesloten tickets ophalen mislukt: ' + e.message, true); }
+    alleDichtBezig = null;
+    if(tab === 'dichtalle' && !$('#detail').open) teken();
+  })();
+}
 let alleGeladen = false, mijnTaken = [], achterBezig = null, openFilter = null;
 const isoD = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 /* open tickets: workflow niet afgerond én status niet afgesloten. De waarde voor ja/nee verschilt per omgeving, dus we proberen een paar varianten. */
@@ -777,7 +807,7 @@ async function laadGegevens(fase = 'open'){
     const nieuw = bouwItems(sla, new Map(sbCache));
     if(fase === 'open' && alleGeladen){ const nrs = new Set(nieuw.map(x => String(x.nr))); items = [...nieuw, ...items.filter(x => x.afgesloten && !nrs.has(String(x.nr)))]; }
     else items = nieuw;
-    if(fase === 'alles') alleGeladen = true;
+    if(fase === 'alles'){ alleGeladen = true; alleDichtGeladen = true; }
     status = {bijgewerkt: new Date(), fout: null};
     vg.stop(); $('#live').classList.remove('uit'); laadScherm(100, 0, 0);
   }catch(e){ vg.stop(); status.fout = e.message; toast('Laden mislukt: ' + e.message, true); $('#topbalk').classList.remove('aan'); }
@@ -1003,6 +1033,7 @@ const kolFilter = {};   // per tabel-id: {kolom: zoektekst}
 const KEUZE = new Set(['afd','melder','wie','status','type']);   // kolommen met een keuzelijst in het filterveld
 const keuzeOpties = {};   // per tabel en kolom: de waarden voor de filterlijst
 const kolTekst = (c, x) => c.k === 'sig' ? (x._sg || []).map(s => s.tekst).join(' ') : String(c.html(x)).replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
+const tabelVolgorde = {};
 function tabel(id, l, opties = {}){
   const zonder = new Set(opties.zonder || []), kol = KOLOMMEN.filter(c => !zonder.has(c.k) && !verborgenKol.has(c.k));
   const kf = kolFilter[id] || {}, actief = Object.entries(kf).filter(([, v]) => v && v.trim());
@@ -1013,6 +1044,7 @@ function tabel(id, l, opties = {}){
   const s = sortering[id];
   if(s){ const c = KOLOMMEN.find(c => c.k === s.k); l = [...l].sort((a, b) => { const x = c.w(a), y = c.w(b); return (x < y ? -1 : x > y ? 1 : 0) * s.op || (+b.aangemaakt || 0) - (+a.aangemaakt || 0); }); }
   const max = opties.max && !blokOpen.has(id) ? opties.max : 400, zicht = l.slice(0, max);
+  tabelVolgorde[id] = l.map(x => String(x.nr));   // voor vorige/volgende in het ticket: de hele lijst in deze volgorde, ook wat (nog) niet getoond wordt
   return `<div class="tw"><table class="tabel" data-tabel="${id}"><thead><tr>${kol.map(c => `<th data-sort="${c.k}" ${breedteVan(c) ? `style="width:${breedteVan(c)}"` : ''} class="${c.cls.replace(/\b(nr|ond|sig|zacht)\b/g, '')}" ${s && s.k === c.k ? `aria-sort="${s.op > 0 ? 'ascending' : 'descending'}"` : ''}>${c.t}${s && s.k === c.k ? `<span class="pijl">${s.op > 0 ? '▲' : '▼'}</span>` : ''}${c.k === 'ond' ? '' : `<span class="kolgreep" data-greep="${c.k}" title="Sleep om de breedte aan te passen · dubbelklik = passend"></span>`}</th>`).join('')}</tr>
     <tr class="kolfilter">${kol.map(c => `<th class="${c.cls.replace(/\b(nr|ond|sig|zacht)\b/g, '')}"><input size="3" data-kf="${c.k}" ${KEUZE.has(c.k) ? 'data-keuze autocomplete="off"' : ''} value="${esc(kf[c.k] || '')}" placeholder="${KEUZE.has(c.k) ? 'Alle ▾' : 'Filter…'}" aria-label="Filter op ${c.t}" class="${kf[c.k] ? 'aan' : ''}"></th>`).join('')}</tr></thead>
     <tbody>${!zicht.length ? `<tr class="geenrij"><td colspan="${kol.length}">Geen tickets met deze filters. <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></td></tr>` : ''}${zicht.map(x => `<tr draggable="${x.afgesloten ? 'false' : 'true'}" class="${KLEUR[ernst(x)]}${x.afgesloten ? ' dicht' : ''}${(x._sg || []).some(s => s.code === 'ongelezen') ? ' ongelezen' : ''}" data-nr="${esc(x.nr)}">${kol.map(c => `<td class="${c.cls}"${c.k === 'sig' ? '' : ` title="${esc(kolTekst(c, x))}"`}>${c.html(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
@@ -1035,7 +1067,9 @@ const VAST = [
 const ONDER = [
   {id:'alle', t:'Alle open tickets', ico:'<path d="M4 6h16M4 12h16M4 18h10"/>', f:() => open()},
   {id:'inuit', t:'In- en uitdienst', ico:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>', f:() => open().filter(x => x.inuit)},
-  {id:'dicht', t:'Gesloten (90 dagen)', ico:'<path d="M5 12.5l4.5 4.5L19 7.5"/>', f:() => { const g = Date.now() - 90 * DAG; return items.filter(x => x.afgesloten && (x.statusDatum || x.aangemaakt || 0) >= g); }, geenTel:true}
+  {id:'historie', t:'Historie', ico:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', f:() => [], geenTel:true},
+  {id:'dicht', t:'Gesloten (90 dagen)', ico:'<path d="M5 12.5l4.5 4.5L19 7.5"/>', f:() => { const g = Date.now() - 90 * DAG; return items.filter(x => x.afgesloten && (x.statusDatum || x.aangemaakt || 0) >= g); }, geenTel:true},
+  {id:'dichtalle', t:'Alle gesloten tickets', ico:'<path d="M3 7h18M5 7v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7M9 11h6"/><path d="M4 4h16v3H4z"/>', f:() => items.filter(x => x.afgesloten), geenTel:true}
 ];
 const afdelingen = () => { const t = new Map((INST.afdelingen || []).map(a => [a, 0]));
   open().filter(x => !x.inuit).forEach(x => { const a = (INST.afdelingen || []).find(n => norm(n) === norm(x.afdeling)) || x.afdeling || 'Geen afdeling'; t.set(a, (t.get(a) || 0) + 1); });
@@ -1142,6 +1176,7 @@ function zichtbaar(t, l){
 // alleen eigen tickets in beeld: dan is de kolom Behandelaar overbodig (dat ben je zelf)
 const alleenEigen = t => t === 'toegewezen' || (t === 'norm' && schuifAan(t)) || (t.startsWith('afd:') && schuifAan(t));
 function tekenLijst(){
+  if(tab === 'historie') return tekenHistorie();
   const v = weergave(tab), w = norm(filt.zoek);
   let l = v.lijst;
   $('#f-mijn').hidden = !heeftSchuif(tab); $('#f-mijn input').checked = schuifAan(tab);
@@ -1152,13 +1187,15 @@ function tekenLijst(){
   l = zichtbaar(tab, l);
   if(w) l = l.filter(x => x.zoek.includes(w));
   const lid = 'lijst:' + tab;
-  if(tab !== 'norm' && !(lid in sortering)) sortering[lid] = tab === 'dicht' ? undefined : {k:'in', op:-1};
-  l = [...l].sort(tab === 'norm' ? sorteer : tab === 'dicht' ? (a, b) => (b.statusDatum || 0) - (a.statusDatum || 0) : (a, b) => (b.aangemaakt || 0) - (a.aangemaakt || 0));
+  const isDicht = tab === 'dicht' || tab === 'dichtalle';
+  if(tab !== 'norm' && !(lid in sortering)) sortering[lid] = isDicht ? undefined : {k:'in', op:-1};
+  l = [...l].sort(tab === 'norm' ? sorteer : isDicht ? (a, b) => (b.statusDatum || 0) - (a.statusDatum || 0) : (a, b) => (b.aangemaakt || 0) - (a.aangemaakt || 0));
   $('#lijst-titel').textContent = v.titel; $('#lijst-n').textContent = l.length;
   $('#lijst-sub').textContent = l.length > 400 ? 'eerste 400 getoond; zoek of sorteer om te verfijnen' : 'Klik op een kolomkop om te sorteren';
   if(tab === 'dicht' && !alleGeladen) $('#lijst-sub').textContent = 'Gesloten meldingen worden nog opgehaald…';
+  if(tab === 'dichtalle' && !alleDichtGeladen){ $('#lijst-sub').textContent = 'Alle gesloten tickets worden opgehaald… (eenmalig, kan even duren)'; laadAlleGesloten(); }
   $('#lijst-kol').innerHTML = kolKnop;
-  $('#lijst').innerHTML = l.length ? tabel('lijst:' + tab, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(tab === 'dicht' ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])]}) : '<p class="leeg">Geen tickets gevonden.</p>';
+  $('#lijst').innerHTML = l.length ? tabel('lijst:' + tab, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(isDicht ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])]}) : '<p class="leeg">Geen tickets gevonden.</p>';
   $('#titel').textContent = v.titel; $('#subtitel').textContent = '';
 }
 let tab = 'mij';
@@ -1324,6 +1361,45 @@ function statusKeuzes(wf, x){
   return STATUS_VOLGORDE.map(st => ({st, a: wf.acties.filter(a => statusNa(a) === st && voorkeur(a) < 9).sort((p, q) => voorkeur(p) - voorkeur(q))[0] || null}));
 }
 const soortActie = a => /toewijzen aan mij/i.test(a.naam) ? 'mij' : /toewijzen aan collega|doorzetten naar collega|collega/i.test(a.naam) ? 'collega' : /inplannen|plannen/i.test(a.naam) ? 'plannen' : 'status';
+/* ---- vorige / volgende ticket uit de lijst waar je het ticket opende ---- */
+let navLijst = [];
+function zetNavPijlen(x){
+  const i = navLijst.indexOf(String(x.nr)), v = $('#nav-vorige'), n = $('#nav-volgende');
+  const vorig = i > 0 ? items.find(y => String(y.nr) === navLijst[i - 1]) : null, volg = i >= 0 && i < navLijst.length - 1 ? items.find(y => String(y.nr) === navLijst[i + 1]) : null;
+  v.hidden = !vorig; n.hidden = !volg;
+  if(vorig) v.title = `Vorige: ${vorig.nr} · ${vorig.onderwerp} (←)`; if(volg) n.title = `Volgende: ${volg.nr} · ${volg.onderwerp} (→)`;
+}
+async function gaNaar(r){
+  if(!huidig) return; const i = navLijst.indexOf(String(huidig.x.nr)), doel = navLijst[i + r]; if(i < 0 || !doel) return;
+  const d = $('#detail');
+  if(d.dataset.gewijzigd === '1' && !(await vraag('Wijzigingen niet opgeslagen', 'Je hebt iets ingevuld of gewijzigd dat nog niet is opgeslagen. Toch naar het ' + (r < 0 ? 'vorige' : 'volgende') + ' ticket?', 'Doorgaan zonder opslaan', 'Terug', true))) return;
+  comboSluit(); openDetail(doel);
+}
+document.addEventListener('keydown', e => {
+  if((e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
+  if(!$('#detail').open || $('#vraag').open || $('#bekijk').open || ($('#sleepvraag') && $('#sleepvraag').open)) return;
+  const a = document.activeElement; if(a && a.matches('input, textarea, select, [contenteditable=""], [contenteditable="true"]')) return;
+  e.preventDefault(); gaNaar(e.key === 'ArrowLeft' ? -1 : 1);
+});
+/* ---- historie: de laatste 10 tickets waarin jij iets hebt gewijzigd (per gebruiker, in deze browser) ---- */
+const histSleutel = () => 'mict-historie-' + (sub || 'demo');
+function logHistorie(x, wat){
+  if(!x || !wat) return;
+  const l = opslag.get(histSleutel()) || [], oud = x.nr ? l.find(h => String(h.nr) === String(x.nr)) : null;
+  const nieuw = {nr: String(x.nr || ''), ond: x.onderwerp || (oud && oud.ond) || '', regels: [{t: Date.now(), wat}, ...((oud && oud.regels) || [])].slice(0, 5)};
+  opslag.set(histSleutel(), [nieuw, ...l.filter(h => h !== oud)].slice(0, 10));
+}
+function tekenHistorie(){
+  const l = opslag.get(histSleutel()) || [];
+  $('#lijst-titel').textContent = 'Historie'; $('#lijst-n').textContent = l.length; $('#titel').textContent = 'Historie'; $('#subtitel').textContent = '';
+  $('#lijst-sub').textContent = 'De laatste 10 tickets waarin jij via deze pagina iets hebt gewijzigd'; $('#lijst-kol').innerHTML = '';
+  ['#f-mijn', '#f-mijalles', '#f-soort'].forEach(sel => { const e = $(sel); if(e) e.hidden = true; });
+  const tijd = t => { const d = new Date(t), vandaag = d.toDateString() === new Date().toDateString(); return (vandaag ? 'vandaag' : fmtDatum(d)) + ' ' + fmtTijd(d); };
+  $('#lijst').innerHTML = !l.length ? '<p class="leeg">Nog niets gewijzigd. Zodra je een ticket opslaat, naar een afdeling sleept of aanmaakt, staat het hier.</p>' :
+    `<div class="tw"><table class="tabel hist"><thead><tr><th style="width:120px">Wanneer</th><th style="width:70px">Nr.</th><th>Onderwerp</th><th style="width:36%">Wat je deed</th><th style="width:150px">Status nu</th></tr></thead><tbody>${l.map(h => {
+      const x = items.find(y => String(y.nr) === String(h.nr)), r0 = h.regels[0];
+      return `<tr ${h.nr && x ? `data-nr="${esc(h.nr)}"` : ''} class="${x && x.afgesloten ? 'dicht' : ''}" title="${esc(h.regels.map(r => tijd(r.t) + ': ' + r.wat).join('\n'))}"><td class="zacht">${tijd(r0.t)}</td><td class="nr">${esc(h.nr || '–')}</td><td class="ond">${esc(h.ond)}</td><td>${esc(r0.wat)}${h.regels.length > 1 ? ` <small class="hint">+${h.regels.length - 1} eerder</small>` : ''}</td><td class="zacht">${x ? esc(x.afgesloten ? 'Afgehandeld' : toonStatus(x.status) || 'Open') : '<span class="hint">nog niet geladen</span>'}</td></tr>`; }).join('')}</tbody></table></div>`;
+}
 function openDetail(nr){
   const x = items.find(y => String(y.nr) === String(nr)); if(!x) return; huidig = {x, wf:null};
   x._sg = signalen(x); markeerGelezen(x);
@@ -1355,9 +1431,11 @@ function openDetail(nr){
     </div>
     <div class="onderbalk"><div class="actiebalk" id="actiebalk"><span class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Acties ophalen…</span></div>
       <span class="mailvooraf" id="mailvooraf" hidden></span>
-      <button type="button" class="knop vol" id="k-opslaan" title="Voert alles in één keer door (Ctrl+Enter)"><span class="opslaanmail" hidden>✉ </span>Opslaan <kbd>Ctrl+Enter</kbd></button></div>
+      <span class="opslaanknoppen"><button type="button" class="knop" id="k-opslaan-blijf" title="Alles doorvoeren en het ticket open houden"><span class="opslaanmail" hidden>✉ </span>Opslaan</button>
+      <button type="button" class="knop vol" id="k-opslaan" title="Alles doorvoeren en het ticket sluiten (Ctrl+Enter)"><span class="opslaanmail" hidden>✉ </span>Opslaan &amp; sluiten <kbd>Ctrl+Enter</kbd></button></span></div>
     <p class="fout" id="d-fout"></p>`}`;
-  $('#detail').dataset.gewijzigd = ''; $('#detail').showModal();
+  $('#detail').dataset.gewijzigd = ''; if(!$('#detail').open) $('#detail').showModal();
+  $('#detail-in').scrollTop = 0; zetNavPijlen(x);
   $('#detail').oninput = mailVooraf; $('#detail').onchange = mailVooraf;
   huidig.klaar = {ticket: [], reactie: []}; huidig.bijl = null;
   (DEMO ? Promise.resolve() : zorgSbId(x)).then(() => { laadBijlagen(x); return toonReacties(x); }).catch(e => { const el = $('#tijdlijn'); if(el) el.innerHTML = `<h3>Reacties</h3><p class="hint">Het interne nummer van dit ticket kon niet worden opgezocht: ${esc(e.message)}</p>`; const bl = $('#bijl-lijst'); if(bl) bl.innerHTML = '<span class="hint">Bijlagen ophalen kan niet zonder het interne nummer van het ticket.</span>'; });
@@ -1574,7 +1652,7 @@ function mailVooraf(){
   if(tekst && !notitie) uit.push(`${x.melder || 'melder'} (reactie${nb ? ` + ${nb} bijlage${nb === 1 ? '' : 'n'}` : ''})`);
   if(stap && !(tekst && !notitie)) uit.push(`volgens sjabloon van "${stap}"`);
   el.hidden = !uit.length; el.innerHTML = uit.length ? `<span class="mailicoon">✉</span> Bij opslaan mailt AFAS: ${uit.map(esc).join(', ')}` : '';
-  const k = $('#k-opslaan .opslaanmail'); if(k) k.hidden = !uit.length;
+  document.querySelectorAll('#detail .opslaanmail').forEach(k => k.hidden = !uit.length);
   const na = $('#notitie-uitleg'); if(na) na.textContent = tekst ? (notitie ? 'Interne notitie: de melder krijgt géén mail.' : '✉ De melder krijgt deze reactie per mail.') : 'Standaard is een reactie zichtbaar voor melder én ICT.';
 }
 async function vulVerantwKeuze(x){
@@ -1876,6 +1954,7 @@ async function maakMelding(){
     let nr = '';
     if(sbid && !DEMO){ try{ const m = await sbIdsVoor('Dossieritem', [sbid]); nr = [...m.entries()].find(([, v]) => String(v) === String(sbid))?.[0] || ''; }catch(e){} }
     const x = DEMO ? items.find(y => norm(y.onderwerp) === norm(ond)) : items.find(y => String(y.nr) === String(nr) || String(y.sbid) === String(sbid));
+    if(x) logHistorie(x, 'ticket aangemaakt'); else logHistorie({nr: nr || '', onderwerp: ond}, 'ticket aangemaakt');
     if(x){ const doel = document.querySelector(`#nav [data-weergave="${x.emmer === 'nieuw' ? 'nieuw' : 'alle'}"]`);
       if(doel) vlieg({nr: x.nr, ond, rect: knop}, doel, x.emmer === 'nieuw' ? 'Nieuwe tickets' : 'Alle open tickets');
       toast(`Ticket ${x.nr} aangemaakt`); setTimeout(() => openDetail(x.nr), 900); }
@@ -2050,7 +2129,7 @@ async function reactieMetMail(x, tekst, notitie = false, objecten = null){
   return naam;
 }
 /* Opslaan in het ticket: alle wijzigingen, elk via de AFAS-actie die erbij hoort */
-async function opslaanAlles(knopActie = null){
+async function opslaanAlles(knopActie = null, sluiten = true){
   const {x} = huidig, sel = $('#d-afd'), notitie = !!($('#notitie') && $('#notitie').checked);
   const klaar = huidig.klaar || {ticket: [], reactie: []}, bijlT = [...klaar.ticket], bijlR = [...klaar.reactie];
   // bijlage bij een reactie zonder tekst: korte standaardtekst, want AFAS wil een reactie
@@ -2125,11 +2204,14 @@ async function opslaanAlles(knopActie = null){
       if(n){ viaActie.push(n); if(!notitie) logMail(x, x.melder || 'melder', 'nieuwe reactie', n); } else zonderMail.push(notitie ? 'interne notitie' : 'reactie');
       gedaan.push(notitie ? 'interne notitie geplaatst' : 'reactie geplaatst'); }
     if(tekst){ lok.reactieDatum = new Date(); lok.reactieDoor = profiel.naam; if(notitie) opslag.set(NOTITIES, [notitieSleutel(x.sbid, tekst), ...(opslag.get(NOTITIES) || [])].slice(0, 500)); }
-    $('#detail').dataset.gewijzigd = ''; $('#detail').close();
+    $('#detail').dataset.gewijzigd = ''; if(sluiten) $('#detail').close();
+    logHistorie(x, gedaan.join(' · '));
     const mail = viaActie.length ? ` · ✉ via AFAS-actie: ${[...new Set(viaActie)].join(', ')}` : '';
     const waarsch = zonderMail.length ? ` · geen AFAS-actie gevonden voor ${zonderMail.join(', ')} (geen mail verstuurd)` : '';
     toast(`Ticket ${x.nr}: ${gedaan.join(' · ')}${mail}${waarsch}`, !!zonderMail.length);
-    onthoudLokaal(x, lok, gok ? 20e3 : undefined); teken(); toonVerplaatsing(voor); naAchtergrond();
+    onthoudLokaal(x, lok, gok ? 20e3 : undefined); teken();
+    if(sluiten) toonVerplaatsing(voor); else openDetail(x.nr);   // Opslaan: ticket opnieuw tonen met de nieuwe stand
+    naAchtergrond();
   }catch(e){
     const al = gedaan.length ? `Al doorgevoerd: ${gedaan.join(', ')}. ` : '';
     $('#d-fout').textContent = `${al}Mislukt bij ${stap}: ${e.message}`;
@@ -2147,7 +2229,7 @@ async function zetAfdeling(x, naam, van, tekst = ''){
     let mail = '';
     if(tekst){ const n = await reactieMetMail(x, tekst, false); if(n) logMail(x, x.melder || 'melder', 'nieuwe reactie', n); mail = n ? ' · ✉ via ' + n : ' (reactie zonder mail: geen actie Reactie plaatsen gevonden)'; }
     const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect: van};
-    toast(`Ticket ${x.nr} → ${w.naam}${tekst ? ' (met reactie)' : ''}${mail}`);
+    toast(`Ticket ${x.nr} → ${w.naam}${tekst ? ' (met reactie)' : ''}${mail}`); logHistorie(x, '→ ' + w.naam + (tekst ? ' · reactie geplaatst' : ''));
     onthoudLokaal(x, {afdeling: w.naam, ...(tekst ? {reactieDatum: new Date(), reactieDoor: profiel.naam} : {})}); teken(); toonVerplaatsing(voor); naAchtergrond();
   }catch(e){ toast('Afdeling wijzigen lukte niet: ' + e.message, true); }
 }
@@ -2275,14 +2357,17 @@ document.addEventListener('click', e => {
   if(e.target.closest('[data-kolbreedstd]')){ $('#kolkeuze').hidden = true; zetBreedtes({}); return; }
   const th = e.target.closest('th[data-sort]'); if(th){ const id = th.closest('table').dataset.tabel, k = th.dataset.sort, s = sortering[id];
     sortering[id] = s && s.k === k ? (s.op > 0 ? {k, op:-1} : undefined) : {k, op: ['in','reactie','gepland','sig'].includes(k) ? -1 : 1}; teken(); return; }
-  const r = e.target.closest('tr[data-nr]'); if(r){ openDetail(r.dataset.nr); return; }
+  const r = e.target.closest('tr[data-nr]'); if(r){ const tid = r.closest('table').dataset.tabel; navLijst = (tid && tabelVolgorde[tid]) || [...r.closest('tbody').querySelectorAll('tr[data-nr]')].map(t => t.dataset.nr); openDetail(r.dataset.nr); return; }
   const m = e.target.closest('.meer'); if(m){ const id = m.dataset.blok; blokOpen.has(id) ? blokOpen.delete(id) : blokOpen.add(id); teken(); return; }
   const w = e.target.closest('[data-weergave]'); if(w){ tab = w.dataset.weergave; filt.zoek = ''; $('#f-zoek').value = ''; teken(); scrollTo(0, 0); return; }
   if(e.target.closest('[data-sluit]')){ sluitDialoog($('#detail')); return; }
   const a = e.target.closest('[data-actie]'); if(a){ opslaanAlles(+a.dataset.actie); return; }   // bv. Afhandelen: neemt afdeling en reactie mee
   if(e.target.closest('#k-actie')){ const v = $('#actie-keuze').value; if(v !== '') voerUit(+v); return; }
   if(e.target.closest('#k-reageer')){ voerUit(null); return; }
-  if(e.target.closest('#k-opslaan')){ opslaanAlles(); return; }
+  if(e.target.closest('#k-opslaan')){ opslaanAlles(null, true); return; }
+  if(e.target.closest('#k-opslaan-blijf')){ opslaanAlles(null, false); return; }
+  if(e.target.closest('#nav-vorige')){ gaNaar(-1); return; }
+  if(e.target.closest('#nav-volgende')){ gaNaar(1); return; }
   const sb = e.target.closest('#f-soort button'); if(sb){ soortKeuze[tab] = sb.dataset.v; opslag.set('mict-soort', soortKeuze); teken(); return; }
   const kk = e.target.closest('[data-kolkeuze]'); if(kk){ kolKeuze(kk); return; }
   if(e.target.closest('[data-kolstd]')){ verborgenKol = new Set(); opslag.set('mict-kolommen-uit', []); kolBreedte = {}; opslag.weg(KOLBREED); $('#kolkeuze').hidden = true; teken(); return; }
