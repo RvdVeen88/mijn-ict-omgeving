@@ -715,7 +715,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.94 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.95 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -774,7 +774,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.94';
+const VERSIE = 'v3.95';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1221,6 +1221,8 @@ const KOLOMMEN = [
   {k:'reactie', bw:'96px', t:'Laatste reactie', w:x => +x.reactieDatum || 0, html:x => x.reactieDatum ? kortDatum(x.reactieDatum) : '–', cls:'zacht k-reactie'},
   {k:'type', bw:'9%', t:'Type', w:x => norm(x.type), html:x => esc(x.type || '–'), cls:'zacht k-type'},
   {k:'status', bw:'12%', t:'Status', w:x => norm(x.status), html:x => esc(toonStatus(x.status) || 'Open'), cls:''},
+  {k:'pstart', bw:'96px', t:'Startdatum', ch:true, w:x => +x.projStart || 0, html:x => x.projStart ? kortDatum(x.projStart) : '–', cls:'zacht k-pstart'},
+  {k:'peind', bw:'96px', t:'Deadline', ch:true, w:x => +x.projEind || 0, html:x => x.projEind ? `<span${!x.afgesloten && +x.projEind < +beginDag(new Date()) ? ' style="color:var(--rood);font-weight:600"' : ''}>${kortDatum(x.projEind)}</span>` : '–', cls:'k-peind'},
   {k:'gepland', bw:'86px', t:'Gepland', w:x => +x.gepland || 0, html:x => x.gepland ? kortDatum(x.gepland) : '', cls:'zacht k-gepland'},
   {k:'sig', bw:'196px', t:'Signaal', w:x => ernst(x), html:x => (x._sg || []).filter(s => s.ernst >= 1).slice(0, 2).map(chip).join(' '), cls:'sig'}
 ];
@@ -1305,7 +1307,7 @@ function kolKeuze(knop){
   const el = $('#kolkeuze');
   if(!el.hidden && el._knop === knop){ el.hidden = true; return; }
   el._knop = knop;
-  el.innerHTML = `<h4>Kolommen tonen</h4>${KOLOMMEN.filter(c => !VAST_KOL.has(c.k)).map(c => `<label><input type="checkbox" data-kol="${c.k}" ${verborgenKol.has(c.k) ? '' : 'checked'}> ${esc(c.t)}</label>`).join('')}
+  el.innerHTML = `<h4>Kolommen tonen</h4>${KOLOMMEN.filter(c => !VAST_KOL.has(c.k) && !c.ch).map(c => `<label><input type="checkbox" data-kol="${c.k}" ${verborgenKol.has(c.k) ? '' : 'checked'}> ${esc(c.t)}</label>`).join('')}
     <div class="knoppenrij"><button type="button" class="linkknop" data-kolpassend>Alle kolommen automatisch passend maken</button>
     ${Object.keys(kolBreedte).length ? '<button type="button" class="linkknop" data-kolbreedstd>Standaardbreedtes terugzetten</button>' : ''}</div>
     <p>Breedte zelf aanpassen: sleep de rand van een kolomkop. Dubbelklik op de rand maakt die kolom passend.</p>
@@ -1321,7 +1323,7 @@ const keuzeOpties = {};   // per tabel en kolom: de waarden voor de filterlijst
 const kolTekst = (c, x) => c.k === 'sig' ? (x._sg || []).map(s => s.tekst).join(' ') : String(c.html(x)).replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
 const tabelVolgorde = {};
 function tabel(id, l, opties = {}){
-  const zonder = new Set(opties.zonder || []), kol = KOLOMMEN.filter(c => !zonder.has(c.k) && !verborgenKol.has(c.k));
+  const zonder = new Set(opties.zonder || []), kol = KOLOMMEN.filter(c => c.ch ? opties.changes : !zonder.has(c.k) && !verborgenKol.has(c.k));   // Startdatum en Deadline: altijd bij changes
   const kf = kolFilter[id] || {}, actief = Object.entries(kf).filter(([, v]) => v && v.trim());
   const opties_ = {}; kol.filter(c => KEUZE.has(c.k)).forEach(c => opties_[c.k] = [...new Set(l.map(x => kolTekst(c, x)).filter(v => v && v !== '–'))].sort((a, b) => a.localeCompare(b, 'nl')));
   Object.entries(opties_).forEach(([k, v]) => keuzeOpties[id + '|' + k] = v);
@@ -1535,7 +1537,7 @@ function tekenLijst(){
   const wKnop = alleenChanges() ? `<span class="wkeuze"><button type="button" data-chw="lijst" aria-pressed="${!tlAan}" aria-label="Lijst" title="Lijst"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button><button type="button" data-chw="tijdlijn" aria-pressed="${tlAan}" aria-label="Tijdlijn" title="Tijdlijn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h9M7 12h11M5 18h8"/></svg></button></span>` : '';
   $('#lijst-kol').innerHTML = (tlAan ? `<select id="ch-zoom" class="periodekeuze" aria-label="Periode">${[['maand','6 weken'],['kwartaal','Kwartaal'],['halfjaar','Halfjaar']].map(([k, t]) => `<option value="${k}"${k === chZoom ? ' selected' : ''}>${t}</option>`).join('')}</select>` : kolKnop) + wKnop;
   if(tlAan){ $('#lijst-sub').textContent = ''; $('#lijst').innerHTML = l.length ? tekenTijdlijn(l) : '<p class="leeg">Geen changes op jouw naam.</p>'; $('#titel').textContent = v.titel; $('#subtitel').textContent = ''; return; }
-  $('#lijst').innerHTML = l.length ? tabel('lijst:' + tab, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(isDicht ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])]}) : '<p class="leeg">Geen meldingen gevonden.</p>';
+  $('#lijst').innerHTML = l.length ? tabel('lijst:' + tab, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(isDicht ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])], changes: alleenChanges() || soortVan(tab) === 'changes'}) : '<p class="leeg">Geen meldingen gevonden.</p>';
   $('#titel').textContent = v.titel; $('#subtitel').textContent = '';
 }
 /* tijdlijn van changes: balk van begindatum tot einddatum (project); zonder einddatum de geplande datum */
@@ -1594,7 +1596,7 @@ let tab = 'mij';
    Tot AFAS de wijziging teruggeeft (max. 3 minuten) houdt de pagina de eigen waarde vast. */
 const lokaalNieuw = new Map();
 function onthoudLokaal(x, v, duur = 3 * 60e3){ const k = String(x.nr), o = lokaalNieuw.get(k) || {velden:{}}; Object.assign(o.velden, v); o.tot = Math.max(o.tot || 0, Date.now() + duur); lokaalNieuw.set(k, o); pasLokaalToe(); }
-const zelfde = (k, a, b) => (!a && !b) ? true : k === 'afgesloten' ? !!a === !!b : (k === 'gepland' || k === 'reactieDatum') ? (!!a && !!b && Math.abs(+a - +b) < (k === 'gepland' ? DAG : 10 * 60e3)) : norm(a) === norm(b);
+const zelfde = (k, a, b) => (!a && !b) ? true : k === 'afgesloten' ? !!a === !!b : (k === 'gepland' || k === 'projStart' || k === 'projEind' || k === 'reactieDatum') ? (!!a && !!b && Math.abs(+a - +b) < (k === 'reactieDatum' ? 10 * 60e3 : DAG)) : norm(a) === norm(b);
 function pasLokaalToe(){
   lokaalNieuw.forEach((o, nr) => {
     if(Date.now() > o.tot){ lokaalNieuw.delete(nr); return; }
@@ -1952,7 +1954,7 @@ function openDetail(nr){
     <div class="kaarten">
       <div class="kaart2"><h3>Melding</h3><span>Instuurder</span><b id="d-inst" title="Wie de melding heeft aangemaakt (niet aan te passen)">${esc(instCache.get(String(x.nr)) || '…')}</b><span>Melder</span><b class="meldercel"><span id="d-melder">${esc(x.melder || '–')}</span>${x.melder ? `<button type="button" class="melderinfo" id="d-melderinfo" aria-label="Gegevens van de melder" data-uitleg="Gegevens ophalen…"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 7.5h.01"></path></svg></button>` : ''}</b>${r('Type melding', x.type)}${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}<span>Locatie${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.locatie || '–') : `<select id="d-loc" class="afdkeuze" title="Klik om de locatie te wijzigen"><option value="">${esc(x.locatie || '– kies locatie –')}</option></select>`}</b></div>
       <div class="kaart2"><h3>Behandeling</h3><span>Afdeling${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.afdeling || '–') : `<select id="d-afd" class="afdkeuze" title="Klik om de afdeling te wijzigen"><option>${esc(x.afdeling || '– kies afdeling –')}</option></select>`}</b><span>Verantwoordelijke</span><b>${x.afgesloten ? esc(x.verantw || '–') : `<select id="d-verantw" class="afdkeuze" title="Klik om de verantwoordelijke te wijzigen"><option value="">${esc(x.verantw || '– niemand –')}</option></select>${benIk(x.verantw) ? '' : '<button type="button" class="linkknop aanmij" id="d-aanmij">Aan mij toewijzen</button>'}`}</b><span>Status${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(toonStatus(x.status) || '–') : `<select id="d-status" class="afdkeuze" title="Klik om de status te wijzigen"><option value="">${esc(toonStatus(x.status) || '– kies status –')}</option></select>`}</b>
-        ${x.afgesloten ? r('Gepland', x.gepland ? fmtDatum(x.gepland) : '') : `<span>Gepland</span><b><input type="date" id="d-gepland" class="datumkeuze" value="${x.gepland ? isoD(x.gepland) : ''}" data-oud="${x.gepland ? isoD(x.gepland) : ''}" title="Datum waarop het werk gepland staat"></b>`}${r('Laatste reactie', x.reactieDatum ? fmtDatum(x.reactieDatum) + (x.reactieDoor ? ' · ' + x.reactieDoor : '') : '')}${r('Extern melding', x.extern)}${x.kritiek ? r('Kritieke storing', 'Ja') : ''}</div>
+        ${x.afgesloten ? r('Gepland', x.gepland ? fmtDatum(x.gepland) : '') : `<span>Gepland</span><b><input type="date" id="d-gepland" class="datumkeuze" value="${x.gepland ? isoD(x.gepland) : ''}" data-oud="${x.gepland ? isoD(x.gepland) : ''}" title="Datum waarop het werk gepland staat"></b>`}${isChange(x) ? (x.afgesloten ? r('Startdatum project', x.projStart ? fmtDatum(x.projStart) : '') + r('Deadline', x.projEind ? fmtDatum(x.projEind) : '') : `<span>Startdatum project</span><b><input type="date" id="d-pstart" class="datumkeuze" value="${x.projStart ? isoD(x.projStart) : ''}" data-oud="${x.projStart ? isoD(x.projStart) : ''}" title="Begindatum project van deze change"></b><span>Deadline</span><b><input type="date" id="d-peind" class="datumkeuze" value="${x.projEind ? isoD(x.projEind) : ''}" data-oud="${x.projEind ? isoD(x.projEind) : ''}" title="Einddatum project (deadline) van deze change"></b>`) : ''}${r('Laatste reactie', x.reactieDatum ? fmtDatum(x.reactieDatum) + (x.reactieDoor ? ' · ' + x.reactieDoor : '') : '')}${r('Extern ticket', x.extern)}${x.kritiek ? r('Kritieke storing', 'Ja') : ''}</div>
     </div>
     <div class="toelblok"><h3>Toelichting</h3><div class="lang" id="d-toel">${x.toelichting ? esc(x.toelichting) : '<span class="hint">Toelichting ophalen…</span>'}</div></div>
     <div class="bijlbalk" id="d-bijl"><span class="bijltitel">${CLIP}<b id="bijl-titel">Bijlagen</b></span>
@@ -2237,7 +2239,7 @@ async function vulVerantwKeuze(x){
     sel.onchange = () => sel.classList.toggle('gewijzigd', !!sel.value && sel.value !== sel.dataset.oud);
     if(collegaDiag) sel.title += ' · ' + collegaDiag;
   }catch(e){ sel.disabled = true; sel.title = e.message; }
-  const gp = $('#d-gepland'); if(gp) gp.oninput = () => gp.classList.toggle('gewijzigd', gp.value !== gp.dataset.oud);
+  ['#d-gepland', '#d-pstart', '#d-peind'].forEach(sel => { const gp = $(sel); if(gp) gp.oninput = () => gp.classList.toggle('gewijzigd', gp.value !== gp.dataset.oud); });
   const mij = $('#d-aanmij');
   if(mij) mij.onclick = () => { const s2 = $('#d-verantw'), code = (profiel.alias || [])[0]; if(!s2 || !code) return;
     let o = [...s2.options].find(o => o.value === code) || [...s2.options].find(o => benIk(o.textContent));
@@ -2307,7 +2309,8 @@ async function laadSubjMeta(){
   const tabel = INST.vrijeVelden || 'KnS38', mag = f => !/^KnS\d+$/.test(f.pad || '') || f.pad === tabel;   // alleen hoofdniveau of de eigen vrije-veldentabel
   const zoek = (re, extra = () => true) => { const l = alle.filter(f => mag(f) && re.test(norm(f.label)) && extra(f)); return l.find(f => f.pad === tabel) || l[0]; };
   return (subjMeta = {verantw: zoek(/^verantwoordelijke$|^behandelaar$/), gepland: zoek(/werkzaamheden|gepland|planning|inplan/, f => /date/i.test(f.dataType || 'date')),
-    status: zoek(/^(externe )?status$/, f => waardenVan(f.values).length > 0), locatie: zoek(/^locatie$/), alle});
+    status: zoek(/^(externe )?status$/, f => waardenVan(f.values).length > 0), locatie: zoek(/^locatie$/),
+    projStart: zoek(/(begin|start)\s*datum\s*project|project\s*(begin|start)/, f => /date/i.test(f.dataType || 'date')), projEind: zoek(/eind\s*datum\s*project|project\s*eind|^deadline/, f => /date/i.test(f.dataType || 'date')), alle});
 }
 async function zetVelden(x, w){
   const top = {}, obj = {};
@@ -2790,8 +2793,9 @@ async function opslaanAlles(knopActie = null, sluiten = true){
   const nieuweStatus = ss && ss.value && !ss.value.startsWith('a:') && ss.value !== ss.dataset.oud ? ss.value : '', statusNaam = nieuweStatus ? ss.options[ss.selectedIndex].textContent : '';
   const ls = $('#d-loc'), nieuweLoc = ls && ls.value && ls.value !== ls.dataset.oud ? {code: ls.value, naam: ls.options[ls.selectedIndex].textContent} : null;
   const gs = $('#d-gepland'), nieuwGepland = gs && gs.value !== gs.dataset.oud ? {datum: gs.value} : null;
+  const ps = $('#d-pstart'), pe = $('#d-peind'), nieuwProj = (ps && ps.value !== ps.dataset.oud) || (pe && pe.value !== pe.dataset.oud) ? {start: ps ? ps.value : '', eind: pe ? pe.value : '', startGew: !!ps && ps.value !== ps.dataset.oud, eindGew: !!pe && pe.value !== pe.dataset.oud} : null;
   const vs = $('#d-verantw'), nieuweVerantw = vs && vs.value && vs.value !== vs.dataset.oud ? {code: vs.value, naam: vs.options[vs.selectedIndex].textContent} : null;
-  if(!nieuweAfd && !nieuweStatus && !nieuweVerantw && !nieuwGepland && !nieuweLoc && actieIdx == null && !tekst && !bijlT.length){ $('#d-fout').textContent = 'Er is niets gewijzigd: pas een veld aan, schrijf een reactie of voeg een bijlage toe.'; return; }
+  if(!nieuweAfd && !nieuweStatus && !nieuweVerantw && !nieuwGepland && !nieuwProj && !nieuweLoc && actieIdx == null && !tekst && !bijlT.length){ $('#d-fout').textContent = 'Er is niets gewijzigd: pas een veld aan, schrijf een reactie of voeg een bijlage toe.'; return; }
   const act = actieIdx != null && huidig.wf ? huidig.wf.acties[actieIdx] : null;
   { const plek = tekst.match(/\[(vul aan|stand van zaken|datum)\]/); if(plek){ $('#d-fout').textContent = `Vul in de reactie eerst "${plek[0]}" aan.`; const t = $('#tekst'); if(t){ t.focus(); const i = t.value.indexOf(plek[0]); if(i >= 0) t.setSelectionRange(i, i + plek[0].length); } return; } }
   // verplicht bij opslaan: afdeling, locatie en status
@@ -2833,6 +2837,15 @@ async function opslaanAlles(knopActie = null, sluiten = true){
       await zetVelden(x, {[veldCode(m.gepland)]: nieuwGepland.datum || null}); lok.gepland = nieuwGepland.datum ? new Date(nieuwGepland.datum + 'T00:00:00') : null;
       if(nieuwGepland.datum){ const n = await wfActie(x, /inplannen|plannen/i).catch(() => ''); if(n) viaActie.push(n); }
       gedaan.push(nieuwGepland.datum ? 'gepland op ' + fmtDatum(lok.gepland) : 'planning gewist'); }
+    // 4a. change: startdatum project en deadline (velden)
+    if(nieuwProj){ stap = 'startdatum/deadline'; const m = await laadSubjMeta();
+      if((nieuwProj.startGew && !m.projStart) || (nieuwProj.eindGew && !m.projEind)) throw new Error('Het veld ' + (nieuwProj.startGew && !m.projStart ? 'Begindatum project' : 'Einddatum project') + ' is niet gevonden in AFAS.');
+      const w = {}; if(nieuwProj.startGew) w[veldCode(m.projStart)] = nieuwProj.start || null; if(nieuwProj.eindGew) w[veldCode(m.projEind)] = nieuwProj.eind || null;
+      await zetVelden(x, w);
+      const d = v => v ? new Date(v + 'T00:00:00') : null;
+      if(nieuwProj.startGew){ lok.projStart = d(nieuwProj.start); gedaan.push(nieuwProj.start ? 'startdatum ' + fmtDatum(lok.projStart) : 'startdatum gewist'); }
+      if(nieuwProj.eindGew){ lok.projEind = d(nieuwProj.eind); gedaan.push(nieuwProj.eind ? 'deadline ' + fmtDatum(lok.projEind) : 'deadline gewist'); }
+      const pc = projCache.get(String(x.nr)) || {}; projCache.set(String(x.nr), {start: 'projStart' in lok ? lok.projStart : (pc.start ?? x.projStart), eind: 'projEind' in lok ? lok.projEind : (pc.eind ?? x.projEind)}); }
     // 4b. algemene bijlagen bij de melding
     if(bijlT.length){ stap = 'bijlagen uploaden'; $('#d-fout').innerHTML = `<span class="hint">Bijlage${bijlT.length === 1 ? '' : 'n'} uploaden…</span>`;
       await voegBijlagenToe(x, bijlT); klaar.ticket = []; tekenKlaar(); $('#d-fout').textContent = '';
@@ -3516,7 +3529,7 @@ function demoAfas(pad, opties){
     D.sla.push({Nummer:nr, Onderwerp:b.Fields.Ds, Status:'Nieuw', Omschrijving_4:({'88406.rvanderveen':'Robert van der Veen','88406.kgroen':'Kelly Groen','88406.gbrons':'Glenn Brons','88406.gleer':'Guillonard Leer'})[((b.Objects || []).find(o => o.KnS38) || {KnS38:{Element:{Fields:{}}}}).KnS38.Element.Fields.UVer] || '', Omschrijving_2:'Robert van der Veen', Omschrijving:'Aanvraag ICT', Type_ticket_ICT:'Incident', Focusgebied_ICT:'', AFAS_Afdeling:'', Omschrijving_3:INST.afdelingen[+afdC - 1] || 'ICT', Focusgebied_EMMA:'', Instuurdatum:new Date().toISOString().slice(0, 19), Gepland:null, Laatste_reactie:null, Gebruiker_laatste_reactie:'', Laatste_wijziging_externe_status:null, Workflow_afgerond:false, Kritieke_storing:false});
     return new Promise(r => setTimeout(() => r({results:{KnSubject:{SbId: 400000 + nr}}}), 400)); }
   if(pad === '/metainfo/update/KnSubject') return {name:'KnSubject', fields:[{fieldId:'StId', label:'Type dossier', dataType:'int', mandatory:true, values:[{id:'26', description:'Aanvraag ICT'},{id:'31', description:'Change'}]},{fieldId:'Ds', label:'Onderwerp', mandatory:true},{fieldId:'SbTx', label:'Toelichting'}],
-    objects:[{name:'KnSubjectLink', fields:[{fieldId:'SfTp', label:'Type bestemming'}]},{name:'KnS38', fields:[{fieldId:'UAfd', label:'Afdeling', dataType:'string', values:INST.afdelingen.map((n, i) => ({id:String(i + 1), description:n}))},{fieldId:'UVer', label:'Verantwoordelijke', values:[{id:'88406.rvanderveen', description:'Robert van der Veen'},{id:'88406.kgroen', description:'Kelly Groen'},{id:'88406.gbrons', description:'Glenn Brons'},{id:'88406.gleer', description:'Guillonard Leer'},{id:'88406.anders', description:'Iemand Buiten ICT'}]},{fieldId:'UGep', label:'Werkzaamheden gepland', dataType:'date'},{fieldId:'ULoc', label:'Locatie', values:['Almere','Amsterdam','Breda','Utrecht','Hanzeplein','Almere SIC','Planetarium'].map((n, i) => ({id:'L' + i, description:n}))},{fieldId:'UTyp', label:'Type melding ICT', values:[{id:'I', description:'Incident'},{id:'V', description:'Vraag'},{id:'C', description:'Change'}]}]},{name:'KnS26', fields:[{fieldId:'UPrj', label:'Begindatum project', mandatory:true}]}]};
+    objects:[{name:'KnSubjectLink', fields:[{fieldId:'SfTp', label:'Type bestemming'}]},{name:'KnS38', fields:[{fieldId:'UAfd', label:'Afdeling', dataType:'string', values:INST.afdelingen.map((n, i) => ({id:String(i + 1), description:n}))},{fieldId:'UVer', label:'Verantwoordelijke', values:[{id:'88406.rvanderveen', description:'Robert van der Veen'},{id:'88406.kgroen', description:'Kelly Groen'},{id:'88406.gbrons', description:'Glenn Brons'},{id:'88406.gleer', description:'Guillonard Leer'},{id:'88406.anders', description:'Iemand Buiten ICT'}]},{fieldId:'UGep', label:'Werkzaamheden gepland', dataType:'date'},{fieldId:'UPSt', label:'Begindatum project', dataType:'date'},{fieldId:'UPEi', label:'Einddatum project', dataType:'date'},{fieldId:'ULoc', label:'Locatie', values:['Almere','Amsterdam','Breda','Utrecht','Hanzeplein','Almere SIC','Planetarium'].map((n, i) => ({id:'L' + i, description:n}))},{fieldId:'UTyp', label:'Type ticket ICT', values:[{id:'I', description:'Incident'},{id:'V', description:'Vraag'},{id:'C', description:'Change'}]}]},{name:'KnS26', fields:[{fieldId:'UPrj', label:'Begindatum project', mandatory:true}]}]};
   if(opties.method === 'PUT' && pad === '/connectors/KnSubject'){ const el = JSON.parse(opties.body).KnSubject.Element, D = window._demo, r = D.sla.find(x => 400000 + x.Nummer === +el['@SbId']);
     const alle = {...el.Fields}; (el.Objects || []).forEach(o => Object.values(o).forEach(v => Object.assign(alle, v.Element.Fields)));
     if(r && alle.UVer) r.Omschrijving_4 = {'88406.rvanderveen':'Robert van der Veen','88406.kgroen':'Kelly Groen','88406.gbrons':'Glenn Brons','88406.gleer':'Guillonard Leer'}[alle.UVer] || alle.UVer;
