@@ -113,12 +113,12 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .todo-nieuw input{flex:1;border:0;outline:0;background:transparent;font-size:15px;color:var(--inkt)}
 .taak{display:grid;grid-template-columns:28px 1fr auto auto;gap:12px;align-items:center;padding:10px 22px;border-bottom:1px solid var(--lijn)}
 .taak:hover{background:var(--achtergrond)}
-.vink{width:22px;height:22px;border-radius:50%;border:2px solid var(--grijs);background:transparent;display:grid;place-items:center;padding:0;cursor:pointer}
-.vink:hover{border-color:var(--blauw-2)}
-.vink svg{width:14px;height:14px;opacity:0;color:var(--blauw-2)}
-.vink:hover svg{opacity:.5}
-.taak.klaar .vink{background:var(--blauw-2);border-color:var(--blauw-2)}
-.taak.klaar .vink svg{opacity:1;color:#fff}
+.tdvink{width:22px;height:22px;border-radius:50%;border:2px solid var(--grijs);background:transparent;display:grid;place-items:center;padding:0;cursor:pointer}
+.tdvink:hover{border-color:var(--blauw-2)}
+.tdvink svg{width:14px;height:14px;opacity:0;color:var(--blauw-2)}
+.tdvink:hover svg{opacity:.5}
+.taak.klaar .tdvink{background:var(--blauw-2);border-color:var(--blauw-2)}
+.taak.klaar .tdvink svg{opacity:1;color:#fff}
 .taak .titel{font-size:14.5px;cursor:pointer;min-width:0}
 .taak .titel small{display:block;font-size:12px;color:var(--grijs);margin-top:2px}
 .taak .titel small .laat{color:var(--rood);font-weight:600}
@@ -282,6 +282,7 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 #toast.fout{background:var(--rood);color:#fff}
 
 /* ---- v2: navigatie met categorieën ---- */
+.nav[hidden]{display:none}
 .nav{width:256px;flex:none;padding:18px 6px 18px 16px;display:flex;flex-direction:column;gap:1px;position:sticky;top:0;height:100vh;overflow:auto}
 .nav h4{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--grijs);margin:14px 10px 6px;font-weight:600}
 .nav h4:first-child{margin-top:4px}
@@ -449,6 +450,15 @@ dialog#detail.groot .dlg-in{max-height:calc(100vh - 24px);height:100%;box-sizing
 dialog#detail.groot .tijdlijn{max-height:none;flex:1 1 auto;min-height:220px}
 dialog#detail.groot .kaart2 .lang{max-height:360px}
 dialog#detail.groot .kaart2 select.afdkeuze,dialog#detail.groot .kaart2 input.datumkeuze{width:300px}
+.todoknop{margin-left:auto;display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--lijn);background:var(--vlak);color:var(--blauw);border-radius:0 999px 999px 0;padding:4px 12px 4px 9px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.todoknop:hover{border-color:var(--blauw-2);background:var(--lichtblauw-2)}
+.todoknop svg{width:15px;height:15px}
+.todoknop + .grootknop{margin-left:6px}
+.tdform{display:flex;flex-direction:column;gap:10px}
+.tdform label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--grijs);font-weight:500}
+.tdform input,.tdform textarea{border:1.5px solid var(--lijn);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;color:var(--inkt);background:var(--vlak)}
+.tdform textarea{min-height:70px;resize:vertical}
+.taak .titel small a{color:var(--blauw-2);cursor:pointer;text-decoration:underline}
 .grootknop{margin-left:auto;border:0;background:transparent;color:var(--grijs);padding:4px;border-radius:8px;cursor:pointer;display:grid;place-items:center}
 .grootknop svg{width:17px;height:17px}
 .grootknop:hover{color:var(--blauw);background:var(--lichtblauw-2)}
@@ -567,6 +577,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
 <div class="app" id="app" hidden>
   <nav class="rail" aria-label="Onderdelen">
     <svg class="logo" viewBox="0 0 36 36" aria-hidden="true"><path class="d1" d="M3 6h8a10 10 0 0 1 0 20H3z"/><path class="d2" d="M13 10h8a10 10 0 0 1 0 20h-8z"/></svg>
+    <button type="button" class="r" id="rail-overzicht" data-weergave="mij" title="Overzicht" aria-label="Overzicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></button>
     <button type="button" class="r plus" id="nieuw-knop" title="Nieuwe melding" aria-label="Nieuwe melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
     <button type="button" class="r" id="todo-knop" data-weergave="todo" title="To-do en notities" aria-label="To-do en notities"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span class="tel" id="todo-aantal"></span></button>
     <div class="rail-onder">
@@ -1264,7 +1275,7 @@ function tekenNav(){
   const restOpen = overigeOpen;
   // kop = schakelaar: "Mijn ⇄ Ons werk"; het actieve woord vet, het andere licht doorgestreept
   const kop = (soort, aan, a, b, rest, uitleg) => `<button type="button" class="wisselkop${aan ? ' ons' : ''}" data-wissel="${soort}" aria-pressed="${aan}" title="${esc(uitleg)}"><span class="${aan ? 'uit' : 'aan'}">${a}</span>${ico('<path d="M7 7h11l-3-3M17 17H6l3 3"/>')}<span class="${aan ? 'aan' : 'uit'}">${b}</span><span class="rest">${rest}</span></button>`;
-  const vast = VAST.filter(v => !v.f), werk = [VAST.find(v => v.id === 'toegewezen'), ...(werkOns ? [ALLE] : []), ...VAST.filter(v => v.f && v.id !== 'toegewezen')];   // Mijn tickets blijft altijd staan (en is altijd van jou)
+  const vast = VAST.filter(v => !v.f), werk = [VAST.find(v => v.id === 'toegewezen'), ...VAST.filter(v => v.f && v.id !== 'toegewezen')];   // Mijn tickets blijft altijd staan (en is altijd van jou)
   $('#nav').innerHTML = `${vast.map(v => it(v.id, v.t, null, v)).join('')}
     ${kop('werk', werkOns, 'Mijn', 'Ons', 'werk', werkOns ? 'Je ziet het werk van het hele team. Klik om alleen jouw tickets te zien.' : 'Je ziet alleen jouw tickets. Klik om het werk van het hele team te zien.')}
     ${werk.map(v => it(v.id, v.t, zichtbaar(v.id, v.f()).length, v)).join('')}
@@ -1272,7 +1283,7 @@ function tekenNav(){
     ${favL.map(rijA).join('') || '<p class="favhint"><b style="color:var(--inkt);font-weight:500">Geen afdeling geselecteerd</b><br>Zet een ★ bij een afdeling om hem hier te tonen.</p>'}
     <h4><button type="button" id="k-overige" aria-expanded="${restOpen}">${ico('<path d="M6 9l6 6 6-6"/>')}Overige afdelingen (${rest.length})</button></h4>
     ${restOpen ? rest.map(rijA).join('') : ''}
-    <h4>Overig</h4>${ONDER.map(v => it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}`;
+    <h4>Overig</h4>${[ALLE, ...ONDER].map(v => it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}`;
 }
 
 /* ================= Overzicht: rustig voorblad met persoonlijke cijfers (zoals in Mijn changes) ================= */
@@ -1339,7 +1350,7 @@ const filt = {zoek:''};
 /* Mijn ⇄ Ons: de kop van een menublok is de schakelaar.
    Mijn werk = jouw tickets, Ons werk = alles van het team. Mijn afdelingen = jouw tickets in je afdelingen, Onze afdelingen = alles daarin. */
 let werkOns = !!opslag.get('mict-werk-ons'), afdOns = !!opslag.get('mict-afd-ons');
-const ZONDER_FILTER = new Set(['toegewezen', 'historie']);   // Mijn tickets is altijd van jou; Historie is persoonlijk
+const ZONDER_FILTER = new Set(['toegewezen', 'historie', 'alle']);   // Alle open tickets is altijd alles   // Mijn tickets is altijd van jou; Historie is persoonlijk
 const onsVoor = t => t.startsWith('afd:') ? afdOns : werkOns;
 const schuifAan = t => !ZONDER_FILTER.has(t) && !t.startsWith('k:') && !onsVoor(t);
 const vanMij = (t, x) => isMijn(x);
@@ -1398,7 +1409,8 @@ function teken(){
   $('#ik span').textContent = profiel.naam; $('#ik i').textContent = profiel.naam.split(' ').map(w => w[0]).filter(c => c && c === c.toUpperCase()).slice(0, 2).join('');
   tekenNav();
   $('#v-mij').hidden = tab !== 'mij'; $('#v-lijst').hidden = tab === 'mij' || tab === 'todo'; $('#v-todo').hidden = tab !== 'todo';
-  $('#todo-knop').setAttribute('aria-pressed', tab === 'todo');
+  $('#todo-knop').setAttribute('aria-pressed', tab === 'todo'); $('#rail-overzicht').setAttribute('aria-pressed', tab !== 'todo');
+  $('#nav').hidden = tab === 'todo';   // bij To-do hoort het ticketmenu er niet bij
   if(tab === 'mij'){ $('#titel').textContent = 'Overzicht'; tekenMij(); } else if(tab === 'todo') tdTeken(); else tekenLijst();
   pasTabelBreedtes();
 }
@@ -1426,14 +1438,31 @@ async function zoekZichtVeld(){
   }catch(e){}
   return zichtVeld;
 }
+/* voorladen: zodra je met de muis op een ticket staat, haalt de pagina alvast het interne nummer, de workflow en de reacties op */
+const wfVoor = new Map(), reactieVoor = new Map();   // nr -> {t, p}: hooguit 60 seconden geldig
+const vers = (m, k) => { const v = m.get(String(k)); return v && Date.now() - v.t < 60e3 ? v.p : null; };
+function voorLaden(x){
+  if(!x || x.afgesloten && false) return;
+  const k = String(x.nr);
+  if(!vers(wfVoor, k)){ const p = (DEMO ? Promise.resolve() : zorgSbId(x)).then(() => x.sbid || DEMO ? workflow(x) : null); p.catch(() => wfVoor.delete(k)); wfVoor.set(k, {t: Date.now(), p}); }
+  if(!vers(reactieVoor, k)){ const p = (DEMO ? Promise.resolve() : zorgSbId(x)).then(() => haalReacties(x)); p.catch(() => reactieVoor.delete(k)); reactieVoor.set(k, {t: Date.now(), p}); }
+}
+let voorTimer = 0;
+document.addEventListener('mouseover', e => { const r = e.target.closest && e.target.closest('tr[data-nr], .voorregel[data-nr]'); if(!r) return;
+  clearTimeout(voorTimer); voorTimer = setTimeout(() => voorLaden(items.find(y => String(y.nr) === r.dataset.nr)), 120); });
+// alle workflowacties in één keer (in plaats van per taak een aparte aanroep)
+let alleActies = null;
+const laadAlleActies = () => alleActies || (alleActies = afas(`/connectors/${INST.connActies}?skip=0&take=2000`).then(d => d.rows || []).catch(e => { alleActies = null; throw e; }));
 async function workflow(x){
   if(DEMO) return {taak:'Behandelen ICT', bij:[profiel.naam], acties:['Afhandelen','Reactie plaatsen','Vraag aan melder','Toewijzen aan mij','Toewijzen aan collega','Wachten op leverancier','Inplannen','Accorderen RFC','Interne release','Externe release','Interne notitie'].map((n, i) => ({naam:n, afhandelen: i === 0 || i === 5, wf:'d', tk:'d', ac:'d' + i}))};
   const taken = (await afas(`/connectors/${INST.connTaken}?skip=0&take=20${filterOp('SubjectId', x.sbid)}`)).rows || [];
   if(!taken.length) return {taak:'', bij:[], acties:[]};
   const t = taken[0], k = t.WorkflowName + '|' + t.TaskName;
-  if(!actieCache[k]) actieCache[k] = ((await afas(`/connectors/${INST.connActies}?skip=0&take=100${filterOp('TaskName', t.TaskName)}`)).rows || [])
+  if(!actieCache[k]){ let rij = (await laadAlleActies().catch(() => [])).filter(a => a.TaskName === t.TaskName);
+    if(!rij.length) rij = (await afas(`/connectors/${INST.connActies}?skip=0&take=100${filterOp('TaskName', t.TaskName)}`)).rows || [];
+    actieCache[k] = rij
     .filter(a => !a.WorkflowName || a.WorkflowName === t.WorkflowName).sort((a, b) => (a.SeqNo || 0) - (b.SeqNo || 0))
-    .map(a => ({naam:a.ActionDescription, afhandelen: +a.ActionType === 1, wf:t.WorkflowName, tk:t.TaskName, ac:a.ActionName}));
+    .map(a => ({naam:a.ActionDescription, afhandelen: +a.ActionType === 1, wf:t.WorkflowName, tk:t.TaskName, ac:a.ActionName})); }
   return {taak: t.TaskDescription || t.WfDescription || '', bij:[...new Set(taken.map(y => y.UserName).filter(Boolean))], acties: actieCache[k]};
 }
 /* reacties uit AFAS (GetConnector Helpdesk_Reacties); kolommen zoeken op hun label */
@@ -1507,7 +1536,7 @@ const initialen = n => String(n || '?').split(/\s+/).filter(w => w && w[0] === w
 async function toonReacties(x){
   const el = $('#tijdlijn'); if(!el) return;
   try{
-    const l = await haalReacties(x); if(!huidig || huidig.x !== x) return;
+    const l = await (vers(reactieVoor, x.nr) || haalReacties(x)); reactieVoor.delete(String(x.nr)); if(!huidig || huidig.x !== x) return;
     { const voor = ontbreekt(x).includes('reactie'); zetIctReactie(x, ictReageerde(x, l));
       if(voor && !ontbreekt(x).includes('reactie')){ x._sg = signalen(x); const c = $('#d-check'); if(c) c.innerHTML = checklist(x); const t = $('#tekst'); if(t && t.classList.contains('mist')){ t.classList.remove('mist'); t.placeholder = 'Schrijf een reactie aan de melder…'; } } }
     const mails = ((opslag.get(MAILLOG) || {})[String(x.nr)] || []).map(m => ({...m, t: new Date(m.t), mail: true}));
@@ -1540,6 +1569,15 @@ function statusKeuzes(wf, x){
   return STATUS_VOLGORDE.map(st => ({st, a: wf.acties.filter(a => statusNa(a) === st && voorkeur(a) < 9).sort((p, q) => voorkeur(p) - voorkeur(q))[0] || null}));
 }
 const soortActie = a => /toewijzen aan mij/i.test(a.naam) ? 'mij' : /toewijzen aan collega|doorzetten naar collega|collega/i.test(a.naam) ? 'collega' : /inplannen|plannen/i.test(a.naam) ? 'plannen' : 'status';
+// Afhandelen/oppakken al aanklikbaar terwijl de workflow nog laadt: even wachten en dan dezelfde route als de echte knop
+async function snelActie(knop){
+  const x = huidig.x, soort = knop.dataset.snel; knop.disabled = true; const oud = knop.textContent; knop.innerHTML = '<span class="spin" style="display:inline-block;vertical-align:-3px;margin-right:6px;width:12px;height:12px"></span>' + esc(oud);
+  try{ await huidig.wfKlaar; }catch(e){}
+  if(!huidig || huidig.x !== x) return;
+  const l = huidig.wf ? huidig.wf.acties : [], a = soort === 'oppak' ? l.find(isOppakActie) : l.find(sluitActie);
+  if(!a){ knop.disabled = false; knop.textContent = oud; $('#d-fout').textContent = `De actie "${oud}" is bij dit ticket (nu) niet beschikbaar in AFAS.`; return; }
+  opslaanAlles(l.indexOf(a));
+}
 /* ---- ticketvenster groter maken (onthouden per browser) ---- */
 const ICO_GROOT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>';
 const ICO_KLEIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7"/></svg>';
@@ -1593,7 +1631,7 @@ function openDetail(nr){
   const r = (t, w, o = {}) => w || o.altijd ? `<span>${t}</span><b>${o.html ? w : esc(w || '–')}</b>` : '';
   const link = INST.ticketUrl && x.sbid ? INST.ticketUrl.replace('{sbid}', encodeURIComponent(x.sbid)).replace('{nr}', encodeURIComponent(x.nr)) : '';
   $('#detail-in').innerHTML = `
-    <div class="dlg-kop"><div><small>Ticket ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.afdeling ? ' · ' + esc(x.afdeling) : ''}</small><h2>${esc(x.onderwerp)}</h2></div><button type="button" class="grootknop" data-groot aria-label="Venster groter of kleiner" title="${$('#detail').classList.contains('groot') ? 'Kleiner venster' : 'Venster vergroten'}">${$('#detail').classList.contains('groot') ? ICO_KLEIN : ICO_GROOT}</button><button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
+    <div class="dlg-kop"><div><small>Ticket ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.afdeling ? ' · ' + esc(x.afdeling) : ''}</small><h2>${esc(x.onderwerp)}</h2></div><button type="button" class="todoknop" data-todovan="${esc(x.nr)}" title="To-do maken bij dit ticket (komt in je to-do-lijst)">${TD_VINK_PLUS}To-do</button><button type="button" class="grootknop" data-groot aria-label="Venster groter of kleiner" title="${$('#detail').classList.contains('groot') ? 'Kleiner venster' : 'Venster vergroten'}">${$('#detail').classList.contains('groot') ? ICO_KLEIN : ICO_GROOT}</button><button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
     <div class="stappen">${STAPPEN.map((t, i) => `${i ? `<span class="lijntje ${i <= st ? 'klaar' : ''}"></span>` : ''}<span class="stap ${i < st ? 'klaar' : i === st ? 'nu' : ''}"><i>${i < st ? '✓' : ''}</i>${t}</span>`).join('')}
       ${(() => { const sg = x._sg.filter(s => s.code !== 'onvolledig'); return sg.length ? `<span class="chips" style="margin-left:auto">${sg.map(chip).join('')}</span>` : ''; })()}</div>
     ${!x.afgesloten && isNieuw(x) ? `<div class="checklist" id="d-check">${checklist(x)}</div>` : ''}
@@ -1615,7 +1653,7 @@ function openDetail(nr){
       <div class="onder"><button type="button" class="linkknop paperclip" id="k-clip" title="Bestand meesturen met deze reactie. Je kunt ook een bestand op het reactievak slepen of een schermafbeelding plakken met Ctrl+V.">${CLIP}Bijlage bij reactie</button><input type="file" id="f-reactie" multiple hidden><label class="vink notitie"><input type="checkbox" id="notitie"> Interne notitie <small>(alleen zichtbaar voor ICT)</small></label>
         <span class="hint" id="notitie-uitleg">Standaard is een reactie zichtbaar voor melder én ICT.</span></div>
     </div>
-    <div class="onderbalk"><div class="actiebalk" id="actiebalk"><span class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Acties ophalen…</span></div>
+    <div class="onderbalk"><div class="actiebalk" id="actiebalk"><button class="knop" data-snel="${st === 0 ? 'oppak' : 'sluit'}" title="Kan meteen: wacht zo nodig even op de workflow uit AFAS">${st === 0 ? 'Toewijzen aan mij' : 'Afhandelen'}</button></div>
       <span class="mailvooraf" id="mailvooraf" hidden></span>
       <span class="opslaanknoppen"><button type="button" class="knop" id="k-opslaan-blijf" title="Alles doorvoeren en het ticket open houden"><span class="opslaanmail" hidden>✉ </span>Opslaan</button>
       <button type="button" class="knop vol" id="k-opslaan" title="Alles doorvoeren en het ticket sluiten (Ctrl+Enter)"><span class="opslaanmail" hidden>✉ </span>Opslaan &amp; sluiten <kbd>Ctrl+Enter</kbd></button></span></div>
@@ -1627,7 +1665,7 @@ function openDetail(nr){
   (DEMO ? Promise.resolve() : zorgSbId(x)).then(() => { laadBijlagen(x); return toonReacties(x); }).catch(e => { const el = $('#tijdlijn'); if(el) el.innerHTML = `<h3>Reacties</h3><p class="hint">Het interne nummer van dit ticket kon niet worden opgezocht: ${esc(e.message)}</p>`; const bl = $('#bijl-lijst'); if(bl) bl.innerHTML = '<span class="hint">Bijlagen ophalen kan niet zonder het interne nummer van het ticket.</span>'; });
   if(!x.afgesloten){ vulAfdKeuze(x); vulStatusKeuze(x); vulVerantwKeuze(x); vulLocKeuze(x); setTimeout(() => markeerOntbrekend(x), 0); }
   if(!x.toelichting) toonToelichting(x);
-  if(!x.afgesloten){ laadWorkflow(x); $('#notitie').onchange = e => { $('#tekst').classList.toggle('intern', e.target.checked); $('#tekst').placeholder = e.target.checked ? 'Interne notitie voor collega’s…' : 'Schrijf een reactie aan de melder…'; }; }
+  if(!x.afgesloten){ huidig.wfKlaar = laadWorkflow(x); $('#notitie').onchange = e => { $('#tekst').classList.toggle('intern', e.target.checked); $('#tekst').placeholder = e.target.checked ? 'Interne notitie voor collega’s…' : 'Schrijf een reactie aan de melder…'; }; }
   else ($('#d-taak') || {}).textContent = '–';
 }
 /* toelichting staat niet in de SLA-connector: per ticket ophalen uit een connector die het veld wel heeft */
@@ -1889,7 +1927,7 @@ async function laadWorkflow(x){
   if(!DEMO) await zorgSbId(x).catch(() => null);
   if(!x.sbid && !DEMO){ el.innerHTML = '<span class="fout">Het interne nummer (Dossieritem) van dit ticket is niet gevonden in Helpdesk_PowerBI; bijwerken kan niet.</span>'; ($('#d-taak') || {}).textContent = '–'; return; }
   try{
-    const [wf, sm] = await Promise.all([workflow(x), laadSubjMeta().catch(() => ({})), zoekZichtVeld()]); if(!huidig || huidig.x !== x) return; huidig.wf = wf;
+    const [wf, sm] = await Promise.all([vers(wfVoor, x.nr) || workflow(x), laadSubjMeta().catch(() => ({})), zoekZichtVeld()]); if(!huidig || huidig.x !== x) return; huidig.wf = wf;
     // de status van een Aanvraag ICT is geen veld maar wordt door de workflow gezet: statusacties horen dan in de statuskeuze
     const viaWf = !sm.status; huidig.statusViaWf = viaWf;
     const bijMij = wf.bij.some(benIk);
@@ -2569,7 +2607,7 @@ document.addEventListener('click', e => {
   if(!e.target.closest('#kolkeuze') && !e.target.closest('[data-kolkeuze]')) $('#kolkeuze').hidden = true;
   const wk = e.target.closest('[data-wissel]'); if(wk){
     if(wk.dataset.wissel === 'werk'){ werkOns = !werkOns; opslag.set('mict-werk-ons', werkOns);
-      if(!werkOns && tab === 'alle') tab = 'toegewezen'; }
+    }
     else { afdOns = !afdOns; opslag.set('mict-afd-ons', afdOns); }
     teken(); return; }
   const fv = e.target.closest('[data-fav]'); if(fv){ wisselFavoriet(fv.dataset.fav); return; }
@@ -2586,7 +2624,8 @@ document.addEventListener('click', e => {
   const m = e.target.closest('.meer'); if(m){ const id = m.dataset.blok; blokOpen.has(id) ? blokOpen.delete(id) : blokOpen.add(id); teken(); return; }
   const w = e.target.closest('[data-weergave]'); if(w){ tab = w.dataset.weergave; filt.zoek = ''; $('#f-zoek').value = ''; teken(); scrollTo(0, 0); return; }
   if(e.target.closest('[data-sluit]')){ sluitDialoog($('#detail')); return; }
-  const a = e.target.closest('[data-actie]'); if(a){ opslaanAlles(+a.dataset.actie); return; }   // bv. Afhandelen: neemt afdeling en reactie mee
+  const a = e.target.closest('[data-actie]'); if(a){ opslaanAlles(+a.dataset.actie); return; }
+  const sn = e.target.closest('[data-snel]'); if(sn && huidig){ snelActie(sn); return; }   // bv. Afhandelen: neemt afdeling en reactie mee
   if(e.target.closest('#k-actie')){ const v = $('#actie-keuze').value; if(v !== '') voerUit(+v); return; }
   if(e.target.closest('#k-reageer')){ voerUit(null); return; }
   if(e.target.closest('#k-opslaan')){ opslaanAlles(null, true); return; }
@@ -2774,17 +2813,17 @@ const TD_VINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const TD_STER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>';
 function tdRij(t){
   const vandaag = tdIso(new Date()), laat = t.deadline && !t.klaar && t.deadline < vandaag;
-  const sub = [TD.lijst === 'alle' && esc(tdLijstNaam(t.lijst)), t.deadline && `<span class="${laat ? 'laat' : ''}">${laat ? 'te laat · ' : ''}${fmtDatum(new Date(t.deadline + 'T00:00:00'))}</span>`, t.notitie && 'notitie', t.melding && `ticket ${esc(t.melding)}`].filter(Boolean);
+  const sub = [TD.lijst === 'alle' && esc(tdLijstNaam(t.lijst)), t.deadline && `<span class="${laat ? 'laat' : ''}">${laat ? 'te laat · ' : ''}${fmtDatum(new Date(t.deadline + 'T00:00:00'))}</span>`, t.notitie && 'notitie', t.melding && `ticket ${esc(t.melding)}`, t.ticket && `<a data-tdticket="${esc(t.ticket)}" title="Ticket openen">ticket ${esc(t.ticket)}</a>`].filter(Boolean);
   const detail = TD.open === t.id ? `<div class="taakdetail">
       <textarea data-veld="notitie" placeholder="Notitie">${esc(t.notitie || '')}</textarea>
       <input type="date" data-veld="deadline" value="${esc(t.deadline || '')}" title="Deadline">
       <select data-veld="lijst">${TD.data.lijsten.map(l => `<option value="${esc(l.id)}" ${l.id === t.lijst ? 'selected' : ''}>${esc(l.naam)}</option>`).join('')}</select>
       <input data-veld="titel" value="${esc(t.titel)}" title="Titel">
-      <div class="acties">${!t.klaar && !t.melding ? '<button type="button" class="knop klein" data-tdactie="naarafas">Omzetten naar melding in AFAS</button>' : ''}${t.melding ? `<button type="button" class="knop klein" data-tdactie="ticket">Ticket ${esc(t.melding)} openen</button>` : ''}<button type="button" class="linkknop weg" data-tdactie="weg">Verwijderen</button></div></div>` : '';
+      <div class="acties">${!t.klaar && !t.melding && !t.ticket ? '<button type="button" class="knop klein" data-tdactie="naarafas">Omzetten naar melding in AFAS</button>' : ''}${t.melding ? `<button type="button" class="knop klein" data-tdactie="ticket">Ticket ${esc(t.melding)} openen</button>` : ''}<button type="button" class="linkknop weg" data-tdactie="weg">Verwijderen</button></div></div>` : '';
   return `<div class="taak ${t.klaar ? 'klaar' : ''} ${TD.open === t.id ? 'open' : ''}" data-taak="${esc(t.id)}">
-    <button type="button" class="vink" data-tdactie="vink" aria-label="${t.klaar ? 'Weer openzetten' : 'Afvinken'}">${TD_VINK}</button>
+    <button type="button" class="tdvink" data-tdactie="vink" aria-label="${t.klaar ? 'Weer openzetten' : 'Afvinken'}">${TD_VINK}</button>
     <span class="titel" data-tdactie="open">${esc(t.titel)}${sub.length ? `<small>${sub.join(' · ')}</small>` : ''}</span>
-    ${t.melding ? '<span class="gekoppeld">✓ in AFAS</span>' : t.klaar ? '<span></span>' : '<button type="button" class="naarafas" data-tdactie="naarafas" title="Maak er een melding in AFAS van">→ AFAS</button>'}
+    ${t.melding ? '<span class="gekoppeld">✓ in AFAS</span>' : t.klaar || t.ticket ? '<span></span>' : '<button type="button" class="naarafas" data-tdactie="naarafas" title="Maak er een melding in AFAS van">→ AFAS</button>'}
     <button type="button" class="ster" data-tdactie="belangrijk" aria-pressed="${!!t.belangrijk}" title="${t.belangrijk ? 'Niet meer belangrijk' : 'Markeer als belangrijk'}">${TD_STER}</button>
     ${detail}</div>`;
 }
@@ -2882,6 +2921,33 @@ $('#td-import-bestand').onchange = async e => {
         TD.data.taken.push({id: tdId(), msId: t.id || '', titel, lijst: doel.id, belangrijk: /^high$/i.test(t.importance || '') || t.belangrijk === true, klaar: false, deadline: dl || undefined, notitie: kaal(t.body && typeof t.body === 'object' ? t.body.content : t.body || t.notitie || '') || undefined, gemaakt: t.createdDateTime || new Date().toISOString()}); nieuw++; }); });
     tdBewaar(); toast(`${nieuw} taken geïmporteerd`); }
   catch(x){ toast('Importeren lukte niet: ' + x.message, true); } };
+/* to-do maken vanuit een ticket: komt in je to-do-lijst, met een link terug naar het ticket */
+const TD_VINK_PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v8M8 12h8"></path></svg>';
+async function todoVanTicket(nr){
+  const x = items.find(y => String(y.nr) === String(nr)); if(!x) return;
+  if(TD.status !== 'ok'){
+    if(await vraag('To-do nog niet gekoppeld', 'Je to-do-lijst staat in een eigen bestand in je OneDrive. Koppel dat eerst eenmalig; daarna kun je vanuit elk ticket een to-do maken.', 'Nu koppelen', 'Later')){
+      $('#detail').dataset.gewijzigd = ''; $('#detail').close(); tab = 'todo'; teken(); }
+    return; }
+  const d = $('#vraag');
+  d.innerHTML = `<div class="dlg-in"><h2>To-do bij ticket ${esc(x.nr)}</h2>
+    <div class="tdform"><label>Wat moet je doen?<input id="td-titel" value="${esc(x.onderwerp)}" maxlength="200"></label>
+    <label>Notitie (optioneel)<textarea id="td-notitie" placeholder="Bijvoorbeeld: leverancier vrijdag terugbellen"></textarea></label>
+    <label>Deadline (optioneel)<input type="date" id="td-deadline"></label></div>
+    <div class="vraag-knoppen"><button type="button" class="knop" data-v="nee">Annuleren</button><button type="button" class="knop vol" data-v="ja">To-do toevoegen</button></div></div>`;
+  const ok = await new Promise(klaar => {
+    const af = w => { d.onclick = null; d.oncancel = null; d.onkeydown = null; const v = w ? {titel: $('#td-titel').value.trim(), notitie: $('#td-notitie').value.trim(), deadline: $('#td-deadline').value} : null; d.close(); klaar(v); };
+    d.onclick = e => { const b = e.target.closest('[data-v]'); if(b) af(b.dataset.v === 'ja'); else if(e.target === d) af(false); };
+    d.oncancel = e => { e.preventDefault(); af(false); };
+    d.onkeydown = e => { if(e.key === 'Enter' && e.target.id === 'td-titel'){ e.preventDefault(); af(true); } };
+    d.showModal(); const t = $('#td-titel'); t.focus(); t.select(); });
+  if(!ok || !ok.titel) return;
+  const lijst = (TD.data.lijsten[0] || {}).id;
+  TD.data.taken.push({id: tdId(), titel: ok.titel, lijst, klaar: false, ticket: String(x.nr), notitie: ok.notitie || undefined, deadline: ok.deadline || undefined, gemaakt: new Date().toISOString()});
+  tdBewaar(); toast(`To-do toegevoegd bij ticket ${x.nr}`);
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-todovan]'); if(b) todoVanTicket(b.dataset.todovan);
+  const tl = e.target.closest('[data-tdticket]'); if(tl){ e.stopPropagation(); const x = items.find(y => String(y.nr) === tl.dataset.tdticket); if(x){ navLijst = []; openDetail(x.nr); } else toast('Ticket ' + tl.dataset.tdticket + ' staat (nog) niet in de lijst.', true); } }, true);
 // een to-do omzetten naar een melding: het venster Nieuwe melding, vooraf ingevuld; na aanmaken wordt de to-do afgevinkt met het ticketnummer
 let todoBron = null;
 async function todoNaarMelding(t){
@@ -2921,6 +2987,7 @@ function laadKaart(naam){
     if(status.fout && !items.length){ startInlog('Tickets ophalen mislukt: ' + status.fout); return; }
     if(!profiel.ingesteld) startProfiel(true); else toonApp();
     tdStart();
+    if(!DEMO) setTimeout(() => { laadSubjMeta().catch(() => {}); zoekZichtVeld().catch(() => {}); zorgReactieKol().catch(() => {}); laadAlleActies().catch(() => {}); }, 1500);   // alvast klaarzetten: het eerste ticket opent dan sneller
     verrijkMetTaken().then(() => { controleerIctReacties(); laadRestOpAchtergrond(); });
   }catch(e){ startInlog(e.message); }
 })();
