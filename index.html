@@ -54,8 +54,7 @@ button{cursor:pointer}
 .rail .r{width:44px;height:44px;border-radius:12px;border:0;background:transparent;display:grid;place-items:center;color:var(--rail-ico);position:relative}
 .rail .r svg{width:21px;height:21px}
 .rail .r:hover{background:var(--rail-hover);color:var(--rail-act)}
-.rail .r.plus{margin-top:14px;background:var(--blauw);color:var(--opaccent);border-radius:50%}
-.rail .r.plus:hover{background:var(--blauw-2);color:var(--opaccent)}
+.rail .r.plus{margin-top:6px}
 .rail .r[aria-pressed="true"]{background:var(--rail-act);color:var(--rail-act-ink)}
 .rail .tel{position:absolute;top:3px;right:2px;font-size:10px;font-weight:700;background:#D92D20;color:#fff;border-radius:999px;padding:0 5px;line-height:15px;box-shadow:0 0 0 2px var(--vlak)}
 .rail .tel:empty{display:none}
@@ -450,9 +449,9 @@ dialog#detail.groot .dlg-in{max-height:calc(100vh - 24px);height:100%;box-sizing
 dialog#detail.groot .tijdlijn{max-height:none;flex:1 1 auto;min-height:220px}
 dialog#detail.groot .kaart2 .lang{max-height:360px}
 dialog#detail.groot .kaart2 select.afdkeuze,dialog#detail.groot .kaart2 input.datumkeuze{width:300px}
-.todoknop{margin-left:auto;display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--lijn);background:var(--vlak);color:var(--blauw);border-radius:0 999px 999px 0;padding:4px 12px 4px 9px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
-.todoknop:hover{border-color:var(--blauw-2);background:var(--lichtblauw-2)}
-.todoknop svg{width:15px;height:15px}
+.todoknop{margin-left:auto;border:0;background:transparent;color:var(--grijs);padding:4px;border-radius:8px;cursor:pointer;display:grid;place-items:center}
+.todoknop:hover{color:var(--blauw);background:var(--lichtblauw-2)}
+.todoknop svg{width:20px;height:20px}
 .todoknop + .grootknop{margin-left:6px}
 .tdform{display:flex;flex-direction:column;gap:10px}
 .tdform label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--grijs);font-weight:500}
@@ -564,6 +563,11 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
 .bekijkin pre{align-self:start;justify-self:stretch;margin:0;padding:16px;white-space:pre-wrap;font-size:12.5px;overflow-wrap:anywhere}
 
 @media (max-width:700px){.rail{display:none}.bovenbalk,main,.voet{padding-left:16px;padding-right:16px}.rij{padding-right:16px}.chips{display:none}}
+/* smalle balk: alleen eenvoudige lijn-icoontjes; alleen de pagina waar je bent krijgt een rand */
+.rail .r{border:1.5px solid transparent;box-sizing:border-box;background:transparent;color:var(--rail-ico)}
+.rail .r svg{width:24px;height:24px;stroke-width:1.9}
+.rail .r:hover{background:var(--rail-hover);color:var(--blauw)}
+.rail .r[aria-pressed="true"]{background:transparent;color:var(--blauw);border-color:var(--blauw)}
 </style>
 <script src="mijn-ict-config.js"></script>
 </head>
@@ -578,7 +582,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
   <nav class="rail" aria-label="Onderdelen">
     <svg class="logo" viewBox="0 0 36 36" aria-hidden="true"><path class="d1" d="M3 6h8a10 10 0 0 1 0 20H3z"/><path class="d2" d="M13 10h8a10 10 0 0 1 0 20h-8z"/></svg>
     <button type="button" class="r" id="rail-overzicht" data-weergave="mij" title="Overzicht" aria-label="Overzicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></button>
-    <button type="button" class="r plus" id="nieuw-knop" title="Nieuwe melding" aria-label="Nieuwe melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button type="button" class="r plus" id="nieuw-knop" title="Nieuwe melding" aria-label="Nieuwe melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
     <button type="button" class="r" id="todo-knop" data-weergave="todo" title="To-do en notities" aria-label="To-do en notities"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span class="tel" id="todo-aantal"></span></button>
     <div class="rail-onder">
       <button type="button" class="r" id="k-ververs" title="Verversen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
@@ -1631,7 +1635,7 @@ function openDetail(nr){
   const r = (t, w, o = {}) => w || o.altijd ? `<span>${t}</span><b>${o.html ? w : esc(w || '–')}</b>` : '';
   const link = INST.ticketUrl && x.sbid ? INST.ticketUrl.replace('{sbid}', encodeURIComponent(x.sbid)).replace('{nr}', encodeURIComponent(x.nr)) : '';
   $('#detail-in').innerHTML = `
-    <div class="dlg-kop"><div><small>Ticket ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.afdeling ? ' · ' + esc(x.afdeling) : ''}</small><h2>${esc(x.onderwerp)}</h2></div><button type="button" class="todoknop" data-todovan="${esc(x.nr)}" title="To-do maken bij dit ticket (komt in je to-do-lijst)">${TD_VINK_PLUS}To-do</button><button type="button" class="grootknop" data-groot aria-label="Venster groter of kleiner" title="${$('#detail').classList.contains('groot') ? 'Kleiner venster' : 'Venster vergroten'}">${$('#detail').classList.contains('groot') ? ICO_KLEIN : ICO_GROOT}</button><button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
+    <div class="dlg-kop"><div><small>Ticket ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.afdeling ? ' · ' + esc(x.afdeling) : ''}</small><h2>${esc(x.onderwerp)}</h2></div><button type="button" class="todoknop" data-todovan="${esc(x.nr)}" title="To-do maken bij dit ticket" aria-label="To-do maken bij dit ticket">${TD_VINK_PLUS}</button><button type="button" class="grootknop" data-groot aria-label="Venster groter of kleiner" title="${$('#detail').classList.contains('groot') ? 'Kleiner venster' : 'Venster vergroten'}">${$('#detail').classList.contains('groot') ? ICO_KLEIN : ICO_GROOT}</button><button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
     <div class="stappen">${STAPPEN.map((t, i) => `${i ? `<span class="lijntje ${i <= st ? 'klaar' : ''}"></span>` : ''}<span class="stap ${i < st ? 'klaar' : i === st ? 'nu' : ''}"><i>${i < st ? '✓' : ''}</i>${t}</span>`).join('')}
       ${(() => { const sg = x._sg.filter(s => s.code !== 'onvolledig'); return sg.length ? `<span class="chips" style="margin-left:auto">${sg.map(chip).join('')}</span>` : ''; })()}</div>
     ${!x.afgesloten && isNieuw(x) ? `<div class="checklist" id="d-check">${checklist(x)}</div>` : ''}
@@ -2922,7 +2926,8 @@ $('#td-import-bestand').onchange = async e => {
     tdBewaar(); toast(`${nieuw} taken geïmporteerd`); }
   catch(x){ toast('Importeren lukte niet: ' + x.message, true); } };
 /* to-do maken vanuit een ticket: komt in je to-do-lijst, met een link terug naar het ticket */
-const TD_VINK_PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v8M8 12h8"></path></svg>';
+// het to-do-icoon (rondje met vinkje) met een klein plusje rechtsboven
+const TD_VINK_PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 12A8.5 8.5 0 1 1 13.5 3.6"></path><path d="M8 12.5l3 3 5-6"></path><path d="M19 2.5v5M16.5 5h5"></path></svg>';
 async function todoVanTicket(nr){
   const x = items.find(y => String(y.nr) === String(nr)); if(!x) return;
   if(TD.status !== 'ok'){
