@@ -456,6 +456,10 @@ dialog#detail.groot .kaart2 select.afdkeuze,dialog#detail.groot .kaart2 input.da
 .todoknop:hover{color:var(--blauw);background:var(--lichtblauw-2)}
 .todoknop svg{width:20px;height:20px}
 .todoknop + .grootknop{margin-left:6px}
+.afasknop{margin-left:auto;border:0;background:transparent;color:var(--grijs);padding:4px;border-radius:8px;cursor:pointer;display:grid;place-items:center}
+.afasknop svg{width:17px;height:17px}
+.afasknop:hover{color:var(--blauw);background:var(--lichtblauw-2)}
+.afasknop + .todoknop{margin-left:6px}
 .meldercel{display:flex;align-items:center;gap:6px}
 .melderinfo{border:0;background:none;padding:2px;color:var(--blauw-2);cursor:help;display:grid;place-items:center;border-radius:50%}
 .melderinfo svg{width:16px;height:16px}
@@ -649,7 +653,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.77 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.78 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -708,7 +712,16 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.77';
+const VERSIE = 'v3.78';
+const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
+const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
+async function openInAfas(x){
+  const w = window.open('about:blank', '_blank');   // direct openen (anders blokkeert de browser de pop-up)
+  let sb = null; try{ sb = await zorgSbId(x); }catch(e){}
+  const url = (INST.ticketUrl || AFAS_TICKET_URL).replace('{sbid}', encodeURIComponent(sb ?? '')).replace('{nr}', encodeURIComponent(x.nr));
+  if(!sb && /\{sbid\}|SbId=/i.test(INST.ticketUrl || AFAS_TICKET_URL)){ if(w) w.close(); toast(`AFAS-link voor ticket ${x.nr} niet te bepalen (SbId onbekend).`); return; }
+  if(w){ w.opener = null; w.location.href = url; } else window.open(url, '_blank', 'noopener');
+}
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -727,7 +740,7 @@ const dagenGeleden = d => d ? Math.floor((Date.now() - d) / DAG) : null;
 const opslag = { get(k){ try{ return JSON.parse(localStorage.getItem(k) || 'null'); }catch(e){ return null; } }, set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }, weg(k){ try{ localStorage.removeItem(k); }catch(e){} } };
 const sessie = { get(k){ try{ return sessionStorage.getItem(k); }catch(e){ return null; } }, set(k, v){ try{ sessionStorage.setItem(k, v); }catch(e){} }, weg(k){ try{ sessionStorage.removeItem(k); }catch(e){} } };
 let toastT = 0;
-function toast(t, fout){ const el = $('#toast'); el.textContent = t; el.className = 'zichtbaar' + (fout ? ' fout' : ''); clearTimeout(toastT); toastT = setTimeout(() => el.className = '', fout ? 7000 : 3500); }
+function toast(t, fout){ const el = $('#toast'); const host = document.querySelector('dialog[open]') || document.body; if(el.parentNode !== host) host.appendChild(el); el.textContent = t; el.className = 'zichtbaar' + (fout ? ' fout' : ''); clearTimeout(toastT); toastT = setTimeout(() => el.className = '', fout ? 7000 : 3500); }
 
 /* ---- werktijd: ma t/m vr binnen werktijden (zelfde rekenwijze als het SLA-dashboard) ---- */
 const hm = (s, std) => { const [h, m] = String(s || std).split(':').map(Number); return isNaN(h) ? hm(std, std) : [h, m || 0]; };
@@ -1749,7 +1762,7 @@ function openDetail(nr){
   const r = (t, w, o = {}) => w || o.altijd ? `<span>${t}</span><b>${o.html ? w : esc(w || '–')}</b>` : '';
   const link = INST.ticketUrl && x.sbid ? INST.ticketUrl.replace('{sbid}', encodeURIComponent(x.sbid)).replace('{nr}', encodeURIComponent(x.nr)) : '';
   $('#detail-in').innerHTML = `
-    <div class="dlg-kop"><div><small>Ticket ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.afdeling ? ' · ' + esc(x.afdeling) : ''}</small><h2>${esc(x.onderwerp)}</h2></div><span class="aanwezig" id="d-aanwezig" hidden></span><button type="button" class="todoknop" data-todovan="${esc(x.nr)}" title="To-do maken bij dit ticket" aria-label="To-do maken bij dit ticket">${TD_VINK_PLUS}</button><button type="button" class="grootknop" data-groot aria-label="Venster groter of kleiner" title="${$('#detail').classList.contains('groot') ? 'Kleiner venster' : 'Venster vergroten'}">${$('#detail').classList.contains('groot') ? ICO_KLEIN : ICO_GROOT}</button><button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
+    <div class="dlg-kop"><div><small>Ticket ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.afdeling ? ' · ' + esc(x.afdeling) : ''}</small><h2>${esc(x.onderwerp)}</h2></div><span class="aanwezig" id="d-aanwezig" hidden></span><button type="button" class="afasknop" id="d-afas" title="Ticket openen in AFAS InSite (nieuw tabblad)" aria-label="Ticket openen in AFAS">${ICO_AFAS}</button><button type="button" class="todoknop" data-todovan="${esc(x.nr)}" title="To-do maken bij dit ticket" aria-label="To-do maken bij dit ticket">${TD_VINK_PLUS}</button><button type="button" class="grootknop" data-groot aria-label="Venster groter of kleiner" title="${$('#detail').classList.contains('groot') ? 'Kleiner venster' : 'Venster vergroten'}">${$('#detail').classList.contains('groot') ? ICO_KLEIN : ICO_GROOT}</button><button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
     <div class="stappen">${STAPPEN.map((t, i) => `${i ? `<span class="lijntje ${i <= st ? 'klaar' : ''}"></span>` : ''}<span class="stap ${i < st ? 'klaar' : i === st ? 'nu' : ''}"><i>${i < st ? '✓' : ''}</i>${t}</span>`).join('')}
       ${(() => { const sg = x._sg.filter(s => s.code !== 'onvolledig'); return sg.length ? `<span class="chips" style="margin-left:auto">${sg.map(c => SJABLOON_SIG[c.code] && !x.afgesloten ? `<button type="button" class="chipknop" data-sjabloon="sig:${c.code}" title="Klik voor een voorsteltekst aan de melder">${chip(c)}</button>` : chip(c)).join('')}</span>` : ''; })()}</div>
     ${!x.afgesloten && isNieuw(x) ? `<div class="checklist" id="d-check">${checklist(x)}</div>` : ''}
@@ -1762,7 +1775,7 @@ function openDetail(nr){
     <div class="bijlbalk" id="d-bijl"><span class="bijltitel">${CLIP}<b id="bijl-titel">Bijlagen</b></span>
       <span id="bijl-lijst" class="bijlrij"><span class="hint">ophalen…</span></span><span class="klaarzet" id="klaar-ticket"></span>
       ${x.afgesloten ? '' : `<button type="button" class="linkknop" id="k-bijl" title="Bestand kiezen. Je kunt ook bestanden op het ticket slepen of een schermafbeelding plakken met Ctrl+V.">+ Toevoegen</button><input type="file" id="f-ticket" multiple hidden>`}</div>
-    ${link ? `<a class="hint" href="${esc(link)}" target="_blank" rel="noopener">Openen in AFAS ↗</a>` : ''}
+    
     ${x.afgesloten ? '<div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3></div><p class="hint">Dit ticket is afgehandeld.</p>' : `
     <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>
     <div class="composer">
@@ -1793,11 +1806,12 @@ function openDetail(nr){
 async function toonMelderInfo(x){
   let m = null; try{ m = await zoekMedewerker(x.melder); }catch(e){}
   const knop = $('#d-melderinfo'); if(!knop || !huidig || huidig.x !== x) return;
-  if(!m){ knop.dataset.uitleg = 'Deze melder is niet (eenduidig) gevonden in de medewerkerslijst.'; knop.classList.add('leeg'); return; }
+  if(!m){ knop.dataset.uitleg = `"${x.melder}" is niet (eenduidig) gevonden in de medewerkerslijst (${INST.connMedewerkers || 'medewerkersconnector'}).`; knop.classList.add('leeg'); if(uitlegBij === knop && $('#uitleg').className) toonUitleg(knop); return; }
   const wacht = () => new Promise(r => { let n = 0; const t = setInterval(() => { const s = $('#d-loc'); if(!s || s.options.length > 1 || ++n > 40){ clearInterval(t); r(); } }, 100); });
   await wacht();
   const loc = locTekst(m);
-  knop.dataset.uitleg = [`${m.vol || m.naam} (${m.id})`, m.functie && `Functie: ${m.functie}`, m.oe && `Organisatorische eenheid: ${m.oe}`, `Werklocatie: ${loc || 'niet te bepalen'}`].filter(Boolean).join('\n');
+  knop.dataset.uitleg = [`${m.vol || m.naam} (${m.id})`, `Functie: ${m.functie || (heeftFunctieKol ? 'niet ingevuld' : 'nog niet beschikbaar (veld Functie ontbreekt in de medewerkersconnector)')}`, `Organisatorische eenheid: ${m.oe || 'niet ingevuld'}`, `Werklocatie: ${loc || 'niet te bepalen'}`].join('\n');
+  if(uitlegBij === knop && $('#uitleg').className) toonUitleg(knop);
   // lege locatie in het ticket: voorstel uit de medewerkersgegevens (wordt pas opgeslagen met Opslaan)
   const sel = $('#d-loc');
   if(sel && !sel.value && !x.locatie){ const o = locVoorstel(m, [...sel.options].filter(o => o.value));
@@ -2367,6 +2381,7 @@ async function kiesMedewerkerConnector(){
   throw new Error(`geen GetConnector met alle medewerkers gevonden in de app connector. Bekeken: ${pogingen.join('; ') || 'niets'}${alleGet.length ? '. Beschikbaar: ' + alleGet.map(c => c.id).join(', ') : ''}`);
 }
 let medewerkers = null, medewerkerFout = '', medewerkerConn = '', medewerkerKolDiag = '';
+let heeftFunctieKol = DEMO;
 async function laadMedewerkers(){
   if(medewerkers) return medewerkers;
   if(DEMO) return (medewerkers = [['Robert','van der','Veen'],['Anouk','de','Vries'],['Kelly','','Groen'],['Glenn','','Brons'],['Daphne','van de','Weert'],['Teun','','Kessels'],['Wilma','','Balm'],['Bianca','van den','Berg'],['Guillonard','','Leer'],['Steven','van','Dijk'],['Anouk','van','Riel'],['Noah','','Westerweel']].map(([v, t, a], i) => ({id: String(488760 + i), oe: i === 0 ? 'Manager Digitale Zorg en ICT' : i === 11 ? 'Medewerkers SIC' : ['Artsen DC Klinieken Almere','Doktersassistenten DC Klinieken Amsterdam','Medewerkers DC Klinieken Breda','Radiodiagnostisch laborant DC Klinieken Utrecht','Balie DC Klinieken Hanzeplein'][i % 5], naam: `${a}, ${[v, t].filter(Boolean).join(' ')}`, vol: [v, t, a].filter(Boolean).join(' ')})).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
@@ -2384,7 +2399,7 @@ async function laadMedewerkers(){
     if(!k.uitK || !r[k.uitK]) return true; const d = datum(r[k.uitK]); return !d || +d >= +vandaag; };
   // vestiging van de medewerker (zodra de beheerder dat veld aan de connector toevoegt): voorstel voor Locatie bij een nieuwe melding
   const locK = Object.keys(rijen[0] || {}).find(c => /^(locatie|standplaats|werklocatie|werkplek|vestiging)/i.test(c.replace(/_/g, ' ')));
-  const funK = Object.keys(rijen[0] || {}).find(c => /^functie/i.test(c));
+  const funK = Object.keys(rijen[0] || {}).find(c => /^functie/i.test(c.replace(/_/g, ' ')) && !/code|id$/i.test(c)) || Object.keys(rijen[0] || {}).find(c => /functie/i.test(c)); heeftFunctieKol = !!funK;
   const uniek = new Map(); rijen.filter(inDienst).forEach(r => { const id = t(r[k.idK]), n = naamVan(r); if(id && n.label && !uniek.has(id)) uniek.set(id, {id, naam: n.label, vol: n.vol, oe: k.oeK ? t(r[k.oeK]) : '', loc: locK ? t(r[locK]) : '', functie: funK ? t(r[funK]) : ''}); });
   return (medewerkers = [...uniek.values()].sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
 }
@@ -2424,7 +2439,13 @@ const locTekst = m => { const opties = [...(($('#n-form') && $('#n-form').loc) |
 async function zoekMedewerker(naam){
   const lijst = await laadMedewerkers(), n = norm(naam);
   const l = lijst.filter(m => norm(m.vol) === n || norm(m.naam) === n || m.id === String(naam).trim());
-  return l.length === 1 ? l[0] : null;
+  if(l.length === 1) return l[0];
+  if(l.length > 1) return null;
+  // ruimer: zonder accenten (ğ, ş, é…) en ongeacht volgorde/komma ("Dağaşan, Samet" = "Samet Dagasan")
+  const sl = v => String(v ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ı/g, 'i').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean).sort().join(' ');
+  const z = sl(naam); if(!z) return null;
+  const l2 = lijst.filter(m => sl(m.vol) === z || sl(m.naam) === z);
+  return l2.length === 1 ? l2[0] : null;
 }
 // Locatie voorstellen op basis van de melder; alleen als de registreerder zelf nog niets koos
 function stelLocatieVoor(m){
@@ -2839,15 +2860,18 @@ document.addEventListener('keydown', e => {
   if($('#nieuw').open){ e.preventDefault(); const k = $('#n-maak'); if(k && !k.disabled) k.click(); return; }
   if($('#detail').open){ e.preventDefault(); const k = $('#k-opslaan'); if(k && !k.disabled) k.click(); }
 });
-document.addEventListener('mouseover', e => {
-  const c = e.target.closest('[data-uitleg]'), t = $('#uitleg');
-  if(!c){ t.className = ''; return; }
-  t.textContent = c.dataset.uitleg; t.className = 'zichtbaar';
+function toonUitleg(c){
+  const t = $('#uitleg'); if(!c){ t.className = ''; return; }
+  const host = c.closest('dialog[open]') || document.body; if(t.parentNode !== host) host.appendChild(t);   // in een dialoog: anders valt de uitleg erachter
+  t.textContent = c.dataset.uitleg; t.className = 'zichtbaar'; uitlegBij = c;
   const r = c.getBoundingClientRect(), w = t.offsetWidth, h = t.offsetHeight;
   let x = Math.min(innerWidth - w - 12, Math.max(12, r.left + r.width / 2 - w / 2)), y = r.bottom + 8;
   if(y + h > innerHeight - 12) y = r.top - h - 8;
   t.style.left = x + 'px'; t.style.top = y + 'px';
-});
+}
+let uitlegBij = null;
+document.addEventListener('mouseover', e => toonUitleg(e.target.closest('[data-uitleg]')));
+document.addEventListener('click', e => { const c = e.target.closest('.melderinfo'); if(c) toonUitleg(c); });
 document.addEventListener('change', e => {
   const kc = e.target.closest('#kolkeuze [data-kol]'); if(kc){ kc.checked ? verborgenKol.delete(kc.dataset.kol) : verborgenKol.add(kc.dataset.kol); opslag.set('mict-kolommen-uit', [...verborgenKol]); teken(); return; }
 
@@ -3110,6 +3134,7 @@ async function todoVanTicket(nr){
   TD.data.taken.push({id: tdId(), titel: ok.titel, lijst, klaar: false, ticket: String(x.nr), notitie: ok.notitie || undefined, deadline: ok.deadline || undefined, gemaakt: new Date().toISOString()});
   tdBewaar(); toast(`To-do toegevoegd bij ticket ${x.nr}`);
 }
+document.addEventListener('click', e => { if(e.target.closest('#d-afas') && huidig) openInAfas(huidig.x); });
 document.addEventListener('click', e => { const b = e.target.closest('[data-todovan]'); if(b) todoVanTicket(b.dataset.todovan);
   const tl = e.target.closest('[data-tdticket]'); if(tl){ e.stopPropagation(); const x = items.find(y => String(y.nr) === tl.dataset.tdticket); if(x){ navLijst = []; openDetail(x.nr); } else toast('Ticket ' + tl.dataset.tdticket + ' staat (nog) niet in de lijst.', true); } }, true);
 // een to-do omzetten naar een melding: het venster Nieuwe melding, vooraf ingevuld; na aanmaken wordt de to-do afgevinkt met het ticketnummer
