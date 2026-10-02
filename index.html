@@ -91,6 +91,62 @@ dialog.smal{width:min(560px, calc(100vw - 32px))}
 .klok{font-size:13px;color:var(--grijs);white-space:nowrap}
 main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;min-width:0}
 
+.rail .r .tel{position:absolute;top:3px;right:2px;font-size:10px;font-weight:700;background:var(--blauw-2);color:#fff;border-radius:999px;padding:0 5px;line-height:15px;box-shadow:0 0 0 2px var(--vlak)}
+.rail .r .tel:empty{display:none}
+.rail .r[aria-pressed="true"]{background:var(--rail-act);color:var(--rail-act-ink)}
+#v-todo{display:flex;flex-direction:column;gap:12px}
+#v-todo[hidden]{display:none}
+.todo-kop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.todo-lijsten{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tdlijst{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--lijn);background:var(--vlak);color:var(--inkt);border-radius:0 999px 999px 0;padding:5px 14px 5px 10px;font-size:13px;cursor:pointer}
+.tdlijst svg{width:14px;height:14px;color:#F5B400}
+.tdlijst b{font-size:11.5px;background:var(--lichtblauw-2);color:var(--blauw);border-radius:999px;padding:0 7px}
+.tdlijst[aria-pressed="true"]{background:var(--blauw);border-color:var(--blauw);color:#fff}
+.tdlijst[aria-pressed="true"] b{background:rgba(255,255,255,.25);color:#fff}
+.lijstnieuw{border:1.5px dashed var(--lijn);border-radius:0 999px 999px 0;padding:4px 14px 4px 10px;font-size:13px;color:var(--grijs)}
+.lijstnieuw input{border:0;outline:0;background:transparent;width:130px;font-size:13px;color:var(--inkt)}
+.todo-bestand{margin-left:auto;font-size:12.5px;color:var(--grijs);white-space:nowrap}
+.todo-bestand button{border:0;background:none;color:var(--blauw-2);font-size:12.5px;text-decoration:underline;padding:0 0 0 8px;cursor:pointer}
+.todo-paneel{padding:4px 0 10px}
+.todo-nieuw{display:flex;align-items:center;gap:12px;padding:12px 22px;border-bottom:2px solid var(--lichtblauw)}
+.todo-nieuw span{font-size:24px;line-height:1;color:var(--blauw-2);width:24px;text-align:center}
+.todo-nieuw input{flex:1;border:0;outline:0;background:transparent;font-size:15px;color:var(--inkt)}
+.taak{display:grid;grid-template-columns:28px 1fr auto auto;gap:12px;align-items:center;padding:10px 22px;border-bottom:1px solid var(--lijn)}
+.taak:hover{background:var(--achtergrond)}
+.vink{width:22px;height:22px;border-radius:50%;border:2px solid var(--grijs);background:transparent;display:grid;place-items:center;padding:0;cursor:pointer}
+.vink:hover{border-color:var(--blauw-2)}
+.vink svg{width:14px;height:14px;opacity:0;color:var(--blauw-2)}
+.vink:hover svg{opacity:.5}
+.taak.klaar .vink{background:var(--blauw-2);border-color:var(--blauw-2)}
+.taak.klaar .vink svg{opacity:1;color:#fff}
+.taak .titel{font-size:14.5px;cursor:pointer;min-width:0}
+.taak .titel small{display:block;font-size:12px;color:var(--grijs);margin-top:2px}
+.taak .titel small .laat{color:var(--rood);font-weight:600}
+.taak.klaar .titel{text-decoration:line-through;color:var(--grijs)}
+.taak .ster{border:0;background:none;padding:2px;cursor:pointer;color:var(--grijs)}
+.taak .ster svg{width:17px;height:17px}
+.taak .ster[aria-pressed="true"]{color:#F5B400} .taak .ster[aria-pressed="true"] svg{fill:#F5B400}
+.taak .naarafas{border:0;background:var(--lichtblauw-2);color:var(--blauw);border-radius:0 999px 999px 0;font-size:12px;font-weight:600;padding:3px 12px 3px 9px;opacity:0;transition:opacity .15s;cursor:pointer}
+.taak:hover .naarafas,.taak.open .naarafas{opacity:1}
+.taak .gekoppeld{font-size:12px;color:var(--groen);font-weight:600}
+.taakdetail{grid-column:1/-1;display:grid;grid-template-columns:1fr 180px 200px;gap:10px 14px;padding:6px 0 4px 40px}
+.taakdetail textarea,.taakdetail input,.taakdetail select{border:1.5px solid var(--lijn);border-radius:6px;padding:7px 10px;background:var(--vlak);color:var(--inkt);font:inherit;font-size:13.5px}
+.taakdetail textarea{grid-row:span 2;resize:vertical;min-height:70px}
+.taakdetail .acties{grid-column:1/-1;display:flex;gap:10px;align-items:center}
+.taakdetail .acties .weg{margin-left:auto;color:var(--rood)}
+#todo-klaar{padding:10px 22px 0}
+#todo-klaar summary{font-size:13.5px;color:var(--grijs);font-weight:600;cursor:pointer}
+#todo-klaar summary b{background:var(--achtergrond);border-radius:999px;padding:0 8px;margin-left:4px;font-size:12px}
+#todo-klaar-lijst .taak{padding-left:0;padding-right:0}
+.todo-leeg{padding:28px 22px;color:var(--grijs);text-align:center}
+.todo-verbind{background:var(--vlak);border-radius:0 30px 30px 0;padding:28px 32px;display:flex;flex-direction:column;gap:14px;max-width:780px;box-shadow:var(--schaduw)}
+.todo-verbind h2{font-size:20px;color:var(--blauw)}
+.todo-verbind p,.todo-verbind li{color:var(--grijs);line-height:1.55;font-size:14px}
+.todo-verbind b{color:var(--inkt)}
+.todo-verbind .uitleg{background:var(--achtergrond);border-radius:0 18px 18px 0;padding:14px 18px;display:flex;flex-direction:column;gap:8px}
+.todo-verbind .uitleg h3{font-size:13px;color:var(--blauw)}
+.todo-verbind ul,.todo-verbind ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.todo-verbind .knoppen{display:flex;gap:10px;flex-wrap:wrap}
 .tegels{display:flex;flex-wrap:wrap;gap:10px}
 .tegels:empty{display:none}
 .voorblad{padding:28px 8px 40px;max-width:1100px}
@@ -256,6 +312,13 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .it[aria-pressed="true"] ~ .favknop,.afdrij:has(.it[aria-pressed="true"]) .favknop.aan{color:#FFD02E}
 .favknop:hover{color:var(--goud)}
 .afdrij .it{padding-left:32px}
+.wisselkop{display:flex;align-items:center;gap:6px;width:calc(100% - 4px);margin:16px 0 6px;padding:7px 12px;border-radius:0 999px 999px 0;font:inherit;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-align:left;cursor:pointer;background:transparent;color:var(--grijs);border:1.5px dashed var(--lijn);transition:background .15s,border-color .15s}
+.wisselkop:hover{border-color:var(--blauw-2);color:var(--blauw)}
+.wisselkop svg{width:13px;height:13px;flex:none}
+.wisselkop .aan{color:var(--blauw);font-weight:800}
+.wisselkop .uit{color:var(--grijs);opacity:.6;font-weight:500;text-decoration:line-through}
+.wisselkop .rest{margin-left:2px}
+.wisselkop.ons{background:var(--lichtblauw-2);border:1.5px solid var(--lichtblauw);color:var(--blauw)}
 .nav h4 button{all:unset;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%}
 .nav h4 button svg{width:12px;height:12px;transition:transform .2s}
 .nav h4 button[aria-expanded="false"] svg{transform:rotate(-90deg)}
@@ -444,7 +507,7 @@ dialog#detail.groot .toelblok .lang{max-height:40vh}
 .actie-extra input.metpijl{padding-right:34px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7A99' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:14px}
 .composer .onder{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .composer .onder .knop{margin-left:auto}
-.vink.notitie{background:var(--goud-licht);border-radius:0 999px 999px 0;padding:4px 12px 4px 8px;color:var(--bruin)}
+.vink.notitie{white-space:nowrap;flex:none;background:var(--goud-licht);border-radius:0 999px 999px 0;padding:4px 12px 4px 8px;color:var(--bruin)}
 textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
 /* bijlagen */
 .bijlbalk{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;padding:5px 14px;border-radius:0 999px 999px 0;background:var(--achtergrond);border:1.5px dashed transparent;font-size:12.5px;min-height:34px;transition:border-color .15s,background .15s}
@@ -505,6 +568,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
   <nav class="rail" aria-label="Onderdelen">
     <svg class="logo" viewBox="0 0 36 36" aria-hidden="true"><path class="d1" d="M3 6h8a10 10 0 0 1 0 20H3z"/><path class="d2" d="M13 10h8a10 10 0 0 1 0 20h-8z"/></svg>
     <button type="button" class="r plus" id="nieuw-knop" title="Nieuwe melding" aria-label="Nieuwe melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button type="button" class="r" id="todo-knop" data-weergave="todo" title="To-do en notities" aria-label="To-do en notities"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span class="tel" id="todo-aantal"></span></button>
     <div class="rail-onder">
       <button type="button" class="r" id="k-ververs" title="Verversen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
       <button type="button" class="r" id="k-thema" title="Licht of donker"><span class="ico-maan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></span><span class="ico-zon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M5 19l1.4-1.4M17.6 6.4L19 5"/></svg></span></button>
@@ -531,6 +595,16 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
           <label class="schuif" id="f-mijn" hidden><input type="checkbox"><i></i><span>Alleen mijn tickets</span></label>
         </div>
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
+      </section>
+      <section id="v-todo" hidden>
+        <div class="todo-kop"><div id="todo-lijsten" class="todo-lijsten" role="group" aria-label="Lijsten"></div><span class="todo-bestand" id="todo-bestand"></span></div>
+        <div class="todo-verbind" id="todo-verbind" hidden></div>
+        <div class="blok todo-paneel" id="todo-paneel" hidden>
+          <label class="todo-nieuw"><span aria-hidden="true">+</span><input id="todo-invoer" placeholder="Taak of notitie toevoegen, Enter om op te slaan" spellcheck="true" autocomplete="off"></label>
+          <div id="todo-open"></div>
+          <details id="todo-klaar"><summary>Voltooid <b></b></summary><div id="todo-klaar-lijst"></div></details>
+        </div>
+        <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
     <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.63 · 02-10-2026</span></div>
@@ -1121,8 +1195,8 @@ const VAST = [
   {id:'norm', t:'Aandacht nodig', ico:'<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>', f:() => open().filter(actie), rood:true},
   {id:'nieuw', t:'Nieuwe tickets', ico:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>', f:() => open().filter(isNieuw), stuiter:true}   // in- en uitdienst heeft een eigen overzicht
 ];
+const ALLE = {id:'alle', t:'Alle open tickets', ico:'<path d="M4 6h16M4 12h16M4 18h10"/>', f:() => open()};
 const ONDER = [
-  {id:'alle', t:'Alle open tickets', ico:'<path d="M4 6h16M4 12h16M4 18h10"/>', f:() => open()},
   {id:'inuit', t:'In- en uitdienst', ico:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>', f:() => open().filter(x => x.inuit)},
   {id:'dichtalle', t:'Alle gesloten tickets', ico:'<path d="M3 7h18M5 7v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7M9 11h6"/><path d="M4 4h16v3H4z"/>', f:() => items.filter(x => x.afgesloten), geenTel:true}
 ];
@@ -1134,7 +1208,7 @@ const afdelingen = () => { const basis = (INST.afdelingen || []).filter(a => nav
   return [...t.entries()].sort((a, b) => volg(a[0]) - volg(b[0]) || a[0].localeCompare(b[0], 'nl')); };
 function weergave(id){
   const kp = KPI.find(k => k.id === id); if(kp) return {titel: kp.t, lijst: kp.f()};
-  const v = [...VAST, ...ONDER].find(v => v.id === id); if(v) return {titel:v.t, lijst:v.f ? v.f() : []};
+  const v = [...VAST, ALLE, ...ONDER].find(v => v.id === id); if(v) return {titel:v.t, lijst:v.f ? v.f() : []};
   if(id.startsWith('afd:')){ const a = id.slice(4); return {titel:a, lijst:open().filter(x => !x.inuit && norm(navAfd(x.afdeling)) === norm(a))}; }
   return {titel:'Tickets', lijst:[]};
 }
@@ -1188,11 +1262,17 @@ function tekenNav(){
   const rijA = ([a, n]) => `<div class="afdrij"><button type="button" class="favknop ${isFav(a) ? 'aan' : ''}" data-fav="${esc(a)}" title="${isFav(a) ? 'Uit favorieten halen' : 'Als favoriet bovenaan zetten'}">★</button>${it('afd:' + a, a, zichtbaar('afd:' + a, weergave('afd:' + a).lijst).length)}</div>`;
   const favL = afd.filter(([a]) => isFav(a)), rest = afd.filter(([a]) => !isFav(a));
   const restOpen = overigeOpen;
-  $('#nav').innerHTML = `<h4>Mijn werk</h4>${VAST.map(v => it(v.id, v.t, v.f ? zichtbaar(v.id, v.f()).length : null, v)).join('')}
-    <h4>Mijn afdelingen</h4>${favL.map(rijA).join('') || '<p class="favhint"><b style="color:var(--inkt);font-weight:500">Geen afdeling geselecteerd</b><br>Zet een ★ bij een afdeling om hem hier te tonen.</p>'}
+  // kop = schakelaar: "Mijn ⇄ Ons werk"; het actieve woord vet, het andere licht doorgestreept
+  const kop = (soort, aan, a, b, rest, uitleg) => `<button type="button" class="wisselkop${aan ? ' ons' : ''}" data-wissel="${soort}" aria-pressed="${aan}" title="${esc(uitleg)}"><span class="${aan ? 'uit' : 'aan'}">${a}</span>${ico('<path d="M7 7h11l-3-3M17 17H6l3 3"/>')}<span class="${aan ? 'aan' : 'uit'}">${b}</span><span class="rest">${rest}</span></button>`;
+  const vast = VAST.filter(v => !v.f), werk = [werkOns ? ALLE : VAST.find(v => v.id === 'toegewezen'), ...VAST.filter(v => v.f && v.id !== 'toegewezen')];
+  $('#nav').innerHTML = `${vast.map(v => it(v.id, v.t, null, v)).join('')}
+    ${kop('werk', werkOns, 'Mijn', 'Ons', 'werk', werkOns ? 'Je ziet het werk van het hele team. Klik om alleen jouw tickets te zien.' : 'Je ziet alleen jouw tickets. Klik om het werk van het hele team te zien.')}
+    ${werk.map(v => it(v.id, v.t, zichtbaar(v.id, v.f()).length, v)).join('')}
+    ${kop('afd', afdOns, 'Mijn', 'Onze', 'afdelingen', afdOns ? 'Je ziet alles in deze afdelingen. Klik om alleen jouw tickets erin te zien.' : 'Je ziet alleen jouw tickets in deze afdelingen. Klik om alles erin te zien.')}
+    ${favL.map(rijA).join('') || '<p class="favhint"><b style="color:var(--inkt);font-weight:500">Geen afdeling geselecteerd</b><br>Zet een ★ bij een afdeling om hem hier te tonen.</p>'}
     <h4><button type="button" id="k-overige" aria-expanded="${restOpen}">${ico('<path d="M6 9l6 6 6-6"/>')}Overige afdelingen (${rest.length})</button></h4>
     ${restOpen ? rest.map(rijA).join('') : ''}
-    <h4>Overzicht</h4>${ONDER.map(v => it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}`;
+    <h4>Overig</h4>${ONDER.map(v => it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}`;
 }
 
 /* ================= Overzicht: rustig voorblad met persoonlijke cijfers (zoals in Mijn changes) ================= */
@@ -1216,6 +1296,7 @@ function tekenMij(){
   const groet = u < 6 ? 'Goedenacht' : u < 12 ? 'Goedemorgen' : u < 18 ? 'Goedemiddag' : 'Goedenavond';
   const dag = nu.toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'});
   const waarden = KPI.map(k => ({...k, n: k.f().length}));
+  if(TD.status === 'ok') waarden.push({id:'todo', t:'To-do open', n: TD.data.taken.filter(t => !t.klaar).length});
   const actieN = waarden[0].n;
   const zin = actieN ? `${actieN} ticket${actieN === 1 ? ' vraagt' : 's vragen'} nu je aandacht.` : 'Alles op jouw naam zit binnen de normen.';
   // eerst oppakken: de drie belangrijkste tickets op jouw naam
@@ -1255,25 +1336,22 @@ function tekenMijOud(){
   $('#subtitel').textContent = `${mijnActie.length ? mijnActie.length + ' ticket' + (mijnActie.length === 1 ? '' : 's') + ' vraagt actie' : 'Alles binnen de normen'}`;
 }
 const filt = {zoek:''};
-// schuifje 'Alleen mijn tickets': per afdeling (standaard uit) en bij Aandacht nodig (standaard aan); onthouden per weergave
-/* één filter rechtsboven voor alle lijsten: Mij (jouw tickets), Afdelingen (ook alles in je ★-afdelingen) of Alles */
-let mijAllesStand = opslag.get('mict-filter3') || 'mij';
+/* Mijn ⇄ Ons: de kop van een menublok is de schakelaar.
+   Mijn werk = jouw tickets, Ons werk = alles van het team. Mijn afdelingen = jouw tickets in je afdelingen, Onze afdelingen = alles daarin. */
+let werkOns = !!opslag.get('mict-werk-ons'), afdOns = !!opslag.get('mict-afd-ons');
 const ZONDER_FILTER = new Set(['toegewezen', 'historie']);   // Mijn tickets is altijd van jou; Historie is persoonlijk
-const schuifAan = t => !ZONDER_FILTER.has(t) && !t.startsWith('k:') && mijAllesStand !== 'alles';
-// wat telt als 'Mij': alleen jouw tickets; bij nieuwe tickets ook wat nieuw binnenkomt in je ★-afdelingen
-const vanMij = (t, x) => isMijn(x) || (t === 'nieuw' && inGebied(x));
+const onsVoor = t => t.startsWith('afd:') ? afdOns : werkOns;
+const schuifAan = t => !ZONDER_FILTER.has(t) && !t.startsWith('k:') && !onsVoor(t);
+const vanMij = (t, x) => isMijn(x);
 const soortKeuze = opslag.get('mict-soort') || {};   // per afdeling: alle | meldingen | changes
 const soortVan = t => t.startsWith('afd:') ? (soortKeuze[t] || 'alle') : 'alle';
 function zichtbaar(t, l){
-  if(!ZONDER_FILTER.has(t) && !t.startsWith('k:')){   // de cijfers van het voorblad zijn altijd persoonlijk
-    if(mijAllesStand === 'mij') l = l.filter(x => vanMij(t, x));
-    else if(mijAllesStand === 'afd' && !t.startsWith('afd:')) l = l.filter(x => isMijn(x) || inGebied(x));   // in een afdeling zelf: alles van die afdeling
-  }
+  if(schuifAan(t)) l = l.filter(x => vanMij(t, x));   // de cijfers van het voorblad en je persoonlijke lijsten zijn altijd van jou
   const sk = soortVan(t); if(sk === 'changes') l = l.filter(isChange); if(sk === 'meldingen') l = l.filter(x => !isChange(x));
   return l;
 }
 // alleen eigen tickets in beeld: dan is de kolom Behandelaar overbodig (dat ben je zelf)
-const alleenEigen = t => t === 'toegewezen' || t.startsWith('k:') || (mijAllesStand === 'mij' && t !== 'nieuw' && !ZONDER_FILTER.has(t));
+const alleenEigen = t => t === 'toegewezen' || t.startsWith('k:') || schuifAan(t);
 function tekenLijst(){
   if(tab === 'historie') return tekenHistorie();
   const v = weergave(tab), w = norm(filt.zoek);
@@ -1314,14 +1392,14 @@ const naAchtergrond = () => { setTimeout(async () => { await laadGegevens(); if(
 function teken(){
   if(!profiel) return;
   pasLokaalToe();
-  document.querySelectorAll('#mijalles-top button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === mijAllesStand));
-  $('#mijalles-top').style.visibility = tab === 'mij' || tab === 'historie' || tab === 'toegewezen' || tab.startsWith('k:') ? 'hidden' : '';   // geldt niet voor je persoonlijke pagina's
+  $('#mijalles-top').hidden = true;   // vervangen door de schakelbare koppen in het menu
   if(takenKlaar && items.length && !opslag.get(bekendSleutel())) opslag.set(bekendSleutel(), items.filter(isMijn).map(x => String(x.nr)));   // eerste keer (na het laden van je taken): wat er nu staat is al bekend
   items.forEach(x => x._sg = signalen(x));
   $('#ik span').textContent = profiel.naam; $('#ik i').textContent = profiel.naam.split(' ').map(w => w[0]).filter(c => c && c === c.toUpperCase()).slice(0, 2).join('');
   tekenNav();
-  $('#v-mij').hidden = tab !== 'mij'; $('#v-lijst').hidden = tab === 'mij';
-  if(tab === 'mij'){ $('#titel').textContent = 'Overzicht'; tekenMij(); } else tekenLijst();
+  $('#v-mij').hidden = tab !== 'mij'; $('#v-lijst').hidden = tab === 'mij' || tab === 'todo'; $('#v-todo').hidden = tab !== 'todo';
+  $('#todo-knop').setAttribute('aria-pressed', tab === 'todo');
+  if(tab === 'mij'){ $('#titel').textContent = 'Overzicht'; tekenMij(); } else if(tab === 'todo') tdTeken(); else tekenLijst();
   pasTabelBreedtes();
 }
 
@@ -2027,6 +2105,7 @@ async function nieuweMelding(){
   koppelMelder(); koppelBehandelaar();
 }
 async function maakMelding(){
+  const vanTodo = todoBron;   // het venster sluit (en wist todoBron) voordat AFAS het ticketnummer teruggeeft
   const f = $('#n-form'), m = nieuwMeta, fout = $('#n-fout'), ond = f.ond.value.trim();
   if(!ond){ fout.textContent = 'Vul een onderwerp in.'; f.ond.focus(); return; }
   const w = {StId: isNaN(+m.stId) ? m.stId : +m.stId, Ds: ond};
@@ -2062,6 +2141,7 @@ async function maakMelding(){
     let nr = '';
     if(sbid && !DEMO){ try{ const m = await sbIdsVoor('Dossieritem', [sbid]); nr = [...m.entries()].find(([, v]) => String(v) === String(sbid))?.[0] || ''; }catch(e){} }
     const x = DEMO ? items.find(y => norm(y.onderwerp) === norm(ond)) : items.find(y => String(y.nr) === String(nr) || String(y.sbid) === String(sbid));
+    if(vanTodo) todoGekoppeld((x && x.nr) || nr || sbid, vanTodo);
     if(x) logHistorie(x, 'ticket aangemaakt'); else logHistorie({nr: nr || '', onderwerp: ond}, 'ticket aangemaakt');
     if(x){ const doel = document.querySelector(`#nav [data-weergave="${x.emmer === 'nieuw' ? 'nieuw' : 'alle'}"]`);
       if(doel) vlieg({nr: x.nr, ond, rect: knop}, doel, x.emmer === 'nieuw' ? 'Nieuwe tickets' : 'Alle open tickets');
@@ -2487,7 +2567,11 @@ function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken
 /* ================= bediening ================= */
 document.addEventListener('click', e => {
   if(!e.target.closest('#kolkeuze') && !e.target.closest('[data-kolkeuze]')) $('#kolkeuze').hidden = true;
-  const ma = e.target.closest('#mijalles-top button'); if(ma){ mijAllesStand = ma.dataset.v; opslag.set('mict-filter3', mijAllesStand); teken(); return; }
+  const wk = e.target.closest('[data-wissel]'); if(wk){
+    if(wk.dataset.wissel === 'werk'){ werkOns = !werkOns; opslag.set('mict-werk-ons', werkOns);
+      if(werkOns && tab === 'toegewezen') tab = 'alle'; else if(!werkOns && tab === 'alle') tab = 'toegewezen'; }
+    else { afdOns = !afdOns; opslag.set('mict-afd-ons', afdOns); }
+    teken(); return; }
   const fv = e.target.closest('[data-fav]'); if(fv){ wisselFavoriet(fv.dataset.fav); return; }
   if(e.target.closest('#k-overige')){ overigeOpen = !overigeOpen; tekenNav(); return; }
   const wf = e.target.closest('[data-wisfilter]'); if(wf){ delete kolFilter[wf.dataset.wisfilter]; teken(); return; }
@@ -2632,6 +2716,185 @@ $('#k-thema').onclick = () => { document.documentElement.dataset.thema = isDonke
 setInterval(() => { $('#klok').textContent = new Date().toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'}) + ' · ' + fmtTijd(new Date()); }, 1000);
 setInterval(async () => { if(!$('#app').hidden && !$('#detail').open){ await laadGegevens(); teken(); controleerIctReacties(); } }, INST.verversMinuten * 60e3);
 
+
+/* ================= To-do en notities: opgeslagen in een eigen bestand (bijv. in je OneDrive), net als in Mijn changes ================= */
+// De pagina krijgt via de browser (File System Access) toegang tot één bestand dat de gebruiker zelf kiest.
+// OneDrive synchroniseert dat bestand; de pagina bewaart alleen de verwijzing ernaar (per browser, in IndexedDB).
+// Hetzelfde bestandsformaat als Mijn changes: je kunt in beide pagina's hetzelfde bestand kiezen.
+const TD = {handle:null, status:'laden', data:null, lijst:'alle', open:null, bewerk:false, gelezenOp:0};
+const TD_LEEG = () => ({versie:1, lijsten:[{id:'mijn', naam:'Mijn taken'}], taken:[]});
+const tdIdb = (() => { let db = null;
+  const open = () => db ? Promise.resolve(db) : new Promise((ok, nee) => { const r = indexedDB.open('mijn-ict', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => ok(db = r.result); r.onerror = () => nee(r.error); });
+  return { get: k => open().then(d => new Promise(ok => { const q = d.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => ok(q.result); q.onerror = () => ok(null); })),
+           set: (k, v) => open().then(d => new Promise(ok => { const t = d.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = () => ok(); })) }; })();
+const tdSleutel = () => 'todoBestand-' + (sub || 'demo');
+const tdId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const tdIso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+async function tdStart(){
+  if(DEMO){ TD.data = opslag.get('mict-demo-todo') || {...TD_LEEG(), taken:[{id:'a1', titel:'Licentie scansoftware verlengen, offerte opvragen', lijst:'mijn', belangrijk:true, klaar:false, deadline: tdIso(new Date(Date.now() + 2 * DAG)), gemaakt:new Date().toISOString()}, {id:'a2', titel:'Bellen met leverancier faxkoppeling', lijst:'mijn', klaar:false, notitie:'Contactpersoon: Peter, 06-…', gemaakt:new Date().toISOString()}]};
+    TD.handle = {name:'Mijn to-do.json (demo)'}; TD.status = 'ok'; return tdTeken(); }
+  if(!('showOpenFilePicker' in window)){ TD.status = 'niet'; return tdTeken(); }
+  try{ TD.handle = await tdIdb.get(tdSleutel()); }catch(e){}
+  if(!TD.handle){ TD.status = 'geen'; return tdTeken(); }
+  const p = await TD.handle.queryPermission({mode:'readwrite'});
+  if(p === 'granted') await tdLees(); else { TD.status = 'toestemming'; tdTeken(); }
+}
+async function tdLees(){
+  try{ const f = await TD.handle.getFile(), t = await f.text();
+    TD.data = t.trim() ? JSON.parse(t) : TD_LEEG(); TD.data.lijsten = TD.data.lijsten || TD_LEEG().lijsten; TD.data.taken = TD.data.taken || [];
+    TD.gelezenOp = f.lastModified; TD.status = 'ok'; }
+  catch(e){ TD.status = 'fout'; TD.fout = e.message; }
+  tdTeken();
+}
+let tdTimer = 0;
+function tdBewaar(){
+  tdTeken(); clearTimeout(tdTimer);
+  tdTimer = setTimeout(async () => {
+    if(DEMO){ opslag.set('mict-demo-todo', TD.data); return; }
+    try{ const w = await TD.handle.createWritable(); await w.write(JSON.stringify(TD.data, null, 2)); await w.close(); TD.gelezenOp = (await TD.handle.getFile()).lastModified; }
+    catch(e){ toast('To-do opslaan lukte niet: ' + e.message, true); }
+  }, 300);
+}
+// wijzigingen van een andere pc (via OneDrive) oppikken als je terugkomt in het venster
+document.addEventListener('visibilitychange', async () => {
+  if(document.hidden || TD.status !== 'ok' || TD.bewerk || DEMO) return;
+  try{ const f = await TD.handle.getFile(); if(f.lastModified > TD.gelezenOp + 1000) await tdLees(); }catch(e){}
+});
+async function tdKies(nieuw){
+  try{ const opties = {types:[{description:'To-do-bestand', accept:{'application/json':['.json']}}], startIn:'documents'};
+    TD.handle = nieuw ? await window.showSaveFilePicker({...opties, suggestedName:'Mijn to-do.json'}) : (await window.showOpenFilePicker(opties))[0];
+    if(await TD.handle.requestPermission({mode:'readwrite'}) !== 'granted') return;
+    try{ await tdIdb.set(tdSleutel(), TD.handle); }catch(e){}
+    if(nieuw){ TD.data = TD_LEEG(); TD.status = 'ok'; tdBewaar(); toast('To-do-bestand gemaakt: ' + TD.handle.name); } else { await tdLees(); toast('To-do-bestand gekoppeld: ' + TD.handle.name); }
+  }catch(e){ if(e.name !== 'AbortError') toast(e.message, true); }
+}
+const tdLijstNaam = id => ((TD.data.lijsten || []).find(l => l.id === id) || {}).naam || '';
+const tdSorteer = (a, b) => (b.belangrijk ? 1 : 0) - (a.belangrijk ? 1 : 0) || (a.deadline || '9999').localeCompare(b.deadline || '9999') || (b.gemaakt || '').localeCompare(a.gemaakt || '');
+const TD_VINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const TD_STER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>';
+function tdRij(t){
+  const vandaag = tdIso(new Date()), laat = t.deadline && !t.klaar && t.deadline < vandaag;
+  const sub = [TD.lijst === 'alle' && esc(tdLijstNaam(t.lijst)), t.deadline && `<span class="${laat ? 'laat' : ''}">${laat ? 'te laat · ' : ''}${fmtDatum(new Date(t.deadline + 'T00:00:00'))}</span>`, t.notitie && 'notitie', t.melding && `ticket ${esc(t.melding)}`].filter(Boolean);
+  const detail = TD.open === t.id ? `<div class="taakdetail">
+      <textarea data-veld="notitie" placeholder="Notitie">${esc(t.notitie || '')}</textarea>
+      <input type="date" data-veld="deadline" value="${esc(t.deadline || '')}" title="Deadline">
+      <select data-veld="lijst">${TD.data.lijsten.map(l => `<option value="${esc(l.id)}" ${l.id === t.lijst ? 'selected' : ''}>${esc(l.naam)}</option>`).join('')}</select>
+      <input data-veld="titel" value="${esc(t.titel)}" title="Titel">
+      <div class="acties">${!t.klaar && !t.melding ? '<button type="button" class="knop klein" data-tdactie="naarafas">Omzetten naar melding in AFAS</button>' : ''}${t.melding ? `<button type="button" class="knop klein" data-tdactie="ticket">Ticket ${esc(t.melding)} openen</button>` : ''}<button type="button" class="linkknop weg" data-tdactie="weg">Verwijderen</button></div></div>` : '';
+  return `<div class="taak ${t.klaar ? 'klaar' : ''} ${TD.open === t.id ? 'open' : ''}" data-taak="${esc(t.id)}">
+    <button type="button" class="vink" data-tdactie="vink" aria-label="${t.klaar ? 'Weer openzetten' : 'Afvinken'}">${TD_VINK}</button>
+    <span class="titel" data-tdactie="open">${esc(t.titel)}${sub.length ? `<small>${sub.join(' · ')}</small>` : ''}</span>
+    ${t.melding ? '<span class="gekoppeld">✓ in AFAS</span>' : t.klaar ? '<span></span>' : '<button type="button" class="naarafas" data-tdactie="naarafas" title="Maak er een melding in AFAS van">→ AFAS</button>'}
+    <button type="button" class="ster" data-tdactie="belangrijk" aria-pressed="${!!t.belangrijk}" title="${t.belangrijk ? 'Niet meer belangrijk' : 'Markeer als belangrijk'}">${TD_STER}</button>
+    ${detail}</div>`;
+}
+function tdTeken(){
+  const aantal = TD.status === 'ok' ? TD.data.taken.filter(t => !t.klaar).length : 0;
+  $('#todo-aantal').textContent = aantal || '';
+  if(tab !== 'todo') return;
+  const v = $('#todo-verbind'), paneel = $('#todo-paneel'), bestand = $('#todo-bestand');
+  $('#titel').textContent = 'To-do'; $('#subtitel').textContent = '';
+  if(TD.status !== 'ok'){
+    paneel.hidden = true; v.hidden = false; $('#todo-lijsten').innerHTML = ''; bestand.textContent = '';
+    const waarom = `<div class="uitleg"><h3>Waarom een bestand?</h3>
+      <p>Je to-do's en notities zijn alleen van jou. Ze staan daarom niet in AFAS en niet op een server, maar in één bestand in <b>jouw eigen OneDrive</b>. OneDrive bewaart en synchroniseert het, dus:</p>
+      <ul><li>je ziet dezelfde to-do's op elke pc waar je met je account bent ingelogd;</li><li>ze gaan niet verloren als je browsergegevens wist of een andere pc krijgt;</li><li>niemand anders kan ze zien.</li></ul>
+      <p>Gebruik je ook het dashboard Mijn changes? Kies dan hetzelfde bestand, dan heb je één to-do-lijst voor beide.</p></div>`;
+    v.innerHTML = TD.status === 'niet' ? '<h2>To-do en notities</h2><p>Deze browser kan geen bestanden bijhouden. Open Mijn ICT-Omgeving in <b>Microsoft Edge</b> of <b>Google Chrome</b>.</p>'
+      : TD.status === 'toestemming' ? `<h2>Even opnieuw toegang geven</h2><p>Je to-do's staan in <b>${esc(TD.handle.name)}</b>. Na het opnieuw openen van de browser vraagt die om veiligheidsredenen weer even toestemming om dat bestand te gebruiken.</p>
+          <ol class="stappen-lijst"><li>Klik op <b>Toegang geven</b>.</li><li>Klik in de melding van de browser op <b>Bewerken toestaan</b> (of <b>Toestaan</b>).</li></ol>
+          <div class="knoppen"><button type="button" class="knop vol" data-td="toegang">Toegang geven</button><button type="button" class="knop" data-td="kies">Ander bestand kiezen</button></div>`
+      : TD.status === 'fout' ? `<h2>To-do en notities</h2><p class="fout">Het to-do-bestand kon niet worden gelezen: ${esc(TD.fout || '')}</p><div class="knoppen"><button type="button" class="knop vol" data-td="kies">Ander bestand kiezen</button></div>`
+      : TD.status === 'laden' ? '<p class="hint">Laden…</p>'
+      : `<h2>To-do en notities koppelen (eenmalig)</h2>
+         <p>Leg hier taken en notities vast die (nog) geen ticket zijn, zoals "leverancier terugbellen" of "offerte opvragen". Met één klik maak je er later een melding in AFAS van.</p>
+         ${waarom}
+         <div class="uitleg"><h3>Zo koppel je het (1 minuut)</h3>
+         <ol class="stappen-lijst">
+           <li>Klik hieronder op <b>Nieuw bestand maken</b>.</li>
+           <li>Er opent een venster om op te slaan. Kies links <b>OneDrive - DC Klinieken</b> en eventueel een map, bijvoorbeeld <i>Documenten</i>.</li>
+           <li>Laat de naam <b>Mijn to-do.json</b> staan en klik op <b>Opslaan</b>.</li>
+           <li>De browser vraagt of de pagina het bestand mag bewerken: klik op <b>Bewerken toestaan</b>.</li>
+         </ol>
+         <p>Heb je al een to-do-bestand (bijvoorbeeld van Mijn changes of van een andere pc)? Kies dan <b>Bestaand bestand kiezen</b> en selecteer dat bestand.</p>
+         <p class="hint">Op een andere pc of browser doe je dit één keer opnieuw met <b>Bestaand bestand kiezen</b>. Na het herstarten van de browser vraagt die soms opnieuw toestemming; dat is één klik.</p></div>
+         <div class="knoppen"><button type="button" class="knop vol" data-td="nieuw">Nieuw bestand maken</button><button type="button" class="knop" data-td="kies">Bestaand bestand kiezen</button></div>`;
+    return;
+  }
+  v.hidden = true; paneel.hidden = false;
+  bestand.innerHTML = `Opgeslagen in ${esc(TD.handle.name)}${DEMO ? '' : '<button type="button" data-td="kies" title="Een ander to-do-bestand kiezen">wijzigen</button>'}<button type="button" id="knop-td-import" title="Taken inlezen uit een Microsoft To Do-export (JSON uit Power Automate)">importeren</button>`;
+  const lnaam = TD.lijst === 'alle' ? 'Alle taken' : TD.lijst === 'belangrijk' ? 'Belangrijk' : tdLijstNaam(TD.lijst);
+  const d = TD.data, inLijst = t => TD.lijst === 'alle' || (TD.lijst === 'belangrijk' ? t.belangrijk : t.lijst === TD.lijst);
+  const tel = f => d.taken.filter(t => !t.klaar && f(t)).length;
+  $('#todo-lijsten').innerHTML = [['alle', 'Alle', tel(() => true)], ['belangrijk', 'Belangrijk', tel(t => t.belangrijk)], ...d.lijsten.map(l => [l.id, l.naam, tel(t => t.lijst === l.id)])]
+    .map(([id, naam, n]) => `<button type="button" class="tdlijst" data-lijst="${esc(id)}" aria-pressed="${TD.lijst === id}">${id === 'belangrijk' ? TD_STER : ''}<span>${esc(naam)}</span>${n ? `<b>${n}</b>` : ''}</button>`).join('') +
+    `<span class="lijstnieuw"><input id="todo-nieuwe-lijst" placeholder="+ Nieuwe lijst"></span>`;
+  const open = d.taken.filter(t => !t.klaar && inLijst(t)).sort(tdSorteer), klaar = d.taken.filter(t => t.klaar && inLijst(t)).sort((a, b) => (b.klaarOp || '').localeCompare(a.klaarOp || ''));
+  $('#todo-open').innerHTML = open.length ? open.map(tdRij).join('') : '<p class="todo-leeg">Niets te doen in deze lijst.</p>';
+  $('#todo-klaar').hidden = !klaar.length; $('#todo-klaar summary b').textContent = klaar.length;
+  $('#todo-klaar-lijst').innerHTML = klaar.slice(0, 200).map(tdRij).join('');
+  $('#titel').textContent = lnaam; $('#subtitel').textContent = `${open.length} open`;
+}
+const tdTaak = id => TD.data.taken.find(t => t.id === id);
+$('#v-todo').addEventListener('click', async e => {
+  const k = e.target.closest('[data-td]');
+  if(k){ if(k.dataset.td === 'toegang'){ if(await TD.handle.requestPermission({mode:'readwrite'}) === 'granted') await tdLees(); } else tdKies(k.dataset.td === 'nieuw'); return; }
+  if(e.target.closest('#knop-td-import')){ $('#td-import-bestand').value = ''; $('#td-import-bestand').click(); return; }
+  const l = e.target.closest('[data-lijst]'); if(l){ TD.lijst = l.dataset.lijst; TD.open = null; tdTeken(); return; }
+  const a = e.target.closest('[data-tdactie]'), rij = e.target.closest('[data-taak]'); if(!a || !rij) return;
+  const t = tdTaak(rij.dataset.taak); if(!t) return;
+  const w = a.dataset.tdactie;
+  if(w === 'vink'){ t.klaar = !t.klaar; t.klaarOp = t.klaar ? new Date().toISOString() : ''; tdBewaar(); }
+  else if(w === 'belangrijk'){ t.belangrijk = !t.belangrijk; tdBewaar(); }
+  else if(w === 'open'){ TD.open = TD.open === t.id ? null : t.id; tdTeken(); }
+  else if(w === 'weg'){ if(!(await vraag('To-do verwijderen?', t.titel, 'Verwijderen', 'Annuleren', true))) return; TD.data.taken = TD.data.taken.filter(x => x !== t); TD.open = null; tdBewaar(); }
+  else if(w === 'naarafas') todoNaarMelding(t);
+  else if(w === 'ticket'){ const x = items.find(y => String(y.nr) === String(t.melding)); if(x){ navLijst = []; openDetail(x.nr); } else toast('Ticket ' + t.melding + ' staat (nog) niet in de lijst.', true); }
+});
+$('#v-todo').addEventListener('change', e => {
+  const veld = e.target.dataset.veld, rij = e.target.closest('[data-taak]'); if(!veld || !rij) return;
+  const t = tdTaak(rij.dataset.taak); if(!t) return;
+  t[veld] = veld === 'titel' ? (e.target.value.trim() || t.titel) : e.target.value; tdBewaar();
+});
+$('#v-todo').addEventListener('focusin', e => { if(e.target.closest('.taakdetail, .todo-nieuw')) TD.bewerk = true; });
+$('#v-todo').addEventListener('focusout', () => { TD.bewerk = false; });
+$('#v-todo').addEventListener('keydown', e => {
+  if(e.key !== 'Enter') return;
+  if(e.target.id === 'todo-invoer'){ const titel = e.target.value.trim(); if(!titel) return;
+    const lijst = ['alle', 'belangrijk'].includes(TD.lijst) ? (TD.data.lijsten[0] || {}).id : TD.lijst;
+    TD.data.taken.push({id: tdId(), titel, lijst, belangrijk: TD.lijst === 'belangrijk', klaar: false, gemaakt: new Date().toISOString()}); e.target.value = ''; tdBewaar(); setTimeout(() => $('#todo-invoer').focus(), 0); }
+  else if(e.target.id === 'todo-nieuwe-lijst'){ const naam = e.target.value.trim(); if(!naam) return;
+    const id = tdId(); TD.data.lijsten.push({id, naam}); TD.lijst = id; tdBewaar(); }
+});
+/* importeren uit Microsoft To Do (JSON uit Power Automate), zelfde vormen als in Mijn changes */
+$('#td-import-bestand').onchange = async e => {
+  const f = e.target.files[0]; if(!f) return;
+  try{ const invoer = JSON.parse(await f.text());
+    const lijsten = Array.isArray(invoer) ? invoer : invoer.lijsten || invoer.lists || (invoer.value && invoer.value[0] && (invoer.value[0].taken || invoer.value[0].tasks || invoer.value[0].displayName && invoer.value[0].value) ? invoer.value : [invoer]);
+    let nieuw = 0;
+    lijsten.forEach(l => { const naam = String(l.lijst || l.naam || l.displayName || l.name || 'Geïmporteerd').trim();
+      let doel = TD.data.lijsten.find(x => norm(x.naam) === norm(naam)); if(!doel){ doel = {id: tdId(), naam}; TD.data.lijsten.push(doel); }
+      let taken = l.taken || l.tasks || l.value || l.items || []; if(taken && !Array.isArray(taken) && Array.isArray(taken.value)) taken = taken.value;
+      taken.forEach(t => { const titel = String(t.title || t.titel || '').trim(); if(!titel) return;
+        const klaar = /^completed$/i.test(t.status || '') || t.klaar === true; if(klaar) return;
+        if(TD.data.taken.some(y => (t.id && y.msId === t.id) || (y.lijst === doel.id && norm(y.titel) === norm(titel)))) return;
+        const dl = t.dueDateTime ? String(t.dueDateTime.dateTime || t.dueDateTime).slice(0, 10) : t.deadline;
+        TD.data.taken.push({id: tdId(), msId: t.id || '', titel, lijst: doel.id, belangrijk: /^high$/i.test(t.importance || '') || t.belangrijk === true, klaar: false, deadline: dl || undefined, notitie: kaal(t.body && typeof t.body === 'object' ? t.body.content : t.body || t.notitie || '') || undefined, gemaakt: t.createdDateTime || new Date().toISOString()}); nieuw++; }); });
+    tdBewaar(); toast(`${nieuw} taken geïmporteerd`); }
+  catch(x){ toast('Importeren lukte niet: ' + x.message, true); } };
+// een to-do omzetten naar een melding: het venster Nieuwe melding, vooraf ingevuld; na aanmaken wordt de to-do afgevinkt met het ticketnummer
+let todoBron = null;
+async function todoNaarMelding(t){
+  todoBron = t.id; await nieuweMelding();
+  const f = $('#n-form'); if(!f){ return; }
+  f.ond.value = t.titel.slice(0, 80); f.tx.value = t.notitie || t.titel;
+}
+$('#nieuw').addEventListener('close', () => setTimeout(() => { todoBron = null; }, 0));
+function todoGekoppeld(nr, id = todoBron){
+  const t = id && TD.data && tdTaak(id); if(!t) return;
+  t.melding = String(nr || '?'); t.klaar = true; t.klaarOp = new Date().toISOString(); TD.open = null; tdBewaar(); todoBron = null;
+}
+
 /* ================= opstarten ================= */
 function laadKaart(naam){
   toonStart(`${naam ? groet(naam) : '<h1>Mijn ICT-Omgeving</h1>'}
@@ -2657,6 +2920,7 @@ function laadKaart(naam){
     await laadGegevens();
     if(status.fout && !items.length){ startInlog('Tickets ophalen mislukt: ' + status.fout); return; }
     if(!profiel.ingesteld) startProfiel(true); else toonApp();
+    tdStart();
     verrijkMetTaken().then(() => { controleerIctReacties(); laadRestOpAchtergrond(); });
   }catch(e){ startInlog(e.message); }
 })();
