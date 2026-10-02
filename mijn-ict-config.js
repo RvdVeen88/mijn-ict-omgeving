@@ -10,7 +10,7 @@ window.MIJNICT_CONFIG = {
   st_leverancier: 'Wachten op leverancier',
   st_afgesloten: 'Afgehandeld, Gesloten, Afgesloten',
   // normen (werkuren/werkdagen, ma-vr 08:00-17:30)
-  nieuwUren: 2, opvolgingDagen: 3, melderDagen: 5, leverancierDagen: 5,
+  nieuwUren: 2, opvolgingDagen: 6, melderDagen: 5, leverancierDagen: 5,
   // link naar het ticket in AFAS; {sbid} wordt vervangen door het interne nummer. Leeg = geen link.
   ticketUrl: ''
 };
