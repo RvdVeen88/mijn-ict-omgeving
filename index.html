@@ -467,6 +467,14 @@ textarea.voorstel{background:var(--lichtblauw-2)}
 .chipknop .chip{text-decoration:underline dotted;text-underline-offset:3px}
 .chipknop:hover .chip{filter:brightness(.95);box-shadow:0 0 0 2px var(--lichtblauw)}
 .sjabloonkeuze{border:1.5px solid var(--lijn);background:var(--vlak);color:var(--blauw);border-radius:0 999px 999px 0;padding:4px 10px;font:inherit;font-size:12.5px;cursor:pointer}
+.oog{display:inline-grid;place-items:center;color:var(--blauw-2);margin-right:6px;vertical-align:-3px;cursor:help}
+.oog svg{width:15px;height:15px}
+.oog.bezig{color:var(--oranje)}
+.aanwezig{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--blauw);background:var(--lichtblauw-2);border-radius:999px;padding:4px 12px 4px 9px;white-space:nowrap}
+.aanwezig[hidden]{display:none}
+.aanwezig svg{width:16px;height:16px}
+.aanwezig.bezig{background:var(--oranje-licht);color:var(--oranje)}
+.aanwezig:not([hidden]) + .todoknop{margin-left:6px}
 .tdform{display:flex;flex-direction:column;gap:10px}
 .tdform label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--grijs);font-weight:500}
 .tdform input,.tdform textarea{border:1.5px solid var(--lijn);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;color:var(--inkt);background:var(--vlak)}
@@ -641,7 +649,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.72 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.74 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -700,7 +708,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.72';
+const VERSIE = 'v3.74';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1435,7 +1443,7 @@ function teken(){
   $('#todo-knop').setAttribute('aria-pressed', tab === 'todo'); $('#rail-overzicht').setAttribute('aria-pressed', tab !== 'todo');
   $('#nav').hidden = tab === 'todo';   // bij To-do hoort het ticketmenu er niet bij
   if(tab === 'mij'){ $('#titel').textContent = 'Overzicht'; tekenMij(); } else if(tab === 'todo') tdTeken(); else tekenLijst();
-  pasTabelBreedtes();
+  pasTabelBreedtes(); if(typeof tekenAanwezig === 'function') tekenAanwezig();
 }
 
 /* ================= ticketscherm: bekijken, reageren, workflowactie ================= */
@@ -1518,7 +1526,9 @@ async function zorgReactieKol(){
   (function loop(o){ if(!o || typeof o !== 'object') return; if(Array.isArray(o)) return o.forEach(loop); const id = o.id || o.fieldId; if(id && typeof id === 'string' && 'label' in o) velden.push({id, label:String(o.label || id)}); Object.values(o).forEach(loop); })(m);
   // eerst op label, dan op veld-id (bij een eigen GetConnector heten de kolommen soms anders)
   const k = {}; Object.entries(RE_KOL).forEach(([n, re]) => { const f = velden.find(f => re.test(norm(f.label))) || velden.find(f => re.test(norm(f.id.replace(/_/g, ' ')))); if(f){ k[n] = f.id; if(n === 'zicht') k.zichtLabel = f.label; } });
-  if(!k.tekst){ const t = velden.find(f => /reactie|tekst|omschrijving|bericht/.test(norm(f.label)) && !/datum|id|nummer|gebruiker/.test(norm(f.label))); if(t) k.tekst = t.id; }
+  if(!k.tekst){ const t = velden.find(f => /reactie|tekst|omschrijving|bericht/.test(norm(f.label)) && !/datum|id|nummer|gebruiker|zichtbaar/.test(norm(f.label))); if(t) k.tekst = t.id; }
+  // 'Reactie zichtbaar code' (I = alleen intern, EI = extern en intern) heeft de voorkeur boven de omschrijving
+  { const c = velden.find(f => /zichtbaar.*code|code.*zichtbaar/.test(norm(f.label + ' ' + f.id.replace(/_/g, ' ')))); if(c){ k.zicht = c.id; k.zichtLabel = c.label; } }
   reactieDiag = `kolommen in ${INST.connReacties}: ${velden.map(f => f.label + (f.label !== f.id ? ' (' + f.id + ')' : '')).join(', ')}`;
   if(!k.sbid || !k.tekst) throw new Error(`In ${INST.connReacties} ontbreekt ${!k.sbid ? 'een kolom Dossieritem' : 'de reactietekst'} (${reactieDiag}).`);
   return reactieKol = k;
@@ -1739,7 +1749,7 @@ function openDetail(nr){
   const r = (t, w, o = {}) => w || o.altijd ? `<span>${t}</span><b>${o.html ? w : esc(w || '–')}</b>` : '';
   const link = INST.ticketUrl && x.sbid ? INST.ticketUrl.replace('{sbid}', encodeURIComponent(x.sbid)).replace('{nr}', encodeURIComponent(x.nr)) : '';
   $('#detail-in').innerHTML = `
-    <div class="dlg-kop"><div><small>Ticket ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.afdeling ? ' · ' + esc(x.afdeling) : ''}</small><h2>${esc(x.onderwerp)}</h2></div><button type="button" class="todoknop" data-todovan="${esc(x.nr)}" title="To-do maken bij dit ticket" aria-label="To-do maken bij dit ticket">${TD_VINK_PLUS}</button><button type="button" class="grootknop" data-groot aria-label="Venster groter of kleiner" title="${$('#detail').classList.contains('groot') ? 'Kleiner venster' : 'Venster vergroten'}">${$('#detail').classList.contains('groot') ? ICO_KLEIN : ICO_GROOT}</button><button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
+    <div class="dlg-kop"><div><small>Ticket ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.afdeling ? ' · ' + esc(x.afdeling) : ''}</small><h2>${esc(x.onderwerp)}</h2></div><span class="aanwezig" id="d-aanwezig" hidden></span><button type="button" class="todoknop" data-todovan="${esc(x.nr)}" title="To-do maken bij dit ticket" aria-label="To-do maken bij dit ticket">${TD_VINK_PLUS}</button><button type="button" class="grootknop" data-groot aria-label="Venster groter of kleiner" title="${$('#detail').classList.contains('groot') ? 'Kleiner venster' : 'Venster vergroten'}">${$('#detail').classList.contains('groot') ? ICO_KLEIN : ICO_GROOT}</button><button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
     <div class="stappen">${STAPPEN.map((t, i) => `${i ? `<span class="lijntje ${i <= st ? 'klaar' : ''}"></span>` : ''}<span class="stap ${i < st ? 'klaar' : i === st ? 'nu' : ''}"><i>${i < st ? '✓' : ''}</i>${t}</span>`).join('')}
       ${(() => { const sg = x._sg.filter(s => s.code !== 'onvolledig'); return sg.length ? `<span class="chips" style="margin-left:auto">${sg.map(c => SJABLOON_SIG[c.code] && !x.afgesloten ? `<button type="button" class="chipknop" data-sjabloon="sig:${c.code}" title="Klik voor een voorsteltekst aan de melder">${chip(c)}</button>` : chip(c)).join('')}</span>` : ''; })()}</div>
     ${!x.afgesloten && isNieuw(x) ? `<div class="checklist" id="d-check">${checklist(x)}</div>` : ''}
@@ -1768,7 +1778,7 @@ function openDetail(nr){
       <button type="button" class="knop vol" id="k-opslaan" title="Alles doorvoeren en het ticket sluiten (Ctrl+Enter)"><span class="opslaanmail" hidden>✉ </span>Opslaan &amp; sluiten <kbd>Ctrl+Enter</kbd></button></span></div>
     <p class="fout" id="d-fout"></p>`}`;
   $('#detail').dataset.gewijzigd = ''; if(!$('#detail').open) $('#detail').showModal();
-  $('#detail-in').scrollTop = 0; zetNavPijlen(x);
+  $('#detail-in').scrollTop = 0; zetNavPijlen(x); setTimeout(() => { tekenAanwezig(); seinAanwezig(); }, 50);
   $('#detail').oninput = e => { if(e.target.id === 'tekst') pasHoogteAan(e.target); if(e.target.id === 'tekst' && huidig && huidig.autoTekst != null && e.target.value !== huidig.autoTekst){ huidig.autoTekst = null; e.target.classList.remove('voorstel'); } mailVooraf(); };
   $('#detail').onchange = e => { if(/^d-(afd|verantw|status|gepland)$/.test(e.target.id)) autoReactie(); mailVooraf(); };
   huidig.klaar = {ticket: [], reactie: []}; huidig.bijl = null;
@@ -2866,7 +2876,7 @@ document.addEventListener('input', e => {
   const nieuw = document.querySelector(`table[data-tabel="${CSS.escape(id)}"] .kolfilter input[data-kf="${k}"]`);
   if(nieuw){ nieuw.focus(); try{ nieuw.setSelectionRange(pos, pos); }catch(err){} }
 });
-$('#detail').addEventListener('close', () => huidig = null);
+$('#detail').addEventListener('close', () => { huidig = null; setTimeout(seinAanwezig, 50); });
 /* vensters sluiten: klik naast het venster, Esc, × of Annuleren; met niet-opgeslagen wijzigingen eerst vragen */
 /* eigen bevestigingsvenster midden in beeld (i.p.v. de browsermelding met het webadres erin) */
 function vraag(titel, tekst, ja = 'OK', nee = 'Annuleren', gevaar = false){
@@ -3113,6 +3123,41 @@ function todoGekoppeld(nr, id = todoBron){
   t.melding = String(nr || '?'); t.klaar = true; t.klaarOp = new Date().toISOString(); TD.open = null; tdBewaar(); todoBron = null;
 }
 
+/* ================= aanwezig: wie heeft welk ticket nu open (oogje) ================= */
+// Via de Azure Function ict-aanwezig: elke 20 seconden een seintje met het ticket dat je open hebt. Alleen nummer + naam, geen inhoud.
+const OOG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+const AANW = {lijst: [], ik: '', fouten: 0, uit: false, bezig: false};
+const aanwezigUrl = () => INST.aanwezigUrl || String(INST.tokenFunctie || '').replace(/afas-token\/?$/, 'ict-aanwezig');
+const anderenOp = nr => AANW.lijst.filter(a => String(a.nr) === String(nr) && a.code !== AANW.ik && !benIk(a.naam));
+async function seinAanwezig(){
+  if(AANW.uit || AANW.bezig || !profiel) return; AANW.bezig = true;
+  const nr = huidig && $('#detail').open ? String(huidig.x.nr) : null, bezig = !!(nr && $('#detail').dataset.gewijzigd === '1');
+  try{
+    if(DEMO){ AANW.ik = 'ik'; AANW.lijst = [{nr:'12601', code:'kg', naam:'Kelly Groen', bezig:false}, {nr:'12604', code:'gb', naam:'Glenn Brons', bezig:true}]; }
+    else { const r = await fetch(aanwezigUrl(), {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + await geldigToken()}, body: JSON.stringify({nr, naam: profiel.naam, bezig})});
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json(); AANW.ik = j.ik || ''; AANW.lijst = j.lijst || []; AANW.fouten = 0; }
+  }catch(e){ if(++AANW.fouten >= 3){ AANW.uit = true; console.info('Aanwezigheid (oogje) staat uit: ' + e.message); } }
+  finally{ AANW.bezig = false; }
+  tekenAanwezig();
+}
+function tekenAanwezig(){
+  // in de lijsten: oogje achter het ticketnummer
+  document.querySelectorAll('tr[data-nr]').forEach(tr => { const a = anderenOp(tr.dataset.nr), td = tr.querySelector('td.ond') || tr.querySelector('td.nr'); if(!td) return;
+    let o = td.querySelector('.oog');
+    if(!a.length){ if(o) o.remove(); return; }
+    if(!o){ o = document.createElement('span'); o.className = 'oog'; td.prepend(o); }
+    o.innerHTML = OOG; o.classList.toggle('bezig', a.some(x => x.bezig)); o.dataset.uitleg = a.map(x => `${x.naam} ${x.bezig ? 'is dit ticket aan het bewerken' : 'heeft dit ticket open'}`).join('\n'); });
+  // in het open ticket: wie kijkt er mee
+  const el = $('#d-aanwezig'); if(!el || !huidig) return;
+  const a = anderenOp(huidig.x.nr);
+  el.hidden = !a.length; el.classList.toggle('bezig', a.some(x => x.bezig));
+  el.innerHTML = a.length ? `${OOG}<span>${a.map(x => `<b>${esc(x.naam.split(' ')[0])}</b>${x.bezig ? ' is aan het bewerken' : ' kijkt mee'}`).join(', ')}</span>` : '';
+  el.title = a.map(x => `${x.naam} ${x.bezig ? 'heeft dit ticket open en is iets aan het wijzigen; let op dat jullie elkaar niet overschrijven' : 'heeft dit ticket ook open'}`).join('\n');
+}
+setInterval(() => { if(!document.hidden) seinAanwezig(); }, 20000);
+document.addEventListener('visibilitychange', () => { if(!document.hidden) seinAanwezig(); });
+
 /* ================= opstarten ================= */
 function laadKaart(naam){
   toonStart(`${naam ? groet(naam) : '<h1>Mijn ICT-Omgeving</h1>'}
@@ -3138,7 +3183,7 @@ function laadKaart(naam){
     await laadGegevens();
     if(status.fout && !items.length){ startInlog('Tickets ophalen mislukt: ' + status.fout); return; }
     if(!profiel.ingesteld) startProfiel(true); else toonApp();
-    tdStart();
+    tdStart(); setTimeout(seinAanwezig, 2000);
     if(!DEMO) setTimeout(() => { laadSubjMeta().catch(() => {}); zoekZichtVeld().catch(() => {}); zorgReactieKol().catch(() => {}); }, 1500);   // alvast klaarzetten: het eerste ticket opent dan sneller
     verrijkMetTaken().then(() => { controleerIctReacties(); laadRestOpAchtergrond(); });
   }catch(e){ startInlog(e.message); }
@@ -3176,11 +3221,11 @@ function demoAfas(pad, opties){
     if(id === 'R2') return {filename:'logboek.zip', mimetype:'application/zip', filedata:btoa('PK')};
     const f = Object.values(window._demoBijl || {}).flat().find(f => id.endsWith(f.FileName)); if(f) return {filename:f.FileName, mimetype:raadMime(f.FileName), filedata:f.FileStream};
     return Promise.reject(new Error('AFAS gaf HTTP 404')); }
-  if(pad.startsWith('/metainfo/get/')) return {fields:[{id:'ReactieId', label:'Reactie-id'},{id:'Dossieritem', label:'Dossieritem'},{id:'Reactie', label:'Reactie'},{id:'Instuurdatum', label:'Instuurdatum'},{id:'Instuurder', label:'Instuurder'},{id:'Zichtbaar', label:'Reactie zichtbaar'}]};
+  if(pad.startsWith('/metainfo/get/')) return {fields:[{id:'ReactieId', label:'Reactie-id'},{id:'Dossieritem', label:'Dossieritem'},{id:'Reactie', label:'Reactie'},{id:'Instuurdatum', label:'Instuurdatum'},{id:'Instuurder', label:'Instuurder'},{id:'Zichtbaar', label:'Reactie zichtbaar'},{id:'Reactie_zichtbaar_code', label:'Reactie zichtbaar code'}]};
   if(pad.includes(INST.connReacties)) return {rows:[{Dossieritem:1, Reactie:'Mijn headset geeft geen geluid in Teams, wel in andere apps.', Instuurdatum:'2026-09-29T09:12:00', Instuurder:'Anouk de Vries'},
     {Dossieritem:1, Reactie:'Kun je in Teams onder Instellingen > Apparaten de headset kiezen?', Instuurdatum:'2026-09-30T10:02:00', Instuurder:'Robert van der Veen'},
-    {Dossieritem:1, Reactie:'Gedaan, maar nog steeds niets.', Instuurdatum:'2026-10-01T09:20:00', Instuurder:'Anouk de Vries', Zichtbaar:'Extern en intern', ReactieId:103},
-    {Dossieritem:1, Reactie:'Graag aangeven wat we gaan doen met dit ticket, staat al geruime tijd stil.', Instuurdatum:'2026-10-01T10:27:00', Instuurder:'88406.rvanderveen', Zichtbaar:'Intern'}]};
+    {Dossieritem:1, Reactie:'Gedaan, maar nog steeds niets.', Instuurdatum:'2026-10-01T09:20:00', Instuurder:'Anouk de Vries', Zichtbaar:'Extern en intern', Reactie_zichtbaar_code:'EI', ReactieId:103},
+    {Dossieritem:1, Reactie:'Graag aangeven wat we gaan doen met dit ticket, staat al geruime tijd stil.', Instuurdatum:'2026-10-01T10:27:00', Instuurder:'88406.rvanderveen', Zichtbaar:'Intern', Reactie_zichtbaar_code:'I'}]};
   if(pad.startsWith('/metainfo')) return {fields:[{fieldId:'ViRe', label:'Reactie zichtbaar', dataType:'string', values:[{id:'I', description:'Intern'},{id:'E', description:'Extern en intern'}]}]};
   const nu = Date.now(), lok = x => `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}T${String(x.getHours()).padStart(2,'0')}:${String(x.getMinutes()).padStart(2,'0')}:00`,
     d = (dagen, uur = 10) => { const x = new Date(nu - dagen * DAG); x.setHours(uur, 15, 0, 0); return lok(x); };
