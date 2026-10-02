@@ -421,7 +421,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.57 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.58 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -473,7 +473,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.57';
+const VERSIE = 'v3.58';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1637,39 +1637,85 @@ async function zetAfdelingVeld(x, naam){
   return w.naam;
 }
 /* Opslaan in het ticket: afdeling, gekozen actie en reactie in één keer */
+/* ---- AFAS-workflowacties uitvoeren, zodat de berichtsjablonen (mails vanuit noreply@) net als in InSite meegaan ---- */
+const zichtVelden = notitie => { const zv = zichtVeld; return zv ? {[zv.code]: zv.soort === 'lijst' ? (notitie ? zv.intern : zv.extern) : (zv.omgekeerd ? notitie : !notitie)} : {}; };
+async function wfActie(x, kies, extra = {}){
+  // altijd de actuele taak ophalen: na een vorige actie kan de workflow al een stap verder zijn
+  const wf = await workflow(x), a = typeof kies === 'function' ? wf.acties.find(kies) : wf.acties.find(a => kies.test(a.naam));
+  if(!a) return null;
+  await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body: JSON.stringify({KnWorkflow:{Element:{Fields:{SbId: isNaN(+x.sbid) ? x.sbid : +x.sbid, WfNm:a.wf, TkNm:a.tk, AcNm:a.ac, ...extra}}}})});
+  return a.naam;
+}
+// reactie via de actie 'Reactie plaatsen' of 'Interne notitie' (met mail); bestaat die actie niet, dan een losse reactie (zonder mail)
+async function reactieMetMail(x, tekst, notitie = false){
+  await zoekZichtVeld();
+  const naam = await wfActie(x, notitie ? isNotitieActie : isReactieActie, {Tx: tekst, ...zichtVelden(notitie)});
+  if(!naam) await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body: JSON.stringify({KnWorkflow:{Element:{Fields:{SbId: isNaN(+x.sbid) ? x.sbid : +x.sbid, Tx: tekst, ...zichtVelden(notitie)}}}})});
+  if(notitie) opslag.set(NOTITIES, [notitieSleutel(x.sbid, tekst), ...(opslag.get(NOTITIES) || [])].slice(0, 500));
+  return naam;
+}
+/* Opslaan in het ticket: alle wijzigingen, elk via de AFAS-actie die erbij hoort */
 async function opslaanAlles(knopActie = null){
-  const {x} = huidig, sel = $('#d-afd'), kies = $('#actie-keuze'), tekst = ($('#tekst') && $('#tekst').value.trim()) || '';
+  const {x} = huidig, sel = $('#d-afd'), tekst = ($('#tekst') && $('#tekst').value.trim()) || '', notitie = !!($('#notitie') && $('#notitie').checked);
   const nieuweAfd = sel && sel.value && norm(sel.value) !== norm(x.afdeling) ? sel.value : '';
-  let actieIdx = knopActie != null ? knopActie : kies && kies.value !== '' ? +kies.value : null;
   const ss = $('#d-status');
-  if(ss && ss.value.startsWith('a:')){
-    if(actieIdx != null && knopActie == null){ $('#d-fout').textContent = 'Kies óf een nieuwe status óf een andere actie; ze voeren allebei een workflowstap uit.'; return; }
-    if(knopActie == null) actieIdx = +ss.value.slice(2);
-  }
+  let actieIdx = knopActie;
+  if(ss && ss.value.startsWith('a:') && knopActie == null) actieIdx = +ss.value.slice(2);
   const nieuweStatus = ss && ss.value && !ss.value.startsWith('a:') && ss.value !== ss.dataset.oud ? ss.value : '', statusNaam = nieuweStatus ? ss.options[ss.selectedIndex].textContent : '';
   const gs = $('#d-gepland'), nieuwGepland = gs && gs.value !== gs.dataset.oud ? {datum: gs.value} : null;
   const vs = $('#d-verantw'), nieuweVerantw = vs && vs.value && vs.value !== vs.dataset.oud ? {code: vs.value, naam: vs.options[vs.selectedIndex].textContent} : null;
   if(!nieuweAfd && !nieuweStatus && !nieuweVerantw && !nieuwGepland && actieIdx == null && !tekst){ $('#d-fout').textContent = 'Er is niets gewijzigd: pas een veld aan of schrijf een reactie.'; return; }
   const act = actieIdx != null && huidig.wf ? huidig.wf.acties[actieIdx] : null;
   if(act && act.afhandelen && !(await vraag(`Ticket ${x.nr} afhandelen?`, 'Het ticket wordt afgesloten' + (tekst ? ' en je reactie gaat mee naar de melder.' : '.'), 'Afhandelen', 'Annuleren'))) return;
-  const knop = $('#k-opslaan'); knop.disabled = true; $('#d-fout').textContent = '';
+  if(notitie && tekst){ await zoekZichtVeld(); if(!zichtVeld){ $('#d-fout').textContent = `Interne notitie kan niet worden geplaatst: de pagina weet niet hoe AFAS "intern" wil hebben (${zichtDiag}).`; return; } }
+  document.querySelectorAll('#detail button, #detail select, #detail input').forEach(b => b.disabled = true); $('#d-fout').textContent = '';
+  const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect:$('#detail').getBoundingClientRect()};
+  const lok = {}, gedaan = [], viaActie = [], zonderMail = [];
+  let gok = false, stap = '';
   try{
-    const voorAlles = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect:$('#detail').getBoundingClientRect()};
-    const lok = {};
-    if(nieuweAfd){ lok.afdeling = await zetAfdelingVeld(x, nieuweAfd); }
-    if(nieuweStatus){ const m = await laadSubjMeta(); if(!DEMO) await zorgSbId(x); await zetVelden(x, {[veldCode(m.status)]: nieuweStatus});
-      lok.status = (waardenVan(m.status.values).find(w => w.code === nieuweStatus) || {naam: statusNaam}).naam; }
-    if(nieuweVerantw){ const m = await laadSubjMeta(); if(!m.verantw) throw new Error('Het veld Verantwoordelijke is niet gevonden in AFAS.'); if(!DEMO) await zorgSbId(x);
-      await zetVelden(x, {[veldCode(m.verantw)]: nieuweVerantw.code}); lok.verantw = nieuweVerantw.naam; }
-    if(nieuwGepland){ const m = await laadSubjMeta(); if(!m.gepland) throw new Error('Het veld voor de geplande datum is niet gevonden in AFAS.'); if(!DEMO) await zorgSbId(x);
-      await zetVelden(x, {[veldCode(m.gepland)]: nieuwGepland.datum || null}); lok.gepland = nieuwGepland.datum ? new Date(nieuwGepland.datum + 'T00:00:00') : null; }
-    huidig.voorAlles = voorAlles; huidig.lok = lok;
-    const gedaan = [nieuweAfd && '→ ' + nieuweAfd, statusNaam && 'status ' + statusNaam, nieuweVerantw && 'toegewezen aan ' + nieuweVerantw.naam, nieuwGepland && (nieuwGepland.datum ? 'gepland op ' + fmtDatum(new Date(nieuwGepland.datum + 'T00:00:00')) : 'planning gewist')].filter(Boolean).join(' · ');
-    if(actieIdx != null || tekst){ await voerUit(actieIdx, gedaan); return; }
-    // alleen velden gewijzigd (afdeling, status, verantwoordelijke)
-    $('#detail').dataset.gewijzigd = ''; $('#detail').close(); toast(`Ticket ${x.nr}: ${gedaan}`);
-    onthoudLokaal(x, lok); teken(); toonVerplaatsing(voorAlles); naAchtergrond();
-  }catch(e){ $('#d-fout').textContent = e.message; knop.disabled = false; }
+    if(!DEMO) await zorgSbId(x); if(!x.sbid) throw new Error('Het interne nummer van dit ticket is onbekend.');
+    await zoekZichtVeld();
+    // 1. afdeling (veld)
+    if(nieuweAfd){ stap = 'afdeling'; lok.afdeling = await zetAfdelingVeld(x, nieuweAfd); gedaan.push('→ ' + lok.afdeling); }
+    // 2. status als veld (alleen als AFAS een statusveld heeft)
+    if(nieuweStatus){ stap = 'status'; const m = await laadSubjMeta(); await zetVelden(x, {[veldCode(m.status)]: nieuweStatus});
+      lok.status = (waardenVan(m.status.values).find(w => w.code === nieuweStatus) || {naam: statusNaam}).naam; gedaan.push('status ' + statusNaam); }
+    // 3. verantwoordelijke: veld zetten en daarna de toewijs-actie, zodat de nieuwe behandelaar de mail krijgt
+    if(nieuweVerantw){ stap = 'verantwoordelijke'; const m = await laadSubjMeta(); if(!m.verantw) throw new Error('Het veld Verantwoordelijke is niet gevonden in AFAS.');
+      await zetVelden(x, {[veldCode(m.verantw)]: nieuweVerantw.code}); lok.verantw = nieuweVerantw.naam;
+      const ikZelf = benIk(nieuweVerantw.naam) || (profiel.alias || []).some(a => norm(a) === norm(nieuweVerantw.code));
+      const n = await wfActie(x, ikZelf ? /toewijzen aan mij|in behandeling nemen|oppakken/i : /toewijzen aan collega|doorzetten naar collega|collega/i).catch(e => { zonderMail.push('toewijzen (' + e.message + ')'); return ''; });
+      if(n) viaActie.push(n); else if(n === null) zonderMail.push('toewijzen');
+      gedaan.push(ikZelf ? 'aan jou toegewezen' : 'toegewezen aan ' + nieuweVerantw.naam); }
+    // 4. geplande datum: veld en, als die er is, de actie Inplannen
+    if(nieuwGepland){ stap = 'gepland'; const m = await laadSubjMeta(); if(!m.gepland) throw new Error('Het veld voor de geplande datum is niet gevonden in AFAS.');
+      await zetVelden(x, {[veldCode(m.gepland)]: nieuwGepland.datum || null}); lok.gepland = nieuwGepland.datum ? new Date(nieuwGepland.datum + 'T00:00:00') : null;
+      if(nieuwGepland.datum){ const n = await wfActie(x, /inplannen|plannen/i).catch(() => ''); if(n) viaActie.push(n); }
+      gedaan.push(nieuwGepland.datum ? 'gepland op ' + fmtDatum(lok.gepland) : 'planning gewist'); }
+    // 5. gekozen workflowstap (status, afhandelen, oppakken), met de reactie erbij
+    let reactieGedaan = false;
+    if(act){ stap = act.naam;
+      const n = await wfActie(x, a => norm(a.naam) === norm(act.naam), tekst ? {Tx: tekst, ...zichtVelden(notitie)} : {});
+      if(!n) throw new Error(`De actie "${act.naam}" is niet (meer) beschikbaar bij dit ticket.`);
+      viaActie.push(n); reactieGedaan = !!tekst; gedaan.push(n);
+      if(act.afhandelen) lok.afgesloten = true;
+      else if(soortActie(act) === 'status'){ gok = true; lok.status = /melder/i.test(act.naam) ? 'Wachten op melder' : /leverancier/i.test(act.naam) ? 'Wachten op leverancier' : act.naam; } }
+    // 6. alleen een reactie: via 'Reactie plaatsen' / 'Interne notitie'
+    if(tekst && !reactieGedaan){ stap = 'reactie'; const n = await reactieMetMail(x, tekst, notitie);
+      if(n) viaActie.push(n); else zonderMail.push(notitie ? 'interne notitie' : 'reactie');
+      gedaan.push(notitie ? 'interne notitie geplaatst' : 'reactie geplaatst'); }
+    if(tekst){ lok.reactieDatum = new Date(); lok.reactieDoor = profiel.naam; if(notitie) opslag.set(NOTITIES, [notitieSleutel(x.sbid, tekst), ...(opslag.get(NOTITIES) || [])].slice(0, 500)); }
+    $('#detail').dataset.gewijzigd = ''; $('#detail').close();
+    const mail = viaActie.length ? ` · ✉ via AFAS-actie: ${[...new Set(viaActie)].join(', ')}` : '';
+    const waarsch = zonderMail.length ? ` · geen AFAS-actie gevonden voor ${zonderMail.join(', ')} (geen mail verstuurd)` : '';
+    toast(`Ticket ${x.nr}: ${gedaan.join(' · ')}${mail}${waarsch}`, !!zonderMail.length);
+    onthoudLokaal(x, lok, gok ? 20e3 : undefined); teken(); toonVerplaatsing(voor); naAchtergrond();
+  }catch(e){
+    const al = gedaan.length ? `Al doorgevoerd: ${gedaan.join(', ')}. ` : '';
+    $('#d-fout').textContent = `${al}Mislukt bij ${stap}: ${e.message}`;
+    if(gedaan.length) onthoudLokaal(x, lok);
+    document.querySelectorAll('#detail button, #detail select, #detail input').forEach(b => b.disabled = false);
+  }
 }
 async function zetAfdeling(x, naam, van, tekst = ''){
   if(norm(naam) === norm(x.afdeling)) return;
@@ -1678,9 +1724,10 @@ async function zetAfdeling(x, naam, van, tekst = ''){
     if(!w) throw new Error(`Afdeling "${naam}" staat niet in de keuzelijst van AFAS.`);
     if(!DEMO) await zorgSbId(x); if(!x.sbid) throw new Error('Het interne nummer van dit ticket is onbekend.');
     await zetVelden(x, {[veldCode(veld)]: veld.dataType === 'int' && !isNaN(+w.code) ? +w.code : w.code});
-    if(tekst) await plaatsReactie(x, tekst);
+    let mail = '';
+    if(tekst){ const n = await reactieMetMail(x, tekst, false); mail = n ? ' · ✉ via ' + n : ' (reactie zonder mail: geen actie Reactie plaatsen gevonden)'; }
     const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect: van};
-    toast(`Ticket ${x.nr} → ${w.naam}${tekst ? ' (met reactie)' : ''}`);
+    toast(`Ticket ${x.nr} → ${w.naam}${tekst ? ' (met reactie)' : ''}${mail}`);
     onthoudLokaal(x, {afdeling: w.naam, ...(tekst ? {reactieDatum: new Date(), reactieDoor: profiel.naam} : {})}); teken(); toonVerplaatsing(voor); naAchtergrond();
   }catch(e){ toast('Afdeling wijzigen lukte niet: ' + e.message, true); }
 }
