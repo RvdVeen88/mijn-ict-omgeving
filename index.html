@@ -356,7 +356,16 @@ dialog #combo{position:fixed}
 @container (max-width:620px){.tabel .k-wie{display:none}.tabel th.k-sig{width:130px!important}}
 
 /* ---- ticketscherm ---- */
-dialog#detail{width:min(1080px,calc(100vw - 32px))}
+dialog#detail{width:min(1080px,calc(100vw - 32px));transition:width .2s ease}
+dialog#detail.groot{width:calc(100vw - 24px);max-width:none;height:calc(100vh - 24px);max-height:none}
+dialog#detail.groot .dlg-in{max-height:calc(100vh - 24px);height:100%;box-sizing:border-box}
+dialog#detail.groot .tijdlijn{max-height:none;flex:1 1 auto;min-height:220px}
+dialog#detail.groot .kaart2 .lang{max-height:360px}
+dialog#detail.groot .kaart2 select.afdkeuze,dialog#detail.groot .kaart2 input.datumkeuze{width:300px}
+.grootknop{margin-left:auto;border:0;background:transparent;color:var(--grijs);padding:4px;border-radius:8px;cursor:pointer;display:grid;place-items:center}
+.grootknop svg{width:17px;height:17px}
+.grootknop:hover{color:var(--blauw);background:var(--lichtblauw-2)}
+.grootknop + .sluit{margin-left:4px}
 dialog#detail .navpijl{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:26px;height:64px;display:grid;place-items:center;border:0;background:transparent;color:var(--blauw);opacity:.3;cursor:pointer;border-radius:10px;padding:0;transition:opacity .15s,background .15s}
 dialog#detail .navpijl:hover,dialog#detail .navpijl:focus-visible{opacity:1;background:var(--lichtblauw-2)}
 dialog#detail .navpijl svg{width:20px;height:20px}
@@ -861,7 +870,7 @@ const metErbij = lijstD => { const uit = new Set(lijstD); lijstD.forEach(n => ((
 function inGebied(x){
   if(!profiel) return false;
   if(profiel.rol === 'servicedesk') return true;
-  return (profiel.favorieten || []).some(f => norm(f) === norm(x.afdeling));
+  return (profiel.favorieten || []).some(f => norm(f) === norm(x.afdeling) || norm(f) === norm(navAfd(x.afdeling)));
 }
 // zonder gekozen afdeling (en geen servicedesk) laten we het afdelingenblok en de tegel weg
 const heeftGebied = () => !!profiel && (profiel.rol === 'servicedesk' || (profiel.favorieten || []).length > 0);
@@ -1060,6 +1069,7 @@ function blok(id, titel, l, opties = {}){
 const open = () => items.filter(x => !x.afgesloten);
 const VAST = [
   {id:'mij', t:'Overzicht', ico:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'},
+  {id:'historie', t:'Historie', ico:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'},
   {id:'toegewezen', t:'Mijn tickets', ongelezen:true, ico:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>', f:() => open().filter(isMijn)},
   {id:'norm', t:'Aandacht nodig', ico:'<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>', f:() => open().filter(actie), rood:true},
   {id:'nieuw', t:'Nieuwe tickets', ico:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>', f:() => open().filter(isNieuw), stuiter:true}   // in- en uitdienst heeft een eigen overzicht
@@ -1067,17 +1077,17 @@ const VAST = [
 const ONDER = [
   {id:'alle', t:'Alle open tickets', ico:'<path d="M4 6h16M4 12h16M4 18h10"/>', f:() => open()},
   {id:'inuit', t:'In- en uitdienst', ico:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>', f:() => open().filter(x => x.inuit)},
-  {id:'historie', t:'Historie', ico:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', f:() => [], geenTel:true},
-  {id:'dicht', t:'Gesloten (90 dagen)', ico:'<path d="M5 12.5l4.5 4.5L19 7.5"/>', f:() => { const g = Date.now() - 90 * DAG; return items.filter(x => x.afgesloten && (x.statusDatum || x.aangemaakt || 0) >= g); }, geenTel:true},
   {id:'dichtalle', t:'Alle gesloten tickets', ico:'<path d="M3 7h18M5 7v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7M9 11h6"/><path d="M4 4h16v3H4z"/>', f:() => items.filter(x => x.afgesloten), geenTel:true}
 ];
-const afdelingen = () => { const t = new Map((INST.afdelingen || []).map(a => [a, 0]));
-  open().filter(x => !x.inuit).forEach(x => { const a = (INST.afdelingen || []).find(n => norm(n) === norm(x.afdeling)) || x.afdeling || 'Geen afdeling'; t.set(a, (t.get(a) || 0) + 1); });
+// "Emma [Changes]" hoort in het menu bij "Emma" (wisselen kan met het schuifje Meldingen / Changes)
+const navAfd = a => String(a || '').replace(/\s*\[(changes?|rfc)\]\s*$/i, '').trim();
+const afdelingen = () => { const basis = (INST.afdelingen || []).filter(a => navAfd(a) === a), t = new Map(basis.map(a => [a, 0]));
+  open().filter(x => !x.inuit && String(x.afdeling || '').trim()).forEach(x => { const b = navAfd(x.afdeling), a = basis.find(n => norm(n) === norm(b)) || b; t.set(a, (t.get(a) || 0) + 1); });   // tickets zonder afdeling staan bij Nieuwe tickets / Aandacht nodig
   const volg = a => { const i = (INST.afdelingen || []).indexOf(a); return i < 0 ? 999 : i; };
   return [...t.entries()].sort((a, b) => volg(a[0]) - volg(b[0]) || a[0].localeCompare(b[0], 'nl')); };
 function weergave(id){
   const v = [...VAST, ...ONDER].find(v => v.id === id); if(v) return {titel:v.t, lijst:v.f ? v.f() : []};
-  if(id.startsWith('afd:')){ const a = id.slice(4); return {titel:a, lijst:open().filter(x => !x.inuit && norm(x.afdeling || 'Geen afdeling') === norm(a))}; }
+  if(id.startsWith('afd:')){ const a = id.slice(4); return {titel:a, lijst:open().filter(x => !x.inuit && norm(navAfd(x.afdeling)) === norm(a))}; }
   return {titel:'Tickets', lijst:[]};
 }
 const ico = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
@@ -1086,6 +1096,7 @@ const domeinAfd = a => !!profiel && metErbij(profiel.domeinen || []).some(n => {
 function favorieten(){
   const alle = afdelingen().map(([a]) => a);
   if(!profiel.favorieten) profiel.favorieten = alle.filter(domeinAfd);
+  if(profiel.favorieten.some(f => navAfd(f) !== f || /^geen afdeling$/i.test(f))){ profiel.favorieten = [...new Set(profiel.favorieten.filter(f => !/^geen afdeling$/i.test(f)).map(navAfd))]; opslag.set(profielSleutel(), profiel); }
   // oude gecombineerde favoriet "AFAS / InPlanning" splitsen in de afzonderlijke systemen
   if(profiel.favorieten.some(f => /afas\s*\/\s*inplanning/i.test(f))){
     profiel.favorieten = [...new Set(profiel.favorieten.flatMap(f => /afas\s*\/\s*inplanning/i.test(f) ? alle.filter(a => /^afas$|inplanning/i.test(a)) : [f]))];
@@ -1251,7 +1262,7 @@ async function zoekZichtVeld(){
   return zichtVeld;
 }
 async function workflow(x){
-  if(DEMO) return {taak:'Behandelen ICT', bij:[profiel.naam], acties:['Afhandelen','Reactie plaatsen','Vraag aan melder','Toewijzen aan mij','Toewijzen aan collega','Wachten op leverancier','Inplannen','Accorderen RFC','Interne release','Externe release','Interne notitie'].map((n, i) => ({naam:n, afhandelen: i === 0, wf:'d', tk:'d', ac:'d' + i}))};
+  if(DEMO) return {taak:'Behandelen ICT', bij:[profiel.naam], acties:['Afhandelen','Reactie plaatsen','Vraag aan melder','Toewijzen aan mij','Toewijzen aan collega','Wachten op leverancier','Inplannen','Accorderen RFC','Interne release','Externe release','Interne notitie'].map((n, i) => ({naam:n, afhandelen: i === 0 || i === 5, wf:'d', tk:'d', ac:'d' + i}))};
   const taken = (await afas(`/connectors/${INST.connTaken}?skip=0&take=20${filterOp('SubjectId', x.sbid)}`)).rows || [];
   if(!taken.length) return {taak:'', bij:[], acties:[]};
   const t = taken[0], k = t.WorkflowName + '|' + t.TaskName;
@@ -1347,20 +1358,30 @@ let huidig = null;
 const STAPPEN = ['Open', 'Actief', 'Afgehandeld'];
 const stapVan = x => x.afgesloten ? 2 : (x.emmer === 'nieuw' || (!x.verantw && !x.emmer)) ? 0 : 1;
 const isReactieActie = a => /reactie plaatsen|^reageren/i.test(a.naam), isNotitieActie = a => /interne notitie/i.test(a.naam);
-const isOppakActie = a => !a.afhandelen && /toewijzen aan mij|in behandeling|oppakken|behandel/i.test(a.naam);
+const isOppakActie = a => !sluitActie(a) && /toewijzen aan mij|in behandeling|oppakken|behandel/i.test(a.naam);
 // wat een actie in deze pagina doet: behandelaar zetten, datum plannen of (via de workflow) de status wijzigen
 /* statussen zoals in de workflow van Aanvraag ICT: welke actie leidt tot welke status */
 const STATUS_NA = [[/^afhandelen$/i, 'Afgehandeld'], [/vraag aan melder/i, 'In afwachting melder'], [/wachten op leverancier/i, 'In afwachting leverancier'], [/inplannen|plannen/i, 'Werkzaamheden gepland'],
   [/accorderen rfc|ter akkoord/i, 'In afwachting akkoord'], [/interne release/i, 'In interne release'], [/externe release/i, 'In externe release'], [/ticket sluiten|^akkoord$/i, 'Gesloten'],
   [/informatie toevoegen|heropenen|toewijzen aan mij|reactie plaatsen/i, 'In behandeling ICT']];
 const STATUS_VOLGORDE = ['In behandeling ICT', 'In afwachting melder', 'In afwachting leverancier', 'Werkzaamheden gepland', 'In afwachting akkoord', 'In interne release', 'In externe release', 'Afgehandeld', 'Gesloten'];
-const statusNa = a => (STATUS_NA.find(([re]) => re.test(a.naam)) || [, a.afhandelen ? 'Afgehandeld' : ''])[1];
+const statusNa = a => (STATUS_NA.find(([re]) => re.test(a.naam)) || [, ''])[1];
+// LET OP: 'afhandelen' bij een AFAS-actie (ActionType 1) betekent alleen dat de workflowtaak klaar is, niet dat het ticket dicht gaat.
+// Ook 'Wachten op leverancier' handelt de taak af. Het ticket sluiten doen alleen deze acties:
+const sluitActie = a => !!a && /^afhandelen$|ticket sluiten|^akkoord$/i.test(String(a.naam).trim());
 // per status de beste actie uit de huidige taak (bij 'In behandeling' liefst een actie zonder mail aan de melder)
 function statusKeuzes(wf, x){
   const voorkeur = a => /informatie toevoegen/i.test(a.naam) ? 0 : /heropenen/i.test(a.naam) ? 1 : /toewijzen aan mij/i.test(a.naam) ? (!x.verantw || benIk(x.verantw) ? 2 : 9) : /reactie plaatsen/i.test(a.naam) ? 3 : 5;
   return STATUS_VOLGORDE.map(st => ({st, a: wf.acties.filter(a => statusNa(a) === st && voorkeur(a) < 9).sort((p, q) => voorkeur(p) - voorkeur(q))[0] || null}));
 }
 const soortActie = a => /toewijzen aan mij/i.test(a.naam) ? 'mij' : /toewijzen aan collega|doorzetten naar collega|collega/i.test(a.naam) ? 'collega' : /inplannen|plannen/i.test(a.naam) ? 'plannen' : 'status';
+/* ---- ticketvenster groter maken (onthouden per browser) ---- */
+const ICO_GROOT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>';
+const ICO_KLEIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7"/></svg>';
+$('#detail').classList.toggle('groot', !!opslag.get('mict-venster-groot'));
+document.addEventListener('click', e => { const g = e.target.closest('[data-groot]'); if(!g) return;
+  const aan = $('#detail').classList.toggle('groot'); opslag.set('mict-venster-groot', aan);
+  g.innerHTML = aan ? ICO_KLEIN : ICO_GROOT; g.title = aan ? 'Kleiner venster' : 'Venster vergroten'; });
 /* ---- vorige / volgende ticket uit de lijst waar je het ticket opende ---- */
 let navLijst = [];
 function zetNavPijlen(x){
@@ -1407,7 +1428,7 @@ function openDetail(nr){
   const r = (t, w, o = {}) => w || o.altijd ? `<span>${t}</span><b>${o.html ? w : esc(w || '–')}</b>` : '';
   const link = INST.ticketUrl && x.sbid ? INST.ticketUrl.replace('{sbid}', encodeURIComponent(x.sbid)).replace('{nr}', encodeURIComponent(x.nr)) : '';
   $('#detail-in').innerHTML = `
-    <div class="dlg-kop"><div><small>Ticket ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.afdeling ? ' · ' + esc(x.afdeling) : ''}</small><h2>${esc(x.onderwerp)}</h2></div><button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
+    <div class="dlg-kop"><div><small>Ticket ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.afdeling ? ' · ' + esc(x.afdeling) : ''}</small><h2>${esc(x.onderwerp)}</h2></div><button type="button" class="grootknop" data-groot aria-label="Venster groter of kleiner" title="${$('#detail').classList.contains('groot') ? 'Kleiner venster' : 'Venster vergroten'}">${$('#detail').classList.contains('groot') ? ICO_KLEIN : ICO_GROOT}</button><button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
     <div class="stappen">${STAPPEN.map((t, i) => `${i ? `<span class="lijntje ${i <= st ? 'klaar' : ''}"></span>` : ''}<span class="stap ${i < st ? 'klaar' : i === st ? 'nu' : ''}"><i>${i < st ? '✓' : ''}</i>${t}</span>`).join('')}
       ${(() => { const sg = x._sg.filter(s => s.code !== 'onvolledig'); return sg.length ? `<span class="chips" style="margin-left:auto">${sg.map(chip).join('')}</span>` : ''; })()}</div>
     ${!x.afgesloten && isNieuw(x) ? `<div class="checklist" id="d-check">${checklist(x)}</div>` : ''}
@@ -1709,9 +1730,9 @@ async function laadWorkflow(x){
     const bijMij = wf.bij.some(benIk);
     ($('#d-taak') || {}).textContent = wf.taak ? wf.taak + (bijMij ? ' · bij jou' : '') : 'geen open taak';
     const st = stapVan(x);
-    const hoofd = st === 0 ? wf.acties.find(isOppakActie) : wf.acties.find(a => a.afhandelen);
-    const statusActies = viaWf ? wf.acties.filter(a => !a.afhandelen && a !== hoofd && !isReactieActie(a) && !isNotitieActie(a) && soortActie(a) === 'status') : [];
-    const rest = wf.acties.filter(a => a !== hoofd && !isReactieActie(a) && !isNotitieActie(a) && !(a.afhandelen && st === 1) && !statusActies.includes(a));
+    const hoofd = st === 0 ? wf.acties.find(isOppakActie) : wf.acties.find(sluitActie);
+    const statusActies = viaWf ? wf.acties.filter(a => !sluitActie(a) && a !== hoofd && !isReactieActie(a) && !isNotitieActie(a) && soortActie(a) === 'status') : [];
+    const rest = wf.acties.filter(a => a !== hoofd && !isReactieActie(a) && !isNotitieActie(a) && !(sluitActie(a) && st === 1) && !statusActies.includes(a));
     const ss = $('#d-status');
     if(viaWf && ss){
       ss.dataset.wf = '1';
@@ -1840,7 +1861,7 @@ async function voerUit(actieIdx, nieuweAfd = ''){
     if(sa === 'mij') lok.verantw = profiel.naam;
     if(sa === 'collega') lok.verantw = actieKeuze.naam;
     if(sa === 'plannen') lok.gepland = new Date(actieKeuze.datum + 'T00:00:00');
-    if(a && a.afhandelen) lok.afgesloten = true;
+    if(sluitActie(a)) lok.afgesloten = true;
     if(sa === 'status' && a && subjMeta && subjMeta.status){ const woorden = norm(a.naam).split(' ').filter(w => w.length > 3);
       const w = waardenVan(subjMeta.status.values).find(v => woorden.length && woorden.every(d => norm(v.naam).includes(d))); if(w) lok.status = w.naam; }
     if(tekst){ lok.reactieDatum = new Date(); lok.reactieDoor = profiel.naam; }
@@ -2155,7 +2176,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){
       const e = $(leeg[0][1]); if(e){ e.focus(); e.scrollIntoView({block:'center', behavior:'smooth'}); } return; } }
   if(act && /reactie plaatsen/i.test(act.naam) && !tekst){ $('#d-fout').textContent = `Voor de status "${toonStatus(statusNa(act))}" schrijft AFAS een reactie aan de melder: vul eerst een reactie in.`; return; }
   if(act && soortActie(act) === 'plannen' && !(nieuwGepland && nieuwGepland.datum) && !x.gepland){ $('#d-fout').textContent = 'Kies eerst bij Gepland de datum van de werkzaamheden.'; return; }
-  if(act && act.afhandelen && !(await vraag(`Ticket ${x.nr} afhandelen?`, 'Het ticket wordt afgesloten' + (tekst ? ' en je reactie gaat mee naar de melder.' : '.'), 'Afhandelen', 'Annuleren'))) return;
+  if(sluitActie(act) && !(await vraag(`Ticket ${x.nr} afhandelen?`, 'Het ticket wordt afgesloten' + (tekst ? ' en je reactie gaat mee naar de melder.' : '.'), 'Afhandelen', 'Annuleren'))) return;
   if(notitie && tekst){ await zoekZichtVeld(); if(!zichtVeld){ $('#d-fout').textContent = `Interne notitie kan niet worden geplaatst: de pagina weet niet hoe AFAS "intern" wil hebben (${zichtDiag}).`; return; } }
   document.querySelectorAll('#detail button, #detail select, #detail input').forEach(b => b.disabled = true); $('#d-fout').textContent = '';
   const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect:$('#detail').getBoundingClientRect()};
@@ -2197,7 +2218,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){
       viaActie.push(n); reactieGedaan = !!tekst; gedaan.push(n); if(tekst && bijlR.length){ klaar.reactie = []; gedaan.push(`${bijlR.length} bijlage${bijlR.length === 1 ? '' : 'n'} bij de reactie`); }
       if(tekst && !notitie) logMail(x, x.melder || 'melder', 'reactie bij "' + n + '"', n);
       else logMail(x, 'volgens AFAS-sjabloon', 'stap "' + n + '"', n);
-      if(act.afhandelen) lok.afgesloten = true;
+      if(sluitActie(act)) lok.afgesloten = true;
       else { gok = true; lok.status = statusNa(act) || act.naam; } }
     // 6. alleen een reactie: via 'Reactie plaatsen' / 'Interne notitie'
     if(tekst && !reactieGedaan){ stap = 'reactie'; const n = await reactieMetMail(x, tekst, notitie, reactieObj); if(bijlR.length){ klaar.reactie = []; gedaan.push(`${bijlR.length} bijlage${bijlR.length === 1 ? '' : 'n'} bij de reactie`); }
