@@ -248,6 +248,11 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .tabel td{max-width:none}
 .tabel th{overflow:hidden;text-overflow:ellipsis;text-align:left;font-size:12px;font-weight:600;color:var(--blauw);padding:8px 10px;border-bottom:2px solid var(--lijn);white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--vlak)}
 .tabel th:hover{color:var(--blauw-2)}
+.kolgreep{position:absolute;top:0;right:-4px;width:9px;height:100%;cursor:col-resize;z-index:2}
+.kolgreep::after{content:'';position:absolute;left:4px;top:25%;height:50%;width:1.5px;background:var(--lijn);border-radius:2px}
+.tabel th:hover .kolgreep::after,.kolgreep:hover::after,body.slepend .kolgreep::after{background:var(--blauw-2)}
+body.slepend,body.slepend *{cursor:col-resize!important;user-select:none!important}
+#kolkeuze .knoppenrij{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--lijn);padding-top:8px;margin-top:4px}
 .tabel th .pijl{opacity:.35;margin-left:4px;font-size:10px}
 .tabel th[aria-sort] .pijl{opacity:1}
 .tabel td{padding:8px 10px;border-bottom:1px solid var(--lijn);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;vertical-align:middle}
@@ -298,6 +303,10 @@ body.slepen #nav [data-weergave^="afd:"]{outline:1.5px dashed var(--lichtblauw);
 .sleepbeeld b{color:var(--blauw);margin-right:6px}
 select.afdkeuze{width:auto;max-width:100%;border:0;background:transparent;font:inherit;font-weight:600;color:var(--blauw);padding:0 18px 0 0;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232E5FB0' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 0 center;background-size:12px;border-bottom:1.5px dashed var(--lichtblauw)}
 select.afdkeuze:hover{border-bottom-color:var(--blauw-2)}
+/* keuzevelden in het ticket: allemaal even breed en met dezelfde inspringing, zodat ze netjes onder elkaar staan */
+.kaart2 select.afdkeuze,.kaart2 input.datumkeuze{box-sizing:border-box;width:230px;max-width:100%;padding:1px 20px 1px 6px;background-position:right 4px center;vertical-align:middle}
+.kaart2 select.afdkeuze.gewijzigd,.kaart2 input.datumkeuze.gewijzigd{padding:1px 20px 1px 6px}
+.kaart2 input.datumkeuze::-webkit-calendar-picker-indicator{margin-right:-14px}
 .tabel tr.ongelezen td{font-weight:700;color:var(--inkt)}
 .chip.info{background:transparent;color:var(--grijs);box-shadow:inset 0 0 0 1px var(--lijn)}
 .chip.ongelezen{background:var(--blauw);color:var(--opaccent);display:inline-flex;align-items:center;gap:5px}
@@ -389,6 +398,16 @@ dialog#detail{width:min(1080px,calc(100vw - 32px))}
 .vink.notitie{background:var(--goud-licht);border-radius:0 999px 999px 0;padding:4px 12px 4px 8px;color:var(--bruin)}
 textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
 /* bijlagen */
+.bijlbalk{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;padding:5px 14px;border-radius:0 999px 999px 0;background:var(--achtergrond);border:1.5px dashed transparent;font-size:12.5px;min-height:34px;transition:border-color .15s,background .15s}
+.bijlbalk.erover{border-color:var(--blauw-2);background:var(--lichtblauw-2)}
+.bijlbalk .bijltitel{display:inline-flex;align-items:center;gap:5px;color:var(--blauw)}
+.bijlbalk .bijltitel svg{width:14px;height:14px}
+.bijlbalk .bijltitel b{font-size:12.5px;font-weight:600}
+.bijlbalk .bijlrij{display:inline-flex;gap:5px}
+.bijlbalk .bijlchip{padding:2px 10px 2px 6px;font-size:12px;max-width:220px}
+.bijlbalk .hint{font-size:12px}
+.bijlbalk #k-bijl{margin-left:auto;font-size:12px}
+.bijlbalk .klaarzet::before{content:'bij opslaan:'}
 .bijlagen{background:var(--achtergrond);border-radius:0 18px 18px 0;padding:12px 18px;display:flex;flex-direction:column;gap:8px;border:1.5px dashed transparent;transition:border-color .15s,background .15s}
 .bijlagen.erover,.composer.erover{border-color:var(--blauw-2);background:var(--lichtblauw-2)}
 .composer{border:1.5px dashed transparent;border-radius:0 14px 14px 0;transition:border-color .15s,background .15s}
@@ -917,11 +936,63 @@ KOLOMMEN.forEach(c => { if(!c.cls.split(' ').includes('k-' + c.k)) c.cls = (c.cl
 /* kolommen kiezen: per gebruiker te verbergen (Nr. en Onderwerp blijven altijd staan) */
 const VAST_KOL = new Set(['nr', 'ond']);
 let verborgenKol = new Set(opslag.get('mict-kolommen-uit') || []);
+/* kolombreedte: zelf slepen aan de rand van de kolomkop, of automatisch passend maken (Onderwerp vult de rest op) */
+const KOLBREED = 'mict-kolbreedte';
+let kolBreedte = opslag.get(KOLBREED) || {};
+const breedteVan = c => kolBreedte[c.k] ? kolBreedte[c.k] + 'px' : c.k === 'ond' && Object.keys(kolBreedte).length ? '260px' : c.bw;
+function zetBreedtes(b){ kolBreedte = b; opslag.set(KOLBREED, b); teken(); }
+// beste breedte per kolom: de breedste inhoud (kop + cellen) in de tabellen op het scherm, met een redelijk maximum
+function besteBreedtes(alleen = null){
+  const meet = document.createElement('div'); meet.className = 'tabel'; meet.style.cssText = 'position:absolute;visibility:hidden;left:-9999px;top:0;white-space:nowrap;display:block;width:auto';
+  document.body.append(meet);
+  const b = {...kolBreedte};
+  KOLOMMEN.filter(c => !alleen || c.k === alleen).forEach(c => {
+    const cellen = [...document.querySelectorAll(`table.tabel tbody td.k-${c.k}`)].slice(0, 300), kop = document.querySelector(`table.tabel thead th.k-${c.k}`);
+    if(!cellen.length && !kop) return;
+    let max = 0;
+    const maat = (html, vet) => { meet.innerHTML = `<span style="display:inline-block;white-space:nowrap;font-size:${vet ? '12px' : '13.5px'};font-weight:${vet ? 600 : 400}">${html}</span>`; return meet.firstChild.offsetWidth; };
+    if(kop) max = maat(esc(c.t), true) + 30;   // ruimte voor sorteerpijl en greep
+    cellen.forEach(td => { max = Math.max(max, maat(td.innerHTML, false) + 22); });
+    b[c.k] = Math.round(Math.min(c.k === 'sig' ? 340 : c.k === 'ond' ? 520 : 320, Math.max(c.k === 'nr' ? 66 : c.k === 'ond' ? 200 : 76, max)));   // niet smaller dan het filterveld
+  });
+  meet.remove();
+  if(!alleen){
+    // alles passend op het scherm: per tabel de zichtbare kolommen optellen; is het te breed, dan eerst Onderwerp (tot 200px) en daarna de rest naar verhouding smaller
+    let teBreed = 1;
+    document.querySelectorAll('.tw').forEach(tw => { const ths = [...tw.querySelectorAll('thead tr:first-child th')].filter(t => t.offsetParent !== null);
+      const som = ths.reduce((t, th) => t + (b[th.dataset.sort] || th.offsetWidth), 0); if(som > tw.clientWidth) teBreed = Math.max(teBreed, som / tw.clientWidth); });
+    if(teBreed > 1){ const tw = [...document.querySelectorAll('.tw')].sort((p, q) => q.querySelectorAll('thead tr:first-child th').length - p.querySelectorAll('thead tr:first-child th').length)[0];
+      const ths = [...tw.querySelectorAll('thead tr:first-child th')].filter(t => t.offsetParent !== null).map(t => t.dataset.sort);
+      let over = ths.reduce((t, k) => t + (b[k] || 0), 0) - tw.clientWidth + 2;
+      const ondMin = 200; if(b.ond && over > 0){ const af = Math.min(over, b.ond - ondMin); b.ond -= af; over -= af; }
+      if(over > 0){ const rest = ths.filter(k => k !== 'ond' && k !== 'nr'), tot = rest.reduce((t, k) => t + b[k], 0);
+        rest.forEach(k => b[k] = Math.max(70, Math.round(b[k] - over * b[k] / tot))); } }
+  }
+  return b;
+}
+// slepen aan de kolomrand
+document.addEventListener('mousedown', e => {
+  const g = e.target.closest('.kolgreep'); if(!g || e.button !== 0) return;
+  e.preventDefault(); e.stopPropagation();
+  const th = g.closest('th'), k = g.dataset.greep, start = e.clientX, w0 = th.getBoundingClientRect().width;
+  const ths = () => document.querySelectorAll(`table.tabel thead tr:first-child th.k-${k}`);
+  document.body.classList.add('slepend');
+  const beweeg = ev => { const w = Math.max(50, Math.round(w0 + ev.clientX - start)); ths().forEach(t => t.style.width = w + 'px'); };
+  const los = ev => { document.removeEventListener('mousemove', beweeg); document.removeEventListener('mouseup', los); document.body.classList.remove('slepend');
+    window._negeerKlik = Date.now();
+    if(Math.abs(ev.clientX - start) > 2) zetBreedtes({...kolBreedte, [k]: Math.max(50, Math.round(w0 + ev.clientX - start))}); };
+  document.addEventListener('mousemove', beweeg); document.addEventListener('mouseup', los);
+});
+// dubbelklik op de rand: deze kolom passend maken
+document.addEventListener('dblclick', e => { const g = e.target.closest('.kolgreep'); if(!g) return; e.preventDefault(); zetBreedtes(besteBreedtes(g.dataset.greep)); });
 function kolKeuze(knop){
   const el = $('#kolkeuze');
   if(!el.hidden && el._knop === knop){ el.hidden = true; return; }
   el._knop = knop;
   el.innerHTML = `<h4>Kolommen tonen</h4>${KOLOMMEN.filter(c => !VAST_KOL.has(c.k)).map(c => `<label><input type="checkbox" data-kol="${c.k}" ${verborgenKol.has(c.k) ? '' : 'checked'}> ${esc(c.t)}</label>`).join('')}
+    <div class="knoppenrij"><button type="button" class="linkknop" data-kolpassend>Alle kolommen automatisch passend maken</button>
+    ${Object.keys(kolBreedte).length ? '<button type="button" class="linkknop" data-kolbreedstd>Standaardbreedtes terugzetten</button>' : ''}</div>
+    <p>Breedte zelf aanpassen: sleep de rand van een kolomkop. Dubbelklik op de rand maakt die kolom passend.</p>
     <p>Op een smal scherm vallen minder belangrijke kolommen vanzelf weg.</p><button type="button" class="linkknop" data-kolstd>Standaard herstellen</button>`;
   const r = knop.getBoundingClientRect(); el.hidden = false;
   el.style.top = (r.bottom + 6) + 'px'; el.style.left = Math.max(12, Math.min(innerWidth - el.offsetWidth - 12, r.right - el.offsetWidth)) + 'px';
@@ -942,7 +1013,7 @@ function tabel(id, l, opties = {}){
   const s = sortering[id];
   if(s){ const c = KOLOMMEN.find(c => c.k === s.k); l = [...l].sort((a, b) => { const x = c.w(a), y = c.w(b); return (x < y ? -1 : x > y ? 1 : 0) * s.op || (+b.aangemaakt || 0) - (+a.aangemaakt || 0); }); }
   const max = opties.max && !blokOpen.has(id) ? opties.max : 400, zicht = l.slice(0, max);
-  return `<div class="tw"><table class="tabel" data-tabel="${id}"><thead><tr>${kol.map(c => `<th data-sort="${c.k}" ${c.bw ? `style="width:${c.bw}"` : ''} class="${c.cls.replace(/\b(nr|ond|sig|zacht)\b/g, '')}" ${s && s.k === c.k ? `aria-sort="${s.op > 0 ? 'ascending' : 'descending'}"` : ''}>${c.t}${s && s.k === c.k ? `<span class="pijl">${s.op > 0 ? '▲' : '▼'}</span>` : ''}</th>`).join('')}</tr>
+  return `<div class="tw"><table class="tabel" data-tabel="${id}"><thead><tr>${kol.map(c => `<th data-sort="${c.k}" ${breedteVan(c) ? `style="width:${breedteVan(c)}"` : ''} class="${c.cls.replace(/\b(nr|ond|sig|zacht)\b/g, '')}" ${s && s.k === c.k ? `aria-sort="${s.op > 0 ? 'ascending' : 'descending'}"` : ''}>${c.t}${s && s.k === c.k ? `<span class="pijl">${s.op > 0 ? '▲' : '▼'}</span>` : ''}${c.k === 'ond' ? '' : `<span class="kolgreep" data-greep="${c.k}" title="Sleep om de breedte aan te passen · dubbelklik = passend"></span>`}</th>`).join('')}</tr>
     <tr class="kolfilter">${kol.map(c => `<th class="${c.cls.replace(/\b(nr|ond|sig|zacht)\b/g, '')}"><input size="3" data-kf="${c.k}" ${KEUZE.has(c.k) ? 'data-keuze autocomplete="off"' : ''} value="${esc(kf[c.k] || '')}" placeholder="${KEUZE.has(c.k) ? 'Alle ▾' : 'Filter…'}" aria-label="Filter op ${c.t}" class="${kf[c.k] ? 'aan' : ''}"></th>`).join('')}</tr></thead>
     <tbody>${!zicht.length ? `<tr class="geenrij"><td colspan="${kol.length}">Geen tickets met deze filters. <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></td></tr>` : ''}${zicht.map(x => `<tr draggable="${x.afgesloten ? 'false' : 'true'}" class="${KLEUR[ernst(x)]}${x.afgesloten ? ' dicht' : ''}${(x._sg || []).some(s => s.code === 'ongelezen') ? ' ongelezen' : ''}" data-nr="${esc(x.nr)}">${kol.map(c => `<td class="${c.cls}"${c.k === 'sig' ? '' : ` title="${esc(kolTekst(c, x))}"`}>${c.html(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
     ${actief.length ? `<p class="filterinfo">${l.length} van ${totaal} na filteren · <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></p>` : ''}
@@ -1270,8 +1341,9 @@ function openDetail(nr){
       <div class="kaart2"><h3>Behandeling</h3><span>Afdeling${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.afdeling || '–') : `<select id="d-afd" class="afdkeuze" title="Klik om de afdeling te wijzigen"><option>${esc(x.afdeling || '– kies afdeling –')}</option></select>`}</b><span>Verantwoordelijke</span><b>${x.afgesloten ? esc(x.verantw || '–') : `<select id="d-verantw" class="afdkeuze" title="Klik om de verantwoordelijke te wijzigen"><option value="">${esc(x.verantw || '– niemand –')}</option></select>${benIk(x.verantw) ? '' : '<button type="button" class="linkknop aanmij" id="d-aanmij">Aan mij toewijzen</button>'}`}</b><span>Status${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(toonStatus(x.status) || '–') : `<select id="d-status" class="afdkeuze" title="Klik om de status te wijzigen"><option value="">${esc(toonStatus(x.status) || '– kies status –')}</option></select>`}</b>
         ${x.afgesloten ? r('Gepland', x.gepland ? fmtDatum(x.gepland) : '') : `<span>Gepland</span><b><input type="date" id="d-gepland" class="datumkeuze" value="${x.gepland ? isoD(x.gepland) : ''}" data-oud="${x.gepland ? isoD(x.gepland) : ''}" title="Datum waarop het werk gepland staat"></b>`}${r('Laatste reactie', x.reactieDatum ? fmtDatum(x.reactieDatum) + (x.reactieDoor ? ' · ' + x.reactieDoor : '') : '')}${r('Extern ticket', x.extern)}${x.kritiek ? r('Kritieke storing', 'Ja') : ''}</div>
     </div>
-    <div class="bijlagen" id="d-bijl"><div class="bijlkop"><h3 id="bijl-titel">Bijlagen</h3>${x.afgesloten ? '' : `<button type="button" class="linkknop paperclip" id="k-bijl">${CLIP}Bijlage toevoegen</button><input type="file" id="f-ticket" multiple hidden><span class="hint">of sleep hierheen · Ctrl+V plakt</span>`}</div>
-      <div id="bijl-lijst"><span class="hint">Bijlagen ophalen…</span></div><div class="klaarzet" id="klaar-ticket"></div></div>
+    <div class="bijlbalk" id="d-bijl"><span class="bijltitel">${CLIP}<b id="bijl-titel">Bijlagen</b></span>
+      <span id="bijl-lijst" class="bijlrij"><span class="hint">ophalen…</span></span><span class="klaarzet" id="klaar-ticket"></span>
+      ${x.afgesloten ? '' : `<button type="button" class="linkknop" id="k-bijl" title="Bestand kiezen. Je kunt ook bestanden op het ticket slepen of een schermafbeelding plakken met Ctrl+V.">+ Toevoegen</button><input type="file" id="f-ticket" multiple hidden>`}</div>
     ${link ? `<a class="hint" href="${esc(link)}" target="_blank" rel="noopener">Openen in AFAS ↗</a>` : ''}
     ${x.afgesloten ? '<div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3></div><p class="hint">Dit ticket is afgehandeld.</p>' : `
     <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>
@@ -1347,7 +1419,7 @@ async function laadBijlagen(x){
   const r = await haalBijlagen(x); if(!huidig || huidig.x !== x) return;
   huidig.bijl = r; verdeelBijlagen(x);
 }
-const bijlChip = (b, i) => `<button type="button" class="bijlchip" data-bijl="${i}" title="${esc(b.naam)} — klik om te bekijken of te downloaden"><span>${bestIcoon(b.naam)}</span><b>${esc(b.naam)}</b>${b.grootte ? `<small>${fmtGrootte(b.grootte)}</small>` : ''}</button>`;
+const bijlChip = (b, i, bijReactie = false) => `<button type="button" class="bijlchip" data-bijl="${i}" title="${esc(b.naam)}${bijReactie ? ' (bij een reactie)' : ''} — klik om te bekijken of te downloaden"><span>${bestIcoon(b.naam)}</span><b>${esc(b.naam)}</b>${b.grootte ? `<small>${fmtGrootte(b.grootte)}</small>` : ''}</button>`;
 // bijlagen bij een reactie komen onder die reactie (als Helpdesk_Reacties een reactie-id heeft); de rest in het blok Bijlagen
 function verdeelBijlagen(x){
   if(!huidig || huidig.x !== x || !huidig.bijl) return;
@@ -1360,11 +1432,12 @@ function verdeelBijlagen(x){
     else los.push([b, i]); });
   const tk = los.filter(([b]) => b.soort === 'ticket'), rc = los.filter(([b]) => b.soort === 'reactie');
   const geenRechten = fouten.length && fouten.every(f => /niet ondersteund|geautoriseerd|403|401|404/i.test(f.fout));
-  el.innerHTML = (tk.length ? `<div class="bijlrij">${tk.map(([b, i]) => bijlChip(b, i)).join('')}</div>` : '')
-    + (rc.length ? `<div class="bijlrij"><small class="hint">Bij een reactie:</small>${rc.map(([b, i]) => bijlChip(b, i)).join('')}</div>` : '')
-    + (!los.length && !fouten.length ? `<span class="hint">${lijst.length ? 'De bijlagen staan bij de reacties hieronder.' : 'Geen bijlagen.'}</span>` : '')
+  el.innerHTML = tk.map(([b, i]) => bijlChip(b, i)).join('')
+    + rc.map(([b, i]) => bijlChip(b, i, true)).join('')
+    + (!los.length && !fouten.length ? `<span class="hint">${lijst.length ? 'staan bij de reacties' : 'geen'}</span>` : '')
     + (fouten.length ? `<span class="hint">${geenRechten ? `Bijlagen kunnen nog niet worden gelezen: laat de beheerder GetConnector ${fouten.map(f => esc(f.conn)).join(' en ')} aan de app connector koppelen.` : `Bijlagen ophalen lukte niet: ${fouten.map(f => esc(f.conn + ': ' + f.fout)).join('; ')}`}</span>` : '');
   const t = $('#bijl-titel'); if(t) t.textContent = lijst.length ? `Bijlagen (${lijst.length})` : 'Bijlagen';
+  $('#d-bijl') && $('#d-bijl').classList.toggle('leeg', !lijst.length);
 }
 async function haalBestand(b){
   const pad = id => `/SubjectConnector/${encodeURIComponent(id)}/${encodeURIComponent(b.file)}`;
@@ -2197,6 +2270,9 @@ document.addEventListener('click', e => {
   if(e.target.closest('#k-overige')){ overigeOpen = !overigeOpen; tekenNav(); return; }
   const wf = e.target.closest('[data-wisfilter]'); if(wf){ delete kolFilter[wf.dataset.wisfilter]; teken(); return; }
   if(e.target.closest('.kolfilter')) return;
+  if(e.target.closest('.kolgreep') || (window._negeerKlik && Date.now() - window._negeerKlik < 300)) return;
+  if(e.target.closest('[data-kolpassend]')){ $('#kolkeuze').hidden = true; zetBreedtes(besteBreedtes()); toast('Kolommen passend gemaakt'); return; }
+  if(e.target.closest('[data-kolbreedstd]')){ $('#kolkeuze').hidden = true; zetBreedtes({}); return; }
   const th = e.target.closest('th[data-sort]'); if(th){ const id = th.closest('table').dataset.tabel, k = th.dataset.sort, s = sortering[id];
     sortering[id] = s && s.k === k ? (s.op > 0 ? {k, op:-1} : undefined) : {k, op: ['in','reactie','gepland','sig'].includes(k) ? -1 : 1}; teken(); return; }
   const r = e.target.closest('tr[data-nr]'); if(r){ openDetail(r.dataset.nr); return; }
@@ -2209,7 +2285,7 @@ document.addEventListener('click', e => {
   if(e.target.closest('#k-opslaan')){ opslaanAlles(); return; }
   const sb = e.target.closest('#f-soort button'); if(sb){ soortKeuze[tab] = sb.dataset.v; opslag.set('mict-soort', soortKeuze); teken(); return; }
   const kk = e.target.closest('[data-kolkeuze]'); if(kk){ kolKeuze(kk); return; }
-  if(e.target.closest('[data-kolstd]')){ verborgenKol = new Set(); opslag.set('mict-kolommen-uit', []); $('#kolkeuze').hidden = true; teken(); return; }
+  if(e.target.closest('[data-kolstd]')){ verborgenKol = new Set(); opslag.set('mict-kolommen-uit', []); kolBreedte = {}; opslag.weg(KOLBREED); $('#kolkeuze').hidden = true; teken(); return; }
   if(e.target.closest('#nieuw-knop')){ nieuweMelding(); return; }
   if(e.target.closest('[data-sluitnieuw]')){ sluitDialoog($('#nieuw')); return; }
   if(e.target.closest('#n-maak')){ maakMelding(); return; }
