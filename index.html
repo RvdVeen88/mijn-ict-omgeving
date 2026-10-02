@@ -367,6 +367,9 @@ select.afdkeuze.mist{border-bottom:2px solid var(--oranje);color:var(--oranje)}
 textarea.mist{border-color:var(--oranje)}
 .mailregel{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 2px 42px;padding:6px 12px;border:1.5px dashed var(--lichtblauw);border-radius:0 12px 12px 0;font-size:12.5px;color:var(--blauw);background:var(--vlak)}
 .mailregel small{margin-left:auto;color:var(--grijs)}
+.mailregel.geen{border-color:var(--oranje);color:var(--oranje);background:var(--oranje-licht)}
+.mailvooraf.waarschuw{background:var(--oranje-licht);color:var(--oranje)}
+.mailvooraf.waarschuw .mailicoon{background:var(--oranje);color:#fff}
 .mailicoon{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--blauw);color:#fff;font-size:11px;flex:none}
 .mailvooraf{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--blauw);background:var(--lichtblauw-2);border-radius:0 999px 999px 0;padding:4px 12px 4px 6px;margin-left:auto}
 .mailvooraf:not([hidden]) + #k-opslaan{margin-left:0}
@@ -631,7 +634,7 @@ dialog#detail .tijdlijn{min-height:120px}
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.67 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.69 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -690,7 +693,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.67';
+const VERSIE = 'v3.69';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1473,8 +1476,8 @@ async function workflow(x){
   // een ticket kan meerdere open taken hebben (bv. 'In behandeling' én 'Mail ter info CC'); de acties van alle taken samen,
   // met de behandeltaak voorop, zodat de status niet beperkt blijft tot de acties van een bijtaak
   const actiesVan = async t => { const k = t.WorkflowName + '|' + t.TaskName;
-    if(!actieCache[k]){ let rij = (await laadAlleActies().catch(() => [])).filter(a => a.TaskName === t.TaskName);
-      if(!rij.length) rij = (await afas(`/connectors/${INST.connActies}?skip=0&take=100${filterOp('TaskName', t.TaskName)}`)).rows || [];
+    // per taak ophalen (gefilterd in AFAS); 'alle acties in één keer' bleek onvolledig bij veel workflows
+    if(!actieCache[k]){ const rij = (await afas(`/connectors/${INST.connActies}?skip=0&take=500${filterOp('TaskName', t.TaskName)}`)).rows || [];
       actieCache[k] = rij.filter(a => !a.WorkflowName || a.WorkflowName === t.WorkflowName).sort((a, b) => (a.SeqNo || 0) - (b.SeqNo || 0))
         .map(a => ({naam:a.ActionDescription, afhandelen: +a.ActionType === 1, wf:t.WorkflowName, tk:t.TaskName, ac:a.ActionName})); }
     return actieCache[k]; };
@@ -1563,7 +1566,7 @@ async function toonReacties(x){
       if(voor && !ontbreekt(x).includes('reactie')){ x._sg = signalen(x); const c = $('#d-check'); if(c) c.innerHTML = checklist(x); const t = $('#tekst'); if(t && t.classList.contains('mist')){ t.classList.remove('mist'); t.placeholder = 'Schrijf een reactie aan de melder…'; } } }
     const mails = ((opslag.get(MAILLOG) || {})[String(x.nr)] || []).map(m => ({...m, t: new Date(m.t), mail: true}));
     const alles = [...l, ...mails].sort((a, b) => (a.t || 0) - (b.t || 0));
-    el.innerHTML = `<h3>Reacties (${l.length})${mails.length ? ` · ✉ ${mails.length} mail${mails.length === 1 ? '' : 's'}` : ''} <small class="hint">nieuwste bovenaan</small></h3>` + (alles.length ? [...alles].reverse().map(r => r.mail ? `<div class="mailregel" title="Verstuurd door AFAS (noreply@dcklinieken.nl) via de actie '${esc(r.actie)}', uitgevoerd door ${esc(r.door || '')} vanuit Mijn ICT-Omgeving"><span class="mailicoon">✉</span><span>Mail ${/^volgens/.test(r.aan) ? esc(r.aan) : `naar <b>${esc(r.aan)}</b>`} · ${esc(r.wat)}</span><small>${fmtDatum(r.t)} ${fmtTijd(r.t)} · actie ${esc(r.actie)}</small></div>` : `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''} ${r.intern ? 'intern' : ''}"${r.rid ? ` data-rid="${esc(r.rid)}"` : ''}><i>${esc(initialen(r.wie))}</i>
+    el.innerHTML = `<h3>Reacties (${l.length})${mails.length ? ` · ✉ ${mails.length} mail${mails.length === 1 ? '' : 's'}` : ''} <small class="hint">nieuwste bovenaan</small></h3>` + (alles.length ? [...alles].reverse().map(r => r.mail ? `<div class="mailregel${r.aan === 'GEEN mail' ? ' geen' : ''}" title="Verstuurd door AFAS (noreply@dcklinieken.nl) via de actie '${esc(r.actie)}', uitgevoerd door ${esc(r.door || '')} vanuit Mijn ICT-Omgeving"><span class="mailicoon">${r.aan === 'GEEN mail' ? '!' : '✉'}</span><span>${r.aan === 'GEEN mail' ? '<b>Geen mail verstuurd</b>' : `Mail ${/^volgens/.test(r.aan) ? esc(r.aan) : `naar <b>${esc(r.aan)}</b>`}`} · ${esc(r.wat)}</span><small>${fmtDatum(r.t)} ${fmtTijd(r.t)} · actie ${esc(r.actie)}</small></div>` : `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''} ${r.intern ? 'intern' : ''}"${r.rid ? ` data-rid="${esc(r.rid)}"` : ''}><i>${esc(initialen(r.wie))}</i>
       <div class="wolk"><div class="kopje"><b>${esc(r.wie || 'Onbekend')}</b><span>${r.t ? fmtDatum(r.t) + ' ' + fmtTijd(r.t) : ''}</span>${r.intern ? '<span class="internlabel">Intern</span>' : ''}</div><div class="tekst">${esc(r.tekst)}</div></div></div>`).join('') : `<p class="hint">Nog geen reacties.</p>${DEMO ? '' : `<p class="hint" style="font-size:11.5px;opacity:.7">${esc(reactieDiag)}</p>`}`);
     if(!DEMO && reactieKol && !reactieKol.zicht) el.insertAdjacentHTML('beforeend', `<p class="hint" style="font-size:11.5px">Of een reactie intern is, staat niet in ${esc(INST.connReacties)}; alleen jouw eigen interne notities zijn herkend. Laat het veld "Reactie zichtbaar" aan die GetConnector toevoegen.</p>`);
     el.scrollTop = 0;   // nieuwste reactie bovenaan, ouder = naar beneden scrollen
@@ -1911,11 +1914,15 @@ function mailVooraf(){
   const x = huidig.x, uit = [], nb = huidig.klaar ? huidig.klaar.reactie.length : 0, tekst = ($('#tekst') && $('#tekst').value.trim()) || (nb ? 'bijlage' : ''), notitie = !!($('#notitie') && $('#notitie').checked);
   const vs = $('#d-verantw'); if(vs && vs.value && vs.value !== vs.dataset.oud){ const naam = vs.options[vs.selectedIndex].textContent; if(!benIk(naam)) uit.push(`${naam} (toegewezen)`); }
   const ss = $('#d-status'); const stap = ss && ss.value.startsWith('a:') ? ss.options[ss.selectedIndex].textContent : '';
-  if(tekst && !notitie) uit.push(`${x.melder || 'melder'} (reactie${nb ? ` + ${nb} bijlage${nb === 1 ? '' : 'n'}` : ''})`);
+  const wfL = huidig.wf ? huidig.wf.acties : null, kanReageren = !wfL || wfL.some(notitie ? isNotitieActie : isReactieActie);
+  const geenMail = tekst && !stap && !kanReageren;   // er is geen actie 'Reactie plaatsen' in deze stap: AFAS stuurt dan geen mail
+  if(tekst && !notitie && !geenMail) uit.push(`${x.melder || 'melder'} (reactie${nb ? ` + ${nb} bijlage${nb === 1 ? '' : 'n'}` : ''})`);
   if(stap && !(tekst && !notitie)) uit.push(`volgens sjabloon van "${stap}"`);
-  el.hidden = !uit.length; el.innerHTML = uit.length ? `<span class="mailicoon">✉</span> Bij opslaan mailt AFAS: ${uit.map(esc).join(', ')}` : '';
+  el.hidden = !uit.length && !geenMail;
+  el.classList.toggle('waarschuw', geenMail);
+  el.innerHTML = geenMail ? `<span class="mailicoon">!</span> Geen mail: de actie "${notitie ? 'Interne notitie' : 'Reactie plaatsen'}" is in deze workflowstap niet beschikbaar` : uit.length ? `<span class="mailicoon">✉</span> Bij opslaan mailt AFAS: ${uit.map(esc).join(', ')}` : '';
   document.querySelectorAll('#detail .opslaanmail').forEach(k => k.hidden = !uit.length);
-  const na = $('#notitie-uitleg'); if(na) na.textContent = tekst ? (notitie ? 'Interne notitie: de melder krijgt géén mail.' : '✉ De melder krijgt deze reactie per mail.') : 'Standaard is een reactie zichtbaar voor melder én ICT.';
+  const na = $('#notitie-uitleg'); if(na) na.textContent = tekst ? (notitie ? 'Interne notitie: de melder krijgt géén mail.' : geenMail ? 'Let op: deze reactie gaat zonder mail naar AFAS.' : '✉ De melder krijgt deze reactie per mail.') : 'Standaard is een reactie zichtbaar voor melder én ICT.';
 }
 async function vulVerantwKeuze(x){
   const sel = $('#d-verantw'); if(!sel) return;
@@ -2516,7 +2523,8 @@ async function opslaanAlles(knopActie = null, sluiten = true){
       else { gok = true; lok.status = statusNa(act) || act.naam; } }
     // 6. alleen een reactie: via 'Reactie plaatsen' / 'Interne notitie'
     if(tekst && !reactieGedaan){ stap = 'reactie'; const n = await reactieMetMail(x, tekst, notitie, reactieObj); if(bijlR.length){ klaar.reactie = []; gedaan.push(`${bijlR.length} bijlage${bijlR.length === 1 ? '' : 'n'} bij de reactie`); }
-      if(n){ viaActie.push(n); if(!notitie) logMail(x, x.melder || 'melder', 'nieuwe reactie', n); } else zonderMail.push(notitie ? 'interne notitie' : 'reactie');
+      if(n){ viaActie.push(n); if(!notitie) logMail(x, x.melder || 'melder', 'nieuwe reactie', n); }
+      else { zonderMail.push(notitie ? 'interne notitie' : 'reactie'); if(!notitie) logMail(x, 'GEEN mail', 'reactie zonder AFAS-actie geplaatst (actie Reactie plaatsen niet beschikbaar in deze stap)', '–'); }
       gedaan.push(notitie ? 'interne notitie geplaatst' : 'reactie geplaatst'); }
     if(tekst){ lok.reactieDatum = new Date(); lok.reactieDoor = profiel.naam; if(notitie) opslag.set(NOTITIES, [notitieSleutel(x.sbid, tekst), ...(opslag.get(NOTITIES) || [])].slice(0, 500)); }
     $('#detail').dataset.gewijzigd = ''; if(sluiten) $('#detail').close();
@@ -3045,7 +3053,7 @@ function laadKaart(naam){
     if(status.fout && !items.length){ startInlog('Tickets ophalen mislukt: ' + status.fout); return; }
     if(!profiel.ingesteld) startProfiel(true); else toonApp();
     tdStart();
-    if(!DEMO) setTimeout(() => { laadSubjMeta().catch(() => {}); zoekZichtVeld().catch(() => {}); zorgReactieKol().catch(() => {}); laadAlleActies().catch(() => {}); }, 1500);   // alvast klaarzetten: het eerste ticket opent dan sneller
+    if(!DEMO) setTimeout(() => { laadSubjMeta().catch(() => {}); zoekZichtVeld().catch(() => {}); zorgReactieKol().catch(() => {}); }, 1500);   // alvast klaarzetten: het eerste ticket opent dan sneller
     verrijkMetTaken().then(() => { controleerIctReacties(); laadRestOpAchtergrond(); });
   }catch(e){ startInlog(e.message); }
 })();
