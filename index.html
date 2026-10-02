@@ -65,6 +65,21 @@ button{cursor:pointer}
 .bovenbalk h1{font-size:22px;color:var(--blauw);white-space:nowrap}
 .bovenbalk .sub{color:var(--grijs);font-size:14px}
 .bovenbalk .rechts{margin-left:auto;display:flex;align-items:center;gap:12px}
+.globzoek{position:relative;flex:1 1 320px;max-width:520px;margin:0 auto}
+.globzoek .zoek{margin-left:0;flex:none;width:100%;box-sizing:border-box}
+.globzoek .zoek:focus-within{border-color:var(--blauw-2);box-shadow:0 0 0 4px rgba(46,95,176,.15)}
+.globzoek kbd{font-family:inherit;font-size:11px;color:var(--grijs);border:1px solid var(--lijn);border-radius:6px;padding:1px 6px;white-space:nowrap}
+.globzoek .zoek:focus-within kbd{display:none}
+.zoekres{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--vlak);border-radius:0 20px 20px 0;box-shadow:0 18px 50px rgba(3,31,77,.25);padding:6px 0 8px;z-index:40;max-height:70vh;overflow:auto}
+.zoekres .groep{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--grijs);padding:8px 18px 4px;text-transform:uppercase}
+.zoekres button{display:grid;grid-template-columns:58px 1fr auto;gap:10px;align-items:center;width:100%;border:0;background:transparent;font:inherit;font-size:13px;color:var(--inkt);text-align:left;padding:6px 18px;cursor:pointer}
+.zoekres button.sel,.zoekres button:hover{background:var(--lichtblauw-2)}
+.zoekres button b{color:var(--blauw)}
+.zoekres button em{font-style:normal;display:block;font-size:11.5px;color:var(--grijs)}
+.zoekres button small{font-size:11.5px;color:var(--grijs);white-space:nowrap}
+.zoekres mark{background:#FFE8A3;color:inherit;border-radius:3px;padding:0 1px}
+.zoekres .leeg{padding:10px 18px;color:var(--grijs);font-size:13px}
+.zoekres .voet2{display:flex;gap:14px;padding:8px 18px 0;margin-top:4px;border-top:1px solid var(--lijn);font-size:11px;color:var(--grijs)}
 .ik:hover{border-color:var(--lichtblauw);box-shadow:var(--schaduw)}
 .ik{cursor:pointer;display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--lijn);background:var(--vlak);border-radius:0 999px 999px 0;padding:5px 16px 5px 6px;font-weight:500}
 .ik i{width:26px;height:26px;border-radius:50%;background:var(--blauw);color:var(--opaccent);display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700}
@@ -689,6 +704,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
   <div class="werk">
     <div class="bovenbalk">
       <h1 id="titel">Voor mij</h1><span class="sub" id="subtitel"></span>
+      <div class="globzoek" id="globzoek"><label class="zoek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="f-zoek" placeholder="Zoek in alle meldingen: nummer, onderwerp, melder…" autocomplete="off" spellcheck="false" aria-label="Zoeken in meldingen"><kbd id="zoek-kbd">Ctrl K</kbd></label><div class="zoekres" id="zoekres" hidden></div></div>
       <div class="rechts"><span class="klok" id="klok"></span><div class="schakel klein" id="mijalles-top" role="group" aria-label="Welke meldingen je ziet"><button type="button" data-v="mij" title="Alleen meldingen waar jij behandelaar bent of een taak hebt">Mij</button><button type="button" data-v="afd" title="Jouw meldingen plus alles in je ★-afdelingen, wie de behandelaar ook is">Afdelingen</button><button type="button" data-v="alles" title="Alle meldingen">Alles</button></div><button type="button" class="ik" id="ik" title="Mijn instellingen"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
     </div>
     <main>
@@ -698,7 +714,6 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
       </section>
       <section id="v-lijst" hidden>
         <div class="werkbalk">
-          <label class="zoek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="f-zoek" placeholder="Zoek op nummer, onderwerp, melder of behandelaar"></label>
           <div class="schakel" id="f-soort" hidden><button data-v="alle" aria-pressed="true">Alles</button><button data-v="meldingen">Meldingen</button><button data-v="changes">Changes &amp; RfC</button></div>
           <div class="schakel" id="f-mijalles" hidden title="Mij: jouw meldingen en wat bij niemand ligt"><button data-v="mij">Mij <b></b></button><button data-v="alles">Alles <b></b></button></div>
           <div class="schakel klein" id="f-weergave" hidden><button data-w="lijst">Lijst</button><button data-w="tijdlijn">Tijdlijn</button></div>
@@ -719,7 +734,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.01 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.02 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -778,7 +793,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.01';
+const VERSIE = 'v4.02';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1551,6 +1566,7 @@ function tekenLijst(){
   if(tabsMijn){ $('#lijst-titel').innerHTML = `<span class="lijsttabs"><button type="button" data-chtab="alle" aria-pressed="${!alleenChanges()}">Alle meldingen <i>${nAlle}</i></button><button type="button" data-chtab="changes" aria-pressed="${alleenChanges()}">Changes <i>${nCh}</i></button></span>`; $('#lijst-n').hidden = true; }
   else { $('#lijst-titel').textContent = v.titel; $('#lijst-n').hidden = false; }
   $('#lijst-n').textContent = l.length;
+  { const wbk = document.querySelector('#v-lijst .werkbalk'); if(wbk) wbk.hidden = ![...wbk.children].some(c => !c.hidden); }
   $('#lijst-sub').textContent = l.length > 400 ? 'eerste 400 getoond; zoek of sorteer om te verfijnen' : 'Klik op een kolomkop om te sorteren';
   if(tab === 'dicht' && !alleGeladen) $('#lijst-sub').textContent = 'Gesloten meldingen worden nog opgehaald…';
   if(tab === 'dichtalle' && !alleDichtGeladen){ $('#lijst-sub').textContent = 'Alle gesloten meldingen worden opgehaald… (eenmalig, kan even duren)'; laadAlleGesloten(); }
@@ -3217,7 +3233,43 @@ async function sluitDialoog(d){
     if(e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) sluitDialoog(d); });
   d.addEventListener('cancel', e => { e.preventDefault(); sluitDialoog(d); });
 });
-$('#f-zoek').addEventListener('input', e => { filt.zoek = e.target.value; tekenLijst(); });
+/* ---- zoeken in alle meldingen (kopregel): treffers direct openen; in een lijst filtert het ook die lijst ---- */
+let zoekSel = -1, zoekHits = [];
+const markeer = (t, q) => { const i = norm(t).indexOf(q); return i < 0 || !q ? esc(t) : esc(t.slice(0, i)) + '<mark>' + esc(t.slice(i, i + q.length)) + '</mark>' + esc(t.slice(i + q.length)); };
+function tekenZoekRes(){
+  const box = $('#zoekres'), q = norm($('#f-zoek').value);
+  if(!q){ box.hidden = true; zoekHits = []; return; }
+  const score = x => String(x.nr) === q ? 0 : String(x.nr).startsWith(q) ? 1 : norm(x.onderwerp).includes(q) ? 2 : 3;
+  const alle = items.filter(x => x.zoek.includes(q)).sort((a, b) => score(a) - score(b) || (b.aangemaakt || 0) - (a.aangemaakt || 0));
+  const open = alle.filter(x => !x.afgesloten).slice(0, 7), dicht = alle.filter(x => x.afgesloten).slice(0, 5);
+  zoekHits = [...open, ...dicht]; zoekSel = Math.min(zoekSel, zoekHits.length - 1);
+  const rij = (x, i) => `<button type="button" data-zoeknr="${esc(x.nr)}" class="${i === zoekSel ? 'sel' : ''}"><b>${markeer(String(x.nr), q)}</b><span>${markeer(x.onderwerp, q)}<em>${esc(x.melder || '–')}${x.afgesloten ? '' : ' · ' + (x.verantw ? (benIk(x.verantw) ? 'bij jou' : 'bij ' + esc(x.verantw)) : 'nog niemand')}</em></span><small>${esc(x.afgesloten ? 'Afgehandeld' : toonStatus(x.status) || 'Open')}</small></button>`;
+  box.innerHTML = !zoekHits.length ? `<div class="leeg">Geen meldingen gevonden voor “${esc($('#f-zoek').value)}”${alleGeladen ? '' : ' (gesloten meldingen worden nog geladen)'}.</div>` :
+    (open.length ? `<div class="groep">Open · ${alle.filter(x => !x.afgesloten).length}</div>${open.map((x, i) => rij(x, i)).join('')}` : '') +
+    (dicht.length ? `<div class="groep">Gesloten · ${alle.filter(x => x.afgesloten).length}</div>${dicht.map((x, i) => rij(x, open.length + i)).join('')}` : '') +
+    `<div class="voet2"><span>↑↓ kiezen</span><span>Enter = openen</span><span>Esc = sluiten</span></div>`;
+  box.hidden = false;
+}
+function openZoekHit(nr){ $('#zoekres').hidden = true; navLijst = zoekHits.map(x => String(x.nr)); $('#f-zoek').blur(); openDetail(nr); }
+$('#f-zoek').addEventListener('input', e => { zoekSel = -1; filt.zoek = e.target.value; if(!$('#v-lijst').hidden) tekenLijst(); tekenZoekRes(); });
+$('#f-zoek').addEventListener('focus', () => { if($('#f-zoek').value) tekenZoekRes(); });
+$('#f-zoek').addEventListener('keydown', e => {
+  const box = $('#zoekres');
+  if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); if(box.hidden) tekenZoekRes(); if(!zoekHits.length) return;
+    zoekSel = (zoekSel + (e.key === 'ArrowDown' ? 1 : -1) + zoekHits.length) % zoekHits.length; tekenZoekRes();
+    const s = box.querySelector('.sel'); if(s) s.scrollIntoView({block: 'nearest'}); return; }
+  if(e.key === 'Enter'){ e.preventDefault(); if(zoekSel >= 0 && zoekHits[zoekSel]) openZoekHit(zoekHits[zoekSel].nr);
+    else if(zoekHits.length === 1) openZoekHit(zoekHits[0].nr); else box.hidden = true; return; }
+  if(e.key === 'Escape'){ e.preventDefault(); if(!box.hidden) box.hidden = true; else { e.target.value = ''; filt.zoek = ''; if(!$('#v-lijst').hidden) tekenLijst(); e.target.blur(); } }
+});
+$('#zoekres').addEventListener('mousedown', e => e.preventDefault());   // focus in het zoekveld houden
+$('#zoekres').addEventListener('click', e => { const b = e.target.closest('[data-zoeknr]'); if(b) openZoekHit(b.dataset.zoeknr); });
+document.addEventListener('mousedown', e => { if(!e.target.closest('#globzoek')) $('#zoekres').hidden = true; });
+document.addEventListener('keydown', e => {
+  if(document.querySelector('dialog[open]') || $('#app').hidden) return;
+  const inVeld = document.activeElement && document.activeElement.matches('input, textarea, select, [contenteditable="true"]');
+  if(((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') || (e.key === '/' && !inVeld)){ e.preventDefault(); const z = $('#f-zoek'); z.focus(); z.select(); if(z.value) tekenZoekRes(); }
+});
 $('#k-ververs').onclick = async () => { await laadGegevens(); teken(); verrijkMetTaken(); verrijkMelders(); };
 $('#ik').onclick = () => startProfiel(false);
 $('#k-uit').onclick = () => uitloggen();
