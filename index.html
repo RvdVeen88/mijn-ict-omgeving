@@ -275,6 +275,8 @@ kbd{font:inherit;font-size:10.5px;font-weight:600;opacity:.7;margin-left:8px;bor
 .checklist{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--oranje-licht);border-radius:0 12px 12px 0;padding:8px 14px;font-size:13px}
 .checklist b{color:var(--oranje);font-weight:700}
 .checklist .ok{color:var(--groen)} .checklist .mist{color:var(--oranje);font-weight:600}
+select.voorstel{background-color:var(--lichtblauw-2)}
+#n-loc-hint{display:block;font-size:11.5px;margin-top:3px}
 i.verpl{font-style:normal;color:var(--oranje);margin-left:3px;font-weight:700}
 select.afdkeuze.mist{border-bottom:2px solid var(--oranje);color:var(--oranje)}
 textarea.mist{border-color:var(--oranje)}
@@ -560,6 +562,7 @@ const INST = Object.assign({
   nieuwDagen: 30,                        // een ticket dat nog niet compleet is (afdeling, locatie, reactie) telt zo lang als nieuw
   vrijeVelden: 'KnS38',                  // vrije-veldentabel van type Aanvraag ICT (AFAS weigert velden uit andere KnS-tabellen)                       // type dossieritem Aanvraag ICT
   connMedewerkers: 'PowerBI_ICT_Verjaardag',
+  hoofdkantoor: 'Planetarium',           // locatievoorstel voor medewerkers van stafafdelingen (organisatorische eenheid zonder "DC Klinieken <vestiging>")
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
@@ -929,7 +932,9 @@ function signalen(x){
   return s;
 }
 const ICTR = 'mict-ictreactie';
-const laatsteVanMelder = x => !!(x.melder && norm(x.reactieDoor) === norm(x.melder));
+// is de schrijver iemand van ICT bij dit ticket (behandelaar, taakhouder of jijzelf)? Telt ook als die toevallig zelf de melder is (bv. een testticket)
+const ictPersoon = (x, wie) => !!wie && (norm(wie) === norm(x.verantw) || benIk(wie) || (x.taakBij || []).some(t => norm(t) === norm(wie)));
+const laatsteVanMelder = x => !!(x.melder && norm(x.reactieDoor) === norm(x.melder) && !ictPersoon(x, x.reactieDoor));
 const ictReactieBekend = nr => !!(opslag.get(ICTR) || {})[nr];
 function zetIctReactie(x, ja){ x.ictReactie = ja; if(ja && !ictReactieBekend(x.nr)){ const m = opslag.get(ICTR) || {}; m[x.nr] = 1; opslag.set(ICTR, m); } }
 /* een nieuw ticket is pas 'af' als afdeling, locatie en een reactie van ICT zijn ingevuld */
@@ -978,7 +983,18 @@ let verborgenKol = new Set(opslag.get('mict-kolommen-uit') || []);
 /* kolombreedte: zelf slepen aan de rand van de kolomkop, of automatisch passend maken (Onderwerp vult de rest op) */
 const KOLBREED = 'mict-kolbreedte';
 let kolBreedte = opslag.get(KOLBREED) || {};
-const breedteVan = c => kolBreedte[c.k] ? kolBreedte[c.k] + 'px' : c.k === 'ond' && Object.keys(kolBreedte).length ? '260px' : c.bw;
+// met eigen breedtes staan álle kolommen in pixels en is de tabel precies zo breed als de kolommen samen (zoals in AFAS);
+// zo loopt de rand van een kolom exact met de muis mee. Zonder eigen breedtes vult de tabel de breedte zoals voorheen.
+const KOL_PX = {melder:150, wie:150, type:100, status:150, ond:300};
+const eigenBreedtes = () => Object.keys(kolBreedte).length > 0;
+const breedteVan = c => kolBreedte[c.k] ? kolBreedte[c.k] + 'px' : eigenBreedtes() ? (/px$/.test(c.bw || '') ? c.bw : (KOL_PX[c.k] || 120) + 'px') : c.bw;
+function pasTabelBreedtes(){
+  document.querySelectorAll('table.tabel[data-tabel]').forEach(t => {
+    if(!eigenBreedtes()){ t.style.width = ''; return; }
+    const som = [...t.querySelectorAll('thead tr:first-child th')].filter(th => th.offsetParent !== null).reduce((n, th) => n + (parseFloat(th.style.width) || th.offsetWidth), 0);
+    t.style.width = som + 'px'; });
+}
+addEventListener('resize', () => pasTabelBreedtes());
 function zetBreedtes(b){ kolBreedte = b; opslag.set(KOLBREED, b); teken(); }
 // beste breedte per kolom: de breedste inhoud (kop + cellen) in de tabellen op het scherm, met een redelijk maximum
 function besteBreedtes(alleen = null){
@@ -1013,13 +1029,18 @@ function besteBreedtes(alleen = null){
 document.addEventListener('mousedown', e => {
   const g = e.target.closest('.kolgreep'); if(!g || e.button !== 0) return;
   e.preventDefault(); e.stopPropagation();
-  const th = g.closest('th'), k = g.dataset.greep, start = e.clientX, w0 = th.getBoundingClientRect().width;
-  const ths = () => document.querySelectorAll(`table.tabel thead tr:first-child th.k-${k}`);
+  const th = g.closest('th'), tab = th.closest('table'), k = g.dataset.greep, start = e.clientX;
+  // eerst alle kolommen van deze tabel vastzetten op hun huidige breedte, zodat alleen deze kolom verandert
+  const kop = [...tab.querySelectorAll('thead tr:first-child th')].filter(t => t.offsetParent !== null);
+  const vast = {}; kop.forEach(t => { vast[t.dataset.sort] = Math.round(t.getBoundingClientRect().width); t.style.width = vast[t.dataset.sort] + 'px'; });
+  const w0 = vast[k], som0 = Object.values(vast).reduce((a, b) => a + b, 0);
+  tab.style.width = som0 + 'px';
   document.body.classList.add('slepend');
-  const beweeg = ev => { const w = Math.max(50, Math.round(w0 + ev.clientX - start)); ths().forEach(t => t.style.width = w + 'px'); };
+  const nieuw = ev => Math.max(50, Math.round(w0 + ev.clientX - start));
+  const beweeg = ev => { const w = nieuw(ev); th.style.width = w + 'px'; tab.style.width = (som0 - w0 + w) + 'px'; };
   const los = ev => { document.removeEventListener('mousemove', beweeg); document.removeEventListener('mouseup', los); document.body.classList.remove('slepend');
     window._negeerKlik = Date.now();
-    if(Math.abs(ev.clientX - start) > 2) zetBreedtes({...kolBreedte, [k]: Math.max(50, Math.round(w0 + ev.clientX - start))}); };
+    if(Math.abs(ev.clientX - start) > 2) zetBreedtes({...vast, ...kolBreedte, [k]: nieuw(ev)}); else teken(); };
   document.addEventListener('mousemove', beweeg); document.addEventListener('mouseup', los);
 });
 // dubbelklik op de rand: deze kolom passend maken
@@ -1054,8 +1075,8 @@ function tabel(id, l, opties = {}){
   if(s){ const c = KOLOMMEN.find(c => c.k === s.k); l = [...l].sort((a, b) => { const x = c.w(a), y = c.w(b); return (x < y ? -1 : x > y ? 1 : 0) * s.op || (+b.aangemaakt || 0) - (+a.aangemaakt || 0); }); }
   const max = opties.max && !blokOpen.has(id) ? opties.max : 400, zicht = l.slice(0, max);
   tabelVolgorde[id] = l.map(x => String(x.nr));   // voor vorige/volgende in het ticket: de hele lijst in deze volgorde, ook wat (nog) niet getoond wordt
-  return `<div class="tw"><table class="tabel" data-tabel="${id}"><thead><tr>${kol.map(c => `<th data-sort="${c.k}" ${breedteVan(c) ? `style="width:${breedteVan(c)}"` : ''} class="${c.cls.replace(/\b(nr|ond|sig|zacht)\b/g, '')}" ${s && s.k === c.k ? `aria-sort="${s.op > 0 ? 'ascending' : 'descending'}"` : ''}>${c.t}${s && s.k === c.k ? `<span class="pijl">${s.op > 0 ? '▲' : '▼'}</span>` : ''}${c.k === 'ond' ? '' : `<span class="kolgreep" data-greep="${c.k}" title="Sleep om de breedte aan te passen · dubbelklik = passend"></span>`}</th>`).join('')}</tr>
-    <tr class="kolfilter">${kol.map(c => `<th class="${c.cls.replace(/\b(nr|ond|sig|zacht)\b/g, '')}"><input size="3" data-kf="${c.k}" ${KEUZE.has(c.k) ? 'data-keuze autocomplete="off"' : ''} value="${esc(kf[c.k] || '')}" placeholder="${KEUZE.has(c.k) ? 'Alle ▾' : 'Filter…'}" aria-label="Filter op ${c.t}" class="${kf[c.k] ? 'aan' : ''}"></th>`).join('')}</tr></thead>
+  return `<div class="tw"><table class="tabel" data-tabel="${id}"><thead><tr>${kol.map(c => `<th data-sort="${c.k}" ${breedteVan(c) ? `style="width:${breedteVan(c)}"` : ''} class="${c.cls.replace(/(^|\s)(nr|ond|sig|zacht)(?=\s|$)/g, '$1').trim()}" ${s && s.k === c.k ? `aria-sort="${s.op > 0 ? 'ascending' : 'descending'}"` : ''}>${c.t}${s && s.k === c.k ? `<span class="pijl">${s.op > 0 ? '▲' : '▼'}</span>` : ''}<span class="kolgreep" data-greep="${c.k}" title="Sleep om de breedte aan te passen · dubbelklik = passend"></span></th>`).join('')}</tr>
+    <tr class="kolfilter">${kol.map(c => `<th class="${c.cls.replace(/(^|\s)(nr|ond|sig|zacht)(?=\s|$)/g, '$1').trim()}"><input size="3" data-kf="${c.k}" ${KEUZE.has(c.k) ? 'data-keuze autocomplete="off"' : ''} value="${esc(kf[c.k] || '')}" placeholder="${KEUZE.has(c.k) ? 'Alle ▾' : 'Filter…'}" aria-label="Filter op ${c.t}" class="${kf[c.k] ? 'aan' : ''}"></th>`).join('')}</tr></thead>
     <tbody>${!zicht.length ? `<tr class="geenrij"><td colspan="${kol.length}">Geen tickets met deze filters. <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></td></tr>` : ''}${zicht.map(x => `<tr draggable="${x.afgesloten ? 'false' : 'true'}" class="${KLEUR[ernst(x)]}${x.afgesloten ? ' dicht' : ''}${(x._sg || []).some(s => s.code === 'ongelezen') ? ' ongelezen' : ''}" data-nr="${esc(x.nr)}">${kol.map(c => `<td class="${c.cls}"${c.k === 'sig' ? '' : ` title="${esc(kolTekst(c, x))}"`}>${c.html(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
     ${actief.length ? `<p class="filterinfo">${l.length} van ${totaal} na filteren · <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></p>` : ''}
     ${l.length > max ? `<button type="button" class="meer" data-blok="${id}">${blokOpen.has(id) ? 'Minder tonen' : `Alle ${l.length} tonen`}</button>` : ''}`;
@@ -1236,6 +1257,7 @@ function teken(){
   tekenNav();
   $('#v-mij').hidden = tab !== 'mij'; $('#v-lijst').hidden = tab === 'mij';
   if(tab === 'mij'){ $('#titel').textContent = 'Overzicht'; tekenMij(); } else tekenLijst();
+  pasTabelBreedtes();
 }
 
 /* ================= ticketscherm: bekijken, reageren, workflowactie ================= */
@@ -1309,7 +1331,7 @@ function rijIntern(r, sbid, tekst){
 }
 const rijNaarReactie = (r, sbid) => { const k = reactieKol, tekst = kaal(r[k.tekst]); return {t: datum(r[k.datum]), tekst, wie: wieNaam(String(r[k.wie] ?? '').trim()), intern: rijIntern(r, sbid, tekst), rid: k.rid ? String(r[k.rid] ?? '') : ''}; };
 // heeft ICT (iemand anders dan de melder) ooit een zichtbare reactie gegeven?
-const ictReageerde = (x, l) => l.some(r => r.tekst && !r.intern && norm(r.wie) !== norm(x.melder));
+const ictReageerde = (x, l) => l.some(r => r.tekst && !r.intern && (norm(r.wie) !== norm(x.melder) || ictPersoon(x, r.wie)));
 async function haalReacties(x){
   if(!x.sbid) throw new Error('Het interne nummer (Dossieritem) van dit ticket is niet gevonden in ' + INST.connTickets + '.');
   const k = await zorgReactieKol(), d = await afas(`/connectors/${encodeURIComponent(INST.connReacties)}?skip=0&take=500${filterOp(k.sbid, x.sbid)}`);
@@ -2022,7 +2044,7 @@ async function kiesMedewerkerConnector(){
 let medewerkers = null, medewerkerFout = '', medewerkerConn = '', medewerkerKolDiag = '';
 async function laadMedewerkers(){
   if(medewerkers) return medewerkers;
-  if(DEMO) return (medewerkers = [['Robert','van der','Veen'],['Anouk','de','Vries'],['Kelly','','Groen'],['Glenn','','Brons'],['Daphne','van de','Weert'],['Teun','','Kessels'],['Wilma','','Balm'],['Bianca','van den','Berg'],['Guillonard','','Leer'],['Steven','van','Dijk'],['Anouk','van','Riel']].map(([v, t, a], i) => ({id: String(488760 + i), naam: `${a}, ${[v, t].filter(Boolean).join(' ')}`, vol: [v, t, a].filter(Boolean).join(' '), oe: ['ICT','Radiologie','Zorgadministratie','Maag Darm'][i % 4]})).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
+  if(DEMO) return (medewerkers = [['Robert','van der','Veen'],['Anouk','de','Vries'],['Kelly','','Groen'],['Glenn','','Brons'],['Daphne','van de','Weert'],['Teun','','Kessels'],['Wilma','','Balm'],['Bianca','van den','Berg'],['Guillonard','','Leer'],['Steven','van','Dijk'],['Anouk','van','Riel']].map(([v, t, a], i) => ({id: String(488760 + i), oe: i === 0 ? 'Manager Digitale Zorg en ICT' : ['Artsen DC Klinieken Almere','Doktersassistenten DC Klinieken Amsterdam','Medewerkers DC Klinieken Breda','Radiodiagnostisch laborant DC Klinieken Utrecht','Balie DC Klinieken Hanzeplein'][i % 5], naam: `${a}, ${[v, t].filter(Boolean).join(' ')}`, vol: [v, t, a].filter(Boolean).join(' ')})).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
   medewerkerConn = await kiesMedewerkerConnector();
   const rijen = await connectorAlles(medewerkerConn), k = medewerkerKolommen(Object.keys(rijen[0] || {}));
   const t = v => String(v ?? '').trim();
@@ -2035,8 +2057,40 @@ async function laadMedewerkers(){
   const vandaag = beginDag(new Date());
   const inDienst = r => { if(k.blokK && ja(r[k.blokK])) return false;   // geblokkeerd en uit dienst niet tonen
     if(!k.uitK || !r[k.uitK]) return true; const d = datum(r[k.uitK]); return !d || +d >= +vandaag; };
-  const uniek = new Map(); rijen.filter(inDienst).forEach(r => { const id = t(r[k.idK]), n = naamVan(r); if(id && n.label && !uniek.has(id)) uniek.set(id, {id, naam: n.label, vol: n.vol, oe: k.oeK ? t(r[k.oeK]) : ''}); });
+  // vestiging van de medewerker (zodra de beheerder dat veld aan de connector toevoegt): voorstel voor Locatie bij een nieuwe melding
+  const locK = Object.keys(rijen[0] || {}).find(c => /^(locatie|standplaats|werklocatie|werkplek|vestiging)/i.test(c.replace(/_/g, ' ')));
+  const uniek = new Map(); rijen.filter(inDienst).forEach(r => { const id = t(r[k.idK]), n = naamVan(r); if(id && n.label && !uniek.has(id)) uniek.set(id, {id, naam: n.label, vol: n.vol, oe: k.oeK ? t(r[k.oeK]) : '', loc: locK ? t(r[locK]) : ''}); });
   return (medewerkers = [...uniek.values()].sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
+}
+// werklocatie van de medewerker koppelen aan één keuze uit de Locatie-lijst: volledig of deels gelijk, maar alleen als er precies één kandidaat is
+const LOC_RUIS = new Set(['dc','dck','klinieken','kliniek','locatie','vestiging','polikliniek','poli','b.v.','bv','de','het','van']);
+function locMatch(waarde, opties){
+  const w = norm(waarde); if(!w || !opties.length) return null;
+  const naam = o => norm(o.textContent);
+  const een = l => l.length === 1 ? l[0] : null;
+  const exact = opties.filter(o => naam(o) === w); if(exact.length) return een(exact);
+  let deel = opties.filter(o => naam(o).includes(w) || w.includes(naam(o)));
+  // "Amsterdam" en "Amsterdam Zuidoost" passen allebei in "… Amsterdam Zuidoost": dan de langste, als de rest daar volledig in zit
+  if(deel.length > 1){ const lang = [...deel].sort((a, b) => naam(b).length - naam(a).length)[0]; if(deel.every(o => o === lang || naam(lang).includes(naam(o))) && w.includes(naam(lang))) deel = [lang]; }
+  if(deel.length) return een(deel);
+  // losse woorden (zonder algemene woorden als "DC" of "Kliniek"): de optie met de meeste gedeelde woorden, alleen bij een duidelijke winnaar
+  const woorden = t => t.split(/[^a-z0-9à-ü]+/i).filter(x => x.length >= 3 && !LOC_RUIS.has(x));
+  const ww = new Set(woorden(w)); if(!ww.size) return null;
+  const score = opties.map(o => ({o, n: woorden(naam(o)).filter(x => ww.has(x)).length})).filter(x => x.n > 0).sort((a, b) => b.n - a.n);
+  return score.length && (score.length === 1 || score[0].n > score[1].n) ? score[0].o : null;
+}
+// waar werkt de medewerker: een eigen locatieveld, anders de vestiging uit de organisatorische eenheid ("Artsen DC Klinieken Voorschoten" → "Voorschoten")
+// OE zonder "DC Klinieken <vestiging>" (stafafdelingen zoals "Manager Digitale Zorg en ICT") = hoofdkantoor
+const locBron = m => m.loc || ((String(m.oe || '').match(/dc\s*klinieken\s+(.+)$/i) || [])[1]) || (m.oe ? INST.hoofdkantoor || '' : '');
+// Locatie voorstellen op basis van de melder; alleen als de registreerder zelf nog niets koos
+function stelLocatieVoor(m){
+  const f = $('#n-form'), sel = f && f.loc; if(!sel || !m) return;
+  const hint = () => { let h = $('#n-loc-hint'); if(!h){ sel.insertAdjacentHTML('afterend', '<span class="hint" id="n-loc-hint"></span>'); h = $('#n-loc-hint'); } return h; };
+  if(sel.value && sel.dataset.auto !== '1') return;   // zelf gekozen: niet overschrijven
+  const o = locMatch(locBron(m), [...sel.options].filter(o => o.value));
+  if(o){ sel.value = o.value; sel.dataset.auto = '1'; sel.classList.add('voorstel'); hint().textContent = `Voorgesteld: werklocatie van ${m.vol || m.naam}`; }
+  else if(sel.dataset.auto === '1'){ sel.value = ''; sel.dataset.auto = ''; sel.classList.remove('voorstel'); hint().textContent = ''; }   // geen zekere match: niets invullen
+  if(!sel._voorstel){ sel._voorstel = true; sel.addEventListener('change', e => { if(e.isTrusted){ sel.dataset.auto = '0'; sel.classList.remove('voorstel'); const h = $('#n-loc-hint'); if(h) h.textContent = ''; } }); }
 }
 // behandelaar bij een nieuwe melding: zelfde ICT-lijst als bij 'Toewijzen aan collega', standaard leeg
 async function koppelBehandelaar(){
@@ -2072,7 +2126,7 @@ async function koppelMelder(){
   if(!$('#n-melder')) return;
   const ik = (profiel.emId && lijst.find(m => m.id === String(profiel.emId))) || lijst.find(m => benIk(m.vol) || benIk(m.naam));
   const tekst = m => `${m.naam} (${m.id})`;
-  if(ik && inp.dataset.std === '1'){ inp.value = tekst(ik); f.melderId.value = ik.id; if(!profiel.emId){ profiel.emId = ik.id; opslag.set(profielSleutel(), profiel); } }
+  if(ik && inp.dataset.std === '1'){ inp.value = tekst(ik); f.melderId.value = ik.id; if(!profiel.emId){ profiel.emId = ik.id; opslag.set(profielSleutel(), profiel); } stelLocatieVoor(ik); }
   hint.textContent = ik ? `Jij bent de melder (${ik.id}). Klik om iemand anders te kiezen uit ${lijst.length} medewerkers.` : `Jouw medewerkernummer is niet gevonden; kies de melder uit de lijst (${lijst.length} medewerkers).`;
   hint.title = medewerkerConn ? `Bron: GetConnector ${medewerkerConn} (kolommen: ${medewerkerKolDiag})` : '';
   // net als in AFAS: jijzelf en de laatst gekozen melders bovenaan
@@ -2080,7 +2134,7 @@ async function koppelMelder(){
     const boven = [...new Set([ik, ...recent].filter(Boolean))];
     const als = (m, recent) => ({waarde: tekst(m), sub: m.oe, id: m.id, zoek: m.vol + ' ' + m.id, recent});
     return [...boven.map(m => als(m, true)), ...lijst.filter(m => !boven.includes(m)).map(m => als(m))]; };
-  comboKoppel(inp, items, keus => { inp.value = keus.waarde; f.melderId.value = keus.id; inp.dataset.std = '0'; hint.textContent = ik && keus.id === ik.id ? 'Jij bent de melder.' : 'Melder gekozen. Klik om iemand anders te kiezen.'; },
+  comboKoppel(inp, items, keus => { inp.value = keus.waarde; f.melderId.value = keus.id; inp.dataset.std = '0'; stelLocatieVoor(lijst.find(m => m.id === keus.id)); hint.textContent = ik && keus.id === ik.id ? 'Jij bent de melder.' : 'Melder gekozen. Klik om iemand anders te kiezen.'; },
     () => { f.melderId.value = ''; inp.dataset.std = '0'; hint.textContent = 'Kies de melder uit de lijst.'; });
   inp.addEventListener('focus', () => inp.select());
 }
