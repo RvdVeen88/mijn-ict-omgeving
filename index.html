@@ -384,7 +384,7 @@ select.afdkeuze.gewijzigd{background-color:var(--lichtblauw-2);border-bottom-sty
 dialog.vraagdlg{width:min(440px, calc(100vw - 32px))}
 dialog.vraagdlg .dlg-in{gap:10px;padding:24px 26px 20px}
 dialog.vraagdlg h2{font-size:18px;color:var(--blauw)}
-dialog.vraagdlg p{margin:0;color:var(--grijs);line-height:1.5}
+dialog.vraagdlg p{margin:0;color:var(--grijs);line-height:1.5;white-space:pre-line;overflow-wrap:anywhere;user-select:text}
 .vraag-knoppen{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
 .knop.vol.gevaar{background:var(--rood);border-color:var(--rood);color:#fff}
 .afdbevestig{display:inline-flex;align-items:center;gap:8px;margin-left:10px}
@@ -659,7 +659,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.86 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.88 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -718,7 +718,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.86';
+const VERSIE = 'v3.88';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -885,7 +885,7 @@ function maakItem(r, extra){
   const veld = re => { const k = Object.keys(r).find(k => re.test(k)); return k ? String(r[k] ?? '').trim() : ''; };
   x.toelichting = veld(/^toelichting/i); x.locatie = veld(/^locatie$/i);
   // de melder is in AFAS de sollicitant; Omschrijving_2 is soms de registreerder (bv. Glenn die een mail invoert)
-  const soll = sollCache.get(String(x.nr)) || veld(/^(naam_?)?sollicitant/i); if(soll) x.melder = soll;
+  const soll = sollCache.get(String(x.nr)) || sollNaam(r); if(soll) x.melder = soll;
   x.zorgadmin = lijst(INST.afdVerbergen).includes(norm(x.afdeling));
   x.inuit = /(^|\s)(in|uit)[\s-]*dienst/i.test(x.soort);
   x.emmer = emmer(x.status);
@@ -951,7 +951,14 @@ async function haalMijnTaken(){
 /* interne nummers (Dossieritem) alleen ophalen voor de tickets waar we ze nodig hebben */
 const sbCache = new Map();
 const toelCache = new Map();   // toelichting per ticketnummer, komt mee met het opzoeken van het interne nummer in Helpdesk_PowerBI
-const sollCache = new Map();   // melder = sollicitant (veld Sollicitant_3 in Helpdesk_PowerBI) per ticketnummer
+const sollCache = new Map();
+// naam van de sollicitant: Sollicitant_3 (naam); andere Sollicitant-velden kunnen ja/nee of een nummer zijn
+function sollNaam(r){
+  const keys = Object.keys(r).filter(k => /^sollicitant/i.test(k)); if(!keys.length) return null;
+  const isNaam = v => typeof v === 'string' && /[a-z]/i.test(v) && !/^(true|false|ja|nee)$/i.test(v.trim());
+  const k = keys.find(k => /^sollicitant_3$/i.test(k) && isNaam(r[k])) || keys.find(k => isNaam(r[k]));
+  return k ? String(r[k]).trim() : '';
+}   // melder = sollicitant (veld Sollicitant_3 in Helpdesk_PowerBI) per ticketnummer
 const instCache = new Map();   // instuurder (veld Gebruiker in Helpdesk_PowerBI) per ticketnummer
 const locCache = new Map();   // locatie per ticketnummer uit Helpdesk_PowerBI (als de SLA-connector geen Locatie heeft)
 async function sbIdsVoor(veld, waarden){
@@ -963,7 +970,7 @@ async function sbIdsVoor(veld, waarden){
         const tk = Object.keys(r).find(k => /^toelichting/i.test(k)); if(tk) toelCache.set(String(r.Nummer), kaal(r[tk]));
         const lk = Object.keys(r).find(k => /^locatie$/i.test(k)); if(lk) locCache.set(String(r.Nummer), String(r[lk] ?? '').trim());
         const gk = Object.keys(r).find(k => /^gebruiker$/i.test(k)); if(gk) instCache.set(String(r.Nummer), String(r[gk] ?? '').trim());
-        const sk = Object.keys(r).find(k => /^sollicitant/i.test(k)); if(sk) sollCache.set(String(r.Nummer), String(r[sk] ?? '').trim()); }); }catch(e){}
+        const sn = sollNaam(r); if(sn !== null) sollCache.set(String(r.Nummer), sn); }); }catch(e){}
   }
   return uit;
 }
@@ -1494,12 +1501,14 @@ function teken(){
 /* ================= ticketscherm: bekijken, reageren, workflowactie ================= */
 const actieCache = {};
 let zichtVeld, zichtDiag = '';   // veld in KnSubjectWorkflowReaction voor zichtbaarheid; undefined = nog niet gezocht
+let wfVelden = [];   // velden van KnSubjectWorkflowReaction (metainfo)
 async function zoekZichtVeld(){
   if(zichtVeld !== undefined) return zichtVeld;
   zichtVeld = null;
   try{ const m = await afas('/metainfo/update/KnSubjectWorkflowReaction');
     const velden = []; (function loop(o){ if(!o || typeof o !== 'object') return; if(Array.isArray(o)) return o.forEach(loop);
       if(o.fieldId && o.label) velden.push(o); Object.values(o).forEach(loop); })(m);
+    wfVelden = velden;
     const v = velden.find(f => /zichtbaar/i.test(f.label)) || velden.find(f => /extern|intern/i.test(f.label));
     zichtDiag = v ? `veld ${v.fieldId} (${v.label}), type ${v.dataType || '?'}, waarden: ${JSON.stringify(v.values || [])}` : 'geen veld voor zichtbaarheid gevonden in KnSubjectWorkflowReaction';
     if(v){
@@ -1539,7 +1548,7 @@ async function workflow(x){
     // per taak ophalen (gefilterd in AFAS); 'alle acties in één keer' bleek onvolledig bij veel workflows
     if(!actieCache[k]){ const rij = (await afas(`/connectors/${INST.connActies}?skip=0&take=500${filterOp('TaskName', t.TaskName)}`)).rows || [];
       actieCache[k] = rij.filter(a => !a.WorkflowName || a.WorkflowName === t.WorkflowName).sort((a, b) => (a.SeqNo || 0) - (b.SeqNo || 0))
-        .map(a => ({naam:a.ActionDescription, afhandelen: +a.ActionType === 1, wf:t.WorkflowName, tk:t.TaskName, ac:a.ActionName})); }
+        .map(a => ({naam:a.ActionDescription, afhandelen: +a.ActionType === 1, type: +a.ActionType, typeOms: String(a.ActionTypeDescription || ''), wf:t.WorkflowName, tk:t.TaskName, ac:a.ActionName})); }
     return actieCache[k]; };
   const uniek = [...new Map(taken.map(t => [t.WorkflowName + '|' + t.TaskName, t])).values()];
   const metActies = await Promise.all(uniek.map(async t => ({t, acties: await actiesVan(t)})));
@@ -2594,6 +2603,23 @@ async function zetAfdelingVeld(x, naam){
 /* Opslaan in het ticket: afdeling, gekozen actie en reactie in één keer */
 /* ---- AFAS-workflowacties uitvoeren, zodat de berichtsjablonen (mails vanuit noreply@) net als in InSite meegaan ---- */
 const zichtVelden = notitie => { const zv = zichtVeld; return zv ? {[zv.code]: zv.soort === 'lijst' ? (notitie ? zv.intern : zv.extern) : (zv.omgekeerd ? notitie : !notitie)} : {}; };
+/* toewijzen via de workflow: bij 'Delegeren'/'Doorsturen' wil AFAS weten naar wie; dat veld zoeken we in de metainfo */
+async function toewijsActie(x, ikZelf, wie){
+  const wf = await workflow(x), re = ikZelf ? /toewijzen aan mij|in behandeling nemen|oppakken/i : /toewijzen aan collega|doorzetten naar collega|collega/i;
+  const a = wf.acties.find(a => re.test(a.naam)); if(!a) return null;
+  await zoekZichtVeld();
+  const extra = {};
+  const naarVeld = !ikZelf && (a.type === 2 || a.type === 3 || /deleg|doorst/i.test(a.typeOms)) ? wfVelden.find(f => !/^(SbId|WfNm|TkNm|AcNm|Tx)$/i.test(f.fieldId) && (!zichtVeld || f.fieldId !== zichtVeld.code) && /gebruiker|medewerker|deleg|doorst|toewij|ontvanger|naar/i.test(f.label)) : null;
+  if(naarVeld) extra[naarVeld.fieldId] = wie.code;
+  try{
+    await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body: JSON.stringify({KnWorkflow:{Element:{Fields:{SbId: isNaN(+x.sbid) ? x.sbid : +x.sbid, WfNm:a.wf, TkNm:a.tk, AcNm:a.ac, ...extra}}}})});
+  }catch(e){
+    const velden = wfVelden.map(f => `${f.fieldId} (${f.label})`).join(', ');
+    console.warn('Toewijzen mislukt', {actie: a, extra, velden: wfVelden});
+    throw new Error(`actie "${a.naam}" (type ${a.type || '?'} ${a.typeOms || ''})${naarVeld ? `, naar ${naarVeld.fieldId}=${wie.code}` : ', zonder ontvanger'}: ${String(e.message).replace(/\.+$/, '')}. Velden in KnSubjectWorkflowReaction: ${velden || 'onbekend'}`);
+  }
+  return a.naam;
+}
 async function wfActie(x, kies, extra = {}, objecten = null){
   // altijd de actuele taak ophalen: na een vorige actie kan de workflow al een stap verder zijn
   const wf = await workflow(x), a = typeof kies === 'function' ? wf.acties.find(kies) : wf.acties.find(a => kies.test(a.naam));
@@ -2641,7 +2667,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){
   if(notitie && tekst){ await zoekZichtVeld(); if(!zichtVeld){ $('#d-fout').textContent = `Interne notitie kan niet worden geplaatst: de pagina weet niet hoe AFAS "intern" wil hebben (${zichtDiag}).`; return; } }
   document.querySelectorAll('#detail button, #detail select, #detail input').forEach(b => b.disabled = true); $('#d-fout').textContent = '';
   const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect:$('#detail').getBoundingClientRect()};
-  const lok = {}, gedaan = [], viaActie = [], zonderMail = [];
+  const lok = {}, gedaan = [], viaActie = [], zonderMail = []; let toewijsFout = '';
   let gok = false, stap = '';
   try{
     if(!DEMO) await zorgSbId(x); if(!x.sbid) throw new Error('Het interne nummer van dit ticket is onbekend.');
@@ -2657,7 +2683,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){
     if(nieuweVerantw){ stap = 'verantwoordelijke'; const m = await laadSubjMeta(); if(!m.verantw) throw new Error('Het veld Verantwoordelijke is niet gevonden in AFAS.');
       await zetVelden(x, {[veldCode(m.verantw)]: nieuweVerantw.code}); lok.verantw = nieuweVerantw.naam;
       const ikZelf = benIk(nieuweVerantw.naam) || (profiel.alias || []).some(a => norm(a) === norm(nieuweVerantw.code));
-      const n = await wfActie(x, ikZelf ? /toewijzen aan mij|in behandeling nemen|oppakken/i : /toewijzen aan collega|doorzetten naar collega|collega/i).catch(e => { zonderMail.push('toewijzen (' + e.message + ')'); return ''; });
+      const n = await toewijsActie(x, ikZelf, nieuweVerantw).catch(e => { toewijsFout = e.message; return ''; });
       if(n){ viaActie.push(n); if(!ikZelf) logMail(x, nieuweVerantw.naam, 'ticket aan hem/haar toegewezen', n); } else if(n === null) zonderMail.push('toewijzen');
       gedaan.push(ikZelf ? 'aan jou toegewezen' : 'toegewezen aan ' + nieuweVerantw.naam); }
     // 4. geplande datum: veld en, als die er is, de actie Inplannen
@@ -2691,7 +2717,8 @@ async function opslaanAlles(knopActie = null, sluiten = true){
     logHistorie(x, gedaan.join(' · '));
     const mail = viaActie.length ? ` · ✉ via AFAS-actie: ${[...new Set(viaActie)].join(', ')}` : '';
     const waarsch = zonderMail.length ? ` · geen AFAS-actie gevonden voor ${zonderMail.join(', ')} (geen mail verstuurd)` : '';
-    toast(`Ticket ${x.nr}: ${gedaan.join(' · ')}${mail}${waarsch}`, !!zonderMail.length);
+    toast(`Ticket ${x.nr}: ${gedaan.join(' · ')}${mail}${waarsch}`, !!zonderMail.length && !toewijsFout);
+    if(toewijsFout) await vraag('Toewijzen: alleen het veld is aangepast', `Verantwoordelijke staat nu op ${lok.verantw}, maar de AFAS-workflowactie voor toewijzen gaf een fout. ${lok.verantw} krijgt daardoor geen taak en geen mail vanuit AFAS.\n\nAFAS-melding: ${toewijsFout}\n\nMaak een screenshot van dit venster voor de beheerder.`, 'OK', '');
     onthoudLokaal(x, lok, gok ? 20e3 : undefined); teken();
     if(sluiten) toonVerplaatsing(voor); else openDetail(x.nr);   // Opslaan: ticket opnieuw tonen met de nieuwe stand
     naAchtergrond();
@@ -2950,7 +2977,7 @@ function vraag(titel, tekst, ja = 'OK', nee = 'Annuleren', gevaar = false){
   return new Promise(klaar => {
     const d = $('#vraag');
     d.innerHTML = `<div class="dlg-in"><h2>${esc(titel)}</h2>${tekst ? `<p>${esc(tekst)}</p>` : ''}
-      <div class="vraag-knoppen"><button type="button" class="knop" data-v="nee">${esc(nee)}</button><button type="button" class="knop vol ${gevaar ? 'gevaar' : ''}" data-v="ja">${esc(ja)}</button></div></div>`;
+      <div class="vraag-knoppen">${nee ? `<button type="button" class="knop" data-v="nee">${esc(nee)}</button>` : ''}<button type="button" class="knop vol ${gevaar ? 'gevaar' : ''}" data-v="ja">${esc(ja)}</button></div></div>`;
     const af = w => { d.onclick = null; d.oncancel = null; d.close(); klaar(w); };
     d.onclick = e => { const b = e.target.closest('[data-v]'); if(b) af(b.dataset.v === 'ja'); else if(e.target === d) af(false); };
     d.oncancel = e => { e.preventDefault(); af(false); };
@@ -3392,7 +3419,7 @@ function demoAfas(pad, opties){
     add(12612, 'Licentie scansoftware verlopen', 'In afwachting leverancier', mens[0], {cat:'Software', reactie:d(15), wijz:d(15)});
     add(12611, 'Outlook-handtekening', 'Afgehandeld', mens[0], {af:true, wijz:d(3)});
     for(let i = 0; i < 18; i++) add(12620 + i, ['Wachtwoord resetten','Scanner leest niet','Wifi valt weg','Telefoon doorschakelen'][i % 4], i % 3 ? 'In behandeling' : 'Afgehandeld', mens[i % 5], {af:!(i % 3), cat:['Werkplek','Netwerk','Telefonie'][i % 3], afd:['ICT','Radiologie','AFAS','InPlanning','Maag Darm','Huid en Allergie','Power BI'][i % 7], wijz:d(i % 4)});
-    window._demo = {sla:r, tickets:r.map(x => ({Nummer:x.Nummer, Dossieritem:400000 + x.Nummer, Gebruiker: x.Nummer % 3 ? x.Omschrijving_2 : 'Glenn Brons', Sollicitant_3: x.Nummer % 3 ? x.Omschrijving_2 : 'Moebiena Mahabali'})), taken:[{SubjectId:412605, TaskDescription:'Behandelen ICT', UserName:mens[0]}]};
+    window._demo = {sla:r, tickets:r.map(x => ({Nummer:x.Nummer, Dossieritem:400000 + x.Nummer, Gebruiker: x.Nummer % 3 ? x.Omschrijving_2 : 'Glenn Brons', Sollicitant: true, Sollicitant_3: x.Nummer % 3 ? x.Omschrijving_2 : 'Moebiena Mahabali'})), taken:[{SubjectId:412605, TaskDescription:'Behandelen ICT', UserName:mens[0]}]};
   }
   const D = window._demo;
   return new Promise(res => setTimeout(() => res(demoRijen(D, pad)), 350));
