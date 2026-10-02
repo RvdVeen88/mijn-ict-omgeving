@@ -719,7 +719,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.00 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.01 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -778,7 +778,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.00';
+const VERSIE = 'v4.01';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1044,9 +1044,16 @@ async function zorgSbId(x){
   if(sbCache.has(String(x.nr))) return x.sbid = sbCache.get(String(x.nr));
   const m = await sbIdsVoor('Nummer', [x.nr]); return x.sbid = m.get(String(x.nr)) ?? null;
 }
-async function laadGegevens(fase = 'open'){
-  $('#live').classList.add('uit'); $('#bijgewerkt').textContent = 'Bezig met verversen…';
-  const vg = maakVoortgang([INST.connSla + '|' + fase], laadScherm); vg.begin();
+/* gegevens verversen. stil = op de achtergrond (na opslaan, elke paar minuten): zonder laadbalk.
+   Loopt er al een verversing, dan wachten we die af in plaats van een tweede te starten. */
+let laadBezig = null;
+function laadGegevens(fase = 'open', stil = false){
+  if(laadBezig){ if(!stil) $('#topbalk').classList.add('aan'); return laadBezig; }
+  return laadBezig = laadGegevensEcht(fase, stil).finally(() => { laadBezig = null; });
+}
+async function laadGegevensEcht(fase, stil){
+  if(!stil){ $('#live').classList.add('uit'); $('#bijgewerkt').textContent = 'Bezig met verversen…'; }
+  const vg = maakVoortgang([INST.connSla + '|' + fase], stil ? () => {} : laadScherm); vg.begin();
   const mee = (rijen, klaar) => vg.stap(INST.connSla + '|' + fase, rijen, klaar);
   try{
     let sla = null;
@@ -1062,7 +1069,7 @@ async function laadGegevens(fase = 'open'){
     if(fase === 'alles'){ alleGeladen = true; alleDichtGeladen = true; }
     status = {bijgewerkt: new Date(), fout: null};
     vg.stop(); $('#live').classList.remove('uit'); laadScherm(100, 0, 0);
-  }catch(e){ vg.stop(); status.fout = e.message; toast('Laden mislukt: ' + e.message, true); $('#topbalk').classList.remove('aan'); }
+  }catch(e){ vg.stop(); status.fout = e.message; if(!stil) toast('Laden mislukt: ' + e.message, true); $('#topbalk').classList.remove('aan'); }
   $('#bijgewerkt').textContent = status.fout ? 'Laden mislukt: ' + status.fout : 'Live · bijgewerkt om ' + fmtTijd(status.bijgewerkt);
   return fase;
 }
@@ -1621,7 +1628,7 @@ function pasLokaalToe(){
     x.zoek = norm([x.nr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.emma, ...(x.taakBij || [])].join(' '));
   });
 }
-const naAchtergrond = () => { setTimeout(async () => { await laadGegevens(); if(!$('#detail').open) teken(); }, 4000); setTimeout(async () => { await laadGegevens(); if(!$('#detail').open) teken(); }, 15000); };
+const naAchtergrond = () => { setTimeout(async () => { await laadGegevens('open', true); if(!$('#detail').open) teken(); }, 4000); setTimeout(async () => { await laadGegevens('open', true); if(!$('#detail').open) teken(); }, 15000); };
 function teken(){
   if(!profiel) return;
   pasLokaalToe();
@@ -1981,7 +1988,7 @@ function tekenHistorie(){
       return `<tr ${h.nr && x ? `data-nr="${esc(h.nr)}"` : ''} class="${x && x.afgesloten ? 'dicht' : ''}" title="${esc(h.regels.map(r => tijd(r.t) + ': ' + r.wat).join('\n'))}"><td class="zacht">${tijd(r0.t)}</td><td class="nr">${esc(h.nr || '–')}</td><td class="ond">${esc(h.ond)}</td><td>${esc(r0.wat)}${h.regels.length > 1 ? ` <small class="hint">+${h.regels.length - 1} eerder</small>` : ''}</td><td class="zacht">${x ? esc(x.afgesloten ? 'Afgehandeld' : toonStatus(x.status) || 'Open') : '<span class="hint">nog niet geladen</span>'}</td></tr>`; }).join('')}</tbody></table></div>`;
 }
 function openDetail(nr){
-  navNu = String(nr);
+  navNu = String(nr); document.querySelectorAll('#detail .navpijl').forEach(b => b.disabled = false);
   const x = items.find(y => String(y.nr) === String(nr)); if(!x) return; huidig = {x, wf:null};
   x._sg = signalen(x); markeerGelezen(x);
   const st = stapVan(x);
@@ -2572,7 +2579,7 @@ async function maakMelding(){
     const sbid = JSON.stringify(antw).match(/"@?SbId"\s*:\s*"?(\d+)/i)?.[1] || '';
     const knop = $('#nieuw-knop').getBoundingClientRect();
     $('#nieuw').close(); toast(`Melding aangemaakt${sbid ? ' (dossieritem ' + sbid + ')' : ''}`);
-    await laadGegevens(); teken();
+    await laadGegevens('open', true); teken();
     // meldingnummer bij het dossieritem zoeken, zodat je het nieuwe melding meteen ziet
     let nr = '';
     if(sbid && !DEMO){ try{ const m = await sbIdsVoor('Dossieritem', [sbid]); nr = [...m.entries()].find(([, v]) => String(v) === String(sbid))?.[0] || ''; }catch(e){} }
@@ -2583,7 +2590,7 @@ async function maakMelding(){
       if(doel) vlieg({nr: x.nr, ond, rect: knop}, doel, x.emmer === 'nieuw' ? 'Nieuwe meldingen' : 'Alle open meldingen');
       toast(`Melding ${x.nr} aangemaakt`); setTimeout(() => openDetail(x.nr), 900); }
     else { toast(`Melding aangemaakt${nr ? ' als melding ' + nr : ''}. AFAS toont hem binnen een paar minuten in de lijst.`);
-      setTimeout(async () => { await laadGegevens(); teken(); }, 60000); }
+      setTimeout(async () => { await laadGegevens('open', true); teken(); }, 60000); }
   }catch(e){
     fout.textContent = e.message + (/sollicitant|bestemming|melder|KnSubjectLink/i.test(e.message) ? ' Vul het medewerkernummer van de melder in.' : '');
     f.querySelectorAll('button, input, select, textarea').forEach(b => b.disabled = false);
@@ -2858,7 +2865,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){
   if(act && soortActie(act) === 'plannen' && !(nieuwGepland && nieuwGepland.datum) && !x.gepland){ $('#d-fout').textContent = 'Kies eerst bij Gepland de datum van de werkzaamheden.'; return; }
   if(sluitActie(act) && !(await vraag(`Melding ${x.nr} afhandelen?`, 'Het melding wordt afgesloten' + (tekst ? ' en je reactie gaat mee naar de melder.' : '.'), 'Afhandelen', 'Annuleren'))) return;
   if(notitie && tekst){ await zoekZichtVeld(); if(!zichtVeld){ $('#d-fout').textContent = `Interne notitie kan niet worden geplaatst: de pagina weet niet hoe AFAS "intern" wil hebben (${zichtDiag}).`; return; } }
-  document.querySelectorAll('#detail button, #detail select, #detail input').forEach(b => b.disabled = true); $('#d-fout').textContent = '';
+  document.querySelectorAll('#detail button:not(.navpijl), #detail select, #detail input').forEach(b => b.disabled = true); $('#d-fout').textContent = '';
   const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect:$('#detail').getBoundingClientRect()};
   const lok = {}, gedaan = [], viaActie = [], zonderMail = []; let toewijsFout = '';
   let gok = false, stap = '';
@@ -3218,7 +3225,7 @@ const isDonker = () => (document.documentElement.dataset.thema || (matchMedia('(
 $('#k-thema').onclick = () => { document.documentElement.dataset.thema = isDonker() ? 'licht' : 'donker'; opslag.set('mict-thema', document.documentElement.dataset.thema); };
 { const t = opslag.get('mict-thema'); document.documentElement.dataset.thema = t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'donker' : 'licht'); }
 setInterval(() => { $('#klok').textContent = new Date().toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'}) + ' · ' + fmtTijd(new Date()); }, 1000);
-setInterval(async () => { if(!$('#app').hidden && !$('#detail').open){ await laadGegevens(); teken(); await verrijkMelders(); controleerIctReacties(); } }, INST.verversMinuten * 60e3);
+setInterval(async () => { if(!$('#app').hidden && !$('#detail').open){ await laadGegevens('open', true); teken(); await verrijkMelders(); controleerIctReacties(); } }, INST.verversMinuten * 60e3);
 
 
 /* ================= To-do en notities: opgeslagen in een eigen bestand (bijv. in je OneDrive), net als in Mijn changes ================= */
