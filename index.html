@@ -410,7 +410,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Tickets</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.47 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.48 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -455,12 +455,13 @@ const INST = Object.assign({
   soortVeld: 'Omschrijving', slaSoorten: 'Aanvraag ICT', afdVerbergen: 'Zorgadministratie',
   ticketUrl: 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}',   // leeg = geen link
   connReacties: 'Helpdesk_Reacties',
-  nieuwStId: '26',                       // type dossieritem Aanvraag ICT
+  nieuwStId: '26',
+  vrijeVelden: 'KnS38',                  // vrije-veldentabel van type Aanvraag ICT (AFAS weigert velden uit andere KnS-tabellen)                       // type dossieritem Aanvraag ICT
   connMedewerkers: 'PowerBI_ICT_Verjaardag',
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.47';
+const VERSIE = 'v3.48';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1142,12 +1143,13 @@ async function toonToelichting(x){
 async function vulStatusKeuze(x){
   const sel = $('#d-status'); if(!sel) return;
   try{ const m = await laadSubjMeta(); if(!huidig || huidig.x !== x) return;
-    if(!m.status) throw new Error('Het veld Status is niet gevonden in AFAS (KnSubject).');
+    if(!m.status){ const k = m.alle.filter(f => /status/i.test(f.label)).map(f => `${f.label} (${f.pad || 'KnSubject'}/${f.code})`);
+      throw new Error(`Geen statusveld met keuzelijst in KnSubject of ${INST.vrijeVelden}.` + (k.length ? ' Wel gevonden: ' + k.join(', ') : '')); }
     const l = waardenVan(m.status.values), huidigW = l.find(w => norm(w.naam) === norm(x.status) || norm(w.code) === norm(x.status)) || l.find(w => norm(toonStatus(w.naam)) === norm(toonStatus(x.status)));
     sel.innerHTML = (huidigW ? '' : `<option value="">${esc(toonStatus(x.status) || '– kies status –')}</option>`) + l.map(w => `<option value="${esc(w.code)}" ${w === huidigW ? 'selected' : ''}>${esc(toonStatus(w.naam))}</option>`).join('');
     sel.dataset.oud = huidigW ? huidigW.code : '';
     sel.onchange = () => sel.classList.toggle('gewijzigd', !!sel.value && sel.value !== sel.dataset.oud);
-  }catch(e){ sel.disabled = true; sel.title = e.message; }
+  }catch(e){ sel.outerHTML = `<span>${esc(toonStatus(x.status) || '–')}</span> <span class="hint" title="${esc(e.message)}" style="cursor:help">ⓘ niet aan te passen</span>`; }
 }
 async function vulAfdKeuze(x){
   const sel = $('#d-afd'); if(!sel) return;
@@ -1187,8 +1189,8 @@ let subjMeta = null;
 async function laadSubjMeta(){
   if(subjMeta) return subjMeta;
   const alle = velden(await afas('/metainfo/update/KnSubject')).filter(f => f.pad !== 'KnSubjectLink');
-  const st = String(INST.nieuwStId || '');
-  const zoek = (re, extra = () => true) => { const l = alle.filter(f => re.test(norm(f.label)) && extra(f)); return l.find(f => f.pad === 'KnS' + st) || l.find(f => !f.pad || f.pad === 'KnSubject') || l[0]; };
+  const tabel = INST.vrijeVelden || 'KnS38', mag = f => !/^KnS\d+$/.test(f.pad || '') || f.pad === tabel;   // alleen hoofdniveau of de eigen vrije-veldentabel
+  const zoek = (re, extra = () => true) => { const l = alle.filter(f => mag(f) && re.test(norm(f.label)) && extra(f)); return l.find(f => f.pad === tabel) || l[0]; };
   return (subjMeta = {verantw: zoek(/^verantwoordelijke$|^behandelaar$/), gepland: zoek(/werkzaamheden|gepland|planning|inplan/, f => /date/i.test(f.dataType || 'date')),
     status: zoek(/^(externe )?status$/, f => waardenVan(f.values).length > 0), alle});
 }
@@ -1324,11 +1326,12 @@ async function laadNieuwMeta(){
   if(!stId){ const t = typen.find(t => /aanvraag\s*ict/i.test(t.naam)); if(t) stId = t.code; }
   if(!stId){ const obj = [...new Set(alle.map(f => (f.pad.match(/^KnS(\d+)$/) || [])[1]).filter(Boolean))]; if(obj.length === 1) stId = obj[0]; }
   // vrije velden: voorkeur voor het object van dit type (KnS<StId>), anders het eerste dat past
-  const zoek = re => { const l = alle.filter(f => re.test(norm(f.label))); return l.find(f => f.pad === 'KnS' + stId) || l.find(f => !f.pad || f.pad === 'KnSubject') || l[0]; };
+  const tabel = INST.vrijeVelden || 'KnS38', mag = f => !/^KnS\d+$/.test(f.pad || '') || f.pad === tabel;
+  const zoek = re => { const l = alle.filter(f => mag(f) && re.test(norm(f.label))); return l.find(f => f.pad === tabel) || l[0]; };
   const afd = zoek(/^afdeling$/), type = zoek(/^type( ticket)?( ict)?$/) || zoek(/type ticket/);
   const pads = new Set(['', 'KnSubject', ...[afd, type].filter(Boolean).map(f => f.pad)]);
   const bekend = new Set(['StId','Ds','SbTx','SbId'].concat([afd, type].filter(Boolean).map(f => f.code)));
-  const extra = alle.filter(f => f.verplicht && pads.has(f.pad) && !bekend.has(f.code) && !/^(UsId|Da|EmId|SfId|SfTp)$/.test(f.code));
+  const extra = alle.filter(f => f.verplicht && mag(f) && pads.has(f.pad) && !bekend.has(f.code) && !/^(UsId|Da|EmId|SfId|SfTp)$/.test(f.code));
   return (nieuwMeta = {stId, typen, afd, type, extra});
 }
 function keuze(f, naam, std){
