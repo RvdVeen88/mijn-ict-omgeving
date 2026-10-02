@@ -11,6 +11,6 @@ window.MIJNICT_CONFIG = {
   st_afgesloten: 'Afgehandeld, Gesloten, Afgesloten',
   // normen (werkuren/werkdagen, ma-vr 08:00-17:30)
   nieuwUren: 2, opvolgingDagen: 6, melderDagen: 5, leverancierDagen: 5,
-  // link naar het ticket in AFAS; {sbid} wordt vervangen door het interne nummer. Leeg = geen link.
-  ticketUrl: ''
+  // link naar het ticket in AFAS (icoontje rechtsboven in een ticket); {sbid} = intern nummer. Leeg = standaard InSite-link.
+  ticketUrl: 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}'
 };
