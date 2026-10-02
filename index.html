@@ -662,7 +662,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.89 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.90 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -721,7 +721,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.89';
+const VERSIE = 'v3.90';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1729,6 +1729,7 @@ const pasHoogteAan = t => { if(!t) return; t.style.height = 'auto'; t.style.heig
 // automatisch voorstel bij het wijzigen van afdeling, behandelaar, status of planning
 async function autoReactie(){
   if(!huidig) return; const x = huidig.x, delen = [];
+  if(x.melder && benIk(x.melder)){ vraagVoorstel(null); return; }   // je bent zelf de melder: geen update-tekst nodig
   const sel = $('#d-afd'), vs = $('#d-verantw'), ss = $('#d-status'), gs = $('#d-gepland');
   const status = ss && ss.value.startsWith('a:') ? (statusNa(huidig.wf.acties[+ss.value.slice(2)]) || '') : '';
   const nieuwTicket = stapVan(x) === 0 || isNieuw(x);
