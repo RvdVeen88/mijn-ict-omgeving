@@ -453,6 +453,12 @@ dialog#detail.groot .kaart2 select.afdkeuze,dialog#detail.groot .kaart2 input.da
 .todoknop:hover{color:var(--blauw);background:var(--lichtblauw-2)}
 .todoknop svg{width:20px;height:20px}
 .todoknop + .grootknop{margin-left:6px}
+.meldercel{display:flex;align-items:center;gap:6px}
+.melderinfo{border:0;background:none;padding:2px;color:var(--blauw-2);cursor:help;display:grid;place-items:center;border-radius:50%}
+.melderinfo svg{width:16px;height:16px}
+.melderinfo:hover{background:var(--lichtblauw-2)}
+.melderinfo.leeg{color:var(--grijs);opacity:.6}
+#uitleg{white-space:pre-line}
 .tdform{display:flex;flex-direction:column;gap:10px}
 .tdform label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--grijs);font-weight:500}
 .tdform input,.tdform textarea{border:1.5px solid var(--lijn);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;color:var(--inkt);background:var(--vlak)}
@@ -625,7 +631,7 @@ dialog#detail .tijdlijn{min-height:120px}
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.65 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><span class="versie">Mijn ICT-Omgeving v3.67 · 02-10-2026</span></div>
   </div>
 </div>
 
@@ -684,7 +690,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v3.65';
+const VERSIE = 'v3.67';
 
 /* ================= hulpfuncties ================= */
 const $ = s => document.querySelector(s);
@@ -1464,13 +1470,22 @@ async function workflow(x){
   if(DEMO) return {taak:'Behandelen ICT', bij:[profiel.naam], acties:['Afhandelen','Reactie plaatsen','Vraag aan melder','Toewijzen aan mij','Toewijzen aan collega','Wachten op leverancier','Inplannen','Accorderen RFC','Interne release','Externe release','Interne notitie'].map((n, i) => ({naam:n, afhandelen: i === 0 || i === 5, wf:'d', tk:'d', ac:'d' + i}))};
   const taken = (await afas(`/connectors/${INST.connTaken}?skip=0&take=20${filterOp('SubjectId', x.sbid)}`)).rows || [];
   if(!taken.length) return {taak:'', bij:[], acties:[]};
-  const t = taken[0], k = t.WorkflowName + '|' + t.TaskName;
-  if(!actieCache[k]){ let rij = (await laadAlleActies().catch(() => [])).filter(a => a.TaskName === t.TaskName);
-    if(!rij.length) rij = (await afas(`/connectors/${INST.connActies}?skip=0&take=100${filterOp('TaskName', t.TaskName)}`)).rows || [];
-    actieCache[k] = rij
-    .filter(a => !a.WorkflowName || a.WorkflowName === t.WorkflowName).sort((a, b) => (a.SeqNo || 0) - (b.SeqNo || 0))
-    .map(a => ({naam:a.ActionDescription, afhandelen: +a.ActionType === 1, wf:t.WorkflowName, tk:t.TaskName, ac:a.ActionName})); }
-  return {taak: t.TaskDescription || t.WfDescription || '', bij:[...new Set(taken.map(y => y.UserName).filter(Boolean))], acties: actieCache[k]};
+  // een ticket kan meerdere open taken hebben (bv. 'In behandeling' én 'Mail ter info CC'); de acties van alle taken samen,
+  // met de behandeltaak voorop, zodat de status niet beperkt blijft tot de acties van een bijtaak
+  const actiesVan = async t => { const k = t.WorkflowName + '|' + t.TaskName;
+    if(!actieCache[k]){ let rij = (await laadAlleActies().catch(() => [])).filter(a => a.TaskName === t.TaskName);
+      if(!rij.length) rij = (await afas(`/connectors/${INST.connActies}?skip=0&take=100${filterOp('TaskName', t.TaskName)}`)).rows || [];
+      actieCache[k] = rij.filter(a => !a.WorkflowName || a.WorkflowName === t.WorkflowName).sort((a, b) => (a.SeqNo || 0) - (b.SeqNo || 0))
+        .map(a => ({naam:a.ActionDescription, afhandelen: +a.ActionType === 1, wf:t.WorkflowName, tk:t.TaskName, ac:a.ActionName})); }
+    return actieCache[k]; };
+  const uniek = [...new Map(taken.map(t => [t.WorkflowName + '|' + t.TaskName, t])).values()];
+  const metActies = await Promise.all(uniek.map(async t => ({t, acties: await actiesVan(t)})));
+  const isBehandel = t => /behandel/i.test((t.TaskDescription || '') + ' ' + (t.TaskName || ''));
+  metActies.sort((a, b) => (isBehandel(b.t) ? 1 : 0) - (isBehandel(a.t) ? 1 : 0) || b.acties.length - a.acties.length);
+  const acties = [], gezien = new Set();
+  metActies.forEach(({acties: l}) => l.forEach(a => { if(!gezien.has(norm(a.naam))){ gezien.add(norm(a.naam)); acties.push(a); } }));
+  const hoofd = metActies[0].t;
+  return {taak: hoofd.TaskDescription || hoofd.WfDescription || '', taken: metActies.map(m => m.t.TaskDescription || m.t.TaskName), bij:[...new Set(taken.map(y => y.UserName).filter(Boolean))], acties};
 }
 /* reacties uit AFAS (GetConnector Helpdesk_Reacties); kolommen zoeken op hun label */
 let reactieKol = null;
@@ -1643,7 +1658,7 @@ function openDetail(nr){
       ${(() => { const sg = x._sg.filter(s => s.code !== 'onvolledig'); return sg.length ? `<span class="chips" style="margin-left:auto">${sg.map(chip).join('')}</span>` : ''; })()}</div>
     ${!x.afgesloten && isNieuw(x) ? `<div class="checklist" id="d-check">${checklist(x)}</div>` : ''}
     <div class="kaarten">
-      <div class="kaart2"><h3>Melding</h3>${r('Melder', x.melder, {altijd:true})}${r('Type ticket', x.type)}${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}<span>Locatie${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.locatie || '–') : `<select id="d-loc" class="afdkeuze" title="Klik om de locatie te wijzigen"><option value="">${esc(x.locatie || '– kies locatie –')}</option></select>`}</b></div>
+      <div class="kaart2"><h3>Melding</h3><span>Melder</span><b class="meldercel">${esc(x.melder || '–')}${x.melder ? `<button type="button" class="melderinfo" id="d-melderinfo" aria-label="Gegevens van de melder" data-uitleg="Gegevens ophalen…"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 7.5h.01"></path></svg></button>` : ''}</b>${r('Type ticket', x.type)}${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}<span>Locatie${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.locatie || '–') : `<select id="d-loc" class="afdkeuze" title="Klik om de locatie te wijzigen"><option value="">${esc(x.locatie || '– kies locatie –')}</option></select>`}</b></div>
       <div class="kaart2"><h3>Behandeling</h3><span>Afdeling${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.afdeling || '–') : `<select id="d-afd" class="afdkeuze" title="Klik om de afdeling te wijzigen"><option>${esc(x.afdeling || '– kies afdeling –')}</option></select>`}</b><span>Verantwoordelijke</span><b>${x.afgesloten ? esc(x.verantw || '–') : `<select id="d-verantw" class="afdkeuze" title="Klik om de verantwoordelijke te wijzigen"><option value="">${esc(x.verantw || '– niemand –')}</option></select>${benIk(x.verantw) ? '' : '<button type="button" class="linkknop aanmij" id="d-aanmij">Aan mij toewijzen</button>'}`}</b><span>Status${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(toonStatus(x.status) || '–') : `<select id="d-status" class="afdkeuze" title="Klik om de status te wijzigen"><option value="">${esc(toonStatus(x.status) || '– kies status –')}</option></select>`}</b>
         ${x.afgesloten ? r('Gepland', x.gepland ? fmtDatum(x.gepland) : '') : `<span>Gepland</span><b><input type="date" id="d-gepland" class="datumkeuze" value="${x.gepland ? isoD(x.gepland) : ''}" data-oud="${x.gepland ? isoD(x.gepland) : ''}" title="Datum waarop het werk gepland staat"></b>`}${r('Laatste reactie', x.reactieDatum ? fmtDatum(x.reactieDatum) + (x.reactieDoor ? ' · ' + x.reactieDoor : '') : '')}${r('Extern ticket', x.extern)}${x.kritiek ? r('Kritieke storing', 'Ja') : ''}</div>
     </div>
@@ -1672,8 +1687,24 @@ function openDetail(nr){
   (DEMO ? Promise.resolve() : zorgSbId(x)).then(() => { laadBijlagen(x); return toonReacties(x); }).catch(e => { const el = $('#tijdlijn'); if(el) el.innerHTML = `<h3>Reacties</h3><p class="hint">Het interne nummer van dit ticket kon niet worden opgezocht: ${esc(e.message)}</p>`; const bl = $('#bijl-lijst'); if(bl) bl.innerHTML = '<span class="hint">Bijlagen ophalen kan niet zonder het interne nummer van het ticket.</span>'; });
   if(!x.afgesloten){ vulAfdKeuze(x); vulStatusKeuze(x); vulVerantwKeuze(x); vulLocKeuze(x); setTimeout(() => markeerOntbrekend(x), 0); }
   if(!x.toelichting) toonToelichting(x);
+  if(x.melder) toonMelderInfo(x);
   if(!x.afgesloten){ huidig.wfKlaar = laadWorkflow(x); $('#notitie').onchange = e => { $('#tekst').classList.toggle('intern', e.target.checked); $('#tekst').placeholder = e.target.checked ? 'Interne notitie voor collega’s…' : 'Schrijf een reactie aan de melder…'; }; }
   else ($('#d-taak') || {}).textContent = '–';
+}
+/* melder: functie, organisatorische eenheid en werklocatie als extra controle; lege Locatie krijgt een voorstel */
+async function toonMelderInfo(x){
+  let m = null; try{ m = await zoekMedewerker(x.melder); }catch(e){}
+  const knop = $('#d-melderinfo'); if(!knop || !huidig || huidig.x !== x) return;
+  if(!m){ knop.dataset.uitleg = 'Deze melder is niet (eenduidig) gevonden in de medewerkerslijst.'; knop.classList.add('leeg'); return; }
+  const wacht = () => new Promise(r => { let n = 0; const t = setInterval(() => { const s = $('#d-loc'); if(!s || s.options.length > 1 || ++n > 40){ clearInterval(t); r(); } }, 100); });
+  await wacht();
+  const loc = locTekst(m);
+  knop.dataset.uitleg = [`${m.vol || m.naam} (${m.id})`, m.functie && `Functie: ${m.functie}`, m.oe && `Organisatorische eenheid: ${m.oe}`, `Werklocatie: ${loc || 'niet te bepalen'}`].filter(Boolean).join('\n');
+  // lege locatie in het ticket: voorstel uit de medewerkersgegevens (wordt pas opgeslagen met Opslaan)
+  const sel = $('#d-loc');
+  if(sel && !sel.value && !x.locatie){ const o = locVoorstel(m, [...sel.options].filter(o => o.value));
+    if(o){ sel.value = o.value; sel.classList.add('voorstel', 'gewijzigd'); sel.classList.remove('mist'); sel.title = `Voorgesteld op basis van de werklocatie van ${m.vol || m.naam}; wordt opgeslagen met Opslaan`;
+      $('#detail').dataset.gewijzigd = '1'; if(!$('#d-loc-hint')) sel.insertAdjacentHTML('afterend', '<small class="hint" id="d-loc-hint" style="display:block;font-weight:400">voorstel o.b.v. melder</small>'); } }
 }
 /* toelichting staat niet in de SLA-connector: per ticket ophalen uit een connector die het veld wel heeft */
 let toelBron;   // {conn, veld, filter} of null als geen connector het veld levert
@@ -1948,7 +1979,7 @@ async function laadWorkflow(x){
       ss.dataset.wf = '1';
       const keuzes = statusKeuzes(wf, x).filter(k => norm(toonStatus(k.st)) !== norm(toonStatus(x.status)));
       if(keuzes.some(k => k.a)){ ss.disabled = false; ss.title = 'Kies de nieuwe status; dit voert de bijbehorende workflowstap uit (met de mail die daarbij hoort)';
-        ss.innerHTML = `<option value="">${esc(toonStatus(x.status) || '–')}</option>` + keuzes.map(k => k.a ? `<option value="a:${wf.acties.indexOf(k.a)}" title="via de actie '${esc(k.a.naam)}'">${esc(toonStatus(k.st))}</option>` : `<option disabled title="Niet mogelijk vanuit de huidige workflowtaak${wf.taak ? ' (' + esc(wf.taak) + ')' : ''}">${esc(toonStatus(k.st))}</option>`).join('');
+        ss.innerHTML = `<option value="">${esc(toonStatus(x.status) || '–')}</option>` + keuzes.map(k => k.a ? `<option value="a:${wf.acties.indexOf(k.a)}" title="via de actie '${esc(k.a.naam)}'">${esc(toonStatus(k.st))}</option>` : `<option disabled title="Niet mogelijk vanuit de open workflowtaak${(wf.taken || []).length > 1 ? 'en' : ''}: ${esc((wf.taken || [wf.taak]).filter(Boolean).join(', ') || 'geen')}">${esc(toonStatus(k.st))} (niet vanuit deze stap)</option>`).join('');
         ss.dataset.oud = ''; ss.onchange = () => { ss.classList.toggle('gewijzigd', !!ss.value); if(ss.value) ss.classList.remove('mist'); }; }
       else ss.outerHTML = `<span>${esc(toonStatus(x.status) || '–')}</span> <span class="hint" title="De huidige workflowtaak van dit ticket heeft geen stappen die de status wijzigen${wf.taak ? ' (taak: ' + esc(wf.taak) + ')' : ''}." style="cursor:help">ⓘ</span>`;
     }
@@ -2234,7 +2265,7 @@ async function kiesMedewerkerConnector(){
 let medewerkers = null, medewerkerFout = '', medewerkerConn = '', medewerkerKolDiag = '';
 async function laadMedewerkers(){
   if(medewerkers) return medewerkers;
-  if(DEMO) return (medewerkers = [['Robert','van der','Veen'],['Anouk','de','Vries'],['Kelly','','Groen'],['Glenn','','Brons'],['Daphne','van de','Weert'],['Teun','','Kessels'],['Wilma','','Balm'],['Bianca','van den','Berg'],['Guillonard','','Leer'],['Steven','van','Dijk'],['Anouk','van','Riel']].map(([v, t, a], i) => ({id: String(488760 + i), oe: i === 0 ? 'Manager Digitale Zorg en ICT' : ['Artsen DC Klinieken Almere','Doktersassistenten DC Klinieken Amsterdam','Medewerkers DC Klinieken Breda','Radiodiagnostisch laborant DC Klinieken Utrecht','Balie DC Klinieken Hanzeplein'][i % 5], naam: `${a}, ${[v, t].filter(Boolean).join(' ')}`, vol: [v, t, a].filter(Boolean).join(' ')})).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
+  if(DEMO) return (medewerkers = [['Robert','van der','Veen'],['Anouk','de','Vries'],['Kelly','','Groen'],['Glenn','','Brons'],['Daphne','van de','Weert'],['Teun','','Kessels'],['Wilma','','Balm'],['Bianca','van den','Berg'],['Guillonard','','Leer'],['Steven','van','Dijk'],['Anouk','van','Riel'],['Noah','','Westerweel']].map(([v, t, a], i) => ({id: String(488760 + i), oe: i === 0 ? 'Manager Digitale Zorg en ICT' : i === 11 ? 'Medewerkers SIC' : ['Artsen DC Klinieken Almere','Doktersassistenten DC Klinieken Amsterdam','Medewerkers DC Klinieken Breda','Radiodiagnostisch laborant DC Klinieken Utrecht','Balie DC Klinieken Hanzeplein'][i % 5], naam: `${a}, ${[v, t].filter(Boolean).join(' ')}`, vol: [v, t, a].filter(Boolean).join(' ')})).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
   medewerkerConn = await kiesMedewerkerConnector();
   const rijen = await connectorAlles(medewerkerConn), k = medewerkerKolommen(Object.keys(rijen[0] || {}));
   const t = v => String(v ?? '').trim();
@@ -2249,7 +2280,8 @@ async function laadMedewerkers(){
     if(!k.uitK || !r[k.uitK]) return true; const d = datum(r[k.uitK]); return !d || +d >= +vandaag; };
   // vestiging van de medewerker (zodra de beheerder dat veld aan de connector toevoegt): voorstel voor Locatie bij een nieuwe melding
   const locK = Object.keys(rijen[0] || {}).find(c => /^(locatie|standplaats|werklocatie|werkplek|vestiging)/i.test(c.replace(/_/g, ' ')));
-  const uniek = new Map(); rijen.filter(inDienst).forEach(r => { const id = t(r[k.idK]), n = naamVan(r); if(id && n.label && !uniek.has(id)) uniek.set(id, {id, naam: n.label, vol: n.vol, oe: k.oeK ? t(r[k.oeK]) : '', loc: locK ? t(r[locK]) : ''}); });
+  const funK = Object.keys(rijen[0] || {}).find(c => /^functie/i.test(c));
+  const uniek = new Map(); rijen.filter(inDienst).forEach(r => { const id = t(r[k.idK]), n = naamVan(r); if(id && n.label && !uniek.has(id)) uniek.set(id, {id, naam: n.label, vol: n.vol, oe: k.oeK ? t(r[k.oeK]) : '', loc: locK ? t(r[locK]) : '', functie: funK ? t(r[funK]) : ''}); });
   return (medewerkers = [...uniek.values()].sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
 }
 // werklocatie van de medewerker koppelen aan één keuze uit de Locatie-lijst: volledig of deels gelijk, maar alleen als er precies één kandidaat is
@@ -2272,12 +2304,30 @@ function locMatch(waarde, opties){
 // waar werkt de medewerker: een eigen locatieveld, anders de vestiging uit de organisatorische eenheid ("Artsen DC Klinieken Voorschoten" → "Voorschoten")
 // OE zonder "DC Klinieken <vestiging>" (stafafdelingen zoals "Manager Digitale Zorg en ICT") = hoofdkantoor
 const locBron = m => m.loc || ((String(m.oe || '').match(/dc\s*klinieken\s+(.+)$/i) || [])[1]) || (m.oe ? INST.hoofdkantoor || '' : '');
+// vaste afkortingen/aparte locaties in de organisatorische eenheid (uit te breiden in mijn-ict-config.js met locAlias)
+const LOC_ALIAS = [[/service\s*informatie\s*centrum|\bsic\b/i, 'SIC'], ...((INST.locAlias || []).map(([re, w]) => [new RegExp(re, 'i'), w]))];
+// beste locatie uit de keuzelijst voor een medewerker, of null als het niet zeker is
+function locVoorstel(m, opties){
+  if(!m) return null;
+  const oe = String(m.oe || ''), dc = (oe.match(/dc\s*klinieken\s+(.+)$/i) || [])[1] || '';
+  const alias = (LOC_ALIAS.find(([re]) => re.test(oe) || re.test(m.loc || '')) || [])[1] || '';
+  for(const w of [m.loc, alias, dc]) { const o = w && locMatch(w, opties); if(o) return o; }
+  if(!dc && !alias && oe){ const o = locMatch(INST.hoofdkantoor || '', opties); if(o) return o; }   // stafafdeling = hoofdkantoor
+  return null;
+}
+const locTekst = m => { const opties = [...(($('#n-form') && $('#n-form').loc) || $('#d-loc') || {options: []}).options].filter(o => o.value); const o = locVoorstel(m, opties); return o ? o.textContent : ''; };
+// melder in de medewerkerslijst zoeken op naam (eenduidig) of nummer
+async function zoekMedewerker(naam){
+  const lijst = await laadMedewerkers(), n = norm(naam);
+  const l = lijst.filter(m => norm(m.vol) === n || norm(m.naam) === n || m.id === String(naam).trim());
+  return l.length === 1 ? l[0] : null;
+}
 // Locatie voorstellen op basis van de melder; alleen als de registreerder zelf nog niets koos
 function stelLocatieVoor(m){
   const f = $('#n-form'), sel = f && f.loc; if(!sel || !m) return;
   const hint = () => { let h = $('#n-loc-hint'); if(!h){ sel.insertAdjacentHTML('afterend', '<span class="hint" id="n-loc-hint"></span>'); h = $('#n-loc-hint'); } return h; };
   if(sel.value && sel.dataset.auto !== '1') return;   // zelf gekozen: niet overschrijven
-  const o = locMatch(locBron(m), [...sel.options].filter(o => o.value));
+  const o = locVoorstel(m, [...sel.options].filter(o => o.value));
   if(o){ sel.value = o.value; sel.dataset.auto = '1'; sel.classList.add('voorstel'); hint().textContent = `Voorgesteld: werklocatie van ${m.vol || m.naam}`; }
   else if(sel.dataset.auto === '1'){ sel.value = ''; sel.dataset.auto = ''; sel.classList.remove('voorstel'); hint().textContent = ''; }   // geen zekere match: niets invullen
   if(!sel._voorstel){ sel._voorstel = true; sel.addEventListener('change', e => { if(e.isTrusted){ sel.dataset.auto = '0'; sel.classList.remove('voorstel'); const h = $('#n-loc-hint'); if(h) h.textContent = ''; } }); }
@@ -3007,11 +3057,11 @@ function demoAfas(pad, opties){
     D.sla.push({Nummer:nr, Onderwerp:b.Fields.Ds, Status:'Nieuw', Omschrijving_4:({'88406.rvanderveen':'Robert van der Veen','88406.kgroen':'Kelly Groen','88406.gbrons':'Glenn Brons','88406.gleer':'Guillonard Leer'})[((b.Objects || []).find(o => o.KnS38) || {KnS38:{Element:{Fields:{}}}}).KnS38.Element.Fields.UVer] || '', Omschrijving_2:'Robert van der Veen', Omschrijving:'Aanvraag ICT', Type_ticket_ICT:'Incident', Focusgebied_ICT:'', AFAS_Afdeling:'', Omschrijving_3:INST.afdelingen[+afdC - 1] || 'ICT', Focusgebied_EMMA:'', Instuurdatum:new Date().toISOString().slice(0, 19), Gepland:null, Laatste_reactie:null, Gebruiker_laatste_reactie:'', Laatste_wijziging_externe_status:null, Workflow_afgerond:false, Kritieke_storing:false});
     return new Promise(r => setTimeout(() => r({results:{KnSubject:{SbId: 400000 + nr}}}), 400)); }
   if(pad === '/metainfo/update/KnSubject') return {name:'KnSubject', fields:[{fieldId:'StId', label:'Type dossier', dataType:'int', mandatory:true, values:[{id:'26', description:'Aanvraag ICT'},{id:'31', description:'Change'}]},{fieldId:'Ds', label:'Onderwerp', mandatory:true},{fieldId:'SbTx', label:'Toelichting'}],
-    objects:[{name:'KnSubjectLink', fields:[{fieldId:'SfTp', label:'Type bestemming'}]},{name:'KnS38', fields:[{fieldId:'UAfd', label:'Afdeling', dataType:'string', values:INST.afdelingen.map((n, i) => ({id:String(i + 1), description:n}))},{fieldId:'UVer', label:'Verantwoordelijke', values:[{id:'88406.rvanderveen', description:'Robert van der Veen'},{id:'88406.kgroen', description:'Kelly Groen'},{id:'88406.gbrons', description:'Glenn Brons'},{id:'88406.gleer', description:'Guillonard Leer'},{id:'88406.anders', description:'Iemand Buiten ICT'}]},{fieldId:'UGep', label:'Werkzaamheden gepland', dataType:'date'},{fieldId:'ULoc', label:'Locatie', values:['Almere','Amsterdam','Breda','Utrecht','Hanzeplein'].map((n, i) => ({id:'L' + i, description:n}))},{fieldId:'UTyp', label:'Type ticket ICT', values:[{id:'I', description:'Incident'},{id:'V', description:'Vraag'},{id:'C', description:'Change'}]}]},{name:'KnS26', fields:[{fieldId:'UPrj', label:'Begindatum project', mandatory:true}]}]};
+    objects:[{name:'KnSubjectLink', fields:[{fieldId:'SfTp', label:'Type bestemming'}]},{name:'KnS38', fields:[{fieldId:'UAfd', label:'Afdeling', dataType:'string', values:INST.afdelingen.map((n, i) => ({id:String(i + 1), description:n}))},{fieldId:'UVer', label:'Verantwoordelijke', values:[{id:'88406.rvanderveen', description:'Robert van der Veen'},{id:'88406.kgroen', description:'Kelly Groen'},{id:'88406.gbrons', description:'Glenn Brons'},{id:'88406.gleer', description:'Guillonard Leer'},{id:'88406.anders', description:'Iemand Buiten ICT'}]},{fieldId:'UGep', label:'Werkzaamheden gepland', dataType:'date'},{fieldId:'ULoc', label:'Locatie', values:['Almere','Amsterdam','Breda','Utrecht','Hanzeplein','Almere SIC','Planetarium'].map((n, i) => ({id:'L' + i, description:n}))},{fieldId:'UTyp', label:'Type ticket ICT', values:[{id:'I', description:'Incident'},{id:'V', description:'Vraag'},{id:'C', description:'Change'}]}]},{name:'KnS26', fields:[{fieldId:'UPrj', label:'Begindatum project', mandatory:true}]}]};
   if(opties.method === 'PUT' && pad === '/connectors/KnSubject'){ const el = JSON.parse(opties.body).KnSubject.Element, D = window._demo, r = D.sla.find(x => 400000 + x.Nummer === +el['@SbId']);
     const alle = {...el.Fields}; (el.Objects || []).forEach(o => Object.values(o).forEach(v => Object.assign(alle, v.Element.Fields)));
     if(r && alle.UVer) r.Omschrijving_4 = {'88406.rvanderveen':'Robert van der Veen','88406.kgroen':'Kelly Groen','88406.gbrons':'Glenn Brons','88406.gleer':'Guillonard Leer'}[alle.UVer] || alle.UVer;
-    if(r && alle.ULoc) r.Locatie = ['Almere','Amsterdam','Breda','Utrecht','Hanzeplein'][+alle.ULoc.slice(1)];
+    if(r && alle.ULoc) r.Locatie = ['Almere','Amsterdam','Breda','Utrecht','Hanzeplein','Almere SIC','Planetarium'][+alle.ULoc.slice(1)];
     if(r && alle.UAfd) r.Omschrijving_3 = INST.afdelingen[+alle.UAfd - 1] || r.Omschrijving_3;
     if(r && alle.UGep) r.Gepland = alle.UGep + 'T00:00:00'; if(r && alle.USt) r.Status = alle.USt;
     window._put = opties.body; return new Promise(res => setTimeout(() => res({}), 300)); }
