@@ -920,7 +920,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.40', VERSIE_DATUM = '03-10-2026';
+const VERSIE = 'v4.41', VERSIE_DATUM = '03-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1744,9 +1744,9 @@ function tekenLijst(){
   const odKnop = kanDicht ? `<span class="wkeuze tlsoort" role="group" aria-label="Open of afgehandeld"><button type="button" data-opendicht="0" aria-pressed="${!dicht}">Open</button><button type="button" data-opendicht="1" aria-pressed="${dicht}">Afgehandeld</button></span>` : '';
   const wKnop = alleenChanges() ? `<span class="wkeuze"><button type="button" data-chw="lijst" aria-pressed="${!tlAan}" aria-label="Lijst" title="Lijst"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button><button type="button" data-chw="tijdlijn" aria-pressed="${tlAan}" aria-label="Tijdlijn" title="Tijdlijn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h9M7 12h11M5 18h8"/></svg></button></span>` : '';
   $('#lijst-kol').innerHTML = odKnop + (tlAan ? `<span class="wkeuze tlsoort" role="group" aria-label="Wat tonen">${[['changes', 'Changes'], ['projecten', 'Projecten'], ['beide', 'Beide']].map(([v, t]) => `<button type="button" data-tlsoort="${v}" aria-pressed="${TL.soort === v}">${t}</button>`).join('')}</span>` : '') + (tlAan ? `<select id="ch-zoom" class="periodekeuze" aria-label="Periode">${[['maand','6 weken'],['kwartaal','Kwartaal'],['halfjaar','Halfjaar']].map(([k, t]) => `<option value="${k}"${k === chZoom ? ' selected' : ''}>${t}</option>`).join('')}</select>` : kolKnop_()) + wKnop;
-  if(tlAan){ $('#lijst-sub').textContent = ''; $('#lijst').innerHTML = tekenChTijdlijn(l); $('#titel').textContent = v.titel; $('#subtitel').textContent = ''; return; }
+  if(tlAan){ $('#lijst-sub').textContent = ''; $('#lijst').innerHTML = tekenChTijdlijn(l); $('#titel').textContent = ''; $('#subtitel').textContent = ''; return; }
   $('#lijst').innerHTML = l.length ? tabel(lid, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(isDicht ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])], changes: alleenChanges() || soortVan(tab) === 'changes'}) : `<p class="leeg">${tab === 'zoek' && !w ? 'Typ bovenin wat je zoekt.' : dicht ? 'Geen afgehandelde meldingen in deze lijst.' : 'Geen meldingen gevonden.'}</p>`;
-  $('#titel').textContent = v.titel; $('#subtitel').textContent = '';
+  $('#titel').textContent = ''; $('#subtitel').textContent = '';   // de naam staat al in het menu en boven de lijst
 }
 /* tijdlijn van changes: balk van begindatum tot einddatum (project); zonder einddatum de geplande datum */
 const weeknr = d => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())), dg = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - dg); const j = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - j) / DAG + 1) / 7); };
@@ -2171,7 +2171,7 @@ function logHistorie(x, wat){
 }
 function tekenHistorie(){
   const l = opslag.get(histSleutel()) || [];
-  $('#lijst-titel').textContent = 'Historie'; $('#lijst-n').hidden = false; $('#lijst-n').textContent = l.length; $('#titel').textContent = 'Historie'; $('#subtitel').textContent = '';
+  $('#lijst-titel').textContent = 'Historie'; $('#lijst-n').hidden = false; $('#lijst-n').textContent = l.length; $('#titel').textContent = ''; $('#subtitel').textContent = '';
   $('#lijst-sub').textContent = 'De laatste 10 meldingen waarin jij via deze pagina iets hebt gewijzigd'; $('#lijst-kol').innerHTML = '';
   ['#f-mijn', '#f-mijalles', '#f-soort', '#f-changes', '#f-weergave', '#f-zoom'].forEach(sel => { const e = $(sel); if(e) e.hidden = true; });
   const tijd = t => { const d = new Date(t), vandaag = d.toDateString() === new Date().toDateString(); return (vandaag ? 'vandaag' : fmtDatum(d)) + ' ' + fmtTijd(d); };
@@ -3901,7 +3901,7 @@ function tdTeken(){
   $('#todo-aantal').textContent = aantal || '';
   if(tab !== 'todo') return;
   const v = $('#todo-verbind'), paneel = $('#todo-paneel'), bestand = $('#todo-bestand');
-  $('#titel').textContent = 'To-do'; $('#subtitel').textContent = '';
+  $('#titel').textContent = ''; $('#subtitel').textContent = '';
   if(TD.status !== 'ok'){
     paneel.hidden = true; v.hidden = false; $('#todo-lijsten').innerHTML = ''; bestand.textContent = '';
     const waarom = `<div class="uitleg"><h3>Waarom een bestand?</h3>
@@ -3942,7 +3942,7 @@ function tdTeken(){
   $('#todo-open').innerHTML = open.length ? open.map(tdRij).join('') : `<p class="todo-leeg">${q ? `Geen to-do’s gevonden voor “${esc(filt.zoek)}”.` : 'Niets te doen in deze lijst.'}</p>`;
   $('#todo-klaar').hidden = !klaar.length; $('#todo-klaar summary b').textContent = klaar.length;
   $('#todo-klaar-lijst').innerHTML = klaar.slice(0, 200).map(tdRij).join('');
-  $('#titel').textContent = lnaam; $('#subtitel').textContent = `${open.length} open`;
+  $('#titel').textContent = ''; $('#subtitel').textContent = '';   // de gekozen lijst en het aantal staan al in de knoppen
 }
 const tdTaak = id => TD.data.taken.find(t => t.id === id);
 $('#v-todo').addEventListener('click', async e => {
@@ -4107,7 +4107,7 @@ function voortgangVoorstel(p, eind = p.gereedPlanning || p.projEind){
   return /loopt voor/i.test(p.voortgang) ? p.voortgang : 'Op schema';
 }
 function tekenProjecten(){
-  $('#titel').textContent = 'Mijn projecten'; $('#subtitel').textContent = ''; $('#tegels').innerHTML = '';
+  $('#titel').textContent = ''; $('#subtitel').textContent = ''; $('#tegels').innerHTML = '';
   if(PRJ.fout){ $('#blokken').innerHTML = `<section class="blok cn-kaart"><header><h2>Projecten ophalen lukte niet</h2></header><p class="hint" style="padding:0 22px 18px">${esc(PRJ.fout)}<br>Controleer bij <b>Connectoren &amp; velden</b> of GetConnector <code>${esc(INST.connProjecten)}</code> en UpdateConnector <code>PtProject</code> aan de app connector zijn toegevoegd.</p></section>`; return; }
   const sorteer = (a, b) => (a.rol !== 'Projectleider') - (b.rol !== 'Projectleider') || +(a.projEind || 9e15) - +(b.projEind || 9e15);
   const lijst = PRJ.lijst.filter(p => PRJ.afgerond || !p.afgesloten).sort(sorteer), nAf = PRJ.lijst.filter(p => p.afgesloten).length;
@@ -4158,7 +4158,7 @@ function trMiniDrukte(){
   return `<div class="trmini" title="Jouw changes en projecten per week, deze en de komende 7 weken">${w.map(x => `<i class="${x.n >= DRUK ? 'v' : x.n ? 'm' : ''}" title="Week ${weeknr(x.van)}: ${x.c} change${x.c === 1 ? '' : 's'}, ${x.p} project${x.p === 1 ? '' : 'en'}"></i>`).join('')}<small>${tekst}</small></div>`;
 }
 function tekenTrajecten(){
-  $('#titel').textContent = 'Trajecten'; $('#subtitel').textContent = ''; $('#tegels').innerHTML = '';
+  $('#titel').textContent = ''; $('#subtitel').textContent = ''; $('#tegels').innerHTML = '';
   const lijst = trLijst(), w = TR.weergave, nAf = TR.soort !== 'changes' ? trProjecten(TR.scope, true).filter(p => p.afgesloten).length : 0;
   const sch = (attr, waarden, nu) => `<div class="schakel klein" role="group">${waarden.map(([v, t]) => `<button type="button" ${attr}="${v}" aria-pressed="${nu === v}">${t}</button>`).join('')}</div>`;
   const balk = `<div class="werkbalk">${sch('data-trscope', [['mij', 'Mij'], ['team', 'Team']], TR.scope)}${sch('data-trsoort', [['alles', 'Alles'], ['changes', 'Changes'], ['projecten', 'Projecten']], TR.soort)}
