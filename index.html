@@ -95,10 +95,24 @@ button{cursor:pointer}
 .schuif input:checked ~ span{color:var(--blauw)}
 .schuif input:focus-visible + i{outline:2px solid var(--lichtblauw);outline-offset:2px}
 dialog.smal{width:min(560px, calc(100vw - 32px))}
+dialog.nieuwdlg{width:min(660px, calc(100vw - 32px))}
 .nform{display:grid;gap:12px}
 .nform label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:var(--grijs)}
 .nform input,.nform select{border:1.5px solid var(--lijn);border-radius:0 12px 12px 0;padding:8px 12px;background:var(--vlak);font-weight:400;color:var(--inkt)}
 .nform .twee{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.nform .drie{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:start}
+.nstap{display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid var(--lijn)}
+.nstap:first-child{border-top:0;padding-top:0}
+.nstap h3{margin:0;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--inkt)}
+.nstap h3 i{font-style:normal;width:20px;height:20px;border-radius:50%;background:var(--lichtblauw-2);color:var(--blauw);font-size:11px;font-weight:700;display:grid;place-items:center}
+.nform .ntoel{border:1.5px solid var(--lijn);border-radius:0 12px 12px 0;padding:0;gap:0;overflow:hidden;background:var(--vlak)}
+.nform .ntoel textarea{border:0;border-radius:0;min-height:150px;resize:vertical;padding:10px 12px;font:inherit;font-size:13.5px;background:transparent;outline:0}
+.nform .ntoel .bijlkop{background:var(--achtergrond);padding:6px 12px;gap:10px;flex-wrap:nowrap;display:flex;align-items:center}
+.nform .ntoel .bijlkop .hint{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.nform .ntoel .bijlrij:not(:empty){padding:6px 12px 8px;background:var(--achtergrond)}
+.nform .ntoel:focus-within{border-color:var(--blauw-2)}
+@media (max-width:620px){.nform .drie{grid-template-columns:minmax(0,1fr)}}
+.nform{grid-template-columns:minmax(0,1fr)}.nform input,.nform select,.nform textarea{min-width:0;width:100%;box-sizing:border-box}
 .nform .hint{font-weight:400;font-size:12px}
 .nform input.metpijl{padding-right:34px;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7A99' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:14px}
 .nform textarea{font-weight:400;color:var(--inkt)}
@@ -799,7 +813,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.06 · 03-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.07 · 03-10-2026</span></div>
   </div>
 </div>
 
@@ -807,7 +821,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
 <dialog id="sleepvraag" class="smal"></dialog>
 <dialog id="vraag" class="vraagdlg"></dialog>
 <dialog id="bekijk" class="bekijkdlg"></dialog>
-<dialog id="nieuw" class="smal"><div class="dlg-in" id="nieuw-in"></div></dialog>
+<dialog id="nieuw" class="smal nieuwdlg"><div class="dlg-in" id="nieuw-in"></div></dialog>
 <div id="toast" role="status"></div>
 <div id="uitleg" role="tooltip"></div>
 <div id="combo" role="listbox" hidden></div>
@@ -858,7 +872,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.06';
+const VERSIE = 'v4.07';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2611,11 +2625,11 @@ async function laadNieuwMeta(){
   // vrije velden: voorkeur voor het object van dit type (KnS<StId>), anders het eerste dat past
   const tabel = INST.vrijeVelden || 'KnS38', mag = f => !/^KnS\d+$/.test(f.pad || '') || f.pad === tabel;
   const zoek = re => { const l = alle.filter(f => mag(f) && re.test(norm(f.label))); return l.find(f => f.pad === tabel) || l[0]; };
-  const afd = zoek(/^afdeling$/), type = zoek(/^type( ticket)?( ict)?$/) || zoek(/type ticket/), loc = zoek(/^locatie$/);
+  const afd = zoek(/^afdeling$/), type = zoek(/^type( ticket)?( ict)?$/) || zoek(/type ticket/), loc = zoek(/^locatie$/), tel = zoek(/^(bereikbaarheid|bereikbaar|telefoon(nr|nummer)?)/);
   const pads = new Set(['', 'KnSubject', ...[afd, type].filter(Boolean).map(f => f.pad)]);
-  const bekend = new Set(['StId','Ds','SbTx','SbId'].concat([afd, type, loc].filter(Boolean).map(f => f.code)));
+  const bekend = new Set(['StId','Ds','SbTx','SbId'].concat([afd, type, loc, tel].filter(Boolean).map(f => f.code)));
   const extra = alle.filter(f => f.verplicht && mag(f) && pads.has(f.pad) && !bekend.has(f.code) && !/^(UsId|Da|EmId|SfId|SfTp)$/.test(f.code));
-  return (nieuwMeta = {stId, typen, afd, type, loc, extra});
+  return (nieuwMeta = {stId, typen, afd, type, loc, tel, extra});
 }
 function keuze(f, naam, std){
   const w = waardenVan(f.values).sort((a, b) => a.naam.localeCompare(b.naam, 'nl'));
@@ -2631,21 +2645,28 @@ async function nieuweMelding(){
   catch(e){ $('#nieuw-in').innerHTML = kop + `<p class="fout">De velden van een nieuwe melding kunnen niet worden gelezen (${esc(e.message)}). Staat UpdateConnector KnSubject in de app connector?</p>`; return; }
   const stdAfd = tab.startsWith('afd:') ? tab.slice(4) : 'ICT';
   $('#nieuw-in').innerHTML = kop + `<form class="nform" id="n-form" onsubmit="return false">
-    <label>Onderwerp<input name="ond" required maxlength="80" spellcheck="true" placeholder="Kort en duidelijk, bijvoorbeeld: Printer balie geeft papierstoring"></label>
-    <div class="twee">
-      ${m.afd ? `<label><span>Afdeling <i class="verpl" title="Verplicht">*</i></span>${keuze(m.afd, 'afd', stdAfd)}</label>` : ''}
-      ${m.loc ? `<label><span>Locatie <i class="verpl" title="Verplicht">*</i></span>${keuze(m.loc, 'loc', '')}</label>` : ''}
-      ${m.type ? `<label>${esc(m.type.label)}${keuze(m.type, 'type', 'Incident')}</label>` : ''}
-    </div>
-    ${m.extra.map((f, i) => `<label>${esc(f.label || f.code)}${keuze(f, 'x' + i, '')}</label>`).join('')}
-    <label>Toelichting<textarea name="tx" placeholder="Wat is er aan de hand, sinds wanneer, welke locatie of werkplek? (Ctrl+V plakt een schermafbeelding als bijlage)"></textarea></label>
-    <div class="bijlagen" id="n-bijl"><div class="bijlkop"><h3>Bijlagen</h3><button type="button" class="linkknop paperclip" id="k-nbijl">${CLIP}Bestand kiezen</button><input type="file" id="f-nieuw" multiple hidden><span class="hint">of sleep hierheen (ook een mail uit Outlook) · Ctrl+V plakt een schermafbeelding</span></div><div class="bijlrij" id="n-bijl-lijst"></div></div>
-    <label>Melder<input name="melder" id="n-melder" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Zoek een medewerker op naam of nummer"><input type="hidden" name="melderId"><span class="hint" id="n-melder-hint">Medewerkers ophalen…</span></label>
-    <label>Behandelaar<input name="beh" id="n-beh" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Nog niet toewijzen (komt bij Nieuwe meldingen)"><input type="hidden" name="behCode"><span class="hint" id="n-beh-hint">Laat leeg om de melding bij Nieuwe meldingen te zetten.</span></label>
+    <section class="nstap"><h3><i>1</i>Wie meldt het?</h3>
+      <div class="drie">
+        <label>Melder<input name="melder" id="n-melder" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Zoek op naam of nummer"><input type="hidden" name="melderId"><span class="hint" id="n-melder-hint">Medewerkers ophalen…</span></label>
+        <label><span>Bereikbaar op <i class="verpl" title="Verplicht: altijd uitvragen">*</i></span><input name="tel" id="n-tel" inputmode="tel" autocomplete="off" placeholder="Toestel of 06 · navragen" title="Vraag altijd waar de melder nu bereikbaar is; dat kan per keer verschillen"></label>
+        ${m.loc ? `<label><span>Locatie <i class="verpl" title="Verplicht">*</i></span>${keuze(m.loc, 'loc', '')}</label>` : '<span></span>'}
+      </div></section>
+    <section class="nstap"><h3><i>2</i>Wat is er aan de hand?</h3>
+      <input name="ond" required maxlength="80" spellcheck="true" aria-label="Onderwerp" placeholder="Onderwerp, kort en duidelijk: bijv. Printer balie geeft papierstoring">
+      <div class="ntoel bijlagen" id="n-bijl"><textarea name="tx" aria-label="Toelichting" placeholder="Sinds wanneer, welke werkplek, wat is al geprobeerd?"></textarea>
+        <div class="bijlkop"><button type="button" class="linkknop paperclip" id="k-nbijl">${CLIP}Bijlage</button><input type="file" id="f-nieuw" multiple hidden><span class="hint">of sleep een bestand / mail hierheen · Ctrl+V plakt een screenshot</span></div><div class="bijlrij" id="n-bijl-lijst"></div></div></section>
+    <section class="nstap"><h3><i>3</i>Indelen</h3>
+      <div class="drie">
+        ${m.afd ? `<label><span>Afdeling <i class="verpl" title="Verplicht">*</i></span>${keuze(m.afd, 'afd', stdAfd)}</label>` : '<span></span>'}
+        ${m.type ? `<label>Type${keuze(m.type, 'type', 'Incident')}</label>` : '<span></span>'}
+        <label>Behandelaar<input name="beh" id="n-beh" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Nog niemand"><input type="hidden" name="behCode"></label>
+      </div>
+      ${m.extra.map((f, i) => `<label>${esc(f.label || f.code)}${keuze(f, 'x' + i, '')}</label>`).join('')}
+      <span class="hint" id="n-beh-hint">Geen behandelaar = de melding komt bij Nieuwe meldingen.</span></section>
     <div class="fout" id="n-fout">${m.stId ? '' : `Het type dossieritem "Aanvraag ICT" is niet gevonden in AFAS (gevonden: ${esc(m.typen.map(t => t.naam).join(', ') || 'geen')}). Zet nieuwStId in mijn-ict-config.js.`}</div>
     <div style="display:flex;gap:10px;justify-content:flex-end"><button type="button" class="knop" data-sluitnieuw>Annuleren</button><button type="button" class="knop vol" id="n-maak" title="Ctrl+Enter" ${m.stId ? '' : 'disabled'}>Melding aanmaken <kbd>Ctrl+Enter</kbd></button></div>
   </form>`;
-  $('#n-form').ond.focus();
+  { const mi = $('#n-form').melder; mi.focus(); mi.select(); mi.addEventListener('click', () => { if(mi.dataset.std === '1') mi.select(); }); }   // typen vervangt 'jijzelf' direct
   koppelMelder(); koppelBehandelaar();
 }
 async function maakMelding(){
@@ -2653,7 +2674,11 @@ async function maakMelding(){
   const f = $('#n-form'), m = nieuwMeta, fout = $('#n-fout'), ond = f.ond.value.trim();
   if(!ond){ fout.textContent = 'Vul een onderwerp in.'; f.ond.focus(); return; }
   const w = {StId: isNaN(+m.stId) ? m.stId : +m.stId, Ds: ond};
-  if(f.tx.value.trim()) w.SbTx = f.tx.value.trim();
+  const tel = f.tel ? f.tel.value.trim() : '';
+  if(!tel){ fout.textContent = 'Vul in waar de melder nu bereikbaar is (altijd navragen).'; f.tel.focus(); return; }
+  // geen apart veld in AFAS: dan bovenaan de toelichting
+  const tx = f.tx.value.trim(); if(tx || (tel && !m.tel)) w.SbTx = (!m.tel && tel ? `Bereikbaar op: ${tel}\n\n` : '') + tx;
+  if(m.tel && tel) w[veldCode(m.tel)] = tel;
   const zet = (veld, v) => { if(veld && v !== '') w[veldCode(veld)] = veld.dataType === 'int' && !isNaN(+v) ? +v : v; };
   { const leeg = [m.afd && f.afd && !f.afd.value ? 'Afdeling' : '', m.loc && f.loc && !f.loc.value ? 'Locatie' : ''].filter(Boolean);
     if(leeg.length){ fout.textContent = `Vul ${leeg.join(' en ')} in; ${leeg.length === 1 ? 'dit veld is' : 'deze velden zijn'} verplicht.`; (leeg[0] === 'Afdeling' ? f.afd : f.loc).focus(); return; } }
@@ -2803,7 +2828,7 @@ function stelLocatieVoor(m){
   const hint = () => { let h = $('#n-loc-hint'); if(!h){ sel.insertAdjacentHTML('afterend', '<span class="hint" id="n-loc-hint"></span>'); h = $('#n-loc-hint'); } return h; };
   if(sel.value && sel.dataset.auto !== '1') return;   // zelf gekozen: niet overschrijven
   const o = locVoorstel(m, [...sel.options].filter(o => o.value));
-  if(o){ sel.value = o.value; sel.dataset.auto = '1'; sel.classList.add('voorstel'); hint().textContent = `Voorgesteld: werklocatie van ${m.vol || m.naam}`; }
+  if(o){ sel.value = o.value; sel.dataset.auto = '1'; sel.classList.add('voorstel'); hint().textContent = 'Van de melder'; }
   else if(sel.dataset.auto === '1'){ sel.value = ''; sel.dataset.auto = ''; sel.classList.remove('voorstel'); hint().textContent = ''; }   // geen zekere match: niets invullen
   if(!sel._voorstel){ sel._voorstel = true; sel.addEventListener('change', e => { if(e.isTrusted){ sel.dataset.auto = '0'; sel.classList.remove('voorstel'); const h = $('#n-loc-hint'); if(h) h.textContent = ''; } }); }
 }
@@ -2824,6 +2849,7 @@ async function koppelMelder(){
   const inp = $('#n-melder'), hint = $('#n-melder-hint'), f = $('#n-form'); if(!inp) return;
   // standaard: jijzelf, met je medewerkernummer (uit AFAS of eenmalig ingevuld)
   inp.value = profiel.naam; inp.dataset.std = '1';
+  inp.addEventListener('input', () => { inp.dataset.std = '0'; });   // al aan het typen: niet meer overschrijven
   if(profiel.emId) f.melderId.value = profiel.emId;
   const zonderLijst = () => {
     // geen lijst met alle medewerkers: jijzelf als melder, of een medewerkernummer typen
@@ -2832,26 +2858,26 @@ async function koppelMelder(){
     else { hint.innerHTML = `Vul eenmalig <b>je eigen medewerkernummer</b> in; de pagina onthoudt het. <input id="n-mijnnr" inputmode="numeric" placeholder="bv. 488763" style="width:130px;margin-left:6px;padding:4px 10px;border:1.5px solid var(--lijn);border-radius:0 999px 999px 0">`;
       $('#n-mijnnr').addEventListener('input', e => { const v = e.target.value.trim(); if(inp.dataset.std === '1') f.melderId.value = v; }); }
     inp.addEventListener('input', () => { inp.dataset.std = '0'; f.melderId.value = /^\d+$/.test(inp.value.trim()) ? inp.value.trim() : ''; });
-    inp.addEventListener('focus', () => inp.select());
+    inp.addEventListener('focus', () => setTimeout(() => inp.select(), 0));
   };
-  hint.textContent = profiel.emId ? `Jij bent de melder (${profiel.emId}). Klik om iemand anders te kiezen.` : 'Medewerkers ophalen…';
+  hint.textContent = profiel.emId ? 'Jij bent de melder' : 'Medewerkers ophalen…';
   let lijst = [];
   try{ lijst = await laadMedewerkers(); }
   catch(e){ medewerkerFout = e.message; if($('#n-melder')) zonderLijst(); return; }
   if(!$('#n-melder')) return;
   const ik = (profiel.emId && lijst.find(m => m.id === String(profiel.emId))) || lijst.find(m => benIk(m.vol) || benIk(m.naam));
   const tekst = m => `${m.naam} (${m.id})`;
-  if(ik && inp.dataset.std === '1'){ inp.value = tekst(ik); f.melderId.value = ik.id; if(!profiel.emId){ profiel.emId = ik.id; opslag.set(profielSleutel(), profiel); } stelLocatieVoor(ik); }
-  hint.textContent = ik ? `Jij bent de melder (${ik.id}). Klik om iemand anders te kiezen uit ${lijst.length} medewerkers.` : `Jouw medewerkernummer is niet gevonden; kies de melder uit de lijst (${lijst.length} medewerkers).`;
+  if(ik && inp.dataset.std === '1'){ const sel = document.activeElement === inp && inp.selectionStart === 0 && inp.selectionEnd === inp.value.length; inp.value = tekst(ik); if(sel) inp.select(); f.melderId.value = ik.id; if(!profiel.emId){ profiel.emId = ik.id; opslag.set(profielSleutel(), profiel); } stelLocatieVoor(ik); }
+  hint.textContent = ik ? `Jij · ${ik.oe || ik.id}` : `Kies de melder (${lijst.length} medewerkers)`;
   hint.title = medewerkerConn ? `Bron: GetConnector ${medewerkerConn} (kolommen: ${medewerkerKolDiag})` : '';
   // net als in AFAS: jijzelf en de laatst gekozen melders bovenaan
   const items = () => { const recent = (opslag.get('mict-recente-melders') || []).map(id => lijst.find(m => m.id === id)).filter(Boolean);
     const boven = [...new Set([ik, ...recent].filter(Boolean))];
     const als = (m, recent) => ({waarde: tekst(m), sub: m.oe, id: m.id, zoek: m.vol + ' ' + m.id, recent});
     return [...boven.map(m => als(m, true)), ...lijst.filter(m => !boven.includes(m)).map(m => als(m))]; };
-  comboKoppel(inp, items, keus => { inp.value = keus.waarde; f.melderId.value = keus.id; inp.dataset.std = '0'; stelLocatieVoor(lijst.find(m => m.id === keus.id)); hint.textContent = ik && keus.id === ik.id ? 'Jij bent de melder.' : 'Melder gekozen. Klik om iemand anders te kiezen.'; },
+  comboKoppel(inp, items, keus => { inp.value = keus.waarde; f.melderId.value = keus.id; inp.dataset.std = '0'; stelLocatieVoor(lijst.find(m => m.id === keus.id)); const mk = lijst.find(m => m.id === keus.id); hint.textContent = (ik && keus.id === ik.id ? 'Jij · ' : '') + ((mk && mk.oe) || keus.id); if(f.tel && !f.tel.value) setTimeout(() => f.tel.focus(), 0); },   // volgende vraag in het gesprek: waar bereikbaar?
     () => { f.melderId.value = ''; inp.dataset.std = '0'; hint.textContent = 'Kies de melder uit de lijst.'; });
-  inp.addEventListener('focus', () => inp.select());
+  inp.addEventListener('focus', () => setTimeout(() => inp.select(), 0));
 }
 
 /* ================= combobox: zoeken in een lange keuzelijst (filters en melder) ================= */
