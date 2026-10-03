@@ -66,8 +66,8 @@ button{cursor:pointer}
 .bovenbalk{display:flex;align-items:center;gap:14px;padding:18px 28px 10px;flex-wrap:wrap}
 .bovenbalk h1{font-size:22px;color:var(--blauw);white-space:nowrap}
 .bovenbalk .sub{color:var(--grijs);font-size:14px}
-.bovenbalk .rechts{margin-left:auto;display:flex;align-items:center;gap:12px}
-.globzoek{position:relative;flex:1 1 240px;min-width:200px;max-width:520px;margin:0 auto}
+.bovenbalk .rechts{display:flex;align-items:center;gap:12px}
+.globzoek{position:relative;flex:0 1 420px;min-width:200px;margin:0 0 0 auto}
 @media (min-width:900px){.bovenbalk{flex-wrap:nowrap}.bovenbalk h1{overflow:hidden;text-overflow:ellipsis}}
 .globzoek .zoek{margin-left:0;flex:none;width:100%;box-sizing:border-box}
 .globzoek .zoek:focus-within{border-color:var(--blauw-2);box-shadow:0 0 0 4px rgba(46,95,176,.15)}
@@ -800,7 +800,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
   <div class="werk">
     <div class="bovenbalk">
       <h1 id="titel">Voor mij</h1><span class="sub" id="subtitel"></span>
-      <div class="globzoek" id="globzoek"><label class="zoek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="f-zoek" placeholder="Zoek in alle meldingen: nummer, onderwerp, melder…" autocomplete="off" spellcheck="false" aria-label="Zoeken in meldingen"><kbd id="zoek-kbd">Ctrl K</kbd></label><div class="zoekres" id="zoekres" hidden></div></div>
+      <div class="globzoek" id="globzoek"><label class="zoek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="f-zoek" placeholder="Zoek op nummer, onderwerp of naam…" autocomplete="off" spellcheck="false" aria-label="Zoeken in meldingen"><kbd id="zoek-kbd">Ctrl K</kbd></label><div class="zoekres" id="zoekres" hidden></div></div>
       <div class="rechts"><div class="schakel klein" id="mijalles-top" role="group" aria-label="Welke meldingen je ziet"><button type="button" data-v="mij" title="Alleen meldingen waar jij behandelaar bent of een taak hebt">Mij</button><button type="button" data-v="afd" title="Jouw meldingen plus alles in je ★-afdelingen, wie de behandelaar ook is">Afdelingen</button><button type="button" data-v="alles" title="Alle meldingen">Alles</button></div><button type="button" class="ik" id="ik" title="Menu" aria-haspopup="menu"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
     </div>
     <main>
@@ -830,7 +830,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt" role="button" tabindex="0" title="Klik om nu te verversen">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.23 · 03-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt" role="button" tabindex="0" title="Klik om nu te verversen">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.24 · 03-10-2026</span></div>
   </div>
 </div>
 
@@ -894,7 +894,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.23';
+const VERSIE = 'v4.24';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1795,7 +1795,7 @@ const naAchtergrond = () => { setTimeout(async () => { await laadGegevens('open'
 function teken(){
   if(!profiel) return;
   pasLokaalToe();
-  { const z = $('#f-zoek'), td = tab === 'todo'; z.placeholder = td ? 'Zoek in je to-do’s…' : 'Zoek in alle meldingen: nummer, onderwerp, melder…'; z.setAttribute('aria-label', td ? 'Zoeken in to-do’s' : 'Zoeken in meldingen'); if(td) $('#zoekres').hidden = true; }
+  { const z = $('#f-zoek'), td = tab === 'todo'; z.placeholder = td ? 'Zoek in je to-do’s…' : 'Zoek op nummer, onderwerp of naam…'; z.setAttribute('aria-label', td ? 'Zoeken in to-do’s' : 'Zoeken in meldingen'); if(td) $('#zoekres').hidden = true; }
   $('#mijalles-top').hidden = true;   // vervangen door de schakelbare koppen in het menu
   if(takenKlaar && items.length && !opslag.get(bekendSleutel())) opslag.set(bekendSleutel(), items.filter(isMijn).map(x => String(x.nr)));   // eerste keer (na het laden van je taken): wat er nu staat is al bekend
   items.forEach(x => x._sg = signalen(x));
