@@ -267,7 +267,11 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .knop{border:1.5px solid var(--lijn);background:var(--vlak);border-radius:999px;padding:7px 18px 7px 14px;color:var(--blauw);font-weight:500}
 .knop.vol{background:var(--blauw);border-color:var(--blauw);color:var(--opaccent)}
 .knop.rood{color:var(--rood)}
-.knop:disabled{opacity:.5;cursor:default}
+.knop:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.6)}
+/* nog niet opgeslagen: goudkleurig gemarkeerd, met een label bij de veldnaam */
+.kaart2 select.nieuw,.kaart2 input.nieuw{background-color:var(--goud-licht)!important;border-bottom:1.5px solid var(--goud)!important;box-shadow:inset 3px 0 0 var(--goud);padding-left:8px}
+.kaart2 label.nieuw{background:var(--goud-licht);border-radius:6px;box-shadow:inset 3px 0 0 var(--goud);padding:0 6px 0 8px}
+.kaart2 span.lblnieuw::after{content:attr(data-nieuw);margin-left:7px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--bruin);background:var(--goud-licht);border:1px solid var(--goud);border-radius:999px;padding:0 6px;vertical-align:1px}
 
 .tabel .rij{grid-template-columns:6px 72px minmax(0,1fr) 160px 120px 290px}
 .tabel .rij .kol{font-size:13px;color:var(--grijs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -916,7 +920,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.39', VERSIE_DATUM = '03-10-2026';
+const VERSIE = 'v4.40', VERSIE_DATUM = '03-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2449,6 +2453,33 @@ async function vulLocKeuze(x){
   }catch(e){ sel.disabled = true; sel.title = e.message; }
 }
 // voorspelling: welke mails gaan er uit als je nu op Opslaan klikt
+/* wat is er gewijzigd of voorgesteld (nog niet opgeslagen)? Markeren, en Opslaan / Afhandelen alleen actief als het zin heeft */
+function veldGewijzigd(el){
+  if(!el || !huidig) return false;
+  if(el.id === 'd-afd') return !!el.value && norm(el.value) !== norm(huidig.x.afdeling) && !/^–/.test(el.value);
+  if(el.type === 'checkbox') return (el.checked ? '1' : '0') !== el.dataset.oud;
+  if(el.id === 'd-status' && el.value.startsWith('a:')) return true;
+  if(el.tagName === 'SELECT' && !el.value) return false;
+  return el.dataset.oud !== undefined && String(el.value).trim() !== String(el.dataset.oud);
+}
+const WIJZIG_VELDEN = ['#d-afd', '#d-verantw', '#d-status', '#d-loc', '#d-gepland', '#d-cc', '#d-tel', '#d-pstart', '#d-peind', '#d-kritiek', '#d-datalek'];
+function zetKnoppen(){
+  const d = $('#detail'); if(!d || !d.open || !huidig || huidig.bezig || huidig.x.afgesloten) return;
+  let iets = false;
+  WIJZIG_VELDEN.forEach(sel => { const el = $(sel); if(!el) return; const g = veldGewijzigd(el); iets = iets || g;
+    const doel = el.type === 'checkbox' ? el.closest('label') : el; if(doel) doel.classList.toggle('nieuw', g);
+    const b = el.closest('b'), lbl = b && b.previousElementSibling && b.previousElementSibling.tagName === 'SPAN' ? b.previousElementSibling : null;
+    if(lbl && el.type !== 'checkbox'){ lbl.classList.toggle('lblnieuw', g); lbl.dataset.nieuw = el.classList.contains('voorstel') ? 'voorstel' : 'nieuw'; }
+    if(doel) doel.title = g ? (el.classList.contains('voorstel') ? 'Voorstel van de app: nog niet opgeslagen in AFAS' : 'Gewijzigd: nog niet opgeslagen') : (doel.dataset.titel || doel.title); });
+  const tekst = !!($('#tekst') && $('#tekst').value.trim()), bijl = !!(huidig.klaar && (huidig.klaar.ticket.length || huidig.klaar.reactie.length));
+  const k = $('#k-opslaan'); if(k && !k.classList.contains('opgeslagen')){ k.disabled = !(iets || tekst || bijl); k.title = k.disabled ? 'Er is nog niets om op te slaan' : 'Alles doorvoeren; de melding blijft open (Ctrl+Enter)'; }
+  const acties = huidig.wf ? huidig.wf.acties : [];
+  document.querySelectorAll('#actiebalk [data-snel="sluit"], #actiebalk [data-actie]').forEach(b => {
+    const a = b.dataset.actie != null ? acties[+b.dataset.actie] : null; if(b.dataset.actie != null && !(a && sluitActie(a))) return;
+    if(b.classList.contains('opgeslagen') || b.querySelector('.spin')) return;
+    b.disabled = !tekst; b.title = tekst ? 'Melding afhandelen; je reactie gaat mee naar de melder' : 'Schrijf eerst een reactie aan de melder'; });
+}
+setInterval(zetKnoppen, 400);   // vangt ook voorstellen op die de app zelf invult
 function mailVooraf(){
   const el = $('#mailvooraf'); if(!el || !huidig) return;
   const x = huidig.x, uit = [], nb = huidig.klaar ? huidig.klaar.reactie.length : 0, tekst = ($('#tekst') && $('#tekst').value.trim()) || (nb ? 'bijlage' : ''), notitie = !!($('#notitie') && $('#notitie').checked);
@@ -3085,7 +3116,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
   if(act && soortActie(act) === 'plannen' && !(nieuwGepland && nieuwGepland.datum) && !x.gepland){ $('#d-fout').textContent = 'Kies eerst bij Gepland de datum van de werkzaamheden.'; return; }
   if(sluitActie(act) && !(await vraag(`Melding ${x.nr} afhandelen?`, 'Het melding wordt afgesloten' + (tekst ? ' en je reactie gaat mee naar de melder.' : '.'), 'Afhandelen', 'Annuleren'))) return;
   if(notitie && tekst){ await zoekZichtVeld(); if(!zichtVeld){ $('#d-fout').textContent = `Interne notitie kan niet worden geplaatst: de pagina weet niet hoe AFAS "intern" wil hebben (${zichtDiag}).`; return; } }
-  document.querySelectorAll('#detail button:not(.navpijl), #detail select, #detail input').forEach(b => b.disabled = true); $('#d-fout').textContent = '';
+  huidig.bezig = true; document.querySelectorAll('#detail button:not(.navpijl), #detail select, #detail input').forEach(b => b.disabled = true); $('#d-fout').textContent = '';
   const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect:$('#detail').getBoundingClientRect()};
   const lok = {}, gedaan = [], viaActie = [], zonderMail = []; let toewijsFout = '';
   let gok = false, stap = '';
@@ -3159,7 +3190,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
     logHistorie(x, gedaan.join(' · '));
     const mail = viaActie.length ? ` · ✉ via AFAS-actie: ${[...new Set(viaActie)].join(', ')}` : '';
     const waarsch = zonderMail.length ? ` · geen AFAS-actie gevonden voor ${zonderMail.join(', ')} (geen mail verstuurd)` : '';
-    toast(`Melding ${x.nr}: ${gedaan.join(' · ')}${mail}${waarsch}`, !!zonderMail.length && !toewijsFout);
+    if(waarsch) toast(`Melding ${x.nr}: ${gedaan.join(' · ')}${mail}${waarsch}`, !toewijsFout);   // gewoon gelukt: het groene vinkje op de knop is genoeg
     if(toewijsFout) await vraag('Toewijzen: alleen het veld is aangepast', `Verantwoordelijke staat nu op ${lok.verantw}, maar de AFAS-workflowactie voor toewijzen gaf een fout. ${lok.verantw} krijgt daardoor geen taak en geen mail vanuit AFAS.\n\nAFAS-melding: ${toewijsFout}\n\nMaak een screenshot van dit venster voor de beheerder.`, 'OK', '');
     onthoudLokaal(x, lok, gok ? 20e3 : undefined); tekenMetTelling();
     if(volgNr) openDetail(volgNr); else if(sluiten) toonVerplaatsing(voor); else { openDetail(x.nr); bevestigOpslaan(); }   // Opslaan: melding opnieuw tonen met de nieuwe stand
@@ -3168,7 +3199,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
     const al = gedaan.length ? `Al doorgevoerd: ${gedaan.join(', ')}. ` : '';
     $('#d-fout').textContent = `${al}Mislukt bij ${stap}: ${e.message}`;
     if(gedaan.length) onthoudLokaal(x, lok);
-    document.querySelectorAll('#detail button, #detail select, #detail input').forEach(b => b.disabled = false);
+    huidig.bezig = false; document.querySelectorAll('#detail button, #detail select, #detail input').forEach(b => b.disabled = false);
   }
 }
 async function zetAfdeling(x, naam, van, tekst = ''){
