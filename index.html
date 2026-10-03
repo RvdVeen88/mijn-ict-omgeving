@@ -819,7 +819,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.11 · 03-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.12 · 03-10-2026</span></div>
   </div>
 </div>
 
@@ -878,7 +878,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.11';
+const VERSIE = 'v4.12';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3343,11 +3343,17 @@ function tekenConnectoren(){
       ${nietGebruikt.length ? `<table class="cn-tabel"><thead><tr><th>Connector</th><th>Omschrijving in AFAS</th><th>Soort</th></tr></thead><tbody>${nietGebruikt.map(x => `<tr><td><code>${esc(x.id)}</code></td><td>${esc(x.oms)}</td><td>${x.s === 'GET' ? 'GetConnector' : 'UpdateConnector'}</td></tr>`).join('')}</tbody></table>` : ''}</section>` : ''}
     ${kaarten}
     <section class="blok cn-kaart"><header><h2>Buiten AFAS</h2></header><table class="cn-tabel"><tbody>
-      <tr><td><code>afas-token</code></td><td>Azure Function: wisselt de AFAS-login om voor een token (client secret staat alleen in Azure)</td><td>Verplicht</td><td>${esc(INST.tokenFunctie || '')}</td></tr>
-      <tr><td><code>ict-aanwezig</code></td><td>Azure Function: oogje "kijkt mee" (wie heeft dezelfde melding open)</td><td>Optioneel</td><td>${esc(aanwezigUrl())}</td></tr>
-      <tr><td><code>ict-instellingen</code></td><td>Azure Function: je instellingen online, overal hetzelfde (status: ${esc(syncStatus)})</td><td>Optioneel</td><td>${esc(syncUrl())}</td></tr>
-      <tr><td><code>OneDrive-bestand</code></td><td>To-do’s per gebruiker (eigen bestand, niet in AFAS)</td><td>Optioneel</td><td>per gebruiker</td></tr></tbody></table></section>`;
+      ${buitenRij('afas-token', 'Azure Function: wisselt de AFAS-login om voor een token (client secret staat alleen in Azure)', 'Verplicht', DEMO ? 'demo' : tok ? 'ok' : 'nog niet', INST.tokenFunctie || '')}
+      ${buitenRij('ict-aanwezig', 'Azure Function: oogje "kijkt mee" (wie heeft dezelfde melding open)', 'Optioneel', DEMO ? 'demo' : AANW.status || 'nog niet', aanwezigUrl())}
+      ${buitenRij('ict-instellingen', 'Azure Function: je instellingen online, overal hetzelfde', 'Optioneel', DEMO ? 'demo' : syncStatus, syncUrl())}
+      ${buitenRij('OneDrive-bestand', 'To-do’s per gebruiker (eigen bestand, niet in AFAS)', 'Optioneel', ({ok:'ok', geen:'nog niet gekoppeld', toestemming:'wacht op toestemming', niet:'browser ondersteunt het niet', laden:'nog niet'})[TD.status] || TD.fout || TD.status, TD.handle ? TD.handle.name : 'per gebruiker')}</tbody></table></section>`;
   if(!c && !connBezig) controleerConnectoren();
+}
+// regel in "Buiten AFAS": met een statusbolletje zoals bij de connectoren
+function buitenRij(naam, oms, nodig, st, adres){
+  const kl = st === 'ok' ? 'groen' : st === 'demo' || st === 'nog niet' || st === 'uit' ? 'grijs' : /niet gekoppeld|toestemming|ondersteunt/.test(st) ? 'oranje' : 'rood';
+  const tekst = st === 'ok' ? 'werkt' : st === 'demo' ? 'demo' : st;
+  return `<tr><td><code>${esc(naam)}</code></td><td>${esc(oms)}</td><td>${esc(nodig)}</td><td><span class="cn-badge ${kl}">${esc(tekst)}</span></td><td title="${esc(adres)}" style="white-space:nowrap">${esc(String(adres).replace(/^https?:\/\/[^/]+/, '…'))}</td></tr>`;
 }
 function connTekst(){
   const c = connCheck; const r = [`Mijn ICT-Omgeving ${VERSIE} · connectoren en velden (${new Date().toLocaleString('nl-NL')})`, ''];
@@ -3954,8 +3960,8 @@ async function seinAanwezig(){
     if(DEMO){ AANW.ik = 'ik'; AANW.lijst = [{nr:'12601', code:'kg', naam:'Kelly Groen', bezig:false}, {nr:'12604', code:'gb', naam:'Glenn Brons', bezig:true}]; }
     else { const r = await fetch(aanwezigUrl(), {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + await geldigToken()}, body: JSON.stringify({nr, naam: profiel.naam, bezig})});
       if(!r.ok) throw new Error('HTTP ' + r.status);
-      const j = await r.json(); AANW.ik = j.ik || ''; AANW.lijst = j.lijst || []; AANW.fouten = 0; }
-  }catch(e){ if(++AANW.fouten >= 3){ AANW.uit = true; console.info('Aanwezigheid (oogje) staat uit: ' + e.message); } }
+      const j = await r.json(); AANW.ik = j.ik || ''; AANW.lijst = j.lijst || []; AANW.fouten = 0; AANW.status = 'ok'; }
+  }catch(e){ AANW.status = e.message; if(++AANW.fouten >= 3){ AANW.uit = true; console.info('Aanwezigheid (oogje) staat uit: ' + e.message); } }
   finally{ AANW.bezig = false; }
   tekenAanwezig();
 }
