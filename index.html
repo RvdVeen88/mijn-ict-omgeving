@@ -338,6 +338,7 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .it.stuiter b{--beep:rgba(46,95,176,.55);background:var(--blauw-2);color:#fff;animation:beep 2.6s ease-out infinite .9s,beepTik 2.6s ease-out infinite .9s}
 @media (prefers-reduced-motion:reduce){.it.rinkel b,.it.stuiter b{animation:none}}
 .voet .versie{margin-left:auto}
+.nav:not([hidden]) + .werk .voet{margin-left:-256px;padding-left:26px}   /* voettekst begint direct naast de rail, onder het menu */
 .updateknop{margin-left:auto;display:inline-flex;align-items:center;gap:6px;border:0;background:var(--blauw);color:#fff;font:inherit;font-size:12px;font-weight:600;padding:4px 12px 4px 9px;border-radius:999px;cursor:pointer;animation:updPuls 2s ease-in-out 3}
 .updateknop svg{width:14px;height:14px}
 .updateknop:not([hidden]) + .versie{margin-left:10px}
@@ -348,7 +349,7 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 
 /* ---- v2: navigatie met categorieën ---- */
 .nav[hidden]{display:none}
-.nav{width:256px;flex:none;padding:18px 6px 18px 16px;display:flex;flex-direction:column;gap:1px;position:sticky;top:0;height:100vh;overflow:auto}
+.nav{width:256px;flex:none;padding:18px 6px 52px 16px;display:flex;flex-direction:column;gap:1px;position:sticky;top:0;height:100vh;overflow:auto}
 .nav h4{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--grijs);margin:14px 10px 6px;font-weight:600}
 .nav h4:first-child{margin-top:4px}
 .it{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;text-align:left;padding:7px 12px;border-radius:0 999px 999px 0;font-size:14px;color:var(--inkt)}
@@ -852,7 +853,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt" role="button" tabindex="0" title="Klik om nu te verversen">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.27 · 03-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt" role="button" tabindex="0" title="Klik om nu te verversen">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.31 · 03-10-2026</span></div>
   </div>
 </div>
 
@@ -912,11 +913,12 @@ const INST = Object.assign({
   nieuwDagen: 30,                        // een melding dat nog niet compleet is (afdeling, locatie, reactie) telt zo lang als nieuw
   vrijeVelden: 'KnS38',                  // vrije-veldentabel van type Aanvraag ICT (AFAS weigert velden uit andere KnS-tabellen)                       // type dossieritem Aanvraag ICT
   connMedewerkers: 'PowerBI_ICT_Verjaardag',
+  mailPatroon: '{v}{achternaam}@dcklinieken.nl',   // e-mail = eerste letter + achternaam met tussenvoegsel, bv. rvanderveen@…
   hoofdkantoor: 'Planetarium',           // locatievoorstel voor medewerkers van stafafdelingen (organisatorische eenheid zonder "DC Klinieken <vestiging>")
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.27';
+const VERSIE = 'v4.31';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2833,7 +2835,7 @@ let medewerkers = null, medewerkerFout = '', medewerkerConn = '', medewerkerKolD
 let heeftFunctieKol = DEMO;
 async function laadMedewerkers(){
   if(medewerkers) return medewerkers;
-  if(DEMO) return (medewerkers = [['Robert','van der','Veen'],['Anouk','de','Vries'],['Kelly','','Groen'],['Glenn','','Brons'],['Daphne','van de','Weert'],['Teun','','Kessels'],['Wilma','','Balm'],['Bianca','van den','Berg'],['Guillonard','','Leer'],['Steven','van','Dijk'],['Anouk','van','Riel'],['Noah','','Westerweel']].map(([v, t, a], i) => ({id: String(488760 + i), oe: i === 0 ? 'Manager Digitale Zorg en ICT' : i === 11 ? 'Medewerkers SIC' : ['Artsen DC Klinieken Almere','Doktersassistenten DC Klinieken Amsterdam','Medewerkers DC Klinieken Breda','Radiodiagnostisch laborant DC Klinieken Utrecht','Balie DC Klinieken Hanzeplein'][i % 5], naam: `${a}, ${[v, t].filter(Boolean).join(' ')}`, vol: [v, t, a].filter(Boolean).join(' '), mail: `${v.toLowerCase()}@voorbeeld.nl`})).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
+  if(DEMO) return (medewerkers = [['Robert','van der','Veen'],['Anouk','de','Vries'],['Kelly','','Groen'],['Glenn','','Brons'],['Daphne','van de','Weert'],['Teun','','Kessels'],['Wilma','','Balm'],['Bianca','van den','Berg'],['Guillonard','','Leer'],['Steven','van','Dijk'],['Anouk','van','Riel'],['Noah','','Westerweel']].map(([v, t, a], i) => ({id: String(488760 + i), oe: i === 0 ? 'Manager Digitale Zorg en ICT' : i === 11 ? 'Medewerkers SIC' : ['Artsen DC Klinieken Almere','Doktersassistenten DC Klinieken Amsterdam','Medewerkers DC Klinieken Breda','Radiodiagnostisch laborant DC Klinieken Utrecht','Balie DC Klinieken Hanzeplein'][i % 5], naam: `${a}, ${[v, t].filter(Boolean).join(' ')}`, vol: [v, t, a].filter(Boolean).join(' ')})).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
   medewerkerConn = await kiesMedewerkerConnector();
   const rijen = await connectorAlles(medewerkerConn), k = medewerkerKolommen(Object.keys(rijen[0] || {}));
   const t = v => String(v ?? '').trim();
@@ -4370,19 +4372,25 @@ function tekenOnline(){
   if(AANW.uit && !DEMO){ el.innerHTML = '<p class="onl-leeg">Wie er online is, is nu niet op te halen.</p>'; return; }
   const ander = AANW.lijst.filter(a => a.code !== AANW.ik && !benIk(a.naam)).sort((a, b) => (b.zicht !== false) - (a.zicht !== false) || String(a.naam).localeCompare(b.naam, 'nl'));
   const wat = a => a.nr ? `${a.bezig ? 'bewerkt' : 'bekijkt'} melding ${esc(a.nr)}` : a.zicht === false ? 'op een ander tabblad' : 'in Mijn ICT-Omgeving';
-  el.innerHTML = `<h5>Nu online <b>${ander.length + 1}</b></h5>` + (ander.length ? ander.map(a => `<button type="button" role="menuitem" class="onl${a.zicht === false ? ' weg' : ''}" ${a.nr ? `data-onlnr="${esc(a.nr)}" title="Melding ${esc(a.nr)} openen"` : 'tabindex="-1"'}><i>${esc(initialen(a.naam))}</i><span>${esc(a.naam)}<small>${wat(a)}</small></span></button>`).join('') : '<p class="onl-leeg">Alleen jij is nu online.</p>');
+  el.innerHTML = `<h5>Nu online <b>${ander.length + 1}</b></h5>` + (ander.length ? ander.map(a => `<button type="button" role="menuitem" class="onl${a.zicht === false ? ' weg' : ''}" ${a.nr ? `data-onlnr="${esc(a.nr)}" title="Melding ${esc(a.nr)} openen"` : 'tabindex="-1"'}><i>${esc(initialen(a.naam))}</i><span>${esc(a.naam)}<small>${wat(a)}</small></span></button>`).join('') : '<p class="onl-leeg">Alleen jij bent nu online.</p>');
 }
 
 /* ================= vraag stellen via Teams: melding delen met een collega ================= */
 const ICO_VRAAG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.3 2.4c-.5.2-.8.6-.8 1.1v.5M12 16.5h.01"/></svg>';
 const meldingLink = nr => `${REDIRECT}#melding=${encodeURIComponent(nr)}`;
-// e-mailadres van een collega: uit de medewerkersconnector, anders via het patroon in mijn-ict-config.js (INST.mailPatroon, bv. '{voornaam}.{achternaam}@…')
+// e-mailadres van een collega: uit de medewerkersconnector, anders via het patroon in mijn-ict-config.js (INST.mailPatroon, bij DCK '{v}{achternaam}@dcklinieken.nl')
 function mailVan(naam){
   const m = (medewerkers || []).find(x => norm(x.vol) === norm(naam) || norm(x.naam) === norm(naam));
   if(m && m.mail) return m.mail;
-  if(INST.mailPatroon && m){ const [v, ...r] = String(m.vol).split(/\s+/); const a = r.join(''); return INST.mailPatroon.replace('{voornaam}', v).replace('{achternaam}', a).toLowerCase(); }
+  const vol = m ? m.vol : naam;
+  if(INST.mailPatroon && vol && /\s/.test(vol)){
+    const schoon = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z-]/g, '');
+    const [v, ...r] = String(vol).trim().split(/\s+/);
+    return INST.mailPatroon.replace('{v}', schoon(v)[0] || '').replace('{voornaam}', schoon(v)).replace('{achternaam}', schoon(r.join(''))); }
   return '';
 }
+let vraagIct = null;
+const isIctCollega = n => !vraagIct || vraagIct.some(c => norm(c) === norm(n));
 function vraagPaneel(){
   const knop = $('#detail [data-vraag]'), oud = $('#vraagpaneel');
   if(oud){ oud.remove(); if(knop) knop.setAttribute('aria-expanded', 'false'); return; }
@@ -4391,19 +4399,23 @@ function vraagPaneel(){
   $('#detail .dlg-kop').insertAdjacentHTML('afterend', `<div class="vraagpaneel" id="vraagpaneel">
     <h3>${ICO_VRAAG.replace('<svg', '<svg style="width:16px;height:16px"')}Vraag stellen over melding ${esc(huidig.x.nr)}</h3>
     ${online.length ? `<div class="vp-chips" aria-label="Nu online">${online.map(a => `<button type="button" data-vraagaan="${esc(a.naam)}" class="${a.zicht === false ? 'weg' : ''}"><i>${esc(initialen(a.naam))}</i>${esc(a.naam)}</button>`).join('')}</div>` : ''}
-    <input id="vraag-aan" list="vraag-collegas" placeholder="Aan wie? Typ een naam" autocomplete="off"><datalist id="vraag-collegas"></datalist>
+    <input id="vraag-aan" list="vraag-collegas" placeholder="Aan welke ICT-collega?" autocomplete="off"><datalist id="vraag-collegas"></datalist>
     <textarea id="vraag-tekst" placeholder="Je vraag…"></textarea>
     <div class="vp-rij"><span class="hint" id="vraag-hint">Teams opent met je vraag en een link naar deze melding.</span><button type="button" class="knop vol" id="vraag-teams">Openen in Teams</button></div></div>`);
-  laadMedewerkers().then(l => { const dl = $('#vraag-collegas'); if(dl) dl.innerHTML = l.map(m => `<option value="${esc(m.vol || m.naam)}">${esc(m.oe || '')}</option>`).join(''); vraagHint(); }).catch(() => {});
+  // alleen ICT-collega's (zelfde lijst als bij Verantwoordelijke)
+  ictCollegas().then(l => { vraagIct = l.map(c => c.naam).filter(n => !benIk(n)); const dl = $('#vraag-collegas'); if(dl) dl.innerHTML = vraagIct.map(n => `<option value="${esc(n)}">`).join('');
+    document.querySelectorAll('[data-vraagaan]').forEach(b => { if(!isIctCollega(b.dataset.vraagaan)) b.remove(); }); vraagHint(); }).catch(() => {});
+  laadMedewerkers().catch(() => {});   // voor de e-mailadressen
   setTimeout(() => (online.length ? $('#vraag-tekst') : $('#vraag-aan')).focus(), 0);
 }
 function vraagHint(){
   const h = $('#vraag-hint'), aan = ($('#vraag-aan') || {}).value || ''; if(!h) return;
-  h.textContent = !aan ? 'Teams opent met je vraag en een link naar deze melding.' : mailVan(aan) ? `Teams opent een chat met ${aan}.` : `Van ${aan} is geen e-mailadres bekend: je kiest de collega in Teams zelf.`;
+  h.textContent = !aan ? 'Kies een ICT-collega; Teams opent met je vraag en een link naar deze melding.' : !isIctCollega(aan) ? 'Dit is geen ICT-collega: de vraag is alleen voor het ICT-team.' : mailVan(aan) ? `Teams opent een chat met ${aan}.` : `Van ${aan} is geen e-mailadres bekend: je kiest de collega in Teams zelf.`;
 }
 function vraagNaarTeams(){
   const x = huidig && huidig.x; if(!x) return;
   const aan = $('#vraag-aan').value.trim(), vraag = $('#vraag-tekst').value.trim(), link = meldingLink(x.nr);
+  if(!aan || !isIctCollega(aan)){ $('#vraag-aan').focus(); toast(aan ? `${aan} staat niet in de lijst met ICT-collega's` : 'Kies eerst een ICT-collega', true); return; }
   if(!vraag){ $('#vraag-tekst').focus(); toast('Typ eerst je vraag'); return; }
   const tekst = `Vraag over melding ${x.nr} (${x.onderwerp}): ${vraag}`, mail = aan ? mailVan(aan) : '';
   const url = mail ? `https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(mail)}&message=${encodeURIComponent(tekst + ' ' + link)}`
