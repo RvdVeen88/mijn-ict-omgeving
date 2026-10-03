@@ -902,7 +902,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.33', VERSIE_DATUM = '03-10-2026';
+const VERSIE = 'v4.34', VERSIE_DATUM = '03-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1622,7 +1622,7 @@ function tekenNav(){
     ${favL.map(rijA).join('') || '<p class="favhint"><b style="color:var(--inkt);font-weight:500">Geen afdeling geselecteerd</b><br>Zet een ★ bij een afdeling om hem hier te tonen.</p>'}
     <h4><button type="button" id="k-overige" aria-expanded="${restOpen}">${ico('<path d="M6 9l6 6 6-6"/>')}Andere afdelingen (${rest.length})</button></h4>
     ${restOpen ? rest.map(rijA).join('') : ''}
-    <h4>Overig</h4>${[ALLE, ...ONDER].map(v => it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}`;
+    <h4>Overig</h4>${[ALLE, ...ONDER].map(v => it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}${it(hist.id, hist.t, null, hist)}`;
 }
 
 /* ================= Overzicht: rustig voorblad met persoonlijke cijfers (zoals in Mijn changes) ================= */
@@ -3534,7 +3534,6 @@ function ikMenu(){
   if(m.hidden) m.innerHTML = `<div id="ik-online"></div><hr>
     <button type="button" role="menuitem" data-ikm="thema">${isDonker() ? 'Lichte weergave' : 'Donkere weergave'}</button>
     <button type="button" role="menuitem" data-ikm="import">To-do importeren<small>uit een Microsoft To Do-export (JSON)</small></button>
-    <button type="button" role="menuitem" data-ikm="hist">Historie<small>meldingen die jij hier wijzigde</small></button>
     <button type="button" role="menuitem" data-ikm="tour">Rondleiding</button>
     <button type="button" role="menuitem" data-ikm="conn">Connectoren &amp; velden<small>voor de beheerder</small></button><hr>
     <button type="button" role="menuitem" data-ikm="uit">Uitloggen</button><p class="ikversie">Versie ${VERSIE.slice(1)} · ${VERSIE_DATUM}</p>`;
@@ -3544,7 +3543,7 @@ function ikMenu(){
 document.addEventListener('click', e => {
   const on = e.target.closest('[data-onlnr]'); if(on){ $('#ikmenu').hidden = true; const x = items.find(y => String(y.nr) === on.dataset.onlnr); if(x){ navLijst = []; openDetail(x.nr); } else toast('Melding ' + on.dataset.onlnr + ' staat (nog) niet in de lijst.'); return; }
   const im = e.target.closest('[data-ikm]'); if(im){ $('#ikmenu').hidden = true; const k = im.dataset.ikm;
-    if(k === 'tour') startTour(); else if(k === 'hist'){ tab = 'historie'; teken(); } else if(k === 'thema') wisselThema(); else if(k === 'uit') uitloggen();
+    if(k === 'tour') startTour(); else if(k === 'thema') wisselThema(); else if(k === 'uit') uitloggen();
     else if(k === 'import'){ if(tab !== 'todo'){ tab = 'todo'; teken(); } if(TD.status === 'ok'){ $('#td-import-bestand').value = ''; $('#td-import-bestand').click(); } else toast('Kies eerst je to-do-bestand; daarna kun je importeren'); }
     else { tab = 'connectoren'; teken(); } return; }
   if($('#ikmenu') && !e.target.closest('#ikmenu') && !e.target.closest('#ik')) $('#ikmenu').hidden = true;
