@@ -65,7 +65,8 @@ button{cursor:pointer}
 .bovenbalk h1{font-size:22px;color:var(--blauw);white-space:nowrap}
 .bovenbalk .sub{color:var(--grijs);font-size:14px}
 .bovenbalk .rechts{margin-left:auto;display:flex;align-items:center;gap:12px}
-.globzoek{position:relative;flex:1 1 320px;max-width:520px;margin:0 auto}
+.globzoek{position:relative;flex:1 1 240px;min-width:200px;max-width:520px;margin:0 auto}
+@media (min-width:900px){.bovenbalk{flex-wrap:nowrap}.bovenbalk h1{overflow:hidden;text-overflow:ellipsis}}
 .globzoek .zoek{margin-left:0;flex:none;width:100%;box-sizing:border-box}
 .globzoek .zoek:focus-within{border-color:var(--blauw-2);box-shadow:0 0 0 4px rgba(46,95,176,.15)}
 .globzoek kbd{font-family:inherit;font-size:11px;color:var(--grijs);border:1px solid var(--lijn);border-radius:6px;padding:1px 6px;white-space:nowrap}
@@ -271,6 +272,23 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .keuzes button[aria-pressed="true"]{background:var(--blauw);border-color:var(--blauw);color:var(--opaccent)}
 .laden{display:flex;align-items:center;gap:10px;color:var(--grijs)}
 .voortgang{display:flex;flex-direction:column;gap:8px}
+.intro{display:flex;justify-content:center;margin:2px 0 6px}
+.intro svg{width:92px;height:92px;overflow:visible}
+.intro .d1{fill:#B5D0FF;animation:introL .7s cubic-bezier(.2,.9,.3,1.2) both, introAdem 2.4s ease-in-out .9s infinite}
+.intro .d2-rand{fill:none;stroke:var(--blauw);stroke-width:1.4;stroke-dasharray:80;stroke-dashoffset:80;animation:introTeken 1s ease .25s forwards}
+.intro .d2-bak{fill:var(--lichtblauw-2)}
+.intro .golf{fill:var(--blauw);animation:introGolf 1.2s linear infinite}
+.intro .d2-groep{animation:introR .7s cubic-bezier(.2,.9,.3,1.2) .1s both}
+#intro-water{transition:transform .6s ease}
+.intro.klaar svg{animation:introKlaar .6s cubic-bezier(.5,0,.75,0) forwards}
+#s-start.weg .kaart > :not(.intro){transition:opacity .3s;opacity:0}
+@keyframes introL{from{transform:translateX(-14px);opacity:0}to{transform:none;opacity:1}}
+@keyframes introR{from{transform:translateX(14px);opacity:0}to{transform:none;opacity:1}}
+@keyframes introTeken{to{stroke-dashoffset:0}}
+@keyframes introAdem{50%{opacity:.6;transform:translateX(-1px)}}
+@keyframes introGolf{from{transform:translateX(0)}to{transform:translateX(-9px)}}
+@keyframes introKlaar{30%{transform:scale(.92)}100%{transform:scale(7);opacity:0}}
+@media (prefers-reduced-motion: reduce){.intro *{animation:none!important;stroke-dashoffset:0!important}}
 .voortgang .spoor{height:6px;border-radius:3px;background:var(--lijn);overflow:hidden}
 .voortgang .spoor i{display:block;height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,var(--blauw-2),var(--blauw));transition:width .3s ease}
 .voortgang .regel{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--grijs)}
@@ -590,6 +608,46 @@ dialog#detail.groot .toelblok .lang{max-height:40vh}
 .tl-zonder{padding:10px 26px 14px;font-size:13px;color:var(--grijs);border-top:1px solid var(--lijn)}
 .tl-zonder button{border:0;background:var(--lichtblauw-2);color:var(--blauw);border-radius:0 999px 999px 0;padding:3px 12px 3px 9px;margin:4px 6px 0 0;font-size:12.5px;cursor:pointer}
 @media (max-width:800px){.chtijdlijn{--links:150px}}
+.cn-kop{display:flex;align-items:flex-start;gap:20px;justify-content:space-between;flex-wrap:wrap;margin-bottom:4px}
+.cn-kop p{margin:0;max-width:760px;color:var(--grijs);font-size:13.5px;line-height:1.5}
+.cn-kaart header{flex-wrap:wrap;align-items:center}
+.cn-kaart header h2.cn-naam{font-family:ui-monospace,Consolas,monospace;font-size:15px}
+.cn-soort,.cn-sleutel{font-size:11.5px;color:var(--grijs);border:1px solid var(--lijn);border-radius:999px;padding:1px 9px}
+.cn-sleutel{font-family:ui-monospace,Consolas,monospace}
+.cn-badge{font-size:11.5px;font-weight:600;border-radius:999px;padding:2px 10px;background:var(--lichtblauw-2);color:var(--blauw)}
+.cn-badge.groen{background:var(--groen-licht);color:var(--groen)} .cn-badge.rood{background:var(--rood-licht);color:var(--rood)} .cn-badge.oranje{background:var(--oranje-licht);color:var(--oranje)} .cn-badge.grijs{background:var(--achtergrond);color:var(--grijs)}
+.cn-kaart header .cn-badge:last-child{margin-left:auto}
+.cn-doel{margin:0;padding:0 26px 10px;font-size:13px;color:var(--grijs);line-height:1.5}
+.cn-tabel{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+.cn-tabel th:nth-child(1){width:26%} .cn-tabel th:nth-child(3){width:96px} .cn-tabel th:nth-child(4){width:210px}
+.cn-tabel td{overflow-wrap:anywhere}
+.cn-tabel th{text-align:left;font-size:11.5px;color:var(--blauw);padding:8px 12px;border-bottom:2px solid var(--lichtblauw)}
+.cn-tabel th:first-child,.cn-tabel td:first-child{padding-left:26px}
+.cn-tabel td{padding:7px 12px;border-bottom:1px solid var(--lijn);vertical-align:top}
+.cn-tabel td:nth-child(3){white-space:nowrap;color:var(--grijs)}
+.cn-tabel code{font-size:12.5px;color:var(--inkt)}
+.cn-st{white-space:nowrap;color:var(--grijs)} .cn-st.ok{color:var(--groen);font-weight:600} .cn-st.mis{color:var(--rood);font-weight:600}
+.cn-extra{margin:0;padding:10px 26px 14px;font-size:12.5px;color:var(--grijs);line-height:1.9}
+.cn-extra span{display:inline-block;font-family:ui-monospace,Consolas,monospace;font-size:11.5px;background:var(--achtergrond);border-radius:999px;padding:0 9px;margin:0 4px 0 0}
+#blokken .cn-kaart{margin:0}
+.hulpknop{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--lijn);background:var(--vlak);color:var(--blauw);font:inherit;font-weight:700;font-size:15px;cursor:pointer;position:relative;flex:none}
+.hulpknop:hover{border-color:var(--lichtblauw);box-shadow:var(--schaduw)}
+.hulpknop.nieuw::after{content:'';position:absolute;top:-1px;right:-1px;width:9px;height:9px;border-radius:50%;background:var(--rood);box-shadow:0 0 0 2px var(--achtergrond)}
+.bovenbalk .rechts{position:relative}
+.ikmenu{position:absolute;right:0;top:calc(100% + 6px);z-index:45;background:var(--vlak);border-radius:0 16px 16px 0;box-shadow:0 14px 40px rgba(3,31,77,.22);padding:6px;min-width:220px;display:flex;flex-direction:column}
+.ikmenu button{border:0;background:transparent;font:inherit;font-size:13.5px;text-align:left;padding:9px 12px;border-radius:0 10px 10px 0;cursor:pointer;color:var(--inkt);display:flex;flex-direction:column}
+.ikmenu button:hover{background:var(--lichtblauw-2)}
+.ikmenu small{font-size:11.5px;color:var(--grijs)}
+dialog#tour{position:fixed;inset:0;width:100vw;height:100vh;max-width:none;max-height:none;margin:0;padding:0;background:transparent;border:0;box-shadow:none;border-radius:0;overflow:hidden}
+dialog#tour::backdrop{background:transparent}
+.tour-spot{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(3,20,55,.55);transition:all .3s ease;pointer-events:none;outline:2px solid #fff;outline-offset:0}
+.tour-kaart{position:fixed;width:min(360px,calc(100vw - 32px));background:var(--vlak);color:var(--inkt);border-radius:0 20px 20px 0;box-shadow:0 18px 50px rgba(3,31,77,.35);padding:18px 20px 16px;transition:left .3s ease,top .3s ease}
+.tour-kaart small{font-size:11.5px;color:var(--grijs);font-weight:600}
+.tour-kaart h3{margin:2px 0 6px;font-size:16px;color:var(--blauw)}
+.tour-kaart p{margin:0 0 14px;font-size:13.5px;line-height:1.55}
+.tour-knoppen{display:flex;gap:8px;align-items:center}
+.tour-stop{position:absolute;top:8px;right:10px;border:0;background:transparent;font-size:20px;line-height:1;color:var(--grijs);cursor:pointer;padding:4px 8px;border-radius:8px}
+.tour-stop:hover{background:var(--achtergrond);color:var(--inkt)}
 .voorstelknop{position:absolute;top:9px;right:12px;z-index:2;border:1.5px solid var(--blauw-2);background:var(--vlak);color:var(--blauw);font:inherit;font-size:12.5px;font-weight:600;padding:4px 12px;border-radius:0 999px 999px 0;cursor:pointer;animation:vvIn .15s ease}
 .voorstelknop:hover{background:var(--blauw);color:#fff;border-color:var(--blauw)}
 @keyframes vvIn{from{opacity:0;transform:translateY(-3px)}}
@@ -705,7 +763,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
     <div class="bovenbalk">
       <h1 id="titel">Voor mij</h1><span class="sub" id="subtitel"></span>
       <div class="globzoek" id="globzoek"><label class="zoek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="f-zoek" placeholder="Zoek in alle meldingen: nummer, onderwerp, melder…" autocomplete="off" spellcheck="false" aria-label="Zoeken in meldingen"><kbd id="zoek-kbd">Ctrl K</kbd></label><div class="zoekres" id="zoekres" hidden></div></div>
-      <div class="rechts"><span class="klok" id="klok"></span><div class="schakel klein" id="mijalles-top" role="group" aria-label="Welke meldingen je ziet"><button type="button" data-v="mij" title="Alleen meldingen waar jij behandelaar bent of een taak hebt">Mij</button><button type="button" data-v="afd" title="Jouw meldingen plus alles in je ★-afdelingen, wie de behandelaar ook is">Afdelingen</button><button type="button" data-v="alles" title="Alle meldingen">Alles</button></div><button type="button" class="ik" id="ik" title="Mijn instellingen"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
+      <div class="rechts"><span class="klok" id="klok"></span><div class="schakel klein" id="mijalles-top" role="group" aria-label="Welke meldingen je ziet"><button type="button" data-v="mij" title="Alleen meldingen waar jij behandelaar bent of een taak hebt">Mij</button><button type="button" data-v="afd" title="Jouw meldingen plus alles in je ★-afdelingen, wie de behandelaar ook is">Afdelingen</button><button type="button" data-v="alles" title="Alle meldingen">Alles</button></div><button type="button" class="hulpknop" id="k-help" title="Rondleiding: wat kun je hier allemaal?" aria-label="Rondleiding">?</button><button type="button" class="ik" id="ik" title="Menu" aria-haspopup="menu"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
     </div>
     <main>
       <section id="v-mij">
@@ -734,7 +792,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.02 · 02-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.05 · 03-10-2026</span></div>
   </div>
 </div>
 
@@ -793,7 +851,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.02';
+const VERSIE = 'v4.05';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -882,6 +940,10 @@ function uitloggen(){ opslag.weg(RT); tok = null; location.href = REDIRECT; }
 
 /* ================= AFAS-aanroepen ================= */
 async function afas(pad, opties = {}, opnieuw = true){
+  try{ const r = await afasKaal(pad, opties, opnieuw); if(opnieuw) telGebruik(pad, true); return r; }
+  catch(e){ if(opnieuw) telGebruik(pad, false, e.message); throw e; }
+}
+async function afasKaal(pad, opties = {}, opnieuw = true){
   if(DEMO) return demoAfas(pad, opties);
   const ctrl = new AbortController(), tm = setTimeout(() => ctrl.abort(), 60000);
   const r = await fetch(afasBasis() + pad, {...opties, signal: ctrl.signal, headers:{'Authorization':'Bearer ' + await geldigToken(), 'Accept':'application/json', 'Accept-Language':'nl-nl', ...(opties.body ? {'Content-Type':'application/json'} : {})}});
@@ -929,6 +991,7 @@ function maakVoortgang(namen, naarScherm){
 }
 const fmtGetal = n => n.toLocaleString('nl-NL');
 function laadScherm(p, geteld, schat){
+  introNiveau(p);
   const el = $('#laad-voortgang'); if(el){ el.querySelector('i').style.width = p + '%'; el.querySelector('b').textContent = p + '%';
     el.querySelector('small').textContent = geteld ? `${fmtGetal(geteld)}${schat ? ' van ~' + fmtGetal(schat) : ''} regels opgehaald` : p > 3 ? 'Openstaande meldingen ophalen uit AFAS…' : 'Verbinding maken met AFAS…'; }
   const tb = $('#topbalk'); tb.classList.toggle('aan', !$('#app').hidden && p < 100); tb.querySelector('i').style.width = p + '%';
@@ -1653,10 +1716,10 @@ function teken(){
   items.forEach(x => x._sg = signalen(x));
   $('#ik span').textContent = profiel.naam; $('#ik i').textContent = profiel.naam.split(' ').map(w => w[0]).filter(c => c && c === c.toUpperCase()).slice(0, 2).join('');
   tekenNav();
-  $('#v-mij').hidden = tab !== 'mij'; $('#v-lijst').hidden = tab === 'mij' || tab === 'todo'; $('#v-todo').hidden = tab !== 'todo';
+  $('#v-mij').hidden = tab !== 'mij' && tab !== 'connectoren'; $('#v-lijst').hidden = tab === 'mij' || tab === 'todo' || tab === 'connectoren'; $('#v-todo').hidden = tab !== 'todo';
   $('#todo-knop').setAttribute('aria-pressed', tab === 'todo'); $('#rail-overzicht').setAttribute('aria-pressed', tab !== 'todo');
   $('#nav').hidden = tab === 'todo';   // bij To-do hoort het meldingmenu er niet bij
-  if(tab === 'mij'){ $('#titel').textContent = 'Overzicht'; tekenMij(); } else if(tab === 'todo') tdTeken(); else tekenLijst();
+  if(tab === 'mij'){ $('#titel').textContent = 'Overzicht'; tekenMij(); } else if(tab === 'connectoren') tekenConnectoren(); else if(tab === 'todo') tdTeken(); else tekenLijst();
   pasTabelBreedtes(); if(typeof tekenAanwezig === 'function') tekenAanwezig();
 }
 
@@ -1698,8 +1761,6 @@ let voorTimer = 0;
 document.addEventListener('mouseover', e => { const r = e.target.closest && e.target.closest('tr[data-nr], .voorregel[data-nr]'); if(!r) return;
   clearTimeout(voorTimer); voorTimer = setTimeout(() => voorLaden(items.find(y => String(y.nr) === r.dataset.nr)), 120); });
 // alle workflowacties in één keer (in plaats van per taak een aparte aanroep)
-let alleActies = null;
-const laadAlleActies = () => alleActies || (alleActies = afas(`/connectors/${INST.connActies}?skip=0&take=2000`).then(d => d.rows || []).catch(e => { alleActies = null; throw e; }));
 async function workflow(x){
   if(DEMO) return {taak:'Behandelen ICT', bij:[profiel.naam], acties:['Afhandelen','Reactie plaatsen','Vraag aan melder','Toewijzen aan mij','Toewijzen aan collega','Wachten op leverancier','Inplannen','Accorderen RFC','Interne release','Externe release','Interne notitie'].map((n, i) => ({naam:n, afhandelen: i === 0 || i === 5, wf:'d', tk:'d', ac:'d' + i}))};
   const taken = (await afas(`/connectors/${INST.connTaken}?skip=0&take=20${filterOp('SubjectId', x.sbid)}`)).rows || [];
@@ -3063,21 +3124,270 @@ function startInlog(fout){
     ${fout ? `<p class="fout">${esc(fout)}</p>` : ''}<div><button class="knop vol" id="k-in">Inloggen met AFAS</button></div>`);
   $('#k-in').onclick = () => inloggen();
 }
-function startProfiel(eerste){
-  const p = profiel;
-  let rol = p.rol === 'servicedesk' ? 'servicedesk' : 'fb';
-  const ROLLEN = [['fb','Mijn afdelingen','Je ziet je eigen meldingen en de afdelingen die je met een ★ in het menu kiest'],
-                  ['servicedesk','Servicedesk','Overzicht van alle afdelingen, inclusief nieuwe meldingen zonder behandelaar']];
-  toonStart(`${eerste ? groet(p.naam) : '<h1>Mijn instellingen</h1>'}
-    <p>${eerste ? 'Hoe werk je? Je afdelingen kies je daarna met de ★ in het menu.' : `Ingelogd als <b>${esc(p.naam)}</b>. Je afdelingen kies je met de ★ in het menu.`}</p>
-    <div class="keuzes" id="p-rol" style="flex-direction:column;align-items:stretch">${ROLLEN.map(([k, t, u]) => `<button type="button" data-rol="${k}" aria-pressed="${rol === k}" style="text-align:left;padding:10px 16px"><b>${t}</b><br><small>${u}</small></button>`).join('')}</div>
-    <div style="display:flex;gap:8px"><button class="knop vol" id="p-ok">${eerste ? 'Aan de slag' : 'Opslaan'}</button>${eerste ? '' : '<button class="knop" id="p-terug">Annuleren</button>'}</div>`);
-  $('#p-rol').onclick = e => { const b = e.target.closest('[data-rol]'); if(!b) return; rol = b.dataset.rol;
-    document.querySelectorAll('#p-rol [data-rol]').forEach(x => x.setAttribute('aria-pressed', x === b)); };
-  if($('#p-terug')) $('#p-terug').onclick = () => toonApp();
-  $('#p-ok').onclick = () => { profiel = {...p, rol, ingesteld:true}; opslag.set(profielSleutel(), profiel); toonApp(); };
-}
 function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken(); }
+
+/* ================= Connectoren & velden: wat Mijn ICT per connector nodig heeft, live gecontroleerd ================= */
+// gebruik per connector in deze sessie (bijgehouden in afas())
+const CONN_GEBRUIK = {};
+function telGebruik(pad, ok, fout){
+  const m = pad.match(/^\/connectors\/([^/?]+)/) || pad.match(/^\/(SubjectConnector)\b/); if(!m) return;
+  const n = decodeURIComponent(m[1]), g = CONN_GEBRUIK[n] || (CONN_GEBRUIK[n] = {n: 0, fout: 0, laatst: null, melding: ''});
+  g.n++; g.laatst = new Date(); if(!ok){ g.fout++; g.melding = fout; } else g.melding = '';
+}
+// v(id-regex of exacte namen, omschrijving, nodig: 'ja' | 'opt' | 'filter')
+const v = (match, oms, nodig = 'ja', toon = '') => ({match: match instanceof RegExp ? match : new RegExp('^(' + [].concat(match).map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')$', 'i'), naam: toon || (match instanceof RegExp ? '' : [].concat(match).join(' of ')), oms, nodig});
+const CONN_KAART = () => [
+  {conn: INST.connSla, sleutel: 'connSla', soort: 'GET', nodig: 'ja', doel: 'Hoofdlijst: alle meldingen (Aanvraag ICT) met status, behandelaar, datums en normen. Basis van elk overzicht.', velden: [
+    v('Nummer', 'Meldingnummer; koppelt alle andere connectoren'),
+    v('Onderwerp', 'Onderwerp in lijsten en meldingvenster'),
+    v('Status', 'Externe status: bepaalt fase, normen en signalen'),
+    v('Omschrijving_4', 'Verantwoordelijke (behandelaar): Mijn meldingen, kolom Behandelaar'),
+    v('Omschrijving_2', 'Reserve-melder als Sollicitant_3 ontbreekt', 'opt'),
+    v(INST.soortVeld || 'Omschrijving', 'Type dossieritem: alleen "Aanvraag ICT" telt mee voor de normen; In- en uitdienst'),
+    v('Type_ticket_ICT', 'Type melding (Incident, Serviceverzoek, Change …): kolom Type, Changes-tab'),
+    v(['AFAS_Afdeling', 'Afdeling'], 'Afdeling (indeling menu, kolom Afdeling); de app kiest zelf het veld met de meeste bekende afdelingsnamen'),
+    v('Instuurdatum', 'Ingestuurd; norm "Nieuw · oppakken vóór"'),
+    v('Gepland', 'Geplande datum: kolom Gepland, signaal Planning verlopen'),
+    v('Laatste_reactie', 'Datum laatste reactie: norm "X werkdagen geen reactie"'),
+    v('Gebruiker_laatste_reactie', 'Wie reageerde laatst: Ongelezen reactie, Mist: reactie'),
+    v('Laatste_wijziging_externe_status', 'Datum statuswijziging: normen en snel bijwerken (filter)'),
+    v('Gebruiker_laatste_wijziging', 'Wie wijzigde laatst: Ongelezen update'),
+    v('Workflow_afgerond', 'Open of gesloten (ook als filter bij het laden)'),
+    v('Kritieke_storing', 'Signaal Kritieke storing', 'opt'),
+    v('Extern_ticket', 'Extern ticketnummer (leverancier) in het meldingvenster', 'opt'),
+    v('Focusgebied_ICT', 'Alleen voor zoeken', 'opt'),
+    v('Focusgebied_EMMA', 'Alleen voor zoeken', 'opt'),
+    v(/^locatie$/i, 'Locatie (anders uit Helpdesk_PowerBI)', 'opt', 'Locatie')]},
+  {conn: INST.connTickets, sleutel: 'connTickets', soort: 'GET', nodig: 'ja', doel: 'Aanvulling per melding: intern nummer (nodig voor elke wijziging), melder, instuurder, toelichting en change-datums. Wordt per 40 meldingen opgevraagd.', velden: [
+    v('Nummer', 'Meldingnummer (filter)'),
+    v('Dossieritem', 'Intern nummer (SbId): zonder dit kan niets worden opgeslagen, geen reacties of bijlagen'),
+    v('Sollicitant_3', 'Melder (sollicitant): kolom Melder, aanhef standaardtekst, ⓘ'),
+    v('Gebruiker', 'Instuurder: wie de melding aanmaakte'),
+    v(/^toelichting/i, 'Toelichting in het meldingvenster', 'opt', 'Toelichting'),
+    v(/^locatie$/i, 'Locatie (als de SLA-connector die niet heeft)', 'opt', 'Locatie'),
+    v(/^(begin|start)_?datum_?project|^begindatum/i, 'Startdatum project (changes, tijdlijn)', 'opt', 'Begindatum project'),
+    v(/^eind_?datum_?project|^einddatum/i, 'Deadline / einddatum project (changes, tijdlijn)', 'opt', 'Einddatum project')]},
+  {conn: INST.connReacties, sleutel: 'connReacties', soort: 'GET', nodig: 'ja', doel: 'Reacties in het meldingvenster en de controle of ICT al reageerde. De app zoekt de kolommen op naam.', velden: [
+    v(/^dossieritem$/i, 'Koppeling met de melding (filter)', 'ja', 'Dossieritem'),
+    v(/^(reactie|tekst_?reactie|reactietekst|tekst)$/i, 'Tekst van de reactie', 'ja', 'Reactie'),
+    v(/instuurdatum|datum/i, 'Datum en tijd van de reactie', 'ja', 'Instuurdatum'),
+    v(/^(instuurder|naam_instuurder|gebruiker|aangemaakt_door|medewerker|gebruiker_reactie|naam)/i, 'Wie de reactie plaatste', 'ja', 'Instuurder'),
+    v(/zichtbaar.*code|code.*zichtbaar/i, 'Reactie zichtbaar code (I / EI): interne notities geel', 'opt', 'Reactie zichtbaar code'),
+    v(/reactie_?-?id|id_?reactie|reactienummer/i, 'ID reactie: koppelt bijlagen aan de juiste reactie', 'opt', 'ID reactie')]},
+  {conn: INST.connTaken, sleutel: 'connTaken', soort: 'GET', nodig: 'ja', doel: 'Openstaande workflowtaken: wie de melding in zijn takenlijst heeft, welke stap; ook gebruikerscodes van collega’s.', velden: [
+    v('SubjectId', 'Intern nummer van de melding (filter)'),
+    v('TaskName', 'Taak (GUID): nodig om een workflowactie uit te voeren'),
+    v('WorkflowName', 'Workflow (GUID): idem'),
+    v('User', 'Gebruikerscode (bijv. 88406.rvanderveen): Toewijzen, wie ben ik'),
+    v('UserName', 'Naam bij de gebruikerscode'),
+    v(['TaskDescription', 'WfDescription'], 'Naam van de taak ("taak bij jou")', 'opt')]},
+  {conn: INST.connActies, sleutel: 'connActies', soort: 'GET', nodig: 'ja', doel: 'Beschikbare workflowacties per taak: vullen de Status-keuzelijst en Afhandelen, Toewijzen, Reactie plaatsen.', velden: [
+    v('TaskName', 'Taak (filter)'),
+    v('WorkflowName', 'Workflow'),
+    v('ActionName', 'Actie (GUID) die wordt uitgevoerd'),
+    v('ActionDescription', 'Naam van de actie, bijv. "Reactie plaatsen", "Afhandelen"'),
+    v('ActionType', 'Soort actie (afhandelen, delegeren …)'),
+    v('ActionTypeDescription', 'Omschrijving soort actie', 'opt'),
+    v('SeqNo', 'Volgorde in de keuzelijst', 'opt')]},
+  {conn: INST.connBijlagen, sleutel: 'connBijlagen', soort: 'GET', nodig: 'ja', doel: 'Bijlagen bij de melding (standaard AFAS-connector).', velden: [
+    v('subject_id', 'Intern nummer van de melding (filter)'), v('file_id', 'Bestand-ID om te openen'), v('file_name', 'Bestandsnaam'), v('file_size', 'Grootte', 'opt')]},
+  {conn: INST.connReactieBijlagen, sleutel: 'connReactieBijlagen', soort: 'GET', nodig: 'ja', doel: 'Bijlagen bij reacties (standaard AFAS-connector).', velden: [
+    v('subject_id', 'Intern nummer van de melding (filter)'), v('reaction_id', 'Reactie waar het bestand bij hoort'), v('file_id', 'Bestand-ID'), v('file_name', 'Bestandsnaam'), v('file_size', 'Grootte', 'opt')]},
+  {conn: INST.connMedewerkers, sleutel: 'connMedewerkers', soort: 'GET', nodig: 'ja', doel: 'Medewerkerslijst: melder kiezen bij een nieuwe melding, ⓘ (locatie, OE), locatievoorstel en de ICT-collega’s bij Verantwoordelijke.', velden: [
+    v(/^(EmId|EmployeeId|Medewerker|Medewerkernummer|Nummer_medewerker|Medewerker_nummer|MedewerkerId|Medewerker_code)$/i, 'Medewerkernummer (wordt de sollicitant bij een nieuwe melding)', 'ja', 'Medewerker'),
+    v(/^(Roepnaam|CallName|Voornaam|Voornamen)$/i, 'Roepnaam / voornaam', 'ja', 'Roepnaam'),
+    v(/^(Voorvoegsel|Tussenvoegsel|Prefix)$/i, 'Voorvoegsel', 'opt', 'Voorvoegsel'),
+    v(/^(Achternaam|LastName|Geboortenaam)$/i, 'Achternaam', 'ja', 'Achternaam'),
+    v(/organisatorische|^oe$/i, 'Organisatorische eenheid: ⓘ, locatievoorstel, ICT-collega’s', 'ja', 'Organisatorische eenheid'),
+    v(/^(locatie|standplaats|werklocatie|werkplek|vestiging)/i, 'Werklocatie (beter locatievoorstel)', 'opt', 'Locatie'),
+    v(/uit.?dienst|einddatum|date.?of.?leaving/i, 'Uit dienst: niet meer tonen', 'opt', 'Datum uit dienst'),
+    v(/^(geblokkeerd|blocked|inactief)$/i, 'Geblokkeerd: niet meer tonen', 'opt', 'Geblokkeerd')]},
+  {conn: INST.connIk, sleutel: 'connIk', soort: 'GET', nodig: 'ja', doel: 'Wie ben ik: filter Gebruiker = [Gebruiker] geeft alleen de ingelogde gebruiker.', velden: [
+    v(/^(gebruiker|gebruikerscode|gebruiker_code|user|userid)$/i, 'Gebruikerscode van de ingelogde gebruiker (filter Gebruiker = [Gebruiker])', 'ja', 'Gebruiker'),
+    v(/naam/i, 'Naam van de ingelogde gebruiker', 'ja', 'Naam'),
+    v(/^(medewerker|medewerkernummer|emid)$/i, 'Medewerkernummer', 'opt', 'Medewerker'),
+    v(/groep/i, 'Autorisatiegroepen (aandachtsgebieden)', 'opt', 'Groep')]},
+  {conn: INST.connToelichting, sleutel: 'connToelichting', soort: 'GET', nodig: 'reserve', doel: 'Reserve voor de toelichting: alleen nodig als Helpdesk_PowerBI en de SLA-connector geen veld Toelichting hebben.', velden: [
+    v(/^(dossieritem|nummer)$/i, 'Koppeling met de melding (filter)', 'ja', 'Dossieritem of Nummer'), v(/^toelichting|^sbtx$/i, 'Toelichting', 'ja', 'Toelichting')]},
+  {conn: 'KnSubject', soort: 'UPDATE', nodig: 'ja', doel: 'Melding aanmaken en velden wijzigen (afdeling, locatie, status, behandelaar, planning, change-datums) en bijlagen toevoegen.', velden: [
+    v('StId', 'Type dossieritem (Aanvraag ICT) bij een nieuwe melding'), v('Ds', 'Onderwerp'), v('SbTx', 'Toelichting'),
+    v(/^afdeling$/i, 'Afdeling (vrij veld KnS38)', 'ja', 'Afdeling'), v(/^locatie$/i, 'Locatie (vrij veld)', 'ja', 'Locatie'), v(/^type( ticket)?( ict)?$|type ticket/i, 'Type melding (vrij veld)', 'ja', 'Type ticket ICT'),
+    v(/^verantwoordelijke$|^behandelaar$/i, 'Verantwoordelijke (vrij veld)', 'ja', 'Verantwoordelijke'), v(/^(externe )?status$/i, 'Status als veld (anders via workflowactie)', 'opt', 'Status'),
+    v(/werkzaamheden|gepland|planning|inplan/i, 'Geplande datum', 'ja', 'Werkzaamheden gepland'),
+    v(/(begin|start)\s*datum\s*project|project\s*(begin|start)/i, 'Begindatum project (changes)', 'opt', 'Begindatum project'), v(/eind\s*datum\s*project|project\s*eind|^deadline/i, 'Einddatum project (changes)', 'opt', 'Einddatum project'),
+    v('SfId', 'Melder (sollicitant) via KnSubjectLink, met SfTp = 17'), v('FileName', 'Bijlage: bestandsnaam (KnSubjectAttachment)'), v('FileStream', 'Bijlage: inhoud')]},
+  {conn: 'KnSubjectWorkflowReaction', soort: 'UPDATE', nodig: 'ja', doel: 'Reageren en workflowstappen uitvoeren (Reactie plaatsen, Afhandelen, Toewijzen …); de mail aan de melder komt uit deze stap.', velden: [
+    v('SbId', 'Intern nummer van de melding'), v('WfNm', 'Workflow'), v('TkNm', 'Taak'), v('AcNm', 'Actie'), v('Tx', 'Reactietekst'),
+    v(/zichtbaar|extern|intern/i, 'Reactie zichtbaar (Interne notitie)', 'opt', 'Reactie zichtbaar'),
+    v('FileName', 'Bijlage bij een reactie: bestandsnaam (KnReactionAttachment)', 'opt'), v('FileStream', 'Bijlage bij een reactie: inhoud', 'opt')]},
+  {conn: 'SubjectConnector', soort: 'GET', nodig: 'ja', doel: 'Bestand van een bijlage openen of downloaden (AppConnectorSubject).', velden: [v('filedata', 'Inhoud van het bestand'), v('filename', 'Bestandsnaam', 'opt')], geenMeta: true}
+];
+let connCheck = null, connBezig = false;
+const metaGetVelden = async c => { const m = await afas(`/metainfo/get/${encodeURIComponent(c)}`), uit = [];
+  (function loop(o){ if(!o || typeof o !== 'object') return; if(Array.isArray(o)) return o.forEach(loop); const id = o.id || o.fieldId; if(id && typeof id === 'string' && 'label' in o) uit.push({id, label: String(o.label || id)}); Object.values(o).forEach(loop); })(m); return uit; };
+async function controleerConnectoren(){
+  if(connBezig) return; connBezig = true; tekenConnectoren();
+  const uit = {conns: {}, alle: null};
+  try{ const m = await afas('/metainfo'); uit.alle = {get: (m.getConnectors || []).map(c => ({id: c.id, oms: c.description || ''})), upd: (m.updateConnectors || []).map(c => ({id: c.id, oms: c.description || ''}))}; }catch(e){ uit.alleFout = e.message; }
+  await Promise.all(CONN_KAART().map(async k => {
+    if(k.geenMeta) return;
+    try{
+      const vl = k.soort === 'GET' ? await metaGetVelden(k.conn) : velden(await afas(`/metainfo/update/${encodeURIComponent(k.conn)}`)).map(f => ({id: f.code, label: f.label}));
+      uit.conns[k.conn] = {velden: vl};
+    }catch(e){ uit.conns[k.conn] = {fout: e.message}; }
+  }));
+  try{ await zoekToelBron(); }catch(e){}
+  connCheck = uit; connBezig = false; tekenConnectoren();
+}
+function tekenConnectoren(){
+  if(tab !== 'connectoren') return;
+  $('#titel').textContent = 'Connectoren & velden'; $('#subtitel').textContent = '';
+  const kaart = CONN_KAART(), c = connCheck, gebruikt = new Set(kaart.map(k => norm(k.conn)));
+  const veldMatch = (veld, lijst) => lijst.find(f => veld.match.test(f.id) || veld.match.test(norm(f.label).replace(/ /g, '_')) || veld.match.test(norm(f.label)));
+  const NODIG = {ja: 'Verplicht', opt: 'Optioneel', filter: 'Filter', reserve: 'Reserve'};
+  const gebr = n => { const g = CONN_GEBRUIK[n]; return g ? `<span class="cn-badge ${g.fout === g.n ? 'rood' : g.fout ? 'oranje' : 'groen'}" title="${esc(g.melding || '')}">${g.n}× aangeroepen${g.fout ? ` · ${g.fout} fout` : ''}</span>` : '<span class="cn-badge grijs">nog niet aangeroepen deze sessie</span>'; };
+  const kaarten = kaart.map(k => {
+    const r = c && c.conns[k.conn], lijst = r && r.velden || [];
+    let actief = k.nodig !== 'reserve' || (toelBron && toelBron.conn === k.conn);
+    const rijen = k.velden.map(f => { const m = r && !r.fout && !k.geenMeta ? veldMatch(f, lijst) : null;
+      const st = !c || k.geenMeta ? '<span class="cn-st">–</span>' : r && r.fout ? '<span class="cn-st">?</span>' : m ? `<span class="cn-st ok" title="${esc(m.label)}">✓ ${esc(m.id)}</span>` : `<span class="cn-st ${f.nodig === 'ja' ? 'mis' : 'opt'}">${f.nodig === 'ja' ? '✗ ontbreekt' : '– niet aanwezig'}</span>`;
+      return `<tr><td><code>${esc(f.naam || f.match.source.replace(/^\^\(?|\)?\$$/g, '').replace(/\\/g, ''))}</code></td><td>${esc(f.oms)}</td><td>${NODIG[f.nodig]}</td><td>${st}</td></tr>`; }).join('');
+    const extra = r && !r.fout ? lijst.filter(f => !k.velden.some(x => veldMatch(x, [f]))) : [];
+    const mist = r && !r.fout ? k.velden.filter(f => f.nodig === 'ja' && !veldMatch(f, lijst)).length : 0;
+    const status = !c ? '' : r && r.fout ? `<span class="cn-badge rood" title="${esc(r.fout)}">niet bereikbaar</span>` : k.geenMeta ? '' : mist ? `<span class="cn-badge rood">${mist} verplicht veld${mist === 1 ? '' : 'en'} ontbreekt</span>` : '<span class="cn-badge groen">compleet</span>';
+    return `<section class="blok cn-kaart"><header><h2 class="cn-naam">${esc(k.conn)}</h2><span class="cn-soort">${k.soort === 'GET' ? 'GetConnector' : 'UpdateConnector'}</span>${k.sleutel ? `<span class="cn-sleutel" title="Instelling in mijn-ict-config.js">${k.sleutel}</span>` : ''}<span class="cn-badge ${k.nodig === 'reserve' ? (actief ? 'oranje' : 'grijs') : 'blauw'}">${k.nodig === 'reserve' ? (actief ? 'reserve · nu in gebruik' : 'reserve · niet in gebruik') : 'verplicht'}</span>${status}${gebr(k.conn)}</header>
+      <p class="cn-doel">${esc(k.doel)}${r && r.fout ? `<br><span class="fout">${esc(r.fout)}</span>` : ''}</p>
+      <table class="cn-tabel"><thead><tr><th>Veld</th><th>Waarvoor gebruikt Mijn ICT het</th><th>Nodig</th><th>In AFAS</th></tr></thead><tbody>${rijen}</tbody></table>
+      ${extra.length ? `<p class="cn-extra"><b>In de connector, niet gebruikt door Mijn ICT (${extra.length}):</b> ${extra.map(f => `<span title="${esc(f.label)}">${esc(f.id)}</span>`).join('')}</p>` : ''}</section>`;
+  }).join('');
+  const nietGebruikt = c && c.alle ? [...c.alle.get.map(x => ({...x, s: 'GET'})), ...c.alle.upd.map(x => ({...x, s: 'UPDATE'}))].filter(x => !gebruikt.has(norm(x.id)) && !(x.s === 'UPDATE' && /^(KnSubjectAttachment|KnReaction)/i.test(x.id))) : [];
+  $('#tegels').innerHTML = '';
+  $('#blokken').innerHTML = `<div class="cn-kop"><p>Per connector: welke velden Mijn ICT gebruikt, waarvoor, en of ze in AFAS aanwezig zijn. <b>Verplicht</b> = zonder dit veld werkt een onderdeel niet. Velden die in de connector staan maar niet gebruikt worden, staan onder elke kaart.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="knop vol" id="cn-check" ${connBezig ? 'disabled' : ''}>${connBezig ? 'Controleren…' : c ? 'Opnieuw controleren' : 'Controleer in AFAS'}</button><button type="button" class="knop" id="cn-kopie">Kopieer als tekst</button></div></div>
+    ${c ? `<section class="blok cn-kaart"><header><h2>Connectoren in de app connector die Mijn ICT niet gebruikt</h2><span class="cn-badge ${nietGebruikt.length ? 'oranje' : 'groen'}">${c.alle ? nietGebruikt.length : '?'}</span></header>
+      <p class="cn-doel">${c.alle ? (nietGebruikt.length ? 'Deze staan in de app connector "Mijn ICT-omgeving" maar worden door deze pagina niet aangeroepen. Kunnen eruit, tenzij een ander dashboard dezelfde app connector gebruikt.' : 'Alle connectoren in de app connector worden gebruikt.') : `Lijst niet op te halen: ${esc(c.alleFout || '')}`}</p>
+      ${nietGebruikt.length ? `<table class="cn-tabel"><thead><tr><th>Connector</th><th>Omschrijving in AFAS</th><th>Soort</th></tr></thead><tbody>${nietGebruikt.map(x => `<tr><td><code>${esc(x.id)}</code></td><td>${esc(x.oms)}</td><td>${x.s === 'GET' ? 'GetConnector' : 'UpdateConnector'}</td></tr>`).join('')}</tbody></table>` : ''}</section>` : ''}
+    ${kaarten}
+    <section class="blok cn-kaart"><header><h2>Buiten AFAS</h2></header><table class="cn-tabel"><tbody>
+      <tr><td><code>afas-token</code></td><td>Azure Function: wisselt de AFAS-login om voor een token (client secret staat alleen in Azure)</td><td>Verplicht</td><td>${esc(INST.tokenFunctie || '')}</td></tr>
+      <tr><td><code>ict-aanwezig</code></td><td>Azure Function: oogje "kijkt mee" (wie heeft dezelfde melding open)</td><td>Optioneel</td><td>${esc(aanwezigUrl())}</td></tr>
+      <tr><td><code>OneDrive-bestand</code></td><td>To-do’s per gebruiker (eigen bestand, niet in AFAS)</td><td>Optioneel</td><td>per gebruiker</td></tr></tbody></table></section>`;
+  if(!c && !connBezig) controleerConnectoren();
+}
+function connTekst(){
+  const c = connCheck; const r = [`Mijn ICT-Omgeving ${VERSIE} · connectoren en velden (${new Date().toLocaleString('nl-NL')})`, ''];
+  CONN_KAART().forEach(k => { const lijst = c && c.conns[k.conn] && c.conns[k.conn].velden || [];
+    r.push(`${k.conn} (${k.soort === 'GET' ? 'GetConnector' : 'UpdateConnector'}${k.nodig === 'reserve' ? ', reserve' : ''}) — ${k.doel}`);
+    k.velden.forEach(f => { const m = lijst.find(x => f.match.test(x.id) || f.match.test(norm(x.label).replace(/ /g, '_')) || f.match.test(norm(x.label)));
+      r.push(`  - ${f.naam || f.match.source} [${f.nodig === 'ja' ? 'verplicht' : 'optioneel'}]${c && !k.geenMeta ? (m ? ' ✓ ' + m.id : ' ✗ ontbreekt') : ''}: ${f.oms}`); });
+    r.push(''); });
+  return r.join('\n');
+}
+document.addEventListener('click', async e => {
+  if(e.target.closest('#cn-check')){ connCheck = null; controleerConnectoren(); return; }
+  if(e.target.closest('#cn-kopie')){ try{ await navigator.clipboard.writeText(connTekst()); toast('Overzicht gekopieerd'); }catch(err){ toast('Kopiëren lukte niet: ' + err.message, true); } return; }
+});
+
+/* ================= Rondleiding: korte uitleg met highlights, loopt zelf door de pagina's ================= */
+const TOUR_GEZIEN = 'mict-tour-gezien';
+const wacht = ms => new Promise(r => setTimeout(r, ms));
+const naarTab = async t => { if(tab !== t){ tab = t; filt.zoek = ''; $('#f-zoek').value = ''; teken(); } await wacht(250); };
+const sluitDetailStil = () => { const d = $('#detail'); if(d.open){ d.dataset.gewijzigd = ''; d.close(); } };
+let tourDetailNr = null;
+async function tourOpenMelding(){
+  if($('#detail').open) return true;
+  const l = (tabelVolgorde['lijst:toegewezen'] || []).concat(items.filter(x => !x.afgesloten).map(x => String(x.nr)));
+  const nr = l.find(n => items.some(x => String(x.nr) === n && !x.afgesloten)); if(!nr) return false;
+  navLijst = l; openDetail(nr); tourDetailNr = nr; await wacht(700); return true;
+}
+const TOUR = [
+  {titel: 'Welkom in Mijn ICT-Omgeving', tekst: 'In een paar stappen zie je wat je hier kunt. De rondleiding loopt zelf door de pagina’s. Stoppen kan altijd met × of Esc; terugkijken via het ? rechtsboven.', voor: () => { sluitDetailStil(); return naarTab('mij'); }},
+  {el: '#nav [data-weergave="mij"]', titel: 'Overzicht', tekst: 'Je startpagina: een paar cijfers over jouw werk. Klik op een cijfer en je ziet precies die meldingen.', voor: () => naarTab('mij')},
+  {el: '.vb-cijfers', titel: 'Jouw cijfers', tekst: 'Rood = actie nodig (te lang geen reactie, planning verlopen, nieuwe melding te laat). Daaronder: wat je eerst oppakt en je eerstvolgende werk.'},
+  {el: '#nav [data-weergave="toegewezen"]', titel: 'Mijn meldingen', tekst: 'Alles waar jij verantwoordelijke bent of een taak hebt. Het getal is altijd van jou; “1 nieuw” betekent iets wat je nog niet zag.'},
+  {el: '#nav [data-wissel="werk"]', titel: 'Mijn ⇄ Ons werk', tekst: 'Klik op de kop om te wisselen tussen alleen jouw meldingen en die van het hele team (bij Aandacht nodig).'},
+  {el: '#nav [data-weergave="nieuw"]', titel: 'Nieuwe meldingen', tekst: 'Alle meldingen met status Open, voor iedereen gelijk. Die moeten binnen 2 werkuren worden opgepakt.'},
+  {el: '#nav [data-wissel="afd"]', titel: 'Afdelingen', tekst: 'Zet een ★ bij de afdelingen die je volgt; die staan dan bovenaan. Met de kop wissel je tussen jouw meldingen erin en alles erin.'},
+  {el: '#globzoek', titel: 'Zoeken in alles', tekst: 'Typ een nummer, onderwerp of naam. Je ziet direct treffers, ook gesloten meldingen; Enter opent. Sneltoets: Ctrl+K of /.'},
+  {el: '#lijst-titel', titel: 'Alle meldingen | Changes', tekst: 'Wissel tussen al je meldingen en alleen je changes. Bij Changes staan Startdatum en Deadline er altijd bij.', voor: () => naarTab('toegewezen')},
+  {el: 'table.tabel thead', titel: 'Sorteren, filteren, kolommen', tekst: 'Klik op een kolomkop om te sorteren, typ in de grijze vakjes om te filteren. Sleep een kolomrand om hem breder te maken; dubbelklik maakt hem passend. Via Kolommen kies je wat je ziet.'},
+  {el: 'table.tabel tbody td.sig .chip, table.tabel tbody td.sig', titel: 'Signalen', tekst: 'Waarom een melding aandacht vraagt. Ga er met de muis op staan voor de uitleg. Sorteren op Signaal zet het ernstigste en langst lopende bovenaan.'},
+  {el: '[data-chw="tijdlijn"]', titel: 'Tijdlijn van je changes', tekst: 'Op het tabblad Changes zie je je changes ook op een tijdlijn: per fase (te laat, loopt, komt eraan) met hoeveel van de doorlooptijd voorbij is.', voor: async () => { sluitDetailStil(); await naarTab('toegewezen'); soortKeuze.toegewezen = 'changes'; teken(); await wacht(250); }, na: () => { soortKeuze.toegewezen = 'alle'; teken(); }},
+  {el: '#detail .dlg-kop', titel: 'Een melding', tekst: 'Een melding opent in dit venster. Rechtsboven: openen in AFAS, er een to-do van maken, groter maken. Het oogje laat zien wie de melding ook open heeft.', voor: async () => { soortKeuze.toegewezen = 'alle'; await naarTab('toegewezen'); return tourOpenMelding(); }},
+  {el: '#d-melderinfo', titel: 'Melder en instuurder', tekst: 'De melder is de persoon met het probleem; de instuurder heeft de melding aangemaakt. Via ⓘ zie je locatie en organisatorische eenheid van de melder.', alleenMetDetail: true},
+  {el: '#detail .kaart2:nth-child(2)', titel: 'Behandeling', tekst: 'Afdeling, verantwoordelijke en status wijzig je hier; * is verplicht. Een status kiezen voert de juiste workflowstap in AFAS uit, inclusief de mail aan de melder.', alleenMetDetail: true},
+  {el: '#detail .composer', titel: 'Reageren', tekst: 'Typ hier je reactie aan de melder. Wijzig je een veld, dan staat er “+ Standaardtekst invullen” (of druk Tab). Interne notitie = alleen voor ICT. Bijlage? Sleep een bestand op het venster of plak met Ctrl+V.', alleenMetDetail: true},
+  {el: '#detail .onderbalk', titel: 'Opslaan', tekst: 'Opslaan houdt de melding open; Opslaan & sluiten (Ctrl+Enter) sluit hem. Met ← → ga je naar de vorige of volgende melding uit je lijst.', alleenMetDetail: true},
+  {el: '#nieuw-knop', titel: 'Nieuwe melding', tekst: 'Maak een melding aan. Handig: sleep een mail uit Outlook in dit venster, dan worden onderwerp, toelichting en bijlagen overgenomen.', voor: () => { sluitDetailStil(); return wacht(200); }},
+  {el: '#todo-knop', titel: 'To-do en notities', tekst: 'Je eigen to-do’s, ook vanuit een melding. Ze staan in een eigen bestand op je OneDrive, dus alleen jij ziet ze.'},
+  {el: '.voet', titel: 'Altijd actueel', tekst: 'De gegevens verversen elke paar minuten vanzelf. Staat hier een blauwe knop “Nieuwe versie”, klik dan om bij te werken.'},
+  {el: '#k-help', titel: 'Klaar!', tekst: 'Via dit vraagteken start je de rondleiding opnieuw. Veel werkplezier.'}
+];
+let tourStap = -1, tourTerug = null;
+function tourDialoog(){
+  let d = $('#tour'); if(d) return d;
+  document.body.insertAdjacentHTML('beforeend', `<dialog id="tour" aria-label="Rondleiding"><div class="tour-spot" id="tour-spot"></div><div class="tour-kaart" id="tour-kaart" role="document"></div></dialog>`);
+  d = $('#tour');
+  d.addEventListener('cancel', e => { e.preventDefault(); stopTour(); });
+  d.addEventListener('click', e => { const b = e.target.closest('[data-tour]'); if(!b) return;
+    if(b.dataset.tour === 'stop') stopTour(); else gaTour(tourStap + (b.dataset.tour === 'volgende' ? 1 : -1)); });
+  d.addEventListener('keydown', e => { if(e.key === 'ArrowRight' || e.key === 'Enter'){ e.preventDefault(); gaTour(tourStap + 1); } else if(e.key === 'ArrowLeft'){ e.preventDefault(); gaTour(tourStap - 1); } });
+  addEventListener('resize', () => { if($('#tour').open) plaatsTour(); });
+  return d;
+}
+function startTour(){
+  $('#ikmenu') && ($('#ikmenu').hidden = true);
+  tourTerug = {tab, soort: soortKeuze.toegewezen}; opslag.set(TOUR_GEZIEN, true); $('#k-help').classList.remove('nieuw');
+  tourDialoog(); gaTour(0);
+}
+function stopTour(){
+  const d = $('#tour'); if(d && d.open) d.close();
+  const s = TOUR[tourStap]; if(s && s.na) try{ s.na(); }catch(e){}
+  if(tourDetailNr) sluitDetailStil(); tourDetailNr = null;
+  if(tourTerug){ soortKeuze.toegewezen = tourTerug.soort; tab = tourTerug.tab; teken(); }
+  tourStap = -1;
+}
+async function gaTour(i){
+  if(i < 0) return; if(i >= TOUR.length) return stopTour();
+  const vorige = TOUR[tourStap]; if(vorige && vorige.na && i !== tourStap) try{ vorige.na(); }catch(e){}
+  tourStap = i; const s = TOUR[i], d = tourDialoog();
+  if(d.open) d.close();   // even weg, zodat een geopende melding er niet bovenop komt
+  let ok = true; if(s.voor) ok = await s.voor();
+  if(s.alleenMetDetail && !$('#detail').open) return gaTour(i + 1);
+  if(ok === false && s.el && s.el.startsWith('#detail')) return gaTour(i + 1);
+  const el = s.el ? s.el.split(',').map(q => document.querySelector(q.trim())).find(e => e && e.getClientRects().length) : null;
+  if(el) el.scrollIntoView({block: 'center', behavior: 'instant'});
+  d.showModal(); d.focus();
+  $('#tour-kaart').innerHTML = `<button type="button" class="tour-stop" data-tour="stop" aria-label="Rondleiding stoppen" title="Stoppen (Esc)">×</button>
+    <small>${i + 1} / ${TOUR.length}</small><h3>${esc(s.titel)}</h3><p>${esc(s.tekst)}</p>
+    <div class="tour-knoppen"><button type="button" class="knop" data-tour="stop">Stoppen</button><span style="flex-grow:1"></span>${i ? '<button type="button" class="knop" data-tour="vorige">Vorige</button>' : ''}<button type="button" class="knop vol" data-tour="volgende">${i === TOUR.length - 1 ? 'Klaar' : 'Volgende'}</button></div>`;
+  d._el = el; plaatsTour(); d.querySelector('[data-tour="volgende"]').focus();
+  [150, 400, 800].forEach(ms => setTimeout(() => { if(d.open && d._el === el) plaatsTour(); }, ms));   // het meldingvenster kan nog bewegen (openen, groter worden)
+}
+function plaatsTour(){
+  const d = $('#tour'), el = d._el, spot = $('#tour-spot'), k = $('#tour-kaart'), W = innerWidth, H = innerHeight;
+  if(!el){ spot.style.cssText = `left:${W / 2}px;top:${H / 2}px;width:0;height:0`; k.style.left = Math.max(16, (W - k.offsetWidth) / 2) + 'px'; k.style.top = Math.max(16, (H - k.offsetHeight) / 2) + 'px'; return; }
+  const r = el.getBoundingClientRect(), m = 6, top = Math.max(4, r.top - m), left = Math.max(4, r.left - m), w = Math.min(W - 8, r.width + 2 * m), h = Math.min(H - 8, r.height + 2 * m);
+  spot.style.cssText = `left:${left}px;top:${top}px;width:${w}px;height:${h}px`;
+  const kw = k.offsetWidth, kh = k.offsetHeight;
+  let x, y;
+  if(top + h + 14 + kh < H){ y = top + h + 14; x = left; }
+  else if(top - 14 - kh > 0){ y = top - 14 - kh; x = left; }
+  else if(left + w + 14 + kw < W){ x = left + w + 14; y = top; }
+  else { x = left - 14 - kw; y = top; }
+  k.style.left = Math.min(W - kw - 16, Math.max(16, x)) + 'px'; k.style.top = Math.min(H - kh - 16, Math.max(16, y)) + 'px';
+}
+// menu onder je naam: rondleiding en (voor de beheerder) connectoren
+function ikMenu(){
+  let m = $('#ikmenu');
+  if(!m){ $('#ik').insertAdjacentHTML('afterend', `<div class="ikmenu" id="ikmenu" hidden role="menu"><button type="button" role="menuitem" data-ikm="tour">Rondleiding</button><button type="button" role="menuitem" data-ikm="conn">Connectoren &amp; velden<small>voor de beheerder</small></button></div>`); m = $('#ikmenu'); }
+  m.hidden = !m.hidden;
+}
+document.addEventListener('click', e => {
+  const im = e.target.closest('[data-ikm]'); if(im){ $('#ikmenu').hidden = true; if(im.dataset.ikm === 'tour') startTour(); else { tab = 'connectoren'; teken(); } return; }
+  if($('#ikmenu') && !e.target.closest('#ikmenu') && !e.target.closest('#ik')) $('#ikmenu').hidden = true;
+  if(e.target.closest('#k-help')) startTour();
+});
 
 /* ================= bediening ================= */
 document.addEventListener('click', e => {
@@ -3271,7 +3581,8 @@ document.addEventListener('keydown', e => {
   if(((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') || (e.key === '/' && !inVeld)){ e.preventDefault(); const z = $('#f-zoek'); z.focus(); z.select(); if(z.value) tekenZoekRes(); }
 });
 $('#k-ververs').onclick = async () => { await laadGegevens(); teken(); verrijkMetTaken(); verrijkMelders(); };
-$('#ik').onclick = () => startProfiel(false);
+$('#ik').onclick = () => ikMenu();
+if(!opslag.get(TOUR_GEZIEN)) $('#k-help').classList.add('nieuw');
 $('#k-uit').onclick = () => uitloggen();
 const isDonker = () => (document.documentElement.dataset.thema || (matchMedia('(prefers-color-scheme: dark)').matches ? 'donker' : 'licht')) === 'donker';
 $('#k-thema').onclick = () => { document.documentElement.dataset.thema = isDonker() ? 'licht' : 'donker'; opslag.set('mict-thema', document.documentElement.dataset.thema); };
@@ -3599,14 +3910,24 @@ async function mailNaarMelding(f){
 }
 
 /* ================= opstarten ================= */
+// intro: de twee D's schuiven in elkaar, daarna vult de tweede D zich met de laadvoortgang
+const INTRO_LOGO = `<div class="intro" id="intro" aria-hidden="true"><svg viewBox="0 0 36 36">
+  <defs><clipPath id="intro-d2"><path d="M13 10h8a10 10 0 0 1 0 20h-8z"/></clipPath></defs>
+  <path class="d1" d="M3 6h8a10 10 0 0 1 0 20H3z"/>
+  <g class="d2-groep"><path class="d2-bak" d="M13 10h8a10 10 0 0 1 0 20h-8z"/>
+  <g clip-path="url(#intro-d2)"><g id="intro-water" style="transform:translateY(30px)"><path class="golf" d="M4 0q2.25-1.4 4.5 0t4.5 0 4.5 0 4.5 0 4.5 0 4.5 0 4.5 0 4.5 0 4.5 0V24H4z"/></g></g>
+  <path class="d2-rand" d="M13 10h8a10 10 0 0 1 0 20h-8z"/></g>
+</svg></div>`;
+function introNiveau(p){ const w = document.getElementById('intro-water'); if(w) w.style.transform = `translateY(${29 - 21 * Math.max(0, Math.min(100, p)) / 100}px)`; }
+async function introUit(){ const i = $('#intro'); if(!i || matchMedia('(prefers-reduced-motion: reduce)').matches) return; introNiveau(100); i.classList.add('klaar'); $('#s-start').classList.add('weg'); await wacht(620); $('#s-start').classList.remove('weg'); }
 function laadKaart(naam){
-  toonStart(`${naam ? groet(naam) : '<h1>Mijn ICT-Omgeving</h1>'}
+  toonStart(`${INTRO_LOGO}${naam ? groet(naam) : '<h1>Mijn ICT-Omgeving</h1>'}
     <div class="voortgang" id="laad-voortgang"><div class="regel"><span>${naam ? 'Ik haal eerst je openstaande meldingen op' : 'Meldingen ophalen uit AFAS'}</span><b>0%</b></div>
     <div class="spoor"><i></i></div><small class="hint">Verbinding maken met AFAS…</small></div>
     <p class="hint">${opslag.get(AANTAL) ? '' : 'De eerste keer duurt dit wat langer; daarna weet de pagina hoeveel er komt.'}</p>`);
 }
 (async function start(){
-  toonStart('<div class="laden"><span class="spin"></span>Bezig met inloggen…</div>');
+  toonStart(INTRO_LOGO + '<div class="laden">Bezig met inloggen…</div>');
   try{
     if(!DEMO){
       const terug = await terugVanAfas();
@@ -3622,7 +3943,8 @@ function laadKaart(naam){
     laadKaart(ik.naam);
     await laadGegevens();
     if(status.fout && !items.length){ startInlog('Meldingen ophalen mislukt: ' + status.fout); return; }
-    if(!profiel.ingesteld) startProfiel(true); else toonApp();
+    if(!profiel.ingesteld){ profiel = {...profiel, ingesteld: true}; opslag.set(profielSleutel(), profiel); }
+    await introUit(); toonApp(); if(!opslag.get(TOUR_GEZIEN)) setTimeout(() => { if(!document.querySelector('dialog[open]')) startTour(); }, 2500);
     tdStart(); setTimeout(seinAanwezig, 2000);
     if(!DEMO) setTimeout(() => { laadSubjMeta().catch(() => {}); zoekZichtVeld().catch(() => {}); zorgReactieKol().catch(() => {}); }, 1500);   // alvast klaarzetten: het eerste melding opent dan sneller
     verrijkMetTaken().then(verrijkMelders).then(() => { controleerIctReacties(); laadRestOpAchtergrond(); });
