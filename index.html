@@ -287,22 +287,24 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .laden{display:flex;align-items:center;gap:10px;color:var(--grijs)}
 .voortgang{display:flex;flex-direction:column;gap:8px}
 .intro{display:flex;justify-content:center;margin:2px 0 6px}
-.intro svg{width:92px;height:92px;overflow:visible}
-.intro .d1{fill:#B5D0FF;animation:introL .7s cubic-bezier(.2,.9,.3,1.2) both, introAdem 2.4s ease-in-out .9s infinite}
-.intro .d2-rand{fill:none;stroke:var(--blauw);stroke-width:1.4;stroke-dasharray:80;stroke-dashoffset:80;animation:introTeken 1s ease .25s forwards}
-.intro .d2-bak{fill:var(--lichtblauw-2)}
-.intro .golf{fill:var(--blauw);animation:introGolf 1.2s linear infinite}
-.intro .d2-groep{animation:introR .7s cubic-bezier(.2,.9,.3,1.2) .1s both}
-#intro-water{transition:transform .6s ease}
-.intro.klaar svg{animation:introKlaar .6s cubic-bezier(.5,0,.75,0) forwards}
+.intro svg{width:96px;height:90px;overflow:visible}
+.intro .basis{fill:none;stroke:var(--lichtblauw-2);stroke-width:.5;transition:opacity .25s}
+.intro .spoor{fill:none;stroke-width:.9;stroke-linecap:round;stroke-dasharray:12 56;transition:opacity .2s}
+.intro .sp1{stroke:var(--blauw-2);animation:introLoop 1.1s linear infinite}
+.intro .sp2{stroke:var(--blauw);animation:introTerug 1.1s linear infinite}
+.intro .vul{opacity:0;transform-box:fill-box;transform-origin:center}
+.intro .v1{fill:#B5D0FF}.intro .v2{fill:var(--blauw)}
+.intro .golf{fill:none;stroke:var(--blauw-2);stroke-width:.4;opacity:0;transform-box:fill-box;transform-origin:center}
+.intro.klaar .spoor,.intro.klaar .basis{opacity:0}
+.intro.klaar .v1{animation:introAan .4s cubic-bezier(.2,.9,.3,1.3) forwards}
+.intro.klaar .v2{animation:introAan .4s cubic-bezier(.2,.9,.3,1.3) .1s forwards}
+.intro.klaar .golf{animation:introGolf .7s ease-out .25s}
 #s-start.weg .kaart > :not(.intro){transition:opacity .3s;opacity:0}
-@keyframes introL{from{transform:translateX(-14px);opacity:0}to{transform:none;opacity:1}}
-@keyframes introR{from{transform:translateX(14px);opacity:0}to{transform:none;opacity:1}}
-@keyframes introTeken{to{stroke-dashoffset:0}}
-@keyframes introAdem{50%{opacity:.6;transform:translateX(-1px)}}
-@keyframes introGolf{from{transform:translateX(0)}to{transform:translateX(-9px)}}
-@keyframes introKlaar{30%{transform:scale(.92)}100%{transform:scale(7);opacity:0}}
-@media (prefers-reduced-motion: reduce){.intro *{animation:none!important;stroke-dashoffset:0!important}}
+@keyframes introLoop{to{stroke-dashoffset:-68}}
+@keyframes introTerug{to{stroke-dashoffset:68}}
+@keyframes introAan{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+@keyframes introGolf{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(1.6)}}
+@media (prefers-reduced-motion: reduce){.intro .spoor{animation:none}}
 .voortgang .spoor{height:6px;border-radius:3px;background:var(--lijn);overflow:hidden}
 .voortgang .spoor i{display:block;height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,var(--blauw-2),var(--blauw));transition:width .3s ease}
 .voortgang .regel{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--grijs)}
@@ -813,7 +815,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.08 · 03-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.09 · 03-10-2026</span></div>
   </div>
 </div>
 
@@ -872,7 +874,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.08';
+const VERSIE = 'v4.09';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3978,16 +3980,16 @@ async function mailNaarMelding(f){
 }
 
 /* ================= opstarten ================= */
-// intro: de twee D's schuiven in elkaar, daarna vult de tweede D zich met de laadvoortgang
-const INTRO_LOGO = `<div class="intro" id="intro" aria-hidden="true"><svg viewBox="0 0 36 36">
-  <defs><clipPath id="intro-d2"><path d="M13 10h8a10 10 0 0 1 0 20h-8z"/></clipPath></defs>
-  <path class="d1" d="M3 6h8a10 10 0 0 1 0 20H3z"/>
-  <g class="d2-groep"><path class="d2-bak" d="M13 10h8a10 10 0 0 1 0 20h-8z"/>
-  <g clip-path="url(#intro-d2)"><g id="intro-water" style="transform:translateY(30px)"><path class="golf" d="M4 0q2.25-1.4 4.5 0t4.5 0 4.5 0 4.5 0 4.5 0 4.5 0 4.5 0 4.5 0 4.5 0V24H4z"/></g></g>
-  <path class="d2-rand" d="M13 10h8a10 10 0 0 1 0 20h-8z"/></g>
+// intro: een lichtspoor loopt rond beide D's zolang er geladen wordt; klaar = het logo klikt gevuld aan met een puls
+const D1 = 'M3 6h8a10 10 0 0 1 0 20H3z', D2 = 'M13 10h8a10 10 0 0 1 0 20h-8z';
+const INTRO_LOGO = `<div class="intro" id="intro" aria-hidden="true"><svg viewBox="2 4 30 28">
+  <path class="basis" d="${D1}"/><path class="basis" d="${D2}"/>
+  <path class="spoor sp1" d="${D1}"/><path class="spoor sp2" d="${D2}"/>
+  <path class="golf" d="${D1}"/><path class="golf" d="${D2}"/>
+  <path class="vul v1" d="${D1}"/><path class="vul v2" d="${D2}"/>
 </svg></div>`;
-function introNiveau(p){ const w = document.getElementById('intro-water'); if(w) w.style.transform = `translateY(${29 - 21 * Math.max(0, Math.min(100, p)) / 100}px)`; }
-async function introUit(){ const i = $('#intro'); if(!i || matchMedia('(prefers-reduced-motion: reduce)').matches) return; introNiveau(100); i.classList.add('klaar'); $('#s-start').classList.add('weg'); await wacht(620); $('#s-start').classList.remove('weg'); }
+function introNiveau(){}   // het lichtspoor draait zolang het laden duurt; geen niveau nodig
+async function introUit(){ const i = $('#intro'); if(!i) return; i.classList.add('klaar'); $('#s-start').classList.add('weg'); await wacht(matchMedia('(prefers-reduced-motion: reduce)').matches ? 200 : 900); $('#s-start').classList.remove('weg'); }
 function laadKaart(naam){
   toonStart(`${INTRO_LOGO}${naam ? groet(naam) : '<h1>Mijn ICT-Omgeving</h1>'}
     <div class="voortgang" id="laad-voortgang"><div class="regel"><span>${naam ? 'Ik haal eerst je openstaande meldingen op' : 'Meldingen ophalen uit AFAS'}</span><b>0%</b></div>
