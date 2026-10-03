@@ -830,7 +830,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt" role="button" tabindex="0" title="Klik om nu te verversen">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.22 · 03-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt" role="button" tabindex="0" title="Klik om nu te verversen">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.23 · 03-10-2026</span></div>
   </div>
 </div>
 
@@ -894,7 +894,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.22';
+const VERSIE = 'v4.23';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1512,7 +1512,7 @@ const VAST = [
   {id:'norm', t:'Aandacht nodig', ico:'<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>', f:() => meld().filter(actie), rood:true},
   {id:'nieuw', t:'Nieuwe meldingen', ico:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>', f:() => meld().filter(x => x.emmer === 'nieuw' && !x.inuit), stuiter:true}   // in- en uitdienst heeft een eigen overzicht
 ];
-const ALLE = {id:'alle', t:'Alle open meldingen', ico:'<path d="M4 6h16M4 12h16M4 18h10"/>', f:() => meld()};
+const ALLE = {id:'alle', t:'Alle meldingen', ico:'<path d="M4 6h16M4 12h16M4 18h10"/>', f:() => meld()};
 // Changes (RfC + Change) hebben een eigen kopje; Projecten ook
 const CH_ICO = '<path d="M4 7h12l-3-3M20 17H8l3 3"/>';
 const CHANGES = [{id:'ch:mijn', t:'Mijn changes', ico:CH_ICO, f:() => open().filter(isChange).filter(isMijn)}];
@@ -2765,7 +2765,7 @@ async function maakMelding(){
     if(vanTodo) todoGekoppeld((x && x.nr) || nr || sbid, vanTodo);
     if(x) logHistorie(x, 'ticket aangemaakt'); else logHistorie({nr: nr || '', onderwerp: ond}, 'ticket aangemaakt');
     if(x){ const doel = document.querySelector(`#nav [data-weergave="${x.emmer === 'nieuw' ? 'nieuw' : 'alle'}"]`);
-      if(doel) vlieg({nr: x.nr, ond, rect: knop}, doel, x.emmer === 'nieuw' ? 'Nieuwe meldingen' : 'Alle open meldingen');
+      if(doel) vlieg({nr: x.nr, ond, rect: knop}, doel, x.emmer === 'nieuw' ? 'Nieuwe meldingen' : 'Alle meldingen');
       toast(`Melding ${x.nr} aangemaakt`); setTimeout(() => openDetail(x.nr), 900); }
     else { toast(`Melding aangemaakt${nr ? ' als melding ' + nr : ''}. AFAS toont hem binnen een paar minuten in de lijst.`);
       setTimeout(async () => { await laadGegevens('open', true); teken(); }, 60000); }
