@@ -815,7 +815,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.09 · 03-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.10 · 03-10-2026</span></div>
   </div>
 </div>
 
@@ -874,7 +874,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.09';
+const VERSIE = 'v4.10';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -899,7 +899,7 @@ const beginDag = d => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
 const fmtDatum = d => d ? d.toLocaleDateString('nl-NL', {day:'numeric', month:'short', year: d.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined}).replace('.', '') : '–';
 const fmtTijd = d => d.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'});
 const dagenGeleden = d => d ? Math.floor((Date.now() - d) / DAG) : null;
-const opslag = { get(k){ try{ return JSON.parse(localStorage.getItem(k) || 'null'); }catch(e){ return null; } }, set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }, weg(k){ try{ localStorage.removeItem(k); }catch(e){} } };
+const opslag = { get(k){ try{ return JSON.parse(localStorage.getItem(k) || 'null'); }catch(e){ return null; } }, set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} try{ syncMerk(k); }catch(e){} }, weg(k){ try{ localStorage.removeItem(k); }catch(e){} try{ syncMerk(k); }catch(e){} } };
 const sessie = { get(k){ try{ return sessionStorage.getItem(k); }catch(e){ return null; } }, set(k, v){ try{ sessionStorage.setItem(k, v); }catch(e){} }, weg(k){ try{ sessionStorage.removeItem(k); }catch(e){} } };
 let toastT = 0;
 function toast(t, fout){ const el = $('#toast'); const host = document.querySelector('dialog[open]') || document.body; if(el.parentNode !== host) host.appendChild(el); el.textContent = t; el.className = 'zichtbaar' + (fout ? ' fout' : ''); clearTimeout(toastT); toastT = setTimeout(() => el.className = '', fout ? 7000 : 3500); }
@@ -3341,6 +3341,7 @@ function tekenConnectoren(){
     <section class="blok cn-kaart"><header><h2>Buiten AFAS</h2></header><table class="cn-tabel"><tbody>
       <tr><td><code>afas-token</code></td><td>Azure Function: wisselt de AFAS-login om voor een token (client secret staat alleen in Azure)</td><td>Verplicht</td><td>${esc(INST.tokenFunctie || '')}</td></tr>
       <tr><td><code>ict-aanwezig</code></td><td>Azure Function: oogje "kijkt mee" (wie heeft dezelfde melding open)</td><td>Optioneel</td><td>${esc(aanwezigUrl())}</td></tr>
+      <tr><td><code>ict-instellingen</code></td><td>Azure Function: je instellingen online, overal hetzelfde (status: ${esc(syncStatus)})</td><td>Optioneel</td><td>${esc(syncUrl())}</td></tr>
       <tr><td><code>OneDrive-bestand</code></td><td>To-do’s per gebruiker (eigen bestand, niet in AFAS)</td><td>Optioneel</td><td>per gebruiker</td></tr></tbody></table></section>`;
   if(!c && !connBezig) controleerConnectoren();
 }
@@ -3868,6 +3869,74 @@ function todoGekoppeld(nr, id = todoBron){
   t.melding = String(nr || '?'); t.klaar = true; t.klaarOp = new Date().toISOString(); TD.open = null; tdBewaar(); todoBron = null;
 }
 
+/* ================= instellingen online: overal dezelfde instellingen (Azure Function ict-instellingen) ================= */
+// Wat je instelt staat in de browser én online, per AFAS-gebruiker. Bij inloggen halen we het op en voegen we samen
+// (per instelling wint de nieuwste); wijzig je iets, dan gaat het 3 seconden later mee. Zonder verbinding werkt alles gewoon lokaal.
+const SYNC_VAST = ['mict-thema', 'mict-soort', 'mict-kolommen-uit', 'mict-kolbreedte', 'mict-chzoom', 'mict-chweergave', 'mict-werk-ons', 'mict-afd-ons',
+  'mict-venster-groot', 'mict-recente-melders', 'mict-tour-gezien', 'mict-gelezen', 'mict-interne-notities'];
+const SYNC_META = 'mict-sync-tijden';
+const syncUrl = () => INST.instellingenUrl || String(INST.tokenFunctie || '').replace(/afas-token\/?$/, 'ict-instellingen');
+const syncNaam = k => k.startsWith('mict-profiel-') ? 'profiel' : SYNC_VAST.includes(k) ? k : null;   // profiel staat lokaal per AFAS-sub, online gewoon 'profiel'
+const syncLokaal = n => n === 'profiel' ? profielSleutel() : n;
+let syncAan = false, syncTimer = null, syncBezig = false, syncStil = false, syncStatus = 'uit';
+function syncMerk(k){
+  const n = syncNaam(k); if(!n || syncStil) return;
+  try{ const m = JSON.parse(localStorage.getItem(SYNC_META) || '{}'); m[n] = Date.now(); localStorage.setItem(SYNC_META, JSON.stringify(m)); }catch(e){}
+  if(!syncAan) return;
+  clearTimeout(syncTimer); syncTimer = setTimeout(syncStuur, 3000);
+}
+function syncPakket(){
+  let m = {}; try{ m = JSON.parse(localStorage.getItem(SYNC_META) || '{}'); }catch(e){}
+  const data = {};
+  ['profiel', ...SYNC_VAST].forEach(n => { const v = opslag.get(syncLokaal(n)); if(v !== null) data[n] = {v, t: m[n] || 1}; });   // nooit gewijzigd sinds de sync bestaat: t=1, de eerste pc die synct bepaalt dan de start
+  return data;
+}
+async function syncStuur(){
+  if(DEMO || !syncAan) return;
+  if(syncBezig){ clearTimeout(syncTimer); syncTimer = setTimeout(syncStuur, 2000); return; }
+  syncBezig = true;
+  try{ const r = await fetch(syncUrl(), {method:'PUT', headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + await geldigToken()}, body: JSON.stringify({data: syncPakket()})});
+    syncStatus = r.ok ? 'ok' : 'fout ' + r.status; }
+  catch(e){ syncStatus = 'fout: ' + e.message; }
+  finally{ syncBezig = false; }
+}
+window.addEventListener('pagehide', () => { if(syncTimer){ clearTimeout(syncTimer); syncStuur(); } });
+// bij het inloggen: online ophalen en samenvoegen (max ~3 s wachten; lukt het niet, dan gewoon lokaal verder)
+async function syncLaad(){
+  if(DEMO) return;
+  let online = null;
+  try{ const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 3000);
+    const r = await fetch(syncUrl(), {headers:{'Authorization':'Bearer ' + await geldigToken()}, signal: ctl.signal}); clearTimeout(tm);
+    if(!r.ok){ syncStatus = r.status === 404 ? 'functie niet gevonden' : 'fout ' + r.status; return; }
+    online = (await r.json()).data || {}; }
+  catch(e){ syncStatus = 'niet bereikbaar'; return; }
+  let m = {}; try{ m = JSON.parse(localStorage.getItem(SYNC_META) || '{}'); }catch(e){}
+  let lokaalNieuwer = false; syncStil = true;
+  ['profiel', ...SYNC_VAST].forEach(n => {
+    const o = online[n], lt = m[n] || 0, lv = opslag.get(syncLokaal(n));
+    if(n === 'mict-gelezen' && o && lv){   // gelezen: per melding het laatste moment
+      const samen = {...o.v}; Object.entries(lv).forEach(([k, t]) => { if(!(samen[k] >= t)) samen[k] = t; });
+      opslag.set(n, samen); Object.assign(gelezen, samen); m[n] = Math.max(lt, o.t || 0); lokaalNieuwer = true; return; }
+    if(o && (o.t || 0) > lt){ opslag.set(syncLokaal(n), o.v); m[n] = o.t; }
+    else if(lv !== null && (!o || lt > (o.t || 0))) lokaalNieuwer = true;
+  });
+  syncStil = false;
+  try{ localStorage.setItem(SYNC_META, JSON.stringify(m)); }catch(e){}
+  syncAan = true; syncStatus = 'ok';
+  syncToepassen();
+  if(lokaalNieuwer) syncStuur();
+}
+// instellingen die bij het laden van de pagina al in variabelen zijn gelezen, opnieuw toepassen
+function syncToepassen(){
+  verborgenKol = new Set(opslag.get('mict-kolommen-uit') || []); kolBreedte = opslag.get(KOLBREED) || {};
+  werkOns = !!opslag.get('mict-werk-ons'); afdOns = !!opslag.get('mict-afd-ons');
+  Object.keys(soortKeuze).forEach(k => delete soortKeuze[k]); Object.assign(soortKeuze, opslag.get('mict-soort') || {});
+  chWeergave = opslag.get('mict-chweergave') || 'lijst'; chZoom = opslag.get('mict-chzoom') || 'kwartaal';
+  $('#detail').classList.toggle('groot', !!opslag.get('mict-venster-groot'));
+  const t = opslag.get('mict-thema'); if(t) document.documentElement.dataset.thema = t;
+  $('#k-help').classList.toggle('nieuw', !opslag.get(TOUR_GEZIEN));
+}
+
 /* ================= aanwezig: wie heeft welke melding nu open (oogje) ================= */
 // Via de Azure Function ict-aanwezig: elke 20 seconden een seintje met de melding dat je open hebt. Alleen nummer + naam, geen inhoud.
 const OOG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
@@ -4005,6 +4074,7 @@ function laadKaart(naam){
     } else sub = 'demo';
     const ik = await wieBenIk();
     if(!ik){ startInlog(`AFAS gaf niet door wie je bent. ${ikDiag}`); return; }
+    await syncLaad();   // instellingen van andere pc's/browsers ophalen vóór we het profiel lezen
     const opgeslagen = opslag.get(profielSleutel());
     const auto = autoRol(ik);
     profiel = {rol:auto.rol, domeinen:auto.domeinen, ...(opgeslagen && norm(opgeslagen.naam) === norm(ik.naam) ? opgeslagen : {}),
