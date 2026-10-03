@@ -300,6 +300,10 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .intro.klaar .v2{animation:introAan .4s cubic-bezier(.2,.9,.3,1.3) .1s forwards}
 .intro.klaar .golf{animation:introGolf .7s ease-out .25s}
 #s-start.weg .kaart > :not(.intro){transition:opacity .3s;opacity:0}
+#s-start .kaart{transition:background-color .45s ease,box-shadow .45s ease}
+#s-start.weg .kaart{background-color:transparent;box-shadow:none}
+.intro svg{transition:transform .6s cubic-bezier(.2,.9,.3,1.2)}
+.intro.klaar svg{transform:scale(1.7)}
 @keyframes introLoop{to{stroke-dashoffset:-68}}
 @keyframes introTerug{to{stroke-dashoffset:68}}
 @keyframes introAan{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
@@ -815,7 +819,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.10 · 03-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.11 · 03-10-2026</span></div>
   </div>
 </div>
 
@@ -874,7 +878,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.10';
+const VERSIE = 'v4.11';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -4058,7 +4062,7 @@ const INTRO_LOGO = `<div class="intro" id="intro" aria-hidden="true"><svg viewBo
   <path class="vul v1" d="${D1}"/><path class="vul v2" d="${D2}"/>
 </svg></div>`;
 function introNiveau(){}   // het lichtspoor draait zolang het laden duurt; geen niveau nodig
-async function introUit(){ const i = $('#intro'); if(!i) return; i.classList.add('klaar'); $('#s-start').classList.add('weg'); await wacht(matchMedia('(prefers-reduced-motion: reduce)').matches ? 200 : 900); $('#s-start').classList.remove('weg'); }
+async function introUit(){ const i = $('#intro'); if(!i) return; i.classList.add('klaar'); $('#s-start').classList.add('weg'); await wacht(matchMedia('(prefers-reduced-motion: reduce)').matches ? 200 : 1200); $('#s-start').classList.remove('weg'); }
 function laadKaart(naam){
   toonStart(`${INTRO_LOGO}${naam ? groet(naam) : '<h1>Mijn ICT-Omgeving</h1>'}
     <div class="voortgang" id="laad-voortgang"><div class="regel"><span>${naam ? 'Ik haal eerst je openstaande meldingen op' : 'Meldingen ophalen uit AFAS'}</span><b>0%</b></div>
