@@ -82,7 +82,10 @@ button{cursor:pointer}
 .zoekres .leeg{padding:10px 18px;color:var(--grijs);font-size:13px}
 .zoekres .voet2{display:flex;gap:14px;padding:8px 18px 0;margin-top:4px;border-top:1px solid var(--lijn);font-size:11px;color:var(--grijs)}
 .ik:hover{border-color:var(--lichtblauw);box-shadow:var(--schaduw)}
-.ik{cursor:pointer;display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--lijn);background:var(--vlak);border-radius:999px;padding:5px 16px 5px 6px;font-weight:500}
+.ik{cursor:pointer;display:inline-flex;align-items:center;border:1.5px solid var(--lijn);background:var(--vlak);border-radius:999px;padding:3px;font-weight:500;position:relative}
+.ik > span,.ik > svg{display:none}.ik i{width:30px!important;height:30px!important}
+.ik:hover{border-color:var(--lichtblauw);box-shadow:var(--schaduw)}
+.ik.nieuw::after{content:'';position:absolute;top:-1px;right:-1px;width:9px;height:9px;border-radius:50%;background:var(--rood);box-shadow:0 0 0 2px var(--achtergrond)}
 .ik i{width:26px;height:26px;border-radius:50%;background:var(--blauw);color:var(--opaccent);display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700}
 .nieuwknop{display:inline-flex;align-items:center;gap:6px;padding:6px 16px 6px 12px}
 .nieuwknop svg{width:15px;height:15px}
@@ -114,6 +117,9 @@ dialog.nieuwdlg{width:min(660px, calc(100vw - 32px))}
 @media (max-width:620px){.nform .drie{grid-template-columns:minmax(0,1fr)}}
 .nform{grid-template-columns:minmax(0,1fr)}.nform input,.nform select,.nform textarea{min-width:0;width:100%;box-sizing:border-box}
 .nform .hint{font-weight:400;font-size:12px}
+.telcel{display:flex;align-items:center;gap:6px}.telcel .telkeuze{width:150px}.telcel .bellink{flex:none}
+.projtabel{table-layout:fixed}.projtabel td{max-width:none}.projtabel th:nth-child(1){width:90px}.projtabel th:nth-child(2){width:auto}.projtabel th:nth-child(3){width:140px}.projtabel th:nth-child(4){width:130px}.projtabel th:nth-child(5){width:130px}.projtabel th:nth-child(6),.projtabel th:nth-child(7){width:100px}.projtabel td:nth-child(2) small{max-width:none!important}
+.projtabel td.rood{color:var(--rood);font-weight:600}
 .nform input.metpijl{padding-right:34px;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7A99' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:14px}
 .nform textarea{font-weight:400;color:var(--inkt)}
 @media (max-width:560px){.nform .twee{grid-template-columns:1fr}.nieuwknop span{display:none}}
@@ -790,7 +796,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
     <div class="bovenbalk">
       <h1 id="titel">Voor mij</h1><span class="sub" id="subtitel"></span>
       <div class="globzoek" id="globzoek"><label class="zoek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="f-zoek" placeholder="Zoek in alle meldingen: nummer, onderwerp, melder…" autocomplete="off" spellcheck="false" aria-label="Zoeken in meldingen"><kbd id="zoek-kbd">Ctrl K</kbd></label><div class="zoekres" id="zoekres" hidden></div></div>
-      <div class="rechts"><span class="klok" id="klok"></span><div class="schakel klein" id="mijalles-top" role="group" aria-label="Welke meldingen je ziet"><button type="button" data-v="mij" title="Alleen meldingen waar jij behandelaar bent of een taak hebt">Mij</button><button type="button" data-v="afd" title="Jouw meldingen plus alles in je ★-afdelingen, wie de behandelaar ook is">Afdelingen</button><button type="button" data-v="alles" title="Alle meldingen">Alles</button></div><button type="button" class="hulpknop" id="k-help" title="Rondleiding: wat kun je hier allemaal?" aria-label="Rondleiding">?</button><button type="button" class="ik" id="ik" title="Menu" aria-haspopup="menu"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
+      <div class="rechts"><span class="klok" id="klok"></span><div class="schakel klein" id="mijalles-top" role="group" aria-label="Welke meldingen je ziet"><button type="button" data-v="mij" title="Alleen meldingen waar jij behandelaar bent of een taak hebt">Mij</button><button type="button" data-v="afd" title="Jouw meldingen plus alles in je ★-afdelingen, wie de behandelaar ook is">Afdelingen</button><button type="button" data-v="alles" title="Alle meldingen">Alles</button></div><button type="button" class="ik" id="ik" title="Menu" aria-haspopup="menu"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
     </div>
     <main>
       <section id="v-mij">
@@ -819,7 +825,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.12 · 03-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.14 · 03-10-2026</span></div>
   </div>
 </div>
 
@@ -828,6 +834,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
 <dialog id="vraag" class="vraagdlg"></dialog>
 <dialog id="bekijk" class="bekijkdlg"></dialog>
 <dialog id="nieuw" class="smal nieuwdlg"><div class="dlg-in" id="nieuw-in"></div></dialog>
+<dialog id="projdlg" class="smal nieuwdlg"><div class="dlg-in" id="projdlg-in"></div></dialog>
 <div id="toast" role="status"></div>
 <div id="uitleg" role="tooltip"></div>
 <div id="combo" role="listbox" hidden></div>
@@ -866,6 +873,10 @@ const INST = Object.assign({
   soortVeld: 'Omschrijving', slaSoorten: 'Aanvraag ICT', afdVerbergen: 'Zorgadministratie',
   ticketUrl: 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}',   // leeg = geen link
   connReacties: 'Helpdesk_Reacties',
+  connProjecten: 'PowerBI_PBI_Team',                          // projecten uit het projectbureau (Mijn projecten); leeg = uit
+  projUpdStId: 77,                                            // type dossieritem 'Update projectvoortgang'
+  projFaseCodes: 'Verkenning=110, Pilot=120, Realisatie=200, Afgerond=300, On Hold=400, Evaluatie en Borging=500, Opschaling=600, Implementatie=700, Vervallen=990',
+  projectUrl: 'https://88406.afasinsite.nl/project-prs?PrId={code}',
   connToelichting: 'Helpdesk_Toelichting',
   connBijlagen: 'Profit_Subject_Attachments',                 // standaard GetConnector: bijlagen bij het dossieritem
   connReactieBijlagen: 'Profit_Subject_Reaction_Attachments', // standaard GetConnector: bijlagen bij reacties
@@ -878,7 +889,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.12';
+const VERSIE = 'v4.14';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1563,7 +1574,7 @@ function tekenNav(){
   const kop = (soort, aan, a, b, rest, uitleg) => `<button type="button" class="wisselkop${aan ? ' ons' : ''}" data-wissel="${soort}" aria-pressed="${aan}" title="${esc(uitleg)}"><span class="${aan ? 'uit' : 'aan'}">${a}</span>${ico('<path d="M7 7h11l-3-3M17 17H6l3 3"/>')}<span class="${aan ? 'aan' : 'uit'}">${b}</span><span class="rest">${rest}</span></button>`;
   // Mijn meldingen staat bovenaan onder Overzicht: die is altijd van jou en valt dus niet onder het schuifje Mijn/Ons werk
   const mijnM = VAST.find(v => v.id === 'toegewezen'), vast = VAST.filter(v => !v.f), werk = VAST.filter(v => v.f && v.id !== 'toegewezen');
-  $('#nav').innerHTML = `${it(vast[0].id, vast[0].t, null, vast[0])}${it(mijnM.id, mijnM.t, zichtbaar(mijnM.id, mijnM.f()).length, mijnM)}${vast.slice(1).map(v => it(v.id, v.t, null, v)).join('')}
+  $('#nav').innerHTML = `${it(vast[0].id, vast[0].t, null, vast[0])}${it(mijnM.id, mijnM.t, zichtbaar(mijnM.id, mijnM.f()).length, mijnM)}${PRJ.lijst.length ? it('projecten', 'Mijn projecten', projOpen().length, {ico:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/>'}) : ''}${vast.slice(1).map(v => it(v.id, v.t, null, v)).join('')}
     ${kop('werk', werkOns, 'Mijn', 'Ons', 'werk', werkOns ? 'Je ziet het werk van het hele team. Klik om alleen jouw meldingen te zien.' : 'Je ziet alleen jouw meldingen. Klik om het werk van het hele team te zien.')}
     ${werk.map(v => it(v.id, v.t, zichtbaar(v.id, v.f()).length, v)).join('')}
     ${kop('afd', afdOns, 'Mijn', 'Onze', 'afdelingen', afdOns ? 'Je ziet alles in deze afdelingen. Klik om alleen jouw meldingen erin te zien.' : 'Je ziet alleen jouw meldingen in deze afdelingen. Klik om alles erin te zien.')}
@@ -1755,12 +1766,13 @@ function teken(){
   $('#mijalles-top').hidden = true;   // vervangen door de schakelbare koppen in het menu
   if(takenKlaar && items.length && !opslag.get(bekendSleutel())) opslag.set(bekendSleutel(), items.filter(isMijn).map(x => String(x.nr)));   // eerste keer (na het laden van je taken): wat er nu staat is al bekend
   items.forEach(x => x._sg = signalen(x));
-  $('#ik span').textContent = profiel.naam; $('#ik i').textContent = profiel.naam.split(' ').map(w => w[0]).filter(c => c && c === c.toUpperCase()).slice(0, 2).join('');
+  $('#ik span').textContent = profiel.naam; $('#ik').title = profiel.naam + ' · menu'; $('#ik i').textContent = profiel.naam.split(' ').map(w => w[0]).filter(c => c && c === c.toUpperCase()).slice(0, 2).join('');
   tekenNav();
-  $('#v-mij').hidden = tab !== 'mij' && tab !== 'connectoren'; $('#v-lijst').hidden = tab === 'mij' || tab === 'todo' || tab === 'connectoren'; $('#v-todo').hidden = tab !== 'todo';
+  if(tab === 'projecten' && !PRJ.lijst.length && !PRJ.fout) tab = 'mij';
+  $('#v-mij').hidden = tab !== 'mij' && tab !== 'connectoren' && tab !== 'projecten'; $('#v-lijst').hidden = tab === 'mij' || tab === 'todo' || tab === 'connectoren' || tab === 'projecten'; $('#v-todo').hidden = tab !== 'todo';
   $('#todo-knop').setAttribute('aria-pressed', tab === 'todo'); $('#rail-overzicht').setAttribute('aria-pressed', tab !== 'todo');
   $('#nav').hidden = tab === 'todo';   // bij To-do hoort het meldingmenu er niet bij
-  if(tab === 'mij'){ $('#titel').textContent = 'Overzicht'; tekenMij(); } else if(tab === 'connectoren') tekenConnectoren(); else if(tab === 'todo') tdTeken(); else tekenLijst();
+  if(tab === 'mij'){ $('#titel').textContent = 'Overzicht'; tekenMij(); } else if(tab === 'connectoren') tekenConnectoren(); else if(tab === 'projecten') tekenProjecten(); else if(tab === 'todo') tdTeken(); else tekenLijst();
   pasTabelBreedtes(); if(typeof tekenAanwezig === 'function') tekenAanwezig();
 }
 
@@ -2118,7 +2130,7 @@ function openDetail(nr){
       ${(() => { const sg = x._sg.filter(s => s.code !== 'onvolledig'); return sg.length ? `<span class="chips" style="margin-left:auto">${sg.map(c => SJABLOON_SIG[c.code] && !x.afgesloten ? `<button type="button" class="chipknop" data-sjabloon="sig:${c.code}" title="Klik voor een voorsteltekst aan de melder">${chip(c)}</button>` : chip(c)).join('')}</span>` : ''; })()}</div>
     ${!x.afgesloten && isNieuw(x) ? `<div class="checklist" id="d-check">${checklist(x)}</div>` : ''}
     <div class="kaarten">
-      <div class="kaart2"><h3>Melding</h3><span>Instuurder</span><b id="d-inst" title="Wie de melding heeft aangemaakt (niet aan te passen)">${esc(instCache.get(String(x.nr)) || '…')}</b><span>Melder</span><b class="meldercel"><span id="d-melder">${esc(x.melder || '–')}</span>${x.melder ? `<button type="button" class="melderinfo" id="d-melderinfo" aria-label="Gegevens van de melder" data-uitleg="Gegevens ophalen…"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 7.5h.01"></path></svg></button>` : ''}</b>${x.tel ? `<span>Bereikbaar</span><b>${belLink(x.tel)}</b>` : ''}${r('Type melding', x.type)}${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}<span>Locatie${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.locatie || '–') : `<select id="d-loc" class="afdkeuze" title="Klik om de locatie te wijzigen"><option value="">${esc(x.locatie || '– kies locatie –')}</option></select>`}</b></div>
+      <div class="kaart2"><h3>Melding</h3><span>Instuurder</span><b id="d-inst" title="Wie de melding heeft aangemaakt (niet aan te passen)">${esc(instCache.get(String(x.nr)) || '…')}</b><span>Melder</span><b class="meldercel"><span id="d-melder">${esc(x.melder || '–')}</span>${x.melder ? `<button type="button" class="melderinfo" id="d-melderinfo" aria-label="Gegevens van de melder" data-uitleg="Gegevens ophalen…"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 7.5h.01"></path></svg></button>` : ''}</b>${x.afgesloten ? (x.tel ? `<span>Bereikbaar</span><b>${belLink(x.tel)}</b>` : '') : `<span>Bereikbaar</span><b class="telcel"><input id="d-tel" class="datumkeuze telkeuze" inputmode="tel" value="${esc(x.tel || '')}" data-oud="${esc(x.tel || '')}" placeholder="– navragen –" title="Waar de melder nu bereikbaar is; wijzigt per keer" autocomplete="off">${x.tel ? belLink(x.tel).replace(/<\/svg>[^<]*<\/a>$/, '</svg></a>') : ''}</b>`}${r('Type melding', x.type)}${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}<span>Locatie${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.locatie || '–') : `<select id="d-loc" class="afdkeuze" title="Klik om de locatie te wijzigen"><option value="">${esc(x.locatie || '– kies locatie –')}</option></select>`}</b></div>
       <div class="kaart2"><h3>Behandeling</h3><span>Afdeling${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.afdeling || '–') : `<select id="d-afd" class="afdkeuze" title="Klik om de afdeling te wijzigen"><option>${esc(x.afdeling || '– kies afdeling –')}</option></select>`}</b><span>Verantwoordelijke</span><b>${x.afgesloten ? esc(x.verantw || '–') : `<select id="d-verantw" class="afdkeuze" title="Klik om de verantwoordelijke te wijzigen"><option value="">${esc(x.verantw || '– niemand –')}</option></select>${benIk(x.verantw) ? '' : '<button type="button" class="linkknop aanmij" id="d-aanmij">Aan mij toewijzen</button>'}`}</b><span>Status${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(toonStatus(x.status) || '–') : `<select id="d-status" class="afdkeuze" title="Klik om de status te wijzigen"><option value="">${esc(toonStatus(x.status) || '– kies status –')}</option></select>`}</b>
         ${x.afgesloten ? r('Gepland', x.gepland ? fmtDatum(x.gepland) : '') : `<span>Gepland</span><b><input type="date" id="d-gepland" class="datumkeuze" value="${x.gepland ? isoD(x.gepland) : ''}" data-oud="${x.gepland ? isoD(x.gepland) : ''}" title="Datum waarop het werk gepland staat"></b>`}${isChange(x) ? (x.afgesloten ? r('Startdatum project', x.projStart ? fmtDatum(x.projStart) : '') + r('Deadline', x.projEind ? fmtDatum(x.projEind) : '') : `<span>Startdatum project</span><b><input type="date" id="d-pstart" class="datumkeuze" value="${x.projStart ? isoD(x.projStart) : ''}" data-oud="${x.projStart ? isoD(x.projStart) : ''}" title="Begindatum project van deze change"></b><span>Deadline</span><b><input type="date" id="d-peind" class="datumkeuze" value="${x.projEind ? isoD(x.projEind) : ''}" data-oud="${x.projEind ? isoD(x.projEind) : ''}" title="Einddatum project (deadline) van deze change"></b>`) : ''}${r('Laatste reactie', x.reactieDatum ? fmtDatum(x.reactieDatum) + (x.reactieDoor ? ' · ' + x.reactieDoor : '') : '')}${r('Extern ticket', x.extern)}${x.afgesloten ? (x.kritiek ? r('Kritieke storing', 'Ja') : '') + (x.datalek ? r('Datalek', 'Ja') : '') + r('CC', x.cc) : `<span>CC</span><b><input id="d-cc" class="datumkeuze cckeuze" list="cc-lijst" value="${esc(x.cc || '')}" data-oud="${esc(x.cc || '')}" placeholder="– niemand –" title="Medewerker die een kopie van de mails krijgt" autocomplete="off"><datalist id="cc-lijst"></datalist></b>
           <span>Markeren</span><b class="vinkjes"><label class="vink"><input type="checkbox" id="d-kritiek" ${x.kritiek ? 'checked' : ''} data-oud="${x.kritiek ? 1 : 0}"> Kritieke storing</label><label class="vink"><input type="checkbox" id="d-datalek" ${x.datalek ? 'checked' : ''} data-oud="${x.datalek ? 1 : 0}"> Datalek</label></b>`}</div>
@@ -2406,7 +2418,7 @@ async function vulVerantwKeuze(x){
     sel.onchange = () => sel.classList.toggle('gewijzigd', !!sel.value && sel.value !== sel.dataset.oud);
     if(collegaDiag) sel.title += ' · ' + collegaDiag;
   }catch(e){ sel.disabled = true; sel.title = e.message; }
-  ['#d-gepland', '#d-pstart', '#d-peind', '#d-cc'].forEach(sel => { const gp = $(sel); if(gp) gp.oninput = () => gp.classList.toggle('gewijzigd', gp.value !== gp.dataset.oud); });
+  ['#d-gepland', '#d-pstart', '#d-peind', '#d-cc', '#d-tel'].forEach(sel => { const gp = $(sel); if(gp) gp.oninput = () => gp.classList.toggle('gewijzigd', gp.value !== gp.dataset.oud); });
   if($('#cc-lijst')) laadMedewerkers().then(l => { const dl = $('#cc-lijst'); if(dl) dl.innerHTML = l.map(m => `<option value="${esc(m.vol || m.naam)}">${esc(m.oe || '')}</option>`).join(''); }).catch(() => {});
   const mij = $('#d-aanmij');
   if(mij) mij.onclick = () => { const s2 = $('#d-verantw'), code = (profiel.alias || [])[0]; if(!s2 || !code) return;
@@ -2478,7 +2490,7 @@ async function laadSubjMeta(){
   const zoek = (re, extra = () => true) => { const l = alle.filter(f => mag(f) && re.test(norm(f.label)) && extra(f)); return l.find(f => f.pad === tabel) || l[0]; };
   return (subjMeta = {verantw: zoek(/^verantwoordelijke$|^behandelaar$/), gepland: zoek(/werkzaamheden|gepland|planning|inplan/, f => /date/i.test(f.dataType || 'date')),
     status: zoek(/^(externe )?status$/, f => waardenVan(f.values).length > 0), locatie: zoek(/^locatie$/),
-    datalek: zoek(/^datalek$/), kritiek: zoek(/^kritieke storing$/), cc: zoek(/^cc$/),
+    datalek: zoek(/^datalek$/), kritiek: zoek(/^kritieke storing$/), cc: zoek(/^cc$/), tel: zoek(/^(bereikbaarheid|bereikbaar|telefoon(nr|nummer)?)/),
     projStart: zoek(/(begin|start)\s*datum\s*project|project\s*(begin|start)/, f => /date/i.test(f.dataType || 'date')), projEind: zoek(/eind\s*datum\s*project|project\s*eind|^deadline/, f => /date/i.test(f.dataType || 'date')), alle});
 }
 async function zetVelden(x, w){
@@ -2983,9 +2995,10 @@ async function opslaanAlles(knopActie = null, sluiten = true){
   const dk = $('#d-kritiek'), dd = $('#d-datalek'), dc = $('#d-cc');
   const nieuwKritiek = dk && (dk.checked ? '1' : '0') !== dk.dataset.oud ? dk.checked : null, nieuwDatalek = dd && (dd.checked ? '1' : '0') !== dd.dataset.oud ? dd.checked : null;
   const nieuwCc = dc && dc.value.trim() !== dc.dataset.oud ? dc.value.trim() : null;
+  const dt = $('#d-tel'), nieuwTel = dt && dt.value.trim() !== dt.dataset.oud ? dt.value.trim() : null;
   const ps = $('#d-pstart'), pe = $('#d-peind'), nieuwProj = (ps && ps.value !== ps.dataset.oud) || (pe && pe.value !== pe.dataset.oud) ? {start: ps ? ps.value : '', eind: pe ? pe.value : '', startGew: !!ps && ps.value !== ps.dataset.oud, eindGew: !!pe && pe.value !== pe.dataset.oud} : null;
   const vs = $('#d-verantw'), nieuweVerantw = vs && vs.value && vs.value !== vs.dataset.oud ? {code: vs.value, naam: vs.options[vs.selectedIndex].textContent} : null;
-  if(!nieuweAfd && !nieuweStatus && !nieuweVerantw && !nieuwGepland && !nieuwProj && nieuwKritiek === null && nieuwDatalek === null && nieuwCc === null && !nieuweLoc && actieIdx == null && !tekst && !bijlT.length){ $('#d-fout').textContent = 'Er is niets gewijzigd: pas een veld aan, schrijf een reactie of voeg een bijlage toe.'; return; }
+  if(!nieuweAfd && !nieuweStatus && !nieuweVerantw && !nieuwGepland && !nieuwProj && nieuwKritiek === null && nieuwDatalek === null && nieuwCc === null && nieuwTel === null && !nieuweLoc && actieIdx == null && !tekst && !bijlT.length){ $('#d-fout').textContent = 'Er is niets gewijzigd: pas een veld aan, schrijf een reactie of voeg een bijlage toe.'; return; }
   const act = actieIdx != null && huidig.wf ? huidig.wf.acties[actieIdx] : null;
   { const plek = tekst.match(/\[(vul aan|stand van zaken|datum)\]/); if(plek){ $('#d-fout').textContent = `Vul in de reactie eerst "${plek[0]}" aan.`; const t = $('#tekst'); if(t){ t.focus(); const i = t.value.indexOf(plek[0]); if(i >= 0) t.setSelectionRange(i, i + plek[0].length); } return; } }
   // verplicht bij opslaan: afdeling, locatie en status
@@ -3028,8 +3041,8 @@ async function opslaanAlles(knopActie = null, sluiten = true){
       if(nieuwGepland.datum){ const n = await wfActie(x, /inplannen|plannen/i).catch(() => ''); if(n) viaActie.push(n); }
       gedaan.push(nieuwGepland.datum ? 'gepland op ' + fmtDatum(lok.gepland) : 'planning gewist'); }
     // 4a0. markeringen en CC (velden)
-    if(nieuwKritiek !== null || nieuwDatalek !== null || nieuwCc !== null){ stap = 'markering/CC'; const m = await laadSubjMeta(), w = {};
-      const mis = [nieuwKritiek !== null && !m.kritiek && 'Kritieke storing', nieuwDatalek !== null && !m.datalek && 'Datalek', nieuwCc !== null && !m.cc && 'CC'].filter(Boolean);
+    if(nieuwKritiek !== null || nieuwDatalek !== null || nieuwCc !== null || nieuwTel !== null){ stap = 'markering/CC/bereikbaarheid'; const m = await laadSubjMeta(), w = {};
+      const mis = [nieuwKritiek !== null && !m.kritiek && 'Kritieke storing', nieuwDatalek !== null && !m.datalek && 'Datalek', nieuwCc !== null && !m.cc && 'CC', nieuwTel !== null && !m.tel && 'Bereikbaarheid'].filter(Boolean);
       if(mis.length) throw new Error(`Het veld ${mis.join(', ')} is niet gevonden in AFAS (UpdateConnector KnSubject).`);
       if(nieuwKritiek !== null){ w[veldCode(m.kritiek)] = nieuwKritiek; lok.kritiek = nieuwKritiek; gedaan.push(nieuwKritiek ? 'kritieke storing' : 'geen kritieke storing meer'); }
       if(nieuwDatalek !== null){ w[veldCode(m.datalek)] = nieuwDatalek; lok.datalek = nieuwDatalek; gedaan.push(nieuwDatalek ? 'gemarkeerd als datalek' : 'datalek-markering weg'); }
@@ -3037,7 +3050,8 @@ async function opslaanAlles(knopActie = null, sluiten = true){
         if(nieuwCc){ const opties = waardenVan(m.cc.values); const o = opties.find(o => norm(o.naam) === norm(nieuwCc));
           if(o) code = o.code; else { const mw = await zoekMedewerker(nieuwCc); if(!mw) throw new Error(`CC "${nieuwCc}" is geen (eenduidige) medewerker. Kies een naam uit de lijst.`); code = mw.id; } }
         w[veldCode(m.cc)] = code; lok.cc = nieuwCc; gedaan.push(nieuwCc ? 'CC: ' + nieuwCc : 'CC gewist'); }
-      await zetVelden(x, w); const ev = extraCache.get(String(x.nr)) || {}; ['datalek', 'cc'].forEach(k => { if(k in lok) ev[k] = lok[k]; }); extraCache.set(String(x.nr), ev); }
+      if(nieuwTel !== null){ w[veldCode(m.tel)] = nieuwTel || null; lok.tel = nieuwTel; gedaan.push(nieuwTel ? 'bereikbaar op ' + nieuwTel : 'bereikbaarheid gewist'); }
+      await zetVelden(x, w); const ev = extraCache.get(String(x.nr)) || {}; ['datalek', 'cc', 'tel'].forEach(k => { if(k in lok) ev[k] = lok[k]; }); extraCache.set(String(x.nr), ev); }
     // 4a. change: startdatum project en deadline (velden)
     if(nieuwProj){ stap = 'startdatum/deadline'; const m = await laadSubjMeta();
       if((nieuwProj.startGew && !m.projStart) || (nieuwProj.eindGew && !m.projEind)) throw new Error('Het veld ' + (nieuwProj.startGew && !m.projStart ? 'Begindatum project' : 'Einddatum project') + ' is niet gevonden in AFAS.');
@@ -3294,6 +3308,13 @@ const CONN_KAART = () => [
     v('SbId', 'Intern nummer van de melding'), v('WfNm', 'Workflow'), v('TkNm', 'Taak'), v('AcNm', 'Actie'), v('Tx', 'Reactietekst'),
     v(/zichtbaar|extern|intern/i, 'Reactie zichtbaar (Interne notitie)', 'opt', 'Reactie zichtbaar'),
     v('FileName', 'Bijlage bij een reactie: bestandsnaam (KnReactionAttachment)', 'opt'), v('FileStream', 'Bijlage bij een reactie: inhoud', 'opt')]},
+  {conn: INST.connProjecten, sleutel: 'connProjecten', soort: 'GET', nodig: 'opt', doel: 'Mijn projecten: projecten uit het projectbureau waarin jij projectleider, opdrachtgever of teamlid bent.', velden: [
+    v(/^(projectnummer|projectcode|code|nummer)$/i, 'Projectnummer (koppelt met PtProject)', 'ja', 'Projectnummer'), v(/^(projectnaam|omschrijving( project)?|project)$/i, 'Projectnaam', 'ja', 'Projectnaam'),
+    v(/^(projectleider|projectmanager)/i, 'Projectleider: jouw rol', 'ja', 'Projectleider'), v(/^(medewerker|teamlid|projectlid|naam)$/i, 'Teamlid: jouw rol', 'opt', 'Teamlid'), v(/^(rol|projectrol)/i, 'Rol in het project', 'opt', 'Rol'),
+    v(/^(projectfase|fase|status)/i, 'Projectfase', 'opt', 'Projectfase'), v(/voortgang/i, 'Voortgang', 'opt', 'Voortgang'), v(/^(begindatum|startdatum)/i, 'Start (tijdlijn)', 'opt', 'Startdatum'), v(/^(einddatum|deadline|opleverdatum)/i, 'Einde (tijdlijn)', 'opt', 'Einddatum'),
+    v(/laatste update|stand van zaken|statusupdate/i, 'Laatste update', 'opt', 'Laatste update')]},
+  {conn: 'PtProject', soort: 'UPDATE', nodig: 'opt', doel: 'Mijn projecten bijwerken: projectfase, voortgang en datum gereed (planning).', velden: [
+    v('PrId', 'Projectnummer'), v(/fase/i, 'Projectfase', 'opt', 'Projectfase'), v(/voortgang/i, 'Voortgang', 'opt', 'Voortgang'), v(/gereed.*planning|planning.*gereed/i, 'Datum gereed (planning)', 'opt', 'Datum gereed planning')]},
   {conn: 'SubjectConnector', soort: 'GET', nodig: 'ja', doel: 'Bestand van een bijlage openen of downloaden (AppConnectorSubject).', velden: [v('filedata', 'Inhoud van het bestand'), v('filename', 'Bestandsnaam', 'opt')], geenMeta: true}
 ];
 let connCheck = null, connBezig = false;
@@ -3329,7 +3350,7 @@ function tekenConnectoren(){
     const extra = r && !r.fout ? lijst.filter(f => !k.velden.some(x => veldMatch(x, [f]))) : [];
     const mist = r && !r.fout ? k.velden.filter(f => f.nodig === 'ja' && !veldMatch(f, lijst)).length : 0;
     const status = !c ? '' : r && r.fout ? `<span class="cn-badge rood" title="${esc(r.fout)}">niet bereikbaar</span>` : k.geenMeta ? '' : mist ? `<span class="cn-badge rood">${mist} verplicht veld${mist === 1 ? '' : 'en'} ontbreekt</span>` : '<span class="cn-badge groen">compleet</span>';
-    return `<section class="blok cn-kaart"><header><h2 class="cn-naam">${esc(k.conn)}</h2><span class="cn-soort">${k.soort === 'GET' ? 'GetConnector' : 'UpdateConnector'}</span>${k.sleutel ? `<span class="cn-sleutel" title="Instelling in mijn-ict-config.js">${k.sleutel}</span>` : ''}<span class="cn-badge ${k.nodig === 'reserve' ? (actief ? 'oranje' : 'grijs') : 'blauw'}">${k.nodig === 'reserve' ? (actief ? 'reserve · nu in gebruik' : 'reserve · niet in gebruik') : 'verplicht'}</span>${status}${gebr(k.conn)}</header>
+    return `<section class="blok cn-kaart"><header><h2 class="cn-naam">${esc(k.conn)}</h2><span class="cn-soort">${k.soort === 'GET' ? 'GetConnector' : 'UpdateConnector'}</span>${k.sleutel ? `<span class="cn-sleutel" title="Instelling in mijn-ict-config.js">${k.sleutel}</span>` : ''}<span class="cn-badge ${k.nodig === 'reserve' ? (actief ? 'oranje' : 'grijs') : k.nodig === 'opt' ? 'grijs' : 'blauw'}">${k.nodig === 'reserve' ? (actief ? 'reserve · nu in gebruik' : 'reserve · niet in gebruik') : k.nodig === 'opt' ? 'optioneel' : 'verplicht'}</span>${status}${gebr(k.conn)}</header>
       <p class="cn-doel">${esc(k.doel)}${r && r.fout ? `<br><span class="fout">${esc(r.fout)}</span>` : ''}</p>
       <table class="cn-tabel"><thead><tr><th>Veld</th><th>Waarvoor gebruikt Mijn ICT het</th><th>Nodig</th><th>In AFAS</th></tr></thead><tbody>${rijen}</tbody></table>
       ${extra.length ? `<p class="cn-extra"><b>In de connector, niet gebruikt door Mijn ICT (${extra.length}):</b> ${extra.map(f => `<span title="${esc(f.label)}">${esc(f.id)}</span>`).join('')}</p>` : ''}</section>`;
@@ -3402,7 +3423,7 @@ const TOUR = [
   {el: '#nieuw-knop', titel: 'Nieuwe melding', tekst: 'Maak een melding aan. Handig: sleep een mail uit Outlook in dit venster, dan worden onderwerp, toelichting en bijlagen overgenomen.', voor: () => { sluitDetailStil(); return wacht(200); }},
   {el: '#todo-knop', titel: 'To-do en notities', tekst: 'Je eigen to-do’s, ook vanuit een melding. Ze staan in een eigen bestand op je OneDrive, dus alleen jij ziet ze.'},
   {el: '.voet', titel: 'Altijd actueel', tekst: 'De gegevens verversen elke paar minuten vanzelf. Staat hier een blauwe knop “Nieuwe versie”, klik dan om bij te werken.'},
-  {el: '#k-help', titel: 'Klaar!', tekst: 'Via dit vraagteken start je de rondleiding opnieuw. Veel werkplezier.'}
+  {el: '#ik', titel: 'Klaar!', tekst: 'Via je initialen rechtsboven start je de rondleiding opnieuw. Veel werkplezier.'}
 ];
 let tourStap = -1, tourTerug = null;
 function tourDialoog(){
@@ -3418,7 +3439,7 @@ function tourDialoog(){
 }
 function startTour(){
   $('#ikmenu') && ($('#ikmenu').hidden = true);
-  tourTerug = {tab, soort: soortKeuze.toegewezen}; opslag.set(TOUR_GEZIEN, true); $('#k-help').classList.remove('nieuw');
+  tourTerug = {tab, soort: soortKeuze.toegewezen}; opslag.set(TOUR_GEZIEN, true); $('#ik').classList.remove('nieuw');
   tourDialoog(); gaTour(0);
 }
 function stopTour(){
@@ -3663,7 +3684,7 @@ document.addEventListener('keydown', e => {
 });
 $('#k-ververs').onclick = async () => { await laadGegevens(); teken(); verrijkMetTaken(); verrijkMelders(); };
 $('#ik').onclick = () => ikMenu();
-if(!opslag.get(TOUR_GEZIEN)) $('#k-help').classList.add('nieuw');
+if(!opslag.get(TOUR_GEZIEN)) $('#ik').classList.add('nieuw');
 $('#k-uit').onclick = () => uitloggen();
 const isDonker = () => (document.documentElement.dataset.thema || (matchMedia('(prefers-color-scheme: dark)').matches ? 'donker' : 'licht')) === 'donker';
 $('#k-thema').onclick = () => { document.documentElement.dataset.thema = isDonker() ? 'licht' : 'donker'; opslag.set('mict-thema', document.documentElement.dataset.thema); };
@@ -3879,6 +3900,189 @@ function todoGekoppeld(nr, id = todoBron){
   t.melding = String(nr || '?'); t.klaar = true; t.klaarOp = new Date().toISOString(); TD.open = null; tdBewaar(); todoBron = null;
 }
 
+/* ================= Mijn projecten: projecten uit het projectbureau (GetConnector PowerBI_PBI_Team) ================= */
+// Alleen projecten waar jij een rol in hebt (projectleider, opdrachtgever of teamlid). Bijwerken: fase, voortgang en
+// datum gereed via UpdateConnector PtProject; een projectupdate als dossieritem "Update projectvoortgang" (type 77).
+// Zolang de app connector deze connectoren niet mag gebruiken, blijft het menu-item weg en staat de reden bij Connectoren & velden.
+const PRJ = {lijst: [], fout: '', geladen: false, kol: null, meta: null, fasenGezien: [], faseCodes: {}, afgerond: false};
+const PROJ_HERKEN = {
+  nr:/^(projectnummer|project nummer|projectcode|project code|code project|nummer project|project nr|nr project|projectnr|project id|id project|nummer|code)$/,
+  naam:/^(omschrijving project|projectnaam|naam project|project omschrijving|project|omschrijving|titel|onderwerp)$/,
+  start:/^(begindatum|begindatum project|startdatum|startdatum project|start|start project)$/,
+  eind:/^(einddatum|einddatum project|opleverdatum|deadline|eind|eind project|geplande einddatum)$/,
+  status:/^(status|status project|projectstatus|fase|projectfase|fase project)$/,
+  rol:/^(rol|rol in project|projectrol|rol medewerker|functie in project|rol teamlid)$/,
+  wie:/^(medewerker|naam medewerker|teamlid|naam teamlid|gebruiker|persoon|deelnemer|lid|projectlid|naam)$/,
+  wieCode:/^(medewerker code|code medewerker|gebruiker code|gebruikerscode|medewerkernummer|nummer medewerker|gebruiker id)$/,
+  leider:/^(projectleider|naam projectleider|projectmanager|projectleider naam)$/,
+  opdrachtgever:/^(opdrachtgever|naam opdrachtgever|sponsor)$/,
+  afgerond:/^(afgerond|gereed|afgesloten|project afgerond)$/,
+  voortgang:/^(voortgang|projectvoortgang|status voortgang|voortgang project)$/,
+  faseCode:/^(status code|code status|statuscode|projectstatus code|code projectstatus|projectfase code|code projectfase|prst)$/,
+  gereedPlanning:/^(datum gereed planning|datum gereed \(planning\)|geplande datum gereed|gereed planning)$/,
+  gereedWerkelijk:/^(werkelijke datum gereed|datum gereed werkelijk|werkelijk gereed)$/,
+  bericht:/^(laatste update|laatste bericht|laatste reactie|update|toelichting voortgang|stand van zaken|opmerking|laatste opmerking|statusupdate|status update)$/,
+  berichtDatum:/^(datum laatste update|datum update|datum laatste bericht|datum laatste reactie|laatst gewijzigd|gewijzigd op|datum gewijzigd)$/,
+  aangemaakt:/^(aangemaakt|aangemaakt op|datum aangemaakt|aanmaakdatum|invoerdatum)$/ };
+async function projKolommen(){
+  if(PRJ.kol) return PRJ.kol;
+  let vl;
+  try{ vl = velden(await afas(`/metainfo/get/${encodeURIComponent(INST.connProjecten)}`)).map(f => ({id: f.code, label: f.label})); }
+  catch(e){ const rij = ((await afas(`/connectors/${encodeURIComponent(INST.connProjecten)}?skip=0&take=1`)).rows || [])[0];
+    if(!rij) throw e; vl = Object.keys(rij).map(id => ({id, label: id.replace(/_/g, ' ')})); }
+  const k = {_alle: vl};
+  Object.entries(PROJ_HERKEN).forEach(([sleutel, re]) => {
+    for(const naam of re.source.replace(/^\^\(|\)\$$/g, '').replace(/\\/g, '').split('|')){
+      const f = vl.find(v => norm(v.label) === naam && !Object.values(k).includes(v.id)) || vl.find(v => norm(v.id).replace(/_/g, ' ') === naam && !Object.values(k).includes(v.id));
+      if(f){ k[sleutel] = f.id; break; } } });
+  if(!k.nr && !k.naam) throw new Error(`In ${INST.connProjecten} is geen projectnummer of projectnaam herkend.`);
+  return (PRJ.kol = k);
+}
+async function laadProjecten(){
+  if(!INST.connProjecten || !profiel) return;
+  try{
+    const k = await projKolommen(), rijen = await connectorAlles(INST.connProjecten), groep = {};
+    if(k.status && k.faseCode) rijen.forEach(r => { const n = String(r[k.status] ?? '').trim(), c = String(r[k.faseCode] ?? '').trim(); if(n && c) PRJ.faseCodes[n] = c; });
+    if(k.status) PRJ.fasenGezien = [...new Set(rijen.map(r => String(r[k.status] ?? '').trim()).filter(Boolean))];
+    rijen.forEach(r => { const nr = String(r[k.nr || k.naam] ?? '').trim(); if(nr) (groep[nr] = groep[nr] || []).push(r); });
+    const uit = [];
+    Object.entries(groep).forEach(([code, rs]) => {
+      const r0 = rs[0]; let rol = '';
+      if(k.leider && rs.some(r => benIk(r[k.leider]))) rol = 'Projectleider';
+      else if(k.opdrachtgever && rs.some(r => benIk(r[k.opdrachtgever]))) rol = 'Opdrachtgever';
+      else { const mijn = rs.find(r => (k.wie && benIk(r[k.wie])) || (k.wieCode && benIk(r[k.wieCode]))); if(mijn) rol = String((k.rol && mijn[k.rol]) || '').trim() || 'Projectlid'; }
+      if(!rol) return;
+      const status = String(k.status ? r0[k.status] ?? '' : '').trim(), voortgang = String(k.voortgang ? r0[k.voortgang] ?? '' : '').trim();
+      const afgesloten = (k.afgerond && ja(r0[k.afgerond])) || /afgerond|gesloten|beeindigd|beëindigd|opgeleverd|geannuleerd|vervallen|gestopt/.test(norm(status)) || /afgerond|vervallen/.test(norm(voortgang));
+      uit.push({nr: code, code, onderwerp: String(k.naam ? r0[k.naam] ?? '' : '').trim() || `Project ${code}`, rol: rol.charAt(0).toUpperCase() + rol.slice(1), status, voortgang,
+        projStart: k.start ? datum(r0[k.start]) : null, projEind: k.eind ? datum(r0[k.eind]) : null, aangemaakt: k.aangemaakt ? datum(r0[k.aangemaakt]) : null,
+        gereedPlanning: k.gereedPlanning ? datum(r0[k.gereedPlanning]) : null, gereedWerkelijk: k.gereedWerkelijk ? datum(r0[k.gereedWerkelijk]) : null,
+        leider: k.leider ? String(r0[k.leider] ?? '').trim() : '', laatste: k.bericht ? String(r0[k.bericht] ?? '').trim() : '', laatsteOp: k.berichtDatum ? datum(r0[k.berichtDatum]) : null,
+        team: k.wie ? [...new Set(rs.map(r => String(r[k.wie] ?? '').trim()).filter(Boolean))] : [], afgesloten, emmer: ''});
+    });
+    PRJ.lijst = uit; PRJ.fout = '';
+  }catch(e){ PRJ.fout = e.message; PRJ.lijst = []; }
+  PRJ.geladen = true;
+  if(!$('#detail').open && !$('#projdlg').open) teken();
+}
+const projOpen = () => PRJ.lijst.filter(p => !p.afgesloten);
+const voortKleur = v => /achter|te laat/i.test(v) ? 'rood' : /hold/i.test(v) ? 'oranje' : /schema|afgerond/i.test(v) ? 'groen' : /voor/i.test(v) ? 'blauw' : 'grijs';
+// voortgang zoals het werkblad hem berekent: einddatum voorbij = loopt achter; on hold/vervallen blijven staan
+function voortgangVoorstel(p, eind = p.gereedPlanning || p.projEind){
+  if(/on hold|vervallen/i.test(p.voortgang)) return p.voortgang;
+  if(!eind) return 'Te Plannen';
+  if(+beginDag(eind) < +beginDag(new Date())) return 'Loopt achter';
+  return /loopt voor/i.test(p.voortgang) ? p.voortgang : 'Op schema';
+}
+function tekenProjecten(){
+  $('#titel').textContent = 'Mijn projecten'; $('#subtitel').textContent = ''; $('#tegels').innerHTML = '';
+  if(PRJ.fout){ $('#blokken').innerHTML = `<section class="blok cn-kaart"><header><h2>Projecten ophalen lukte niet</h2></header><p class="hint" style="padding:0 22px 18px">${esc(PRJ.fout)}<br>Controleer bij <b>Connectoren &amp; velden</b> of GetConnector <code>${esc(INST.connProjecten)}</code> en UpdateConnector <code>PtProject</code> aan de app connector zijn toegevoegd.</p></section>`; return; }
+  const sorteer = (a, b) => (a.rol !== 'Projectleider') - (b.rol !== 'Projectleider') || +(a.projEind || 9e15) - +(b.projEind || 9e15);
+  const lijst = PRJ.lijst.filter(p => PRJ.afgerond || !p.afgesloten).sort(sorteer), nAf = PRJ.lijst.filter(p => p.afgesloten).length;
+  const w = chWeergave === 'tijdlijn' ? 'tijdlijn' : 'lijst';
+  const balk = `<div class="werkbalk"><div class="schakel klein" role="group" aria-label="Weergave">${['lijst', 'tijdlijn'].map(v => `<button type="button" data-projw="${v}" aria-pressed="${w === v}">${v === 'lijst' ? 'Lijst' : 'Tijdlijn'}</button>`).join('')}</div>
+    ${w === 'tijdlijn' ? `<div class="schakel klein" role="group" aria-label="Periode">${[['maand', '6 weken'], ['kwartaal', 'Kwartaal'], ['halfjaar', 'Halfjaar']].map(([z, t]) => `<button type="button" data-projz="${z}" aria-pressed="${chZoom === z}">${t}</button>`).join('')}</div>` : ''}
+    ${nAf ? `<label class="schuif"><input type="checkbox" id="p-afgerond" ${PRJ.afgerond ? 'checked' : ''}><i></i><span>Ook afgeronde (${nAf})</span></label>` : ''}</div>`;
+  const chip = (t, kl) => t ? `<span class="cn-badge ${kl}">${esc(t)}</span>` : '<span class="hint">–</span>';
+  const rij = p => `<tr data-proj="${esc(p.code)}" tabindex="0" style="cursor:pointer">
+    <td class="mono">${esc(p.code)}</td><td><b style="font-weight:600">${esc(p.onderwerp)}</b>${p.laatste ? `<small class="hint" style="display:block;max-width:520px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.laatsteOp ? fmtDatum(p.laatsteOp) + ' · ' : ''}${esc(p.laatste)}</small>` : ''}</td>
+    <td>${chip(p.rol, p.rol === 'Projectleider' ? '' : 'grijs')}</td><td>${esc(p.status || '–')}</td><td>${chip(p.voortgang, voortKleur(p.voortgang))}</td>
+    <td>${fmtDatum(p.projStart)}</td><td class="${p.projEind && !p.afgesloten && +p.projEind < +beginDag(new Date()) ? 'rood' : ''}">${fmtDatum(p.projEind)}</td></tr>`;
+  const inhoud = !lijst.length ? '<p class="hint" style="padding:18px 22px">Geen lopende projecten waar je een rol in hebt.</p>'
+    : w === 'tijdlijn' ? tekenTijdlijn(lijst).replace(/data-nr=/g, 'data-proj=')
+    : `<table class="tabel projtabel"><thead><tr><th>Nr</th><th>Project</th><th>Jouw rol</th><th>Fase</th><th>Voortgang</th><th>Start</th><th>Einde</th></tr></thead><tbody>${lijst.map(rij).join('')}</tbody></table>`;
+  $('#blokken').innerHTML = balk + `<div class="blok"><header><h2>Projecten waar je bij betrokken bent</h2><b>${lijst.length}</b></header>${inhoud}</div>`;
+}
+/* ---- bijwerken ---- */
+async function projMeta(){
+  if(PRJ.meta) return PRJ.meta;
+  const vl = velden(await afas('/metainfo/update/PtProject'));
+  const zoek = (...res) => { for(const re of res){ const f = vl.find(v => re.test(norm(v.label))); if(f) return f; } return null; };
+  const code = f => f.pad && !/^ptproject$/i.test(f.pad) ? `${f.pad}/${f.code}` : f.code;
+  const voort = zoek(/^(voortgang|projectvoortgang|voortgang project|status voortgang)$/, /voortgang/);
+  const fase = zoek(/^(projectfase|fase project|fase|project fase|fase van het project)$/, /projectfase/, /fase/);
+  const gp = zoek(/^(datum gereed planning|datum gereed \(planning\)|geplande datum gereed)$/, /gereed.*planning|planning.*gereed/);
+  const fasen = waardenVan(fase && fase.values);
+  const vast = String(INST.projFaseCodes || '').split(/[,;\n]/).map(p => p.split('=').map(x => (x || '').trim())).filter(([a, b]) => a && b).map(([naam, c]) => ({code: c, naam}));
+  return (PRJ.meta = {fase: fase && {code: code(fase), waarden: (fasen.length ? fasen : vast.length ? vast : PRJ.fasenGezien.map(n => ({code: PRJ.faseCodes[n] || n, naam: n}))).filter(v => !/^te plannen$/i.test(v.naam))},
+    voort: voort && {code: code(voort), waarden: waardenVan(voort.values)}, gereed: gp && code(gp)});
+}
+const waardeBij = (l, naam) => (l || []).find(v => norm(v.naam) === norm(naam)) || (l || []).find(v => norm(v.code) === norm(naam));
+function openProject(code){
+  const p = PRJ.lijst.find(y => String(y.code) === String(code)); if(!p) return;
+  const dlg = $('#projdlg'), iso = d => d ? isoD(d) : '';
+  const voorstel = voortgangVoorstel(p);
+  $('#projdlg-in').innerHTML = `<div class="dlg-kop"><div><small>Project ${esc(p.code)} · jij bent ${esc(p.rol.toLowerCase())}</small><h2>${esc(p.onderwerp)}</h2></div>
+      ${INST.projectUrl ? `<button type="button" class="afasknop" id="p-afas" title="Project openen in AFAS InSite (nieuw tabblad)" aria-label="Project openen in AFAS">${ICO_AFAS}</button>` : ''}<button class="sluit" data-psluit aria-label="Sluiten">×</button></div>
+    <div class="kaart2"><span>Projectleider</span><b>${esc(p.leider || '–')}</b><span>Start</span><b>${fmtDatum(p.projStart)}</b><span>Einde</span><b>${fmtDatum(p.projEind)}</b>${p.team.length ? `<span>Team</span><b style="font-weight:400">${esc(p.team.join(', '))}</b>` : ''}
+      ${p.laatste ? `<div class="lang"><small class="hint">Laatste update${p.laatsteOp ? ' · ' + fmtDatum(p.laatsteOp) : ''}</small><br>${esc(p.laatste)}</div>` : ''}</div>
+    <form class="nform" id="p-form" onsubmit="return false">
+      <div class="drie"><label>Projectfase<select name="fase" disabled><option>Laden…</option></select></label>
+        <label>Voortgang<select name="voort" disabled><option>Laden…</option></select><span class="hint" id="p-voorstel"></span></label>
+        <label>Datum gereed (planning)<input type="date" name="gereed" value="${esc(iso(p.gereedPlanning))}"></label></div>
+      <label>Update projectvoortgang<textarea name="tekst" rows="3" spellcheck="true" placeholder="Wat is de stand van zaken? Komt als update bij het project in AFAS."></textarea></label>
+      <p class="fout" id="p-fout" role="alert"></p>
+      <div style="display:flex;gap:10px;justify-content:flex-end"><button type="button" class="knop" data-psluit>Annuleren</button><button type="button" class="knop vol" id="p-opslaan">Opslaan</button></div></form>`;
+  dlg.showModal();
+  const f = $('#p-form');
+  projMeta().then(m => {
+    if(!dlg.open) return;
+    const vul = (sel, w, huidig) => { const h = waardeBij(w, huidig); sel.innerHTML = (h ? '' : `<option value="">${esc(huidig || '–')}</option>`) + (w || []).map(v => `<option value="${esc(v.code)}" ${h && h.code === v.code ? 'selected' : ''}>${esc(v.naam)}</option>`).join(''); sel.dataset.begin = sel.value; sel.disabled = !(w || []).length; };
+    vul(f.fase, m.fase && m.fase.waarden, p.status); vul(f.voort, m.voort && m.voort.waarden, p.voortgang);
+    const vs = waardeBij(m.voort && m.voort.waarden, voorstel);
+    if(vs && norm(vs.naam) !== norm(p.voortgang)) $('#p-voorstel').innerHTML = `Op basis van de datums: <a href="#" id="p-neem">${esc(vs.naam)}</a>`;
+    if(!m.gereed) f.gereed.disabled = true;
+  }).catch(e => { $('#p-fout').textContent = 'PtProject: ' + e.message; });
+  dlg.onclick = e => { if(e.target.closest('[data-psluit]')) dlg.close(); if(e.target.id === 'p-neem'){ e.preventDefault(); const w = waardeBij(PRJ.meta.voort.waarden, voorstel); if(w) f.voort.value = w.code; } };
+  if($('#p-afas')) $('#p-afas').onclick = () => window.open(INST.projectUrl.replace(/\{code\}/gi, encodeURIComponent(p.code)), '_blank', 'noopener');
+  $('#p-opslaan').onclick = () => bewaarProject(p);
+  setTimeout(() => f.tekst.focus(), 50);
+}
+async function bewaarProject(p){
+  const f = $('#p-form'), fout = $('#p-fout'), knop = $('#p-opslaan'), m = PRJ.meta || {};
+  const tekst = f.tekst.value.trim(), nieuwFase = f.fase.value !== f.fase.dataset.begin && f.fase.value ? f.fase.value : null;
+  const nieuwVoort = f.voort.value !== f.voort.dataset.begin && f.voort.value ? f.voort.value : null;
+  const oudG = p.gereedPlanning ? isoD(p.gereedPlanning) : '', nieuwG = f.gereed.value !== oudG ? f.gereed.value : undefined;
+  if(!tekst && !nieuwFase && !nieuwVoort && nieuwG === undefined){ $('#projdlg').close(); return; }
+  if((nieuwFase || nieuwVoort || nieuwG !== undefined) && p.rol !== 'Projectleider' && !(await vraag('Je bent niet de projectleider', `Je bent ${p.rol.toLowerCase()} van ${p.onderwerp}. Wil je de fase, voortgang of datum toch aanpassen in AFAS?`, 'Ja, aanpassen'))) return;
+  fout.textContent = ''; knop.disabled = true; knop.textContent = 'Opslaan…';
+  try{
+    if(tekst){
+      const kandidaten = opslag.get('mict-projkenmerk') ? [opslag.get('mict-projkenmerk')] : ['FvF1=201', 'FvF1=320', ''];
+      let gelukt = false, laatste = null;
+      for(const kt of kandidaten){
+        const kenmerk = {}; kt.split(',').forEach(d => { const [a, b] = d.split('=').map(x => (x || '').trim()); if(a && b) kenmerk[a] = isNaN(+b) ? b : +b; });
+        try{ await afas('/connectors/KnSubject', {method: 'POST', body: JSON.stringify({KnSubject: {Element: {Fields: {StId: +INST.projUpdStId, Ds: 'Update projectvoortgang', SbTx: tekst, ...kenmerk},
+          Objects: [{KnSubjectLink: {Element: {Fields: {PjId: p.code}}}}]}}})});
+          if(kt) opslag.set('mict-projkenmerk', kt); gelukt = true; break; }
+        catch(e){ laatste = e; if(!/kenmerk/i.test(e.message)) throw e; }
+      }
+      if(!gelukt) throw laatste;
+    }
+    const w = {};
+    if(nieuwFase && m.fase) w[m.fase.code] = nieuwFase;
+    if(nieuwVoort && m.voort) w[m.voort.code] = nieuwVoort;
+    if(nieuwG !== undefined && m.gereed) w[m.gereed] = nieuwG || null;
+    if(Object.keys(w).length){ const top = {}, obj = {};
+      Object.entries(w).forEach(([c, v]) => { const i = c.indexOf('/'); if(i > 0) (obj[c.slice(0, i)] = obj[c.slice(0, i)] || {})[c.slice(i + 1)] = v; else top[c] = v; });
+      const objecten = Object.entries(obj).map(([o, fl]) => ({[o]: {Element: {Fields: fl}}}));
+      await afas('/connectors/PtProject', {method: 'PUT', body: JSON.stringify({PtProject: {Element: {Fields: {PrId: p.code, ...top}, ...(objecten.length ? {Objects: objecten} : {})}}})}); }
+    // meteen in beeld; de GetConnector volgt bij de volgende verversing
+    if(nieuwFase) p.status = (waardeBij(m.fase.waarden, nieuwFase) || {}).naam || p.status;
+    if(nieuwVoort) p.voortgang = (waardeBij(m.voort.waarden, nieuwVoort) || {}).naam || p.voortgang;
+    if(nieuwG !== undefined) p.gereedPlanning = nieuwG ? new Date(nieuwG + 'T00:00:00') : null;
+    if(tekst){ p.laatste = tekst; p.laatsteOp = new Date(); }
+    $('#projdlg').close(); toast('Project bijgewerkt in AFAS'); teken();
+  }catch(e){ fout.textContent = e.message; knop.disabled = false; knop.textContent = 'Opslaan'; }
+}
+document.addEventListener('click', e => {
+  const pw = e.target.closest('[data-projw]'); if(pw){ chWeergave = pw.dataset.projw; opslag.set('mict-chweergave', chWeergave); teken(); return; }
+  const pz = e.target.closest('[data-projz]'); if(pz){ chZoom = pz.dataset.projz; opslag.set('mict-chzoom', chZoom); teken(); return; }
+  const pr = tab === 'projecten' && e.target.closest('[data-proj]'); if(pr){ openProject(pr.dataset.proj); return; }
+});
+document.addEventListener('change', e => { if(e.target.id === 'p-afgerond'){ PRJ.afgerond = e.target.checked; teken(); } });
+document.addEventListener('keydown', e => { if(e.key === 'Enter' && tab === 'projecten' && e.target.closest && e.target.closest('[data-proj]') && !e.target.closest('dialog')) openProject(e.target.closest('[data-proj]').dataset.proj); });
+
 /* ================= instellingen online: overal dezelfde instellingen (Azure Function ict-instellingen) ================= */
 // Wat je instelt staat in de browser én online, per AFAS-gebruiker. Bij inloggen halen we het op en voegen we samen
 // (per instelling wint de nieuwste); wijzig je iets, dan gaat het 3 seconden later mee. Zonder verbinding werkt alles gewoon lokaal.
@@ -3944,7 +4148,7 @@ function syncToepassen(){
   chWeergave = opslag.get('mict-chweergave') || 'lijst'; chZoom = opslag.get('mict-chzoom') || 'kwartaal';
   $('#detail').classList.toggle('groot', !!opslag.get('mict-venster-groot'));
   const t = opslag.get('mict-thema'); if(t) document.documentElement.dataset.thema = t;
-  $('#k-help').classList.toggle('nieuw', !opslag.get(TOUR_GEZIEN));
+  $('#ik').classList.toggle('nieuw', !opslag.get(TOUR_GEZIEN));
 }
 
 /* ================= aanwezig: wie heeft welke melding nu open (oogje) ================= */
@@ -4098,17 +4302,35 @@ function laadKaart(naam){
     tdStart(); setTimeout(seinAanwezig, 2000);
     if(!DEMO) setTimeout(() => { laadSubjMeta().catch(() => {}); zoekZichtVeld().catch(() => {}); zorgReactieKol().catch(() => {}); }, 1500);   // alvast klaarzetten: het eerste melding opent dan sneller
     verrijkMetTaken().then(verrijkMelders).then(() => { controleerIctReacties(); laadRestOpAchtergrond(); });
+    setTimeout(laadProjecten, 1200);   // Mijn projecten: op de achtergrond, los van de meldingen
   }catch(e){ startInlog(e.message); }
 })();
 
 /* ================= demodata (alleen met ?demo in de adresbalk) ================= */
 function demoAfas(pad, opties){
+  // demo: projecten (Mijn projecten)
+  if(pad === `/metainfo/get/${INST.connProjecten}`) return {fields:['Projectnummer','Projectnaam','Projectleider','Teamlid','Rol','Projectfase','Voortgang','Startdatum','Einddatum','Datum_gereed_planning','Laatste_update','Datum_laatste_update'].map(id => ({id, label: id.replace(/_/g, ' ')}))};
+  if(pad.startsWith(`/connectors/${INST.connProjecten}`)){
+    if(!window._demoProj){ const d = n => new Date(Date.now() + n * DAG).toISOString().slice(0, 10) + 'T00:00:00';
+      const p = (nr, naam, pl, team, fase, vg, st, ei, upd, ud) => team.map(([t, rol]) => ({Projectnummer:nr, Projectnaam:naam, Projectleider:pl, Teamlid:t, Rol:rol, Projectfase:fase, Voortgang:vg, Startdatum:d(st), Einddatum:d(ei), Datum_gereed_planning:null, Laatste_update:upd, Datum_laatste_update:ud == null ? null : d(ud)}));
+      window._demoProj = [...p('P-0142', 'Vernieuwde werkplekken uitrol', 'Robert van der Veen', [['Kelly Groen', 'Projectlid'], ['Glenn Brons', 'Projectlid']], 'Realisatie', 'Op schema', -90, 75, 'Utrecht en Breda zijn over; Hanzeplein volgt in week 44.', -3),
+        ...p('P-0157', 'Patiëntenportaal 2.0 per specialisme', 'Kelly Groen', [['Robert van der Veen', 'Opdrachtgever']], 'Pilot', 'Loopt achter', -60, -4, 'Allergologie live; Dermatologie wacht op inrichting Timeff.', -8),
+        ...p('P-0163', 'Vervanging telefooncentrale alle locaties', 'Glenn Brons', [['Robert van der Veen', 'Projectlid'], ['Mehmet Ceylan', 'Projectlid']], 'Verkenning', 'Te Plannen', 20, 180, '', null),
+        ...p('P-0099', 'Migratie fileservers naar SharePoint', 'Robert van der Veen', [['Eleandro Martis', 'Projectlid']], 'Afgerond', 'Afgerond', -200, -30, 'Opgeleverd en geëvalueerd.', -30),
+        ...p('P-0170', 'Nieuw planningssysteem OK-complex', 'Iemand Anders', [['Kelly Groen', 'Projectlid']], 'Verkenning', 'Op schema', -10, 120, '', null)]; }
+    return {rows: window._demoProj}; }
+  if(pad === '/metainfo/update/PtProject') return {name:'PtProject', fields:[{fieldId:'PrId', label:'Project'},{fieldId:'PrSt', label:'Projectfase', values:['Verkenning','Pilot','Realisatie','Implementatie','Afgerond'].map(n => ({id:n, description:n}))},{fieldId:'UVoort', label:'Voortgang', values:['Op schema','Loopt achter','Loopt voor','On Hold','Te Plannen','Afgerond','Vervallen'].map(n => ({id:n, description:n}))},{fieldId:'UGereed', label:'Datum gereed planning', dataType:'date'}]};
+  if(pad === '/connectors/PtProject'){ const f = JSON.parse(opties.body).PtProject.Element.Fields; (window._demoProj || []).filter(r => r.Projectnummer === f.PrId).forEach(r => { if(f.PrSt) r.Projectfase = f.PrSt; if(f.UVoort) r.Voortgang = f.UVoort; if('UGereed' in f) r.Datum_gereed_planning = f.UGereed; });
+    window._ptPut = opties.body; return new Promise(r => setTimeout(() => r({}), 300)); }
+  if(opties.method === 'POST' && pad === '/connectors/KnSubject' && JSON.parse(opties.body).KnSubject.Element.Fields.StId === +INST.projUpdStId){ const b = JSON.parse(opties.body).KnSubject.Element;
+    const pj = b.Objects[0].KnSubjectLink.Element.Fields.PjId; (window._demoProj || []).filter(r => r.Projectnummer === pj).forEach(r => { r.Laatste_update = b.Fields.SbTx; r.Datum_laatste_update = new Date().toISOString().slice(0, 19); });
+    window._projUpd = opties.body; return new Promise(r => setTimeout(() => r({results:{KnSubject:{SbId: 500001}}}), 300)); }
   if(opties.method === 'POST' && pad === '/connectors/KnSubject'){ const b = JSON.parse(opties.body).KnSubject.Element, D = window._demo, nr = 12700 + D.sla.length;
     const afdC = ((b.Objects || []).find(o => o.KnS38) || {KnS38:{Element:{Fields:{}}}}).KnS38.Element.Fields.UAfd;
     D.sla.push({Nummer:nr, Onderwerp:b.Fields.Ds, Status:'Nieuw', Omschrijving_4:({'88406.rvanderveen':'Robert van der Veen','88406.kgroen':'Kelly Groen','88406.gbrons':'Glenn Brons','88406.gleer':'Guillonard Leer'})[((b.Objects || []).find(o => o.KnS38) || {KnS38:{Element:{Fields:{}}}}).KnS38.Element.Fields.UVer] || '', Omschrijving_2:'Robert van der Veen', Omschrijving:'Aanvraag ICT', Type_ticket_ICT:'Incident', Focusgebied_ICT:'', AFAS_Afdeling:'', Omschrijving_3:INST.afdelingen[+afdC - 1] || 'ICT', Focusgebied_EMMA:'', Instuurdatum:new Date().toISOString().slice(0, 19), Gepland:null, Laatste_reactie:null, Gebruiker_laatste_reactie:'', Laatste_wijziging_externe_status:null, Workflow_afgerond:false, Kritieke_storing:false});
     return new Promise(r => setTimeout(() => r({results:{KnSubject:{SbId: 400000 + nr}}}), 400)); }
   if(pad === '/metainfo/update/KnSubject') return {name:'KnSubject', fields:[{fieldId:'StId', label:'Type dossier', dataType:'int', mandatory:true, values:[{id:'26', description:'Aanvraag ICT'},{id:'31', description:'Change'}]},{fieldId:'Ds', label:'Onderwerp', mandatory:true},{fieldId:'SbTx', label:'Toelichting'}],
-    objects:[{name:'KnSubjectLink', fields:[{fieldId:'SfTp', label:'Type bestemming'}]},{name:'KnS38', fields:[{fieldId:'UAfd', label:'Afdeling', dataType:'string', values:INST.afdelingen.map((n, i) => ({id:String(i + 1), description:n}))},{fieldId:'UVer', label:'Verantwoordelijke', values:[{id:'88406.rvanderveen', description:'Robert van der Veen'},{id:'88406.kgroen', description:'Kelly Groen'},{id:'88406.gbrons', description:'Glenn Brons'},{id:'88406.gleer', description:'Guillonard Leer'},{id:'88406.anders', description:'Iemand Buiten ICT'}]},{fieldId:'UGep', label:'Werkzaamheden gepland', dataType:'date'},{fieldId:'UPSt', label:'Begindatum project', dataType:'date'},{fieldId:'UDl', label:'Datalek', dataType:'boolean'},{fieldId:'UKr', label:'Kritieke storing', dataType:'boolean'},{fieldId:'UCc', label:'CC', dataType:'string'},{fieldId:'UPEi', label:'Einddatum project', dataType:'date'},{fieldId:'ULoc', label:'Locatie', values:['Almere','Amsterdam','Breda','Utrecht','Hanzeplein','Almere SIC','Planetarium'].map((n, i) => ({id:'L' + i, description:n}))},{fieldId:'UTyp', label:'Type ticket ICT', values:[{id:'I', description:'Incident'},{id:'V', description:'Vraag'},{id:'C', description:'Change'}]}]},{name:'KnS26', fields:[{fieldId:'UPrj', label:'Begindatum project', mandatory:true}]}]};
+    objects:[{name:'KnSubjectLink', fields:[{fieldId:'SfTp', label:'Type bestemming'}]},{name:'KnS38', fields:[{fieldId:'UAfd', label:'Afdeling', dataType:'string', values:INST.afdelingen.map((n, i) => ({id:String(i + 1), description:n}))},{fieldId:'UVer', label:'Verantwoordelijke', values:[{id:'88406.rvanderveen', description:'Robert van der Veen'},{id:'88406.kgroen', description:'Kelly Groen'},{id:'88406.gbrons', description:'Glenn Brons'},{id:'88406.gleer', description:'Guillonard Leer'},{id:'88406.anders', description:'Iemand Buiten ICT'}]},{fieldId:'UGep', label:'Werkzaamheden gepland', dataType:'date'},{fieldId:'UPSt', label:'Begindatum project', dataType:'date'},{fieldId:'UDl', label:'Datalek', dataType:'boolean'},{fieldId:'UKr', label:'Kritieke storing', dataType:'boolean'},{fieldId:'UCc', label:'CC', dataType:'string'},{fieldId:'UTel', label:'Bereikbaarheid', dataType:'string'},{fieldId:'UPEi', label:'Einddatum project', dataType:'date'},{fieldId:'ULoc', label:'Locatie', values:['Almere','Amsterdam','Breda','Utrecht','Hanzeplein','Almere SIC','Planetarium'].map((n, i) => ({id:'L' + i, description:n}))},{fieldId:'UTyp', label:'Type ticket ICT', values:[{id:'I', description:'Incident'},{id:'V', description:'Vraag'},{id:'C', description:'Change'}]}]},{name:'KnS26', fields:[{fieldId:'UPrj', label:'Begindatum project', mandatory:true}]}]};
   if(opties.method === 'PUT' && pad === '/connectors/KnSubject'){ const el = JSON.parse(opties.body).KnSubject.Element, D = window._demo, r = D.sla.find(x => 400000 + x.Nummer === +el['@SbId']);
     const alle = {...el.Fields}; (el.Objects || []).forEach(o => Object.values(o).forEach(v => Object.assign(alle, v.Element.Fields)));
     if(r && alle.UVer) r.Omschrijving_4 = {'88406.rvanderveen':'Robert van der Veen','88406.kgroen':'Kelly Groen','88406.gbrons':'Glenn Brons','88406.gleer':'Guillonard Leer'}[alle.UVer] || alle.UVer;
