@@ -39,6 +39,10 @@
   --schaduw:0 8px 28px rgba(0,0,0,.35); color-scheme:dark;
 } }
 *{box-sizing:border-box;margin:0;padding:0}
+/* keuzelijsten: de uitklaplijst volgt het thema (anders lichte achtergrond met lichte tekst in donker thema) */
+select option,select optgroup{background-color:var(--vlak);color:var(--inkt);font-weight:400}
+select option:checked{background-color:var(--lichtblauw-2);color:var(--blauw);font-weight:600}
+select option:disabled{color:var(--grijs)}
 [hidden]{display:none!important}
 html{background:var(--achtergrond)}
 body{font-family:var(--font);color:var(--inkt);font-variant-numeric:tabular-nums;min-height:100vh;font-size:14px;
@@ -364,6 +368,12 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .it[aria-pressed="true"] .ongstip{color:#fff}
 .it b{font-size:12px;font-weight:600;color:var(--grijs);background:var(--lijn);border-radius:999px;padding:0 8px;line-height:19px;min-width:24px;text-align:center}
 .it b.rood{background:var(--rood);color:#fff}
+.it > b{position:relative}
+.telfx{position:absolute;right:calc(100% + 6px);top:50%;font-style:normal;font-size:11.5px;font-weight:700;line-height:18px;padding:0 7px;border-radius:999px;color:#fff;pointer-events:none;white-space:nowrap;box-shadow:0 2px 8px rgba(3,31,77,.25);animation:telOp 1.3s ease-out forwards}
+.telfx.min{background:var(--rood)}.telfx.plus{background:var(--groen)}
+.it > b.telpuls{animation:telPuls .45s ease-out}
+@keyframes telOp{0%{opacity:0;transform:translateY(-50%) scale(.6)}15%{opacity:1;transform:translateY(-50%) scale(1.1)}30%{transform:translateY(-50%) scale(1)}75%{opacity:1}100%{opacity:0;transform:translateY(-150%)}}
+@keyframes telPuls{40%{transform:scale(1.25)}}
 .it b.stip{position:relative}.it b.stip::after{content:'';position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--goud);box-shadow:0 0 0 2px var(--vlak)}
 .it b.stip.leeg{background:none;min-width:0;padding:0;width:9px}
 .it[aria-pressed="true"]{background:var(--blauw);color:var(--opaccent);font-weight:600}
@@ -442,6 +452,10 @@ input.datumkeuze{border:0;border-bottom:1.5px dashed var(--lichtblauw);backgroun
 input.datumkeuze.gewijzigd{background:var(--lichtblauw-2);border-bottom-style:solid;padding:0 4px}
 .onderbalk{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-top:1px solid var(--lijn);padding-top:14px}
 .onderbalk .actiebalk{flex:1;border:0;padding:0;margin:0}
+.knop.opgeslagen{background:var(--groen);border-color:var(--groen);color:#fff;opacity:1;animation:opPop .4s cubic-bezier(.3,1.6,.5,1)}
+.knop.opgeslagen svg{width:16px;height:16px;margin-right:6px;vertical-align:-3px;stroke-dasharray:24;stroke-dashoffset:24;animation:opVink .45s ease-out .1s forwards}
+@keyframes opPop{0%{transform:scale(.94)}60%{transform:scale(1.06)}100%{transform:scale(1)}}
+@keyframes opVink{to{stroke-dashoffset:0}}
 #k-opslaan{margin-left:auto;padding:8px 26px 8px 22px}
 select.afdkeuze.gewijzigd{background-color:var(--lichtblauw-2);border-bottom-style:solid;padding-left:6px}
 dialog.vraagdlg{width:min(440px, calc(100vw - 32px))}
@@ -902,7 +916,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.34', VERSIE_DATUM = '03-10-2026';
+const VERSIE = 'v4.39', VERSIE_DATUM = '03-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2195,7 +2209,7 @@ function openDetail(nr){
     <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>
     <div class="onderbalk"><div class="actiebalk" id="actiebalk"><button class="knop" data-snel="${st === 0 ? 'oppak' : 'sluit'}" title="Kan meteen: wacht zo nodig even op de workflow uit AFAS">${st === 0 ? 'Toewijzen aan mij' : 'Afhandelen'}</button></div>
       <span class="mailvooraf" id="mailvooraf" hidden></span>
-      <span class="opslaanknoppen"><button type="button" class="knop vol" id="k-opslaan" title="Alles doorvoeren en meteen de volgende melding uit je lijst openen; is er geen volgende, dan sluit het venster (Ctrl+Enter)"><span class="opslaanmail" hidden>✉ </span>Opslaan &amp; volgende <kbd>Ctrl+Enter</kbd></button></span></div>
+      <span class="opslaanknoppen"><button type="button" class="knop vol" id="k-opslaan" title="Alles doorvoeren; de melding blijft open (Ctrl+Enter). Naar de vorige of volgende melding ga je met de pijltjes."><span class="opslaanmail" hidden>✉ </span>Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
     <p class="fout" id="d-fout"></p>`}`;
   $('#detail').dataset.gewijzigd = ''; if(!$('#detail').open) $('#detail').showModal();
   $('#detail-in').scrollTop = 0; zetNavPijlen(x); setTimeout(() => { tekenAanwezig(); seinAanwezig(); }, 50);
@@ -2654,7 +2668,7 @@ async function voerUit(actieIdx, nieuweAfd = ''){
     $('#detail').close();
     const wat = sa === 'collega' ? `Toegewezen aan ${actieKeuze.naam}` : sa === 'mij' ? 'Aan jou toegewezen' : sa === 'plannen' ? `Ingepland op ${fmtDatum(new Date(actieKeuze.datum))}` : a ? `${a.naam}: verwerkt in AFAS` : notitie ? 'Interne notitie geplaatst' : 'Reactie geplaatst';
     toast((nieuweAfd ? `${nieuweAfd} · ` : '') + wat + waarschuwing, !!waarschuwing);
-    onthoudLokaal(x, lok, gok ? 20e3 : undefined); teken(); toonVerplaatsing(voor); naAchtergrond();
+    onthoudLokaal(x, lok, gok ? 20e3 : undefined); tekenMetTelling(); toonVerplaatsing(voor); naAchtergrond();
   }catch(e){ $('#d-fout').textContent = (nieuweAfd ? `Al doorgevoerd (${nieuweAfd}), maar: ` : '') + e.message; document.querySelectorAll('#detail button, #detail select').forEach(b => b.disabled = false); }
 }
 
@@ -3023,6 +3037,15 @@ async function reactieMetMail(x, tekst, notitie = false, objecten = null){
   return naam;
 }
 /* Opslaan in het ticket: alle wijzigingen, elk via de AFAS-actie die erbij hoort */
+// na opslaan: de knop wordt even groen met een vinkje dat zich tekent
+let laatsteKnop = null;   // welke knop de opslag startte (Opslaan, Afhandelen, Toewijzen aan mij, een status)
+const bevestigTekst = k => !k ? 'Opgeslagen' : k.dataset.snel === 'sluit' || /afhandel|sluit/i.test(k.textContent) ? 'Afgehandeld' : k.dataset.snel === 'oppak' || /toewijzen/i.test(k.textContent) ? 'Toegewezen' : 'Opgeslagen';
+function bevestigOpslaan(k = $('#k-opslaan'), tekst = 'Opgeslagen'){
+  if(!k) return;
+  const oud = k.innerHTML; k.classList.add('opgeslagen'); k.disabled = true;
+  k.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' + tekst;
+  setTimeout(() => { if(!k.isConnected) return; k.classList.remove('opgeslagen'); k.innerHTML = oud; k.disabled = false; }, 1700);
+}
 // volgende melding in de lijst waaruit je kwam (overslaan wat niet meer bestaat); null = er is geen volgende
 function volgendeNr(x){ const i = navLijst.indexOf(String(x.nr)); if(i < 0) return null;
   for(let k = i + 1; k < navLijst.length; k++) if(items.some(y => String(y.nr) === navLijst[k])) return navLijst[k];
@@ -3131,14 +3154,15 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
       else { zonderMail.push(notitie ? 'interne notitie' : 'reactie'); if(!notitie) logMail(x, 'GEEN mail', 'reactie zonder AFAS-actie geplaatst (actie Reactie plaatsen niet beschikbaar in deze stap)', '–'); }
       gedaan.push(notitie ? 'interne notitie geplaatst' : 'reactie geplaatst'); }
     if(tekst){ lok.reactieDatum = new Date(); lok.reactieDoor = profiel.naam; if(notitie) opslag.set(NOTITIES, [notitieSleutel(x.sbid, tekst), ...(opslag.get(NOTITIES) || [])].slice(0, 500)); }
-    $('#detail').dataset.gewijzigd = ''; if(sluiten && !volgNr) $('#detail').close();
+    $('#detail').dataset.gewijzigd = '';
+    if(sluiten && !volgNr){ const k = laatsteKnop && laatsteKnop.isConnected ? laatsteKnop : null; if(k){ bevestigOpslaan(k, bevestigTekst(k)); await wacht(matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : 800); } $('#detail').close(); }
     logHistorie(x, gedaan.join(' · '));
     const mail = viaActie.length ? ` · ✉ via AFAS-actie: ${[...new Set(viaActie)].join(', ')}` : '';
     const waarsch = zonderMail.length ? ` · geen AFAS-actie gevonden voor ${zonderMail.join(', ')} (geen mail verstuurd)` : '';
     toast(`Melding ${x.nr}: ${gedaan.join(' · ')}${mail}${waarsch}`, !!zonderMail.length && !toewijsFout);
     if(toewijsFout) await vraag('Toewijzen: alleen het veld is aangepast', `Verantwoordelijke staat nu op ${lok.verantw}, maar de AFAS-workflowactie voor toewijzen gaf een fout. ${lok.verantw} krijgt daardoor geen taak en geen mail vanuit AFAS.\n\nAFAS-melding: ${toewijsFout}\n\nMaak een screenshot van dit venster voor de beheerder.`, 'OK', '');
-    onthoudLokaal(x, lok, gok ? 20e3 : undefined); teken();
-    if(volgNr) openDetail(volgNr); else if(sluiten) toonVerplaatsing(voor); else openDetail(x.nr);   // Opslaan: melding opnieuw tonen met de nieuwe stand
+    onthoudLokaal(x, lok, gok ? 20e3 : undefined); tekenMetTelling();
+    if(volgNr) openDetail(volgNr); else if(sluiten) toonVerplaatsing(voor); else { openDetail(x.nr); bevestigOpslaan(); }   // Opslaan: melding opnieuw tonen met de nieuwe stand
     naAchtergrond();
   }catch(e){
     const al = gedaan.length ? `Al doorgevoerd: ${gedaan.join(', ')}. ` : '';
@@ -3158,7 +3182,7 @@ async function zetAfdeling(x, naam, van, tekst = ''){
     if(tekst){ const n = await reactieMetMail(x, tekst, false); if(n) logMail(x, x.melder || 'melder', 'nieuwe reactie', n); mail = n ? ' · ✉ via ' + n : ' (reactie zonder mail: geen actie Reactie plaatsen gevonden)'; }
     const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect: van};
     toast(`Melding ${x.nr} → ${w.naam}${tekst ? ' (met reactie)' : ''}${mail}`); logHistorie(x, '→ ' + w.naam + (tekst ? ' · reactie geplaatst' : ''));
-    onthoudLokaal(x, {afdeling: w.naam, ...(tekst ? {reactieDatum: new Date(), reactieDoor: profiel.naam} : {})}); teken(); toonVerplaatsing(voor); naAchtergrond();
+    onthoudLokaal(x, {afdeling: w.naam, ...(tekst ? {reactieDatum: new Date(), reactieDoor: profiel.naam} : {})}); tekenMetTelling(); toonVerplaatsing(voor); naAchtergrond();
   }catch(e){ toast('Afdeling wijzigen lukte niet: ' + e.message, true); }
 }
 // na slepen zonder recente reactie: reactie toevoegen of doorgaan zonder
@@ -3173,6 +3197,19 @@ function vraagReactie(x, naam, rect){
   d.onclick = e => { const b = e.target.closest('[data-sv]'); if(!b){ if(e.target === d) d.close(); return; }
     const keuze = b.dataset.sv, tekst = $('#sv-tekst').value.trim(); d.close();
     if(keuze === 'met') zetAfdeling(x, naam, rect, tekst); else if(keuze === 'zonder') zetAfdeling(x, naam, rect); };
+}
+// na je eigen wijziging: −1 bij de weergave waar de melding uit gaat, +1 waar hij bij komt
+const navTellingen = () => new Map([...document.querySelectorAll('#nav [data-weergave]')].map(b => { const t = b.querySelector(':scope > b'); return [b.dataset.weergave, t && /^\d+$/.test(t.textContent.trim()) ? +t.textContent : null]; }));
+function tekenMetTelling(){
+  const voor = navTellingen(); teken();
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  document.querySelectorAll('#nav [data-weergave]').forEach(b => {
+    const t = b.querySelector(':scope > b'), oud = voor.get(b.dataset.weergave); if(!t || oud == null || !/^\d+$/.test(t.textContent.trim())) return;
+    const d = +t.textContent - oud; if(!d) return;
+    setTimeout(() => { if(!b.isConnected) return;
+      const fx = document.createElement('i'); fx.className = 'telfx ' + (d < 0 ? 'min' : 'plus'); fx.textContent = (d < 0 ? '−' : '+') + Math.abs(d);
+      t.appendChild(fx); t.classList.add('telpuls'); setTimeout(() => { fx.remove(); t.classList.remove('telpuls'); }, 1400); }, d < 0 ? 150 : 750);
+  });
 }
 function toonVerplaatsing(voor){
   const na = items.find(y => String(y.nr) === String(voor.nr));
@@ -3467,7 +3504,7 @@ const TOUR = [
   {el: '#d-melderinfo', titel: 'Melder en instuurder', tekst: 'De melder is de persoon met het probleem; de instuurder heeft de melding aangemaakt. Via ⓘ zie je locatie en organisatorische eenheid van de melder.', alleenMetDetail: true},
   {el: '#detail .kaart2:nth-child(2)', titel: 'Behandeling', tekst: 'Afdeling, verantwoordelijke en status wijzig je hier; * is verplicht. Een status kiezen voert de juiste workflowstap in AFAS uit, inclusief de mail aan de melder.', alleenMetDetail: true},
   {el: '#detail .composer', titel: 'Reageren', tekst: 'Typ hier je reactie aan de melder. Wijzig je een veld, dan staat er “+ Standaardtekst invullen” (of druk Tab). Interne notitie = alleen voor ICT. Bijlage? Sleep een bestand op het venster of plak met Ctrl+V.', alleenMetDetail: true},
-  {el: '#detail .onderbalk', titel: 'Opslaan', tekst: 'Opslaan & volgende (Ctrl+Enter) slaat alles op en opent meteen de volgende melding uit je lijst; is er geen volgende, dan sluit het venster. Met ← → blader je zonder op te slaan.', alleenMetDetail: true},
+  {el: '#detail .onderbalk', titel: 'Opslaan', tekst: 'Opslaan (Ctrl+Enter) voert alles door; de melding blijft open. Met ← → ga je naar de vorige of volgende melding uit je lijst.', alleenMetDetail: true},
   {el: '#nieuw-knop', titel: 'Nieuwe melding', tekst: 'Maak een melding aan. Handig: sleep een mail uit Outlook in dit venster, dan worden onderwerp, toelichting en bijlagen overgenomen.', voor: () => { sluitDetailStil(); return wacht(200); }},
   {el: '#todo-knop', titel: 'To-do en notities', tekst: 'Je eigen to-do’s, ook vanuit een melding. Ze staan in een eigen bestand op je OneDrive, dus alleen jij ziet ze.'},
   {el: '.voet', titel: 'Altijd actueel', tekst: 'De gegevens verversen elke paar minuten vanzelf; klik op “Live · bijgewerkt om …” om nu te verversen. Staat hier een blauwe knop “Nieuwe versie”, klik dan om bij te werken.'},
@@ -3572,11 +3609,11 @@ document.addEventListener('click', e => {
   const m = e.target.closest('.meer'); if(m){ const id = m.dataset.blok; blokOpen.has(id) ? blokOpen.delete(id) : blokOpen.add(id); teken(); return; }
   const w = e.target.closest('[data-weergave]'); if(w){ tab = w.dataset.weergave; filt.zoek = ''; $('#f-zoek').value = ''; teken(); scrollTo(0, 0); return; }
   if(e.target.closest('[data-sluit]')){ sluitDialoog($('#detail')); return; }
-  const a = e.target.closest('[data-actie]'); if(a){ opslaanAlles(+a.dataset.actie); return; }
-  const sn = e.target.closest('[data-snel]'); if(sn && huidig){ snelActie(sn); return; }   // bv. Afhandelen: neemt afdeling en reactie mee
+  const a = e.target.closest('[data-actie]'); if(a){ laatsteKnop = a; opslaanAlles(+a.dataset.actie); return; }
+  const sn = e.target.closest('[data-snel]'); if(sn && huidig){ laatsteKnop = sn; snelActie(sn); return; }   // bv. Afhandelen: neemt afdeling en reactie mee
   if(e.target.closest('#k-actie')){ const v = $('#actie-keuze').value; if(v !== '') voerUit(+v); return; }
   if(e.target.closest('#k-reageer')){ voerUit(null); return; }
-  if(e.target.closest('#k-opslaan')){ opslaanAlles(null, 'volgende'); return; }
+  if(e.target.closest('#k-opslaan')){ laatsteKnop = $('#k-opslaan'); opslaanAlles(null, false); return; }
   const ctb = e.target.closest('[data-chtab]'); if(ctb){ soortKeuze.toegewezen = ctb.dataset.chtab; opslag.set('mict-soort', soortKeuze); teken(); return; }
   const chw = e.target.closest('[data-chw]'); if(chw){ chWeergave = chw.dataset.chw; opslag.set('mict-chweergave', chWeergave); teken(); return; }
   const wb = e.target.closest('#f-weergave button'); if(wb){ chWeergave = wb.dataset.w; opslag.set('mict-chweergave', chWeergave); teken(); return; }
