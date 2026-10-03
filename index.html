@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mijn ICT-Omgeving · DC Klinieken</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='6 8 50 50'%3E%3Cg fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M49.62 36.2A20 20 0 0 1 31.74 53.92' stroke='%23B5D0FF' stroke-width='7'/%3E%3Cpath d='M28.26 53.92A20 20 0 0 1 10.08 32.26' stroke='%232E5FB0' stroke-width='9'/%3E%3Cpath d='M10.68 28.82A20 20 0 0 1 33.47 14.3' stroke='%23053787' stroke-width='10'/%3E%3Cpath d='M21 35l7 7 24-30' stroke='%23053787' stroke-width='10'/%3E%3C/g%3E%3C/svg%3E">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23053787'/%3E%3Cg fill='%23fff' transform='translate%28-8.27 -8.37%29 scale%280.06443%29'%3E%3Cpath fill-rule='evenodd' d='M237 429H455C555 429 620 500 620 622C620 750 545 825 440 825H237ZM343 494H400C470 494 507 540 507 625C507 712 470 758 395 758C370 758 355 756 343 754Z'/%3E%3Cpath d='M1005 431C960 422 910 418 862 418C735 418 650 500 650 627C650 755 735 835 868 835C920 835 970 828 1013 813V741C975 758 935 769 897 769C810 769 763 712 763 627C763 540 810 485 890 485C930 485 970 494 1005 507Z'/%3E%3C/g%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,700&display=swap" rel="stylesheet">
 <style>
 :root{
   --blauw:#053787; --blauw-2:#2E5FB0; --lichtblauw:#B5D0FF; --lichtblauw-2:#E6EEFF;
@@ -50,9 +50,9 @@ button{cursor:pointer}
 .app{display:flex;min-height:100vh}
 .rail{position:sticky;top:12px;margin:12px 0 12px 12px;height:calc(100vh - 24px);width:62px;flex:none;border-radius:20px;background:var(--rail-bg);
   box-shadow:var(--schaduw);backdrop-filter:blur(10px);display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:8px;z-index:5}
-.logo{width:38px;height:38px;margin-bottom:10px}
+.logo{width:40px;height:40px;margin-bottom:10px}
 .logo{cursor:pointer;transition:transform .15s;outline:0}.logo:hover{transform:scale(1.08)}
-.logo path{fill:none;stroke-linecap:round;stroke-linejoin:round}.logo .o{fill:var(--vlak);stroke:var(--lichtblauw);stroke-width:2.2}.logo .s1{stroke:var(--lichtblauw);stroke-width:5}.logo .s2{stroke:var(--blauw-2);stroke-width:7}.logo .s3{stroke:var(--blauw);stroke-width:9}.logo .vk{stroke:var(--blauw);stroke-width:8}
+.logo rect{fill:var(--rail-act)}.logo g{fill:var(--rail-act-ink)}
 .rail .r{width:44px;height:44px;border-radius:12px;border:0;background:transparent;display:grid;place-items:center;color:var(--rail-ico);position:relative}
 .rail .r svg{width:21px;height:21px}
 .rail .r:hover{background:var(--rail-hover);color:var(--rail-act)}
@@ -304,34 +304,19 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .keuzes button[aria-pressed="true"]{background:var(--blauw);border-color:var(--blauw);color:var(--opaccent)}
 .laden{display:flex;align-items:center;gap:10px;color:var(--grijs)}
 .voortgang{display:flex;flex-direction:column;gap:8px}
-.intro{display:flex;flex-direction:column;align-items:center;gap:8px;margin:2px 0 6px}
-.intro svg{width:96px;height:96px;overflow:visible;transition:transform .6s cubic-bezier(.2,.9,.3,1.2)}
-.intro path{fill:none;stroke-linecap:round;stroke-linejoin:round}
-.intro .rs{stroke:var(--lichtblauw-2);stroke-width:5}
-.intro .o{fill:var(--vlak);stroke:var(--lichtblauw);stroke-width:2.2;transform-box:fill-box;transform-origin:center;animation:iStart 3s ease-in-out infinite}
-.intro .s1{stroke:var(--lichtblauw);stroke-width:5}.intro .s2{stroke:var(--blauw-2);stroke-width:7}.intro .s3{stroke:var(--blauw);stroke-width:9}
-.intro .s1,.intro .s2,.intro .s3{stroke-dasharray:34;stroke-dashoffset:34}
-.intro .s1{animation:iS1 3s ease-out infinite}.intro .s2{animation:iS2 3s ease-out infinite}.intro .s3{animation:iS3 3s ease-out infinite}
-.intro .vk{stroke:var(--blauw);stroke-width:8;stroke-dasharray:50;stroke-dashoffset:50;animation:iVk 3s cubic-bezier(.3,.9,.3,1.2) infinite}
-.intro .lab{display:flex;gap:8px;font-size:11.5px;font-weight:600;color:var(--grijs);transition:opacity .25s}
-.intro .lab span{opacity:.35}.intro .lab .l1{animation:iL1 3s infinite}.intro .lab .l2{animation:iL2 3s infinite}.intro .lab .l3{animation:iL3 3s infinite}
-@keyframes iStart{0%,6%{transform:scale(1.5)}12%,90%{transform:scale(1)}100%{opacity:0}}
-@keyframes iS1{0%,6%{stroke-dashoffset:34}24%,90%{stroke-dashoffset:0;opacity:1}100%{opacity:0}}
-@keyframes iS2{0%,24%{stroke-dashoffset:34}42%,90%{stroke-dashoffset:0;opacity:1}100%{opacity:0}}
-@keyframes iS3{0%,42%{stroke-dashoffset:34}60%,90%{stroke-dashoffset:0;opacity:1}100%{opacity:0}}
-@keyframes iVk{0%,60%{stroke-dashoffset:50}74%,90%{stroke-dashoffset:0;opacity:1}100%{opacity:0}}
-@keyframes iL1{0%,6%{opacity:.35}8%,24%{opacity:1;color:var(--blauw)}26%,100%{opacity:.35}}
-@keyframes iL2{0%,24%{opacity:.35}26%,42%{opacity:1;color:var(--blauw)}44%,100%{opacity:.35}}
-@keyframes iL3{0%,60%{opacity:.35}62%,90%{opacity:1;color:var(--blauw)}100%{opacity:.35}}
-.intro.klaar .o,.intro.klaar .s1,.intro.klaar .s2,.intro.klaar .s3{animation:none;stroke-dashoffset:0;opacity:1;transform:none}
-.intro.klaar .vk{animation:iVkAan .45s cubic-bezier(.3,.9,.3,1.2) forwards}
-.intro.klaar .lab{opacity:0}
-.intro.klaar svg{transform:scale(1.7)}
-@keyframes iVkAan{from{stroke-dashoffset:50}to{stroke-dashoffset:0}}
+.intro{display:flex;align-items:center;justify-content:center;gap:14px;margin:2px 0 10px}
+.intro svg{width:64px;height:64px;flex:none;transition:transform .6s cubic-bezier(.2,.9,.3,1.2)}
+.intro rect{fill:var(--rail-act)}.intro g{fill:var(--rail-act-ink)}
+.intro .glans{fill:url(#intro-glans);transform:translateX(-80px);animation:iGlans 1.6s ease-in-out infinite}
+@keyframes iGlans{0%{transform:translateX(-80px)}60%,100%{transform:translateX(80px)}}
+.intro .naam{font-style:italic;font-weight:700;font-size:22px;color:var(--blauw);letter-spacing:-.01em;white-space:nowrap;max-width:320px;overflow:hidden;transition:opacity .25s,max-width .5s ease,margin .5s ease}
+.intro.klaar .glans{animation:none;opacity:0}
+.intro.klaar .naam{opacity:0;max-width:0;margin-left:-14px}
+.intro.klaar svg{transform:scale(1.5)}
+@media (prefers-reduced-motion: reduce){.intro .glans{animation:none;opacity:0}}
 #s-start.weg .kaart > :not(.intro){transition:opacity .3s;opacity:0}
 #s-start .kaart{transition:background-color .45s ease,box-shadow .45s ease}
 #s-start.weg .kaart{background-color:transparent;box-shadow:none}
-@media (prefers-reduced-motion: reduce){.intro .o,.intro .s1,.intro .s2,.intro .s3,.intro .vk,.intro .lab span{animation:none;stroke-dashoffset:0;opacity:1}}
 .voortgang .spoor{height:6px;border-radius:3px;background:var(--lijn);overflow:hidden}
 .voortgang .spoor i{display:block;height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,var(--blauw-2),var(--blauw));transition:width .3s ease}
 .voortgang .regel{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--grijs)}
@@ -807,7 +792,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
 
 <div class="app" id="app" hidden>
   <nav class="rail" aria-label="Onderdelen">
-    <svg class="logo" viewBox="6 8 50 50" role="button" tabindex="0" data-weergave="mij" aria-label="Overzicht"><title>Overzicht</title><circle class="o" cx="49.92" cy="32.26" r="3.4"/><path class="s1" d="M49.62 36.2A20 20 0 0 1 31.74 53.92"/><path class="s2" d="M28.26 53.92A20 20 0 0 1 10.08 32.26"/><path class="s3" d="M10.68 28.82A20 20 0 0 1 33.47 14.3"/><path class="vk" d="M21 35l7 7 24-30"/></svg>
+    <svg class="logo" viewBox="0 0 64 64" role="button" tabindex="0" data-weergave="mij" aria-label="Overzicht"><title>Mijn ICT-Omgeving · overzicht</title><rect width="64" height="64" rx="16"/><g transform="translate(-3.44 -3.52) scale(0.05670)"><path fill-rule="evenodd" d="M237 429H455C555 429 620 500 620 622C620 750 545 825 440 825H237ZM343 494H400C470 494 507 540 507 625C507 712 470 758 395 758C370 758 355 756 343 754Z"/><path d="M1005 431C960 422 910 418 862 418C735 418 650 500 650 627C650 755 735 835 868 835C920 835 970 828 1013 813V741C975 758 935 769 897 769C810 769 763 712 763 627C763 540 810 485 890 485C930 485 970 494 1005 507Z"/></g></svg>
     <button type="button" class="r plus" id="nieuw-knop" title="Nieuwe melding" aria-label="Nieuwe melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
     <button type="button" class="r" id="todo-knop" data-weergave="todo" title="To-do en notities" aria-label="To-do en notities"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span class="tel" id="todo-aantal"></span></button>
   </nav>
@@ -845,7 +830,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
         <input type="file" id="td-import-bestand" accept=".json,application/json" hidden>
       </section>
     </main>
-    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt" role="button" tabindex="0" title="Klik om nu te verversen">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.21 · 03-10-2026</span></div>
+    <div class="voet"><span class="live" id="live"></span><span id="bijgewerkt" role="button" tabindex="0" title="Klik om nu te verversen">Nog niet geladen</span><span class="achter" id="achter" hidden><i></i><span></span></span><button type="button" class="updateknop" id="k-update" hidden></button><span class="versie">Mijn ICT-Omgeving v4.22 · 03-10-2026</span></div>
   </div>
 </div>
 
@@ -909,7 +894,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.21';
+const VERSIE = 'v4.22';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3255,10 +3240,10 @@ function autoRol(ik){
 
 /* ================= start- en profielscherm ================= */
 const groetWoord = () => { const u = new Date().getHours(); return u < 12 ? 'Goedemorgen' : u < 18 ? 'Goedemiddag' : 'Goedenavond'; };
-const groet = naam => `<div class="groet"><small>Mijn ICT-Omgeving</small><h1>${groetWoord()}, <b>${esc(String(naam).split(' ')[0])}</b></h1></div>`;
+const groet = naam => `<div class="groet"><h1>${groetWoord()}, <b>${esc(String(naam).split(' ')[0])}</b></h1></div>`;
 function toonStart(html){ $('#app').hidden = true; $('#s-start').hidden = false; $('#kaart-start').innerHTML = html; }
 function startInlog(fout){
-  toonStart(`<h1>Mijn ICT-Omgeving</h1><p>Jouw meldingen en taken uit AFAS op één plek. Je logt in met je gewone werkaccount; alles wat je hier doet, staat in AFAS op jouw naam.</p>
+  toonStart(`${INTRO_LOGO}<p>Jouw meldingen en taken uit AFAS op één plek. Je logt in met je gewone werkaccount; alles wat je hier doet, staat in AFAS op jouw naam.</p>
     ${fout ? `<p class="fout">${esc(fout)}</p>` : ''}<div><button class="knop vol" id="k-in">Inloggen met AFAS</button></div>`);
   $('#k-in').onclick = () => inloggen();
 }
@@ -4411,17 +4396,13 @@ async function mailNaarMelding(f){
 }
 
 /* ================= opstarten ================= */
-// intro: de ring loopt Open › Actief › Afgehandeld rond zolang er geladen wordt; klaar = volle ring + vinkje, logo groeit en de kaart verdwijnt
-const RING = {s1:'M49.62 36.2A20 20 0 0 1 31.74 53.92', s2:'M28.26 53.92A20 20 0 0 1 10.08 32.26', s3:'M10.68 28.82A20 20 0 0 1 33.47 14.3', vk:'M21 35l7 7 24-30'};
-const INTRO_LOGO = `<div class="intro" id="intro" aria-hidden="true"><svg viewBox="6 8 50 50">
-  <path class="rs" d="M49.62 36.2A20 20 0 0 1 10.08 32.26A20 20 0 0 1 33.47 14.3"/>
-  <circle class="o" cx="49.92" cy="32.26" r="3.4"/>
-  <path class="s1" d="${RING.s1}"/><path class="s2" d="${RING.s2}"/><path class="s3" d="${RING.s3}"/><path class="vk" d="${RING.vk}"/>
-</svg><div class="lab"><span class="l1">Open</span><span>›</span><span class="l2">Actief</span><span>›</span><span class="l3">Afgehandeld</span></div></div>`;
+// intro: DC-tegel met "Mijn ICT-Omgeving"; een glans loopt over de tegel zolang er geladen wordt; klaar = de tegel groeit en de kaart verdwijnt
+const DC_TEGEL = `<rect width="64" height="64" rx="16"/><g transform="translate(-3.44 -3.52) scale(0.05670)"><path fill-rule="evenodd" d="M237 429H455C555 429 620 500 620 622C620 750 545 825 440 825H237ZM343 494H400C470 494 507 540 507 625C507 712 470 758 395 758C370 758 355 756 343 754Z"/><path d="M1005 431C960 422 910 418 862 418C735 418 650 500 650 627C650 755 735 835 868 835C920 835 970 828 1013 813V741C975 758 935 769 897 769C810 769 763 712 763 627C763 540 810 485 890 485C930 485 970 494 1005 507Z"/></g>`;
+const INTRO_LOGO = `<div class="intro" id="intro" aria-hidden="true"><svg viewBox="0 0 64 64"><defs><linearGradient id="intro-glans" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><clipPath id="intro-clip"><rect width="64" height="64" rx="16"/></clipPath></defs>${DC_TEGEL}<g clip-path="url(#intro-clip)"><g transform="skewX(-18)"><rect class="glans" x="-10" y="-10" width="34" height="84"/></g></g></svg><span class="naam">Mijn ICT-Omgeving</span></div>`;
 function introNiveau(){}   // het lichtspoor draait zolang het laden duurt; geen niveau nodig
 async function introUit(){ const i = $('#intro'); if(!i) return; i.classList.add('klaar'); $('#s-start').classList.add('weg'); await wacht(matchMedia('(prefers-reduced-motion: reduce)').matches ? 200 : 1200); $('#s-start').classList.remove('weg'); }
 function laadKaart(naam){
-  toonStart(`${INTRO_LOGO}${naam ? groet(naam) : '<h1>Mijn ICT-Omgeving</h1>'}
+  toonStart(`${INTRO_LOGO}${naam ? groet(naam) : ''}
     <div class="voortgang" id="laad-voortgang"><div class="regel"><span>${naam ? 'Ik haal eerst je openstaande meldingen op' : 'Meldingen ophalen uit AFAS'}</span><b>0%</b></div>
     <div class="spoor"><i></i></div><small class="hint">Verbinding maken met AFAS…</small></div>
     <p class="hint">${opslag.get(AANTAL) ? '' : 'De eerste keer duurt dit wat langer; daarna weet de pagina hoeveel er komt.'}</p>`);
