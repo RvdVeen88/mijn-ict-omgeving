@@ -479,6 +479,13 @@ body.slepend,body.slepend *{cursor:col-resize!important;user-select:none!importa
 .tabel td.ond{color:var(--inkt);font-weight:500}
 .tabel td.zacht{color:var(--grijs)}
 .tabel td.sig{max-width:280px;white-space:normal;line-height:1.9}
+/* regelhoogte voor alle tabellen: Ruim · Compact (standaard) · Extra compact */
+body.regels-ruim .tabel td{padding-top:13px;padding-bottom:13px}
+body.regels-extra .tabel td{padding-top:3px;padding-bottom:3px;font-size:12.5px}
+body.regels-extra .tabel td.sig{line-height:1.5;white-space:nowrap}
+body.regels-extra .tabel .cn-badge{padding-top:0;padding-bottom:0}
+#kolkeuze .regelkeuze{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px;padding-bottom:10px;border-bottom:1px solid var(--lijn)}
+#kolkeuze .regelkeuze .wkeuze{margin:0}
 .tabel .chip{font-size:11.5px;padding:1px 8px 1px 7px;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
 .tabel .chip.ongelezen{display:inline-flex}
 .chip[data-uitleg]{cursor:help}
@@ -572,8 +579,8 @@ dialog #combo{position:fixed}
 /* kolommen vallen weg op volgorde van belang zodra de tabel smaller wordt (werkt op elk scherm en elke zoomstand) */
 .tw{container-type:inline-size}
 @container (max-width:1250px){.tabel .k-reactie{display:none}}
-@container (max-width:1120px){.tabel .k-afd{display:none}}
-@container (max-width:1010px){.tabel .k-in{display:none}}
+@container (max-width:1200px){.tabel .k-loc{display:none}}
+@container (max-width:1120px){.tabel .k-afd{display:none}.tabel .k-in{display:none}}
 @container (max-width:920px){.tabel .k-type{display:none}.tabel{font-size:12.8px}.tabel th.k-sig{width:160px!important}}
 @container (max-width:830px){.tabel .k-gepland{display:none}}
 @container (max-width:740px){.tabel .k-melder{display:none}}
@@ -655,6 +662,18 @@ dialog#detail .navpijl[hidden]{display:none}
 .toelblok h3{font-size:13px;color:var(--blauw)}
 .toelblok .lang{white-space:pre-wrap;font-size:13.5px;line-height:1.5;max-height:220px;overflow:auto;background:var(--achtergrond);border-radius:4px 14px 14px 14px;padding:10px 14px;overflow-wrap:anywhere}
 dialog#detail.groot .toelblok .lang{max-height:40vh}
+/* lade: melding, project en nieuwe melding schuiven van rechts in; links blijft je lijst zichtbaar en klikbaar */
+dialog.lade{margin:0 0 0 auto;height:100vh;max-height:none;border-radius:28px 0 0 28px;box-shadow:-18px 0 60px rgba(3,31,77,.22)}
+dialog.lade[open]{animation:ladeIn .24s cubic-bezier(.2,.8,.2,1)}
+dialog.lade.snel[open]{animation:none}
+@keyframes ladeIn{from{transform:translateX(60px);opacity:0}to{transform:none;opacity:1}}
+dialog.lade::backdrop{background:rgba(12,19,35,.14)}
+dialog.lade .dlg-in{height:100%;max-height:100vh;box-sizing:border-box}
+dialog.lade .tijdlijn{max-height:none;overflow:visible}
+dialog#detail.lade{width:min(880px,calc(100vw - 32px))}
+dialog#detail.lade.groot{width:calc(100vw - 96px);height:100vh}
+dialog.lade.nieuwdlg{width:min(700px,calc(100vw - 32px))}
+@media (prefers-reduced-motion:reduce){dialog.lade[open]{animation:none}}
 .kaart2 .lang{grid-column:1/-1;white-space:pre-wrap;font-weight:400;line-height:1.5;max-height:180px;overflow:auto;background:var(--vlak);border-radius:12px;padding:10px 12px}
 .actiebalk{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 0 2px;border-top:1px solid var(--lijn)}
 .actiebalk select{border:1.5px solid var(--lijn);background:var(--vlak);border-radius:999px;padding:7px 14px;min-width:220px}
@@ -914,12 +933,12 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
   </div>
 </div>
 
-<dialog id="detail"><button type="button" class="navpijl links" id="nav-vorige" hidden aria-label="Vorige melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button><div class="dlg-in" id="detail-in"></div><button type="button" class="navpijl rechts" id="nav-volgende" hidden aria-label="Volgende melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button></dialog>
+<dialog id="detail" class="lade"><button type="button" class="navpijl links" id="nav-vorige" hidden aria-label="Vorige melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button><div class="dlg-in" id="detail-in"></div><button type="button" class="navpijl rechts" id="nav-volgende" hidden aria-label="Volgende melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button></dialog>
 <dialog id="sleepvraag" class="smal"></dialog>
 <dialog id="vraag" class="vraagdlg"></dialog>
 <dialog id="bekijk" class="bekijkdlg"></dialog>
-<dialog id="nieuw" class="smal nieuwdlg"><div class="dlg-in" id="nieuw-in"></div></dialog>
-<dialog id="projdlg" class="smal nieuwdlg"><div class="dlg-in" id="projdlg-in"></div></dialog>
+<dialog id="nieuw" class="lade nieuwdlg"><div class="dlg-in" id="nieuw-in"></div></dialog>
+<dialog id="projdlg" class="lade nieuwdlg"><div class="dlg-in" id="projdlg-in"></div></dialog>
 <div id="toast" role="status"></div>
 <div id="uitleg" role="tooltip"></div>
 <div id="combo" role="listbox" hidden></div>
@@ -976,7 +995,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v5.8.1', VERSIE_DATUM = '04-10-2026';
+const VERSIE = 'v5.9', VERSIE_DATUM = '04-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1483,6 +1502,10 @@ const kolSet = proj => proj ? PROJ_KOLOMMEN : KOLOMMEN, elkeKol = k => KOLOMMEN.
 /* kolommen kiezen: per gebruiker te verbergen (Nr. en Onderwerp blijven altijd staan) */
 const VAST_KOL = new Set(['nr', 'ond', 'p-nr', 'p-naam']);
 let verborgenKol = new Set(opslag.get('mict-kolommen-uit') || []);
+let regels = opslag.get('mict-regels') || 'compact';
+const zetRegels = r => { regels = r; opslag.set('mict-regels', r); document.body.classList.remove('regels-ruim', 'regels-extra'); if(r !== 'compact') document.body.classList.add('regels-' + r); };
+zetRegels(regels);
+document.addEventListener('click', e => { const b = e.target.closest('[data-regels]'); if(!b) return; zetRegels(b.dataset.regels); b.parentNode.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); pasTabelBreedtes(); });
 /* kolombreedte: zelf slepen aan de rand van de kolomkop, of automatisch passend maken (Onderwerp vult de rest op) */
 const KOLBREED = 'mict-kolbreedte';
 let kolBreedte = opslag.get(KOLBREED) || {};
@@ -1564,7 +1587,7 @@ function kolKeuze(knop){
   const el = $('#kolkeuze');
   if(!el.hidden && el._knop === knop){ el.hidden = true; return; }
   el._knop = knop;
-  el.innerHTML = `<h4>Kolommen tonen</h4>${kolSet(knop.dataset.kolset === 'proj').filter(c => !VAST_KOL.has(c.k) && !c.ch).map(c => `<label><input type="checkbox" data-kol="${c.k}" ${verborgenKol.has(c.k) ? '' : 'checked'}> ${esc(c.t)}</label>`).join('')}
+  el.innerHTML = `<div class="regelkeuze"><h4 style="margin:0">Regels</h4><span class="wkeuze tlsoort" role="group" aria-label="Regelhoogte">${[['ruim', 'Ruim'], ['compact', 'Compact'], ['extra', 'Extra compact']].map(([v, t]) => `<button type="button" data-regels="${v}" aria-pressed="${regels === v}">${t}</button>`).join('')}</span></div><h4>Kolommen tonen</h4>${kolSet(knop.dataset.kolset === 'proj').filter(c => !VAST_KOL.has(c.k) && !c.ch).map(c => `<label><input type="checkbox" data-kol="${c.k}" ${verborgenKol.has(c.k) ? '' : 'checked'}> ${esc(c.t)}</label>`).join('')}
     <div class="knoppenrij"><button type="button" class="linkknop" data-kolpassend>Alle kolommen automatisch passend maken</button>
     ${Object.keys(kolBreedte).length ? '<button type="button" class="linkknop" data-kolbreedstd>Standaardbreedtes terugzetten</button>' : ''}</div>
     <p>Breedte zelf aanpassen: sleep de rand van een kolomkop. Dubbelklik op de rand maakt die kolom passend.</p>
@@ -3897,12 +3920,19 @@ function vraag(titel, tekst, ja = 'OK', nee = 'Annuleren', gevaar = false){
     d.showModal(); d.querySelector('[data-v="ja"]').focus();
   });
 }
+// klik naast een lade: lade dicht en je klik gaat gewoon door (bijv. meteen de volgende melding of het volgende project openen)
+async function naastLade(d, x, y){
+  await sluitDialoog(d); if(d.open) return;
+  requestAnimationFrame(() => { const el = document.elementFromPoint(x, y); if(!el || el.closest('dialog')) return;
+    const rij = el.closest('[data-nr], [data-proj]'); if(rij) document.querySelectorAll('dialog.lade').forEach(l => { l.classList.add('snel'); setTimeout(() => l.classList.remove('snel'), 600); });
+    el.click(); });
+}
 async function sluitDialoog(d){
   if(!d.open) return;
   if(d.dataset.gewijzigd === '1' && !(await vraag('Wijzigingen niet opgeslagen', 'Je hebt iets ingevuld of gewijzigd dat nog niet is opgeslagen. Weet je zeker dat je het venster wilt sluiten?', 'Sluiten zonder opslaan', 'Terug', true))) return;
   comboSluit(); d.close(); if(d.id === 'detail') teken();
 }
-['detail', 'nieuw'].forEach(id => { const d = $('#' + id);
+['detail', 'nieuw', 'projdlg'].forEach(id => { const d = $('#' + id);
   // alles wat de gebruiker zelf typt of kiest telt als wijziging
   d.addEventListener('input', e => { if(e.isTrusted) d.dataset.gewijzigd = '1'; });
   d.addEventListener('change', e => { if(e.isTrusted) d.dataset.gewijzigd = '1'; });
@@ -3910,7 +3940,7 @@ async function sluitDialoog(d){
   let begon = false;
   d.addEventListener('mousedown', e => { begon = e.target === d; });
   d.addEventListener('click', e => { if(!begon || e.target !== d) return; const r = d.getBoundingClientRect();
-    if(e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) sluitDialoog(d); });
+    if(e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) naastLade(d, e.clientX, e.clientY); });
   d.addEventListener('cancel', e => { e.preventDefault(); sluitDialoog(d); });
 });
 /* ---- zoeken in alle meldingen (kopregel): treffers direct openen; in een lijst filtert het ook die lijst ---- */
@@ -4453,12 +4483,12 @@ function openProject(code){
       ${INST.projectUrl ? `<button type="button" class="afasknop" id="p-afas" title="Project openen in AFAS InSite (nieuw tabblad)" aria-label="Project openen in AFAS">${ICO_AFAS}</button>` : ''}<button class="sluit" data-psluit aria-label="Sluiten">×</button></div>
     <div class="kaart2"><span>Projectleider</span><b>${esc(p.leider || '–')}</b><span>Start</span><b>${fmtDatum(p.projStart)}</b><span>Einde</span><b>${fmtDatum(p.projEind)}</b>${p.team.length ? `<span>Team</span><b style="font-weight:400">${esc(p.team.join(', '))}</b>` : ''}
 </div>
-    <div class="tijdlijn" id="p-tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>
     <form class="nform" id="p-form" onsubmit="return false">
       <div class="drie"><label>Projectfase<select name="fase" disabled><option>Laden…</option></select></label>
         <label>Voortgang<select name="voort" disabled><option>Laden…</option></select><span class="hint" id="p-voorstel"></span></label>
         <label>Datum gereed (planning)<input type="date" name="gereed" value="${esc(iso(p.gereedPlanning))}"></label></div>
       <label>Update projectvoortgang<textarea name="tekst" rows="3" spellcheck="true" placeholder="Wat is de stand van zaken? Komt als update bij het project in AFAS."></textarea></label>
+      <div class="tijdlijn" id="p-tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>
       <p class="fout" id="p-fout" role="alert"></p>
       <div style="display:flex;gap:10px;justify-content:flex-end"><button type="button" class="knop" data-psluit>Annuleren</button><button type="button" class="knop vol" id="p-opslaan">Opslaan</button></div></form>`;
   dlg.showModal();
@@ -4527,7 +4557,7 @@ document.addEventListener('keydown', e => { if(e.key === 'Enter' && (tab === 'pr
 // Wat je instelt staat in de browser én online, per AFAS-gebruiker. Bij inloggen halen we het op en voegen we samen
 // (per instelling wint de nieuwste); wijzig je iets, dan gaat het 3 seconden later mee. Zonder verbinding werkt alles gewoon lokaal.
 const SYNC_VAST = ['mict-thema', 'mict-soort', 'mict-kolommen-uit', 'mict-kolbreedte', 'mict-chzoom', 'mict-chweergave', 'mict-werk-ons', 'mict-afd-ons',
-  'mict-venster-groot', 'mict-recente-melders', 'mict-tlsoort', 'mict-samen', 'mict-kolzelf', 'mict-tour-gezien', 'mict-gelezen', 'mict-interne-notities'];
+  'mict-venster-groot', 'mict-recente-melders', 'mict-tlsoort', 'mict-samen', 'mict-kolzelf', 'mict-regels', 'mict-tour-gezien', 'mict-gelezen', 'mict-interne-notities'];
 const SYNC_META = 'mict-sync-tijden';
 const syncUrl = () => INST.instellingenUrl || String(INST.tokenFunctie || '').replace(/afas-token\/?$/, 'ict-instellingen');
 const syncNaam = k => k.startsWith('mict-profiel-') ? 'profiel' : SYNC_VAST.includes(k) ? k : null;   // profiel staat lokaal per AFAS-sub, online gewoon 'profiel'
