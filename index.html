@@ -242,6 +242,33 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 @keyframes kkIn{from{opacity:0;transform:translateX(30px) scale(.96)}}
 @keyframes kkSchud{0%,100%{transform:rotate(0)}20%{transform:rotate(-12deg)}40%{transform:rotate(10deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(4deg)}}
 @media (prefers-reduced-motion: reduce){.vb-kritiek,.kk-kop svg,.kritiekkaart{animation:none}}
+/* mogelijke storing: zelfde blok als kritiek, in oranje */
+.vb-storing{background:var(--oranje-licht);border:1.5px solid var(--oranje);border-radius:18px;padding:14px 18px 10px;margin-bottom:26px}
+.vb-storing h3{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:15px;color:var(--oranje)}
+.vb-storing h3 svg{width:20px;height:20px}.vb-storing h3 small{font-size:12px;font-weight:500;opacity:.85;margin-left:6px}
+.vb-storing .vbs-groep{border-top:1px solid rgba(180,90,0,.2);padding:8px 0 4px}.vb-storing .vbs-groep:first-of-type{border-top:0}
+.vb-storing .vbs-kop{display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600;color:var(--inkt)}
+.vb-storing .vbs-kop .knop{margin-left:auto;padding:4px 12px;font-size:12.5px}
+.vb-storing .vbs-nrs{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:4px;font-size:12.5px;color:var(--grijs)}
+.vb-storing .vbs-nrs button{border:0;background:none;padding:0;font:inherit;color:var(--blauw);font-weight:600;cursor:pointer}
+/* context in een melding: eerder van deze melder en vergelijkbare opgeloste meldingen */
+.contextblok{display:flex;flex-direction:column;gap:6px}
+.contextblok > button.ctx-kop{display:flex;align-items:center;gap:10px;border:0;background:none;padding:0;font:inherit;font-size:13px;font-weight:600;color:var(--blauw);text-align:left}
+.contextblok > button.ctx-kop i{font-style:normal;transition:transform .15s}.contextblok.open > button.ctx-kop i{transform:rotate(90deg)}
+.contextblok > button.ctx-kop span{font-weight:500;color:var(--grijs)}
+.contextblok .ctx-in{display:none;grid-template-columns:1fr 1fr;gap:14px}.contextblok.open .ctx-in{display:grid}
+@media (max-width:760px){.contextblok .ctx-in{grid-template-columns:1fr}}
+.ctx-kol h4{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--grijs);margin:0 0 4px}
+.ctx-regel{display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:baseline;padding:5px 8px;border-radius:10px;font-size:13px;background:var(--achtergrond);margin-bottom:4px}
+.ctx-regel b{color:var(--blauw);cursor:pointer}.ctx-regel small{color:var(--grijs);font-size:11.5px;white-space:nowrap}
+.ctx-regel .ctx-ond{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ctx-opl{grid-column:1 / -1;font-size:12.5px;white-space:pre-wrap;background:var(--vlak);border-radius:8px;padding:6px 10px;margin-top:2px;max-height:160px;overflow:auto}
+.ctx-opl .linkknop{display:inline-block;margin-top:4px}
+/* @collega: keuzelijstje onder het reactievak */
+.vermeldlijst{position:fixed;z-index:95;background:var(--vlak);border-radius:12px;box-shadow:0 12px 34px rgba(3,31,77,.25);padding:4px;min-width:200px}
+.vermeldlijst button{display:flex;align-items:center;gap:8px;width:100%;border:0;background:none;font:inherit;font-size:13px;padding:6px 10px;border-radius:8px;text-align:left;color:var(--inkt)}
+.vermeldlijst button i{width:22px;height:22px;border-radius:50%;background:var(--lichtblauw-2);color:var(--blauw);font-style:normal;font-size:9.5px;font-weight:700;display:grid;place-items:center}
+.vermeldlijst button[aria-selected="true"],.vermeldlijst button:hover{background:var(--lichtblauw-2)}
 @media (min-width:1600px){.vb-c b{font-size:72px}.vb-cijfers{gap:44px 36px}}
 .vb-groet{margin:0;font-size:15px;color:var(--grijs);font-weight:500}
 .vb-dag{margin:4px 0 44px;font-size:34px;font-weight:300;color:var(--blauw);letter-spacing:-.5px;line-height:1.2}
@@ -626,6 +653,12 @@ textarea.voorstel{background:var(--lichtblauw-2)}
 @keyframes typt{0%,60%,100%{opacity:.25;transform:none}30%{opacity:1;transform:translateY(-2px)}}
 tr.flits td{animation:flits 2.4s ease-out}
 @keyframes flits{0%,25%{background:var(--goud-licht)}100%{background:transparent}}
+/* klein wolkje naast het Team-icoon bij in- en uitloggen */
+.teamwolk{position:fixed;z-index:60;display:flex;align-items:center;gap:7px;background:var(--vlak);color:var(--inkt);font-size:12.5px;font-weight:500;padding:5px 11px 5px 7px;border-radius:999px;box-shadow:0 6px 20px rgba(3,31,77,.2);white-space:nowrap;pointer-events:none;opacity:0;transform:translateX(-6px);transition:opacity .25s,transform .25s}
+.teamwolk.aan{opacity:1;transform:none}
+.teamwolk::before{content:'';position:absolute;left:-5px;top:50%;margin-top:-5px;border:5px solid transparent;border-left:0;border-right-color:var(--vlak)}
+.teamwolk i{width:8px;height:8px;border-radius:50%;background:var(--groen)}.teamwolk.uit i{background:var(--grijs)}
+@media (prefers-reduced-motion:reduce){.teamwolk{transition:none}}
 /* Teamstroom: paneel naast de rail */
 .rail .r .tel.online{background:var(--groen)}
 .rail .r .stip{position:absolute;bottom:7px;right:7px;width:9px;height:9px;border-radius:50%;background:var(--goud);box-shadow:0 0 0 2px var(--rail-bg)}
@@ -1021,7 +1054,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v5.12', VERSIE_DATUM = '04-10-2026';
+const VERSIE = 'v5.13', VERSIE_DATUM = '04-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1427,6 +1460,7 @@ const wanneer = d => d ? `${fmtDatum(d)} ${fmtTijd(d)}` : 'onbekend';
 const laatsteActiviteit = x => x.reactieDatum ? `laatste reactie ${wanneer(x.reactieDatum)}${x.reactieDoor ? ' door ' + x.reactieDoor : ''}` : x.statusDatum ? `laatste statuswijziging ${wanneer(x.statusDatum)}` : `ingestuurd ${wanneer(x.aangemaakt)}`;
 function signalen(x){
   const s = [], nu = Date.now(); if(x.afgesloten) return s;
+  { const g = STORING_NR.get(String(x.nr)); if(g) s.push({ernst:2, code:'storing', tekst:`Mogelijke storing · ${g.nrs.length}`, uitleg:`${g.nrs.length} meldingen over “${g.woord}” binnen ${STORING_UREN} uur${g.loc ? ' (' + g.loc + ')' : ''}: ${g.nrs.join(', ')}. Zet er één op kritiek als het een storing is.`}); }
   const sla = x.sla && !isChange(x);   // Changes en Requests for Change: geen reactietermijnen
   const wd = ms => Math.floor(ms / werkdagMs());
   if(sla && x.emmer === 'nieuw' && x.aangemaakt){
@@ -1795,6 +1829,7 @@ function tekenMij(){
   const krit = kritiekOpen().sort((a, b) => (b.statusDatum || b.aangemaakt || 0) - (a.statusDatum || a.aangemaakt || 0));
   $('#blokken').innerHTML = `<div class="voorblad">
     ${krit.length ? `<div class="vb-kritiek" role="alert"><h3>${KRIT_ICO}${krit.length === 1 ? 'Kritieke storing' : krit.length + ' kritieke storingen'}<small>zorgproces verstoord: gaat voor alles</small></h3>${krit.map(x => `<button type="button" class="vbk-rij" data-nr="${esc(x.nr)}"><b>${esc(x.nr)}</b><span>${esc(x.onderwerp)}<small>${esc([x.afdeling, x.locatie, x.verantw ? 'bij ' + (benIk(x.verantw) ? 'jou' : x.verantw) : 'nog niemand', 'sinds ' + kortDatum(x.aangemaakt)].filter(Boolean).join(' · '))}</small></span></button>`).join('')}</div>` : ''}
+    ${STORINGEN.length ? `<div class="vb-storing"><h3>${KRIT_ICO}${STORINGEN.length === 1 ? 'Mogelijke storing' : STORINGEN.length + ' mogelijke storingen'}<small>meerdere vergelijkbare meldingen in korte tijd</small></h3>${STORINGEN.map((g, i) => `<div class="vbs-groep"><div class="vbs-kop">${g.nrs.length} meldingen over “${esc(g.woord)}”${g.loc ? ' · ' + esc(g.loc) : ''} <small class="hint" style="font-weight:400">sinds ${fmtTijd(g.sinds)}</small><button type="button" class="knop" data-storingkrit="${i}" title="Opent de eerste melding met Kritieke storing aangevinkt; iedereen krijgt dan de rode kaart">Kritiek zetten</button></div><div class="vbs-nrs">${g.nrs.map(nr => { const y = items.find(z => String(z.nr) === nr); return `<span><button type="button" data-storingnr="${esc(nr)}" data-groep="${i}">${esc(nr)}</button> ${esc(kort(y ? y.onderwerp : '', 46))}</span>`; }).join('')}</div></div>`).join('')}</div>` : ''}
     <p class="vb-groet">${groet}, ${esc(voornaam)}</p><p class="vb-dag">${dag}<small>${esc(zin)}</small></p>
     <div class="vb-cijfers">${waarden.map(k => `<button type="button" class="vb-c ${k.n ? (k.kl || '') : 'nul'}" data-weergave="${k.id}" title="${esc(k.uitleg || 'Toon deze meldingen')}"><b>${k.n}</b><span>${esc(k.t)}</span></button>`).join('')}</div>
     ${plan.length ? `<div class="vb-lijsten een">
@@ -1992,7 +2027,7 @@ function teken(){
   { const z = $('#f-zoek'), td = tab === 'todo'; z.placeholder = td ? 'Zoek in je to-do’s…' : 'Zoek op nummer, onderwerp of naam…'; z.setAttribute('aria-label', td ? 'Zoeken in to-do’s' : 'Zoeken in meldingen'); if(td) $('#zoekres').hidden = true; }
   $('#mijalles-top').hidden = true;   // vervangen door de schakelbare koppen in het menu
   if(takenKlaar && items.length && !opslag.get(bekendSleutel())) opslag.set(bekendSleutel(), items.filter(isMijn).map(x => String(x.nr)));   // eerste keer (na het laden van je taken): wat er nu staat is al bekend
-  items.forEach(x => x._sg = signalen(x));
+  zoekStoringen(); items.forEach(x => x._sg = signalen(x));
   $('#ik span').textContent = profiel.naam; $('#ik').title = profiel.naam + ' · menu'; $('#ik i').textContent = profiel.naam.split(' ').map(w => w[0]).filter(c => c && c === c.toUpperCase()).slice(0, 2).join('');
   tekenNav();
   if(tab === 'trajecten' || tab === 'ch:alle') tab = 'ch:mijn';
@@ -2367,6 +2402,7 @@ function openDetail(nr){
           <span>Markeren</span><b class="vinkjes"><label class="vink"><input type="checkbox" id="d-kritiek" ${x.kritiek ? 'checked' : ''} data-oud="${x.kritiek ? 1 : 0}"> Kritieke storing</label><label class="vink"><input type="checkbox" id="d-datalek" ${x.datalek ? 'checked' : ''} data-oud="${x.datalek ? 1 : 0}"> Datalek</label></b>`}</div>
     </div>
     <div class="toelblok"><h3>Toelichting</h3><div class="lang" id="d-toel">${x.toelichting ? esc(x.toelichting) : '<span class="hint">Toelichting ophalen…</span>'}</div></div>
+    <div class="contextblok${opslag.get('mict-context-open') ? ' open' : ''}" id="d-context"></div>
     <div class="bijlbalk" id="d-bijl"${x.afgesloten ? '' : ' title="Sleep bestanden op de melding om ze als bijlage toe te voegen, of plak een schermafbeelding met Ctrl+V"'}><span class="bijltitel">${CLIP}<b id="bijl-titel">Bijlagen</b></span>
       <span id="bijl-lijst" class="bijlrij"><span class="hint">ophalen…</span></span><span class="klaarzet" id="klaar-ticket"></span>
       ${x.afgesloten ? '' : '<input type="file" id="f-ticket" multiple hidden>'}</div>
@@ -2392,6 +2428,7 @@ function openDetail(nr){
   (DEMO ? Promise.resolve() : zorgSbId(x)).then(() => { laadBijlagen(x); return toonReacties(x); }).catch(e => { const el = $('#tijdlijn'); if(el) el.innerHTML = `<h3>Reacties</h3><p class="hint">Het interne nummer van deze melding kon niet worden opgezocht: ${esc(e.message)}</p>`; const bl = $('#bijl-lijst'); if(bl) bl.innerHTML = '<span class="hint">Bijlagen ophalen kan niet zonder het interne nummer van de melding.</span>'; });
   if(!x.afgesloten){ vulAfdKeuze(x); vulStatusKeuze(x); vulVerantwKeuze(x); vulLocKeuze(x); setTimeout(() => markeerOntbrekend(x), 0); }
   if(!x.toelichting) toonToelichting(x);
+  toonContext(x);
   if(x.melder) toonMelderInfo(x);
   toonInstuurder(x);
   if(!x.afgesloten){ huidig.wfKlaar = laadWorkflow(x); $('#notitie').onchange = e => { $('#tekst').classList.toggle('intern', e.target.checked); $('#tekst').placeholder = e.target.checked ? 'Interne notitie voor collega’s…' : 'Schrijf een reactie aan de melder…'; }; }
@@ -3788,6 +3825,7 @@ function ikMenu(){
   let m = $('#ikmenu');
   if(!m){ $('#ik').insertAdjacentHTML('afterend', '<div class="ikmenu" id="ikmenu" hidden role="menu"></div>'); m = $('#ikmenu'); }
   if(m.hidden) m.innerHTML = `<button type="button" role="menuitem" class="nietstoren" data-ikm="stil"><span>Niet storen<small>geen pop-ups; kritieke storingen blijven</small></span><span class="schuif"><input type="checkbox" tabindex="-1" ${nietStoren ? 'checked' : ''}><i></i></span></button>
+    <button type="button" role="menuitem" class="nietstoren" data-ikm="win"><span>Windows-melding bij kritiek<small>ook als je in een ander programma zit</small></span><span class="schuif"><input type="checkbox" tabindex="-1" ${windowsAan() ? 'checked' : ''}><i></i></span></button>
     <button type="button" role="menuitem" data-ikm="thema">${isDonker() ? 'Lichte weergave' : 'Donkere weergave'}</button>
     <button type="button" role="menuitem" data-ikm="import">To-do importeren<small>uit een Microsoft To Do-export (JSON)</small></button>
     <button type="button" role="menuitem" data-ikm="tour">Rondleiding</button>
@@ -3798,6 +3836,7 @@ function ikMenu(){
 document.addEventListener('click', e => {
   const on = e.target.closest('[data-onlnr]'); if(on){ if($('#ikmenu')) $('#ikmenu').hidden = true; if($('#teampaneel')) $('#teampaneel').hidden = true; const x = items.find(y => String(y.nr) === on.dataset.onlnr); if(x){ navLijst = []; openDetail(x.nr); } else toast('Melding ' + on.dataset.onlnr + ' staat (nog) niet in de lijst.'); return; }
   const im = e.target.closest('[data-ikm]'); if(im){ $('#ikmenu').hidden = true; const k = im.dataset.ikm;
+    if(k === 'win'){ wisselWindows(); return; }
     if(k === 'stil'){ nietStoren = !nietStoren; opslag.set('mict-nietstoren', nietStoren); toast(nietStoren ? 'Niet storen staat aan: wat er gebeurt zie je in Team' : 'Niet storen staat uit'); return; }
     if(k === 'tour') startTour(); else if(k === 'thema') wisselThema(); else if(k === 'uit') uitloggen();
     else if(k === 'import'){ if(tab !== 'todo'){ tab = 'todo'; teken(); } if(TD.status === 'ok'){ $('#td-import-bestand').value = ''; $('#td-import-bestand').click(); } else toast('Kies eerst je to-do-bestand; daarna kun je importeren'); }
@@ -4682,8 +4721,20 @@ function meldInUit(){
     AANW.twijfel = new Map([...AANW.vorige].filter(([c]) => !nu.has(c) && !twijfel.has(c)));
     // geen pop-up meer (rustig): in- en uitloggen gaat stil naar Team
     const t = Date.now(); erbij.forEach(n => stroomErbij({id: `in-${n}-${t}`, soort: 'in', door: n, t})); weg.forEach(n => stroomErbij({id: `uit-${n}-${t}`, soort: 'uit', door: n, t}));
+    const kort1 = n => String(n).split(' ')[0];
+    if(erbij.length) teamWolk(`${lijstje(erbij.map(kort1))} ${erbij.length === 1 ? 'is' : 'zijn'} online`, true);
+    else if(weg.length) teamWolk(`${lijstje(weg.map(kort1))} ${weg.length === 1 ? 'is' : 'zijn'} offline`, false);
   }
   AANW.vorige = nu;
+}
+// klein wolkje naast het Team-icoon (4 s); niet bij Niet storen of als het Team-paneel al open is
+let wolkT = 0;
+function teamWolk(tekst, online){
+  const k = $('#team-knop'), p = $('#teampaneel'); if(!k || nietStoren || (p && !p.hidden) || !k.offsetParent) return;
+  let w = $('#teamwolk'); if(!w){ document.body.insertAdjacentHTML('beforeend', '<div class="teamwolk" id="teamwolk" role="status" aria-live="polite"><i></i><span></span></div>'); w = $('#teamwolk'); }
+  const r = k.getBoundingClientRect(); w.style.left = (r.right + 10) + 'px'; w.style.top = (r.top + r.height / 2 - 14) + 'px';
+  w.querySelector('span').textContent = tekst; w.classList.toggle('uit', !online);
+  requestAnimationFrame(() => w.classList.add('aan')); clearTimeout(wolkT); wolkT = setTimeout(() => w.classList.remove('aan'), 4000);
 }
 function tekenAanwezig(){
   // in de lijsten: oogje achter het meldingnummer
@@ -4717,6 +4768,63 @@ function tekenOnline(){
   el.innerHTML = `<h5>Nu online <b>${ander.length + 1}</b></h5>` + (ander.length ? ander.map(a => `<button type="button" role="menuitem" class="onl${a.zicht === false ? ' weg' : ''}" ${a.nr ? `data-onlnr="${esc(a.nr)}" title="Melding ${esc(a.nr)} openen"` : 'tabindex="-1"'}><i>${esc(initialen(a.naam))}</i><span>${esc(a.naam)}<small>${wat(a)}</small></span></button>`).join('') : '<p class="onl-leeg">Alleen jij bent nu online.</p>');
 }
 
+/* ================= samen slimmer: context, storing herkennen ================= */
+const STOP = new Set('niet werkt werken meer graag voor geen kunnen melding probleem vraag over naar wordt doet deze heeft hebben zijn word worden mijn onze jouw hallo goedemorgen goedemiddag bedankt alvast eens weer even gaat lukt lukken komt kunt wil willen moet moeten zou staat sinds vanaf vandaag gisteren morgen ochtend middag'.split(' '));
+const woordenVan = t => [...new Set(norm(t).replace(/[^a-z0-9à-ÿ]+/g, ' ').split(' ').filter(w => w.length >= 4 && !STOP.has(w) && !/^\d+$/.test(w)))];
+const gelijkenis = (a, b) => { const A = new Set(woordenVan(a)), B = woordenVan(b); if(!A.size || !B.length) return 0; const n = B.filter(w => A.has(w)).length; return n / Math.min(A.size, B.length); };
+// eerder van dezelfde melder (open en gesloten, nieuwste eerst)
+const eerderVan = x => x.melder ? items.filter(y => y !== x && String(y.nr) !== String(x.nr) && norm(y.melder) === norm(x.melder)).sort((a, b) => (b.aangemaakt || 0) - (a.aangemaakt || 0)) : [];
+// vergelijkbare afgehandelde meldingen op onderwerp (en toelichting als die er is)
+function vergelijkbaar(x){
+  const t = x.onderwerp + ' ' + (x.toelichting || '').slice(0, 300);
+  return items.filter(y => y.afgesloten && String(y.nr) !== String(x.nr)).map(y => ({y, s: gelijkenis(t, y.onderwerp)})).filter(r => r.s >= 0.5)
+    .sort((a, b) => b.s - a.s || (b.y.statusDatum || 0) - (a.y.statusDatum || 0)).slice(0, 4).map(r => r.y);
+}
+function toonContext(x){
+  const el = $('#d-context'); if(!el) return;
+  if(!alleDichtGeladen) laadAlleGesloten();
+  const e = eerderVan(x).slice(0, 5), v = vergelijkbaar(x);
+  if(!e.length && !v.length){ el.innerHTML = ''; el.hidden = true; return; }
+  el.hidden = false;
+  const regel = (y, opl) => `<div class="ctx-regel" data-ctxnr="${esc(y.nr)}"><b data-ctxopen="${esc(y.nr)}" title="Melding ${esc(y.nr)} openen">${esc(y.nr)}</b><span class="ctx-ond" title="${esc(y.onderwerp)}">${esc(y.onderwerp)}</span><small>${y.afgesloten ? 'afgehandeld ' + kortDatum(y.statusDatum || y.aangemaakt) : esc(toonStatus(y.status) || 'open')}${opl ? ` · <button type="button" class="linkknop" data-ctxopl="${esc(y.nr)}">oplossing</button>` : ''}</small></div>`;
+  el.innerHTML = `<button type="button" class="ctx-kop" data-ctxwissel><i>▸</i>Eerder &amp; vergelijkbaar <span>${[e.length && `${e.length} eerder van ${esc(String(x.melder).split(' ')[0])}`, v.length && `${v.length} vergelijkbaar opgelost`].filter(Boolean).join(' · ')}</span></button>
+    <div class="ctx-in"><div class="ctx-kol"><h4>Eerder van ${esc(x.melder || 'deze melder')}</h4>${e.length ? e.map(y => regel(y, y.afgesloten)).join('') : '<p class="hint">Geen eerdere meldingen.</p>'}</div>
+    <div class="ctx-kol"><h4>Vergelijkbaar opgelost</h4>${v.length ? v.map(y => regel(y, true)).join('') : '<p class="hint">Niets vergelijkbaars gevonden.</p>'}</div></div>`;
+}
+// laatste reactie van ICT bij een afgehandelde melding: de oplossing, met de knop om die te hergebruiken
+async function toonOplossing(nr, knop){
+  const rij = knop.closest('.ctx-regel'), oud = rij.querySelector('.ctx-opl'); if(oud){ oud.remove(); return; }
+  const y = items.find(z => String(z.nr) === String(nr)); if(!y) return;
+  rij.insertAdjacentHTML('beforeend', '<div class="ctx-opl"><span class="hint">Oplossing ophalen…</span></div>'); const box = rij.querySelector('.ctx-opl');
+  try{ if(!DEMO) await zorgSbId(y); const l = await haalReacties(y);
+    const r = [...l].reverse().find(r => r.tekst && !r.intern && norm(r.wie) !== norm(y.melder)) || [...l].reverse().find(r => r.tekst);
+    box.innerHTML = r ? `<b>${esc(r.wie || 'ICT')}</b> · ${r.t ? fmtDatum(r.t) : ''}<br>${esc(r.tekst)}<br>${$('#tekst') ? `<button type="button" class="linkknop" data-ctxgebruik>In mijn reactie zetten</button>` : ''}` : '<span class="hint">Geen reactie gevonden bij deze melding.</span>';
+    box._tekst = r ? r.tekst : '';
+  }catch(e){ box.innerHTML = `<span class="hint">Ophalen lukte niet: ${esc(e.message)}</span>`; }
+}
+document.addEventListener('click', e => {
+  if(e.target.closest('[data-ctxwissel]')){ const b = $('#d-context'); b.classList.toggle('open'); opslag.set('mict-context-open', b.classList.contains('open')); return; }
+  const o = e.target.closest('[data-ctxopen]'); if(o){ navLijst = []; openDetail(o.dataset.ctxopen); return; }
+  const op = e.target.closest('[data-ctxopl]'); if(op){ toonOplossing(op.dataset.ctxopl, op); return; }
+  if(e.target.closest('[data-ctxgebruik]')){ const t = $('#tekst'), box = e.target.closest('.ctx-opl'); if(!t || !box) return; t.value = (t.value.trim() ? t.value.trimEnd() + '\n\n' : '') + box._tekst; t.dispatchEvent(new Event('input', {bubbles: true})); t.focus(); toast('Oplossing in je reactie gezet: pas hem aan waar nodig'); return; }
+  const sk = e.target.closest('[data-storingkrit]'); if(sk){ const g = STORINGEN[+sk.dataset.storingkrit]; if(!g) return; navLijst = [...g.nrs]; openDetail(g.nrs[0]); setTimeout(() => { const k = $('#d-kritiek'); if(k && !k.checked){ k.checked = true; k.dispatchEvent(new Event('change', {bubbles: true})); k.closest('label').scrollIntoView({block: 'center', behavior: 'smooth'}); } }, 300); return; }
+  const sn = e.target.closest('[data-storingnr]'); if(sn){ const g = STORINGEN[+sn.dataset.groep]; navLijst = g ? [...g.nrs] : []; openDetail(sn.dataset.storingnr); return; }
+});
+/* mogelijke storing: 3 of meer open meldingen met hetzelfde kernwoord in de laatste uren (en nog niet kritiek) */
+const STORING_UREN = 4, STORING_MIN = 3;
+let STORINGEN = [], STORING_NR = new Map();
+function zoekStoringen(){
+  const grens = Date.now() - STORING_UREN * 36e5, recent = items.filter(x => !x.afgesloten && !x.inuit && !isChange(x) && x.aangemaakt && +x.aangemaakt >= grens);
+  const perWoord = new Map(); recent.forEach(x => woordenVan(x.onderwerp).forEach(w => { if(!perWoord.has(w)) perWoord.set(w, []); perWoord.get(w).push(x); }));
+  const groepen = [];
+  [...perWoord.entries()].filter(([, l]) => l.length >= STORING_MIN).sort((a, b) => b[1].length - a[1].length).forEach(([w, l]) => {
+    const nrs = l.map(x => String(x.nr)); if(groepen.some(g => nrs.every(n => g.nrs.includes(n)))) return;   // zelfde groep onder een ander woord
+    if(l.some(x => x.kritiek)) return;   // al kritiek: dan staat hij al in het rode blok
+    const locs = [...new Set(l.map(x => x.locatie || locCache.get(String(x.nr)) || '').filter(Boolean))];
+    groepen.push({woord: w, nrs: l.sort((a, b) => a.aangemaakt - b.aangemaakt).map(x => String(x.nr)), loc: locs.length === 1 ? locs[0] : '', sinds: new Date(Math.min(...l.map(x => +x.aangemaakt)))}); });
+  STORINGEN = groepen.slice(0, 3); STORING_NR = new Map(); STORINGEN.forEach(g => g.nrs.forEach(n => STORING_NR.set(n, g)));
+}
+
 /* ================= kritieke storing: iedereen krijgt een melding, en hij staat bovenaan het overzicht ================= */
 const KRIT_ICO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>';
 const kritiekOpen = () => items.filter(x => x.kritiek && !x.afgesloten);
@@ -4728,20 +4836,65 @@ function meldActiviteitVan(x, v){
   const soort = v.afgesloten && !x.afgesloten ? 'gesloten' : naar ? 'doorgezet' : v.verantw && benIk(v.verantw) && !benIk(x.verantw) ? 'opgepakt' : v.reactieDatum && v.reactieDoor ? 'reactie' : '';
   if(!soort) return;
   stroomErbij({id: 'ik-' + Date.now(), soort, nr: String(x.nr), onderwerp: x.onderwerp, naar, door: profiel.naam, code: AANW.ik, sessie: AANW.sessie, t: Date.now(), zelf: true});
+  if(soort === 'reactie' || v.reactieDatum){ const t = huidig && String(huidig.x.nr) === String(x.nr) && $('#tekst') ? $('#tekst').value : ''; const wie = vermeldIn(t);
+    if(wie.length) stuurGebeurtenis({soort: 'vermeld', nr: String(x.nr), onderwerp: x.onderwerp, naar: wie.join(' · '), tekst: kort(t.replace(/\s+/g, ' '), 160)}); }
+  stuurGebeurtenis({soort, nr: String(x.nr), onderwerp: x.onderwerp, naar});
+}
+function stuurGebeurtenis(g){
+  if(g.soort === 'vermeld') stroomErbij({id: 'ikv-' + Date.now(), ...g, door: profiel.naam, code: AANW.ik, sessie: AANW.sessie, t: Date.now(), zelf: true});
   if(DEMO || AANW.uit) return;
   (async () => { try{ await fetch(aanwezigUrl(), {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + await geldigToken()},
-    body: JSON.stringify({nr: null, naam: profiel.naam, zicht: !document.hidden, gebeurtenis: {soort, nr: String(x.nr), onderwerp: x.onderwerp, naar, sessie: AANW.sessie}})}); }catch(e){} })();
+    body: JSON.stringify({nr: null, naam: profiel.naam, zicht: !document.hidden, gebeurtenis: {...g, sessie: AANW.sessie}})}); }catch(e){} })();
 }
+// namen van collega's (behandelaars en wie online is) om met @ te noemen
+const collegas = () => [...new Set([...items.map(x => String(x.verantw || '').trim()), ...AANW.lijst.map(a => a.naam)].filter(n => n && /\s/.test(n) && !benIk(n)))].sort((a, b) => a.localeCompare(b, 'nl'));
+function vermeldIn(t){
+  if(!t || !t.includes('@')) return [];
+  const l = norm(t), namen = collegas();
+  return namen.filter(n => { const vol = '@' + norm(n), voor = '@' + norm(n.split(' ')[0]);
+    if(l.includes(vol)) return true;
+    const uniek = namen.filter(m => norm(m.split(' ')[0]) === norm(n.split(' ')[0])).length === 1;
+    return uniek && new RegExp(voor.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![a-zà-ÿ])').test(l); });
+}
+// tijdens typen: na @ een lijstje met collega's
+let vmSel = 0;
+function vermeldKeuze(t){
+  const voor = t.value.slice(0, t.selectionStart), m = voor.match(/(^|\s)@([A-Za-zÀ-ÿ'-]*)$/), lijst = $('#vermeldlijst');
+  if(!m){ if(lijst) lijst.remove(); return; }
+  const q = norm(m[2]), namen = collegas().filter(n => !q || norm(n).split(' ').some(w => w.startsWith(q)) || norm(n).startsWith(q)).slice(0, 6);
+  if(!namen.length){ if(lijst) lijst.remove(); return; }
+  let el = lijst; if(!el){ document.body.insertAdjacentHTML('beforeend', '<div class="vermeldlijst" id="vermeldlijst" role="listbox"></div>'); el = $('#vermeldlijst'); }
+  vmSel = Math.min(vmSel, namen.length - 1);
+  el.innerHTML = namen.map((n, i) => `<button type="button" role="option" data-vmnaam="${esc(n)}" aria-selected="${i === vmSel}"><i>${esc(initialen(n))}</i>${esc(n)}</button>`).join('');
+  el._van = t.selectionStart - m[2].length - 1; el._tot = t.selectionStart;
+  const r = t.getBoundingClientRect(); el.style.left = (r.left + 12) + 'px'; el.style.top = Math.min(innerHeight - el.offsetHeight - 10, r.top + 38) + 'px';
+  if($('#detail').open && el.parentNode !== $('#detail')) $('#detail').appendChild(el);
+}
+function vermeldKies(naam){
+  const t = $('#tekst'), el = $('#vermeldlijst'); if(!t || !el) return;
+  t.value = t.value.slice(0, el._van) + '@' + naam + ' ' + t.value.slice(el._tot); const pos = el._van + naam.length + 2;
+  el.remove(); t.focus(); t.setSelectionRange(pos, pos); t.dispatchEvent(new Event('input', {bubbles: true}));
+  if(!$('#notitie').checked) toast(`Tip: zet "Interne notitie" aan, anders ziet de melder @${naam.split(' ')[0]} ook`);
+}
+document.addEventListener('input', e => { if(e.target.id === 'tekst') vermeldKeuze(e.target); });
+document.addEventListener('keydown', e => {
+  const el = $('#vermeldlijst'); if(!el || e.target.id !== 'tekst') return; const b = [...el.querySelectorAll('button')];
+  if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); e.stopPropagation(); vmSel = (vmSel + (e.key === 'ArrowDown' ? 1 : b.length - 1)) % b.length; b.forEach((x, i) => x.setAttribute('aria-selected', i === vmSel)); }
+  else if(e.key === 'Enter' || e.key === 'Tab'){ e.preventDefault(); e.stopPropagation(); vermeldKies(b[vmSel].dataset.vmnaam); }
+  else if(e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); el.remove(); }
+}, true);
+document.addEventListener('mousedown', e => { const b = e.target.closest('[data-vmnaam]'); if(b){ e.preventDefault(); vermeldKies(b.dataset.vmnaam); return; } if($('#vermeldlijst') && !e.target.closest('#vermeldlijst')) $('#vermeldlijst').remove(); });
 const STROOM = new Map();   // id -> gebeurtenis (van de server, plus in/uit en je eigen acties)
 const doorMij = e => e.zelf || (e.sessie ? e.sessie === AANW.sessie : (e.code && e.code === AANW.ik));
 function stroomErbij(e){ if(!e || !e.id || STROOM.has(e.id)) return false; STROOM.set(e.id, e); return true; }
 const STROOM_ZIN = {gesloten: e => `heeft <b>${esc(e.nr)}</b> afgehandeld`, doorgezet: e => `heeft <b>${esc(e.nr)}</b> doorgezet naar ${esc(String(e.naar || '').split(' · ').map(d => benIk(d) ? 'jou' : d).join(' · '))}`, opgepakt: e => `heeft <b>${esc(e.nr)}</b> opgepakt`,
-  reactie: e => `reageerde op <b>${esc(e.nr)}</b>`, kritiek: e => `zette <b>${esc(e.nr)}</b> op kritieke storing`, in: () => 'is ingelogd', uit: () => 'is uitgelogd'};
+  reactie: e => `reageerde op <b>${esc(e.nr)}</b>`, vermeld: e => `noemde ${esc(String(e.naar || '').split(' · ').map(d => benIk(d) ? 'jou' : d.split(' ')[0]).join(', '))} in <b>${esc(e.nr)}</b>${e.tekst ? ': “' + esc(kort(e.tekst, 90)) + '”' : ''}`, kritiek: e => `zette <b>${esc(e.nr)}</b> op kritieke storing`, in: () => 'is ingelogd', uit: () => 'is uitgelogd'};
 const geleden = t => { const m = Math.round((Date.now() - t) / 60e3); return m < 1 ? 'zojuist' : m < 60 ? m + ' min' : new Date(t).toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'}); };
 // raakt deze gebeurtenis jou? dan (en alleen dan) een pop-up
 function raaktMij(e){
   const x = items.find(y => String(y.nr) === String(e.nr));
   if(e.soort === 'doorgezet') return String(e.naar || '').split(' · ').some(d => /^afdeling /.test(d) ? favorieten().some(f => norm(navAfd(f)) === norm(navAfd(d.slice(9)))) : benIk(d));
+  if(e.soort === 'vermeld') return String(e.naar || '').split(' · ').some(benIk);
   if(e.soort === 'gesloten' || e.soort === 'reactie') return !!x && (isMijn(x) || benIk(x.melder));
   return false;
 }
@@ -4808,6 +4961,21 @@ function checkKritiek(){
   [...bekend].forEach(nr => { if(!nrs.has(nr) && !(AANW.geb || []).some(e => String(e.nr) === nr)) bekend.delete(nr); });   // niet meer kritiek: weer vergeten, zodat een volgende keer opnieuw meldt
   opslag.set('mict-kritiek-bekend', [...bekend]);
 }
+// Windows-melding (rechtsonder, boven elk programma) bij een kritieke storing, ook als SubmIT op de achtergrond staat
+const kanWindows = () => 'Notification' in window;
+const windowsAan = () => kanWindows() && Notification.permission === 'granted' && opslag.get('mict-winmelding') !== false;
+function windowsMelding(k){
+  if(!windowsAan() || (document.hasFocus() && !document.hidden)) return;
+  try{ const n = new Notification(`Kritieke storing · melding ${k.nr}`, {body: [k.onderwerp, k.door ? 'Op kritiek gezet door ' + k.door : ''].filter(Boolean).join('\n'), tag: 'submit-kritiek-' + k.nr, requireInteraction: true, icon: document.querySelector('link[rel="icon"]') ? document.querySelector('link[rel="icon"]').href : undefined});
+    n.onclick = () => { window.focus(); n.close(); const x = items.find(y => String(y.nr) === String(k.nr)); if(x){ navLijst = kritiekOpen().map(y => String(y.nr)); openDetail(x.nr); } }; }catch(e){}
+}
+async function wisselWindows(){
+  if(!kanWindows()){ toast('Deze browser ondersteunt geen Windows-meldingen', true); return; }
+  if(Notification.permission === 'denied'){ await vraag('Windows-meldingen staan uit in je browser', 'Je browser blokkeert meldingen van SubmIT. Klik links in de adresbalk op het slotje → Meldingen → Toestaan, en ververs de pagina.', 'OK'); return; }
+  if(Notification.permission !== 'granted'){ const r = await Notification.requestPermission(); if(r !== 'granted'){ toast('Geen toestemming: je krijgt geen Windows-meldingen', true); return; } opslag.set('mict-winmelding', true);
+    new Notification('SubmIT', {body: 'Windows-meldingen staan aan: bij een kritieke storing zie je dit, ook als je in een ander programma zit.'}); return; }
+  const aan = opslag.get('mict-winmelding') === false; opslag.set('mict-winmelding', aan); toast(aan ? 'Windows-meldingen bij kritieke storingen staan aan' : 'Windows-meldingen staan uit');
+}
 function toonKritiek(k){
   let box = $('#kritiekbox'); if(!box){ document.body.insertAdjacentHTML('beforeend', '<div id="kritiekbox" aria-live="assertive"></div>'); box = $('#kritiekbox'); }
   if(box.querySelector(`[data-kritieknr="${CSS.escape(k.nr)}"]`)) return;
@@ -4817,6 +4985,7 @@ function toonKritiek(k){
     <p class="kk-wie">${k.door ? `<b>${esc(k.door)}</b> heeft deze melding op kritiek gezet` : 'Deze melding staat in AFAS op kritiek'}</p>
     <p class="kk-ond">${esc(k.onderwerp || '')}</p>${k.toelichting ? `<p class="kk-toel">${esc(kort(k.toelichting))}</p>` : ''}
     <div class="kk-knoppen"><button type="button" class="knop" data-kkgezien>Gezien</button><button type="button" class="knop vol" data-kkopen>Openen</button></div></div>`);
+  windowsMelding(k);
   if(tab === 'mij' && !$('#detail').open) teken();
 }
 document.addEventListener('click', e => {
