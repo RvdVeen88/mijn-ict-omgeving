@@ -672,7 +672,10 @@ tr.flits td{animation:flits 2.4s ease-out}
 .teampaneel .act small{color:var(--grijs);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .teampaneel .act.nieuw{box-shadow:inset 3px 0 0 var(--goud)}
 .teampaneel .act[tabindex="-1"]{cursor:default}.teampaneel .act[tabindex="-1"]:hover{background:transparent}
-.ikmenu .nietstoren{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+.ikmenu .nietstoren{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:14px}
+.ikmenu .nietstoren > span:first-child{display:flex;flex-direction:column;gap:1px}
+.ikmenu small{display:block}
+.ikmenu{min-width:250px}
 .aanwezig{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--blauw);background:var(--lichtblauw-2);border-radius:999px;padding:4px 12px 4px 9px;white-space:nowrap}
 .aanwezig[hidden]{display:none}
 .aanwezig svg{width:16px;height:16px}
@@ -720,13 +723,18 @@ dialog#detail .navpijl[hidden]{display:none}
 .toelblok h3{font-size:13px;color:var(--blauw)}
 .toelblok .lang{white-space:pre-wrap;font-size:13.5px;line-height:1.5;max-height:220px;overflow:auto;background:var(--achtergrond);border-radius:4px 14px 14px 14px;padding:10px 14px;overflow-wrap:anywhere}
 dialog#detail.groot .toelblok .lang{max-height:40vh}
+textarea.toelinvoer{width:100%;box-sizing:border-box;border:1.5px solid transparent;font:inherit;font-size:13.5px;line-height:1.5;color:var(--inkt);resize:vertical;min-height:60px;max-height:none;outline:0}
+textarea.toelinvoer:hover{border-color:var(--lijn)}textarea.toelinvoer:focus{border-color:var(--blauw-2);background:var(--vlak)}
+textarea.toelinvoer.nieuw{border-color:var(--goud);box-shadow:inset 3px 0 0 var(--goud)}
 /* lade: melding, project en nieuwe melding schuiven van rechts in; links blijft je lijst zichtbaar en klikbaar */
 dialog.lade{margin:0 0 0 auto;height:100vh;max-height:none;border-radius:28px 0 0 28px;box-shadow:-18px 0 60px rgba(3,31,77,.22)}
 dialog.lade[open]{animation:ladeIn .24s cubic-bezier(.2,.8,.2,1)}
 dialog.lade.snel[open]{animation:none}
 @keyframes ladeIn{from{transform:translateX(60px);opacity:0}to{transform:none;opacity:1}}
 dialog.lade::backdrop{background:rgba(12,19,35,.14)}
-dialog.lade .dlg-in{height:100%;max-height:100vh;box-sizing:border-box}
+dialog.lade{overflow:hidden}   /* alleen de inhoud scrolt, verticaal; nooit een horizontale balk */
+dialog.lade .dlg-in{height:100%;max-height:100vh;box-sizing:border-box;overflow-x:hidden;overflow-y:auto;scrollbar-gutter:stable}
+dialog.lade .dlg-in > *{min-width:0;max-width:100%}
 dialog.lade .tijdlijn{max-height:none;overflow:visible}
 dialog#detail.lade{width:min(880px,calc(100vw - 32px))}
 dialog#detail.lade.groot{width:calc(100vw - 96px);height:100vh}
@@ -1054,7 +1062,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v5.13.2', VERSIE_DATUM = '04-10-2026';
+const VERSIE = 'v5.13.6', VERSIE_DATUM = '04-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1864,7 +1872,7 @@ const filt = {zoek:''};
    Mijn werk = jouw meldingen, Ons werk = alles van het team. Mijn afdelingen = jouw meldingen in je afdelingen, Onze afdelingen = alles daarin. */
 let werkOns = !!opslag.get('mict-werk-ons'), afdOns = !!opslag.get('mict-afd-ons');
 const ZONDER_FILTER = new Set(['toegewezen', 'historie', 'alle', 'nieuw', 'ch:mijn', 'ch:alle', 'zoek']);   // Nieuwe tickets: iedereen ziet alle meldingen met status Open   // Alle open meldingen is altijd alles   // Mijn meldingen is altijd van jou; Historie is persoonlijk
-const onsVoor = t => t.startsWith('afd:') ? true : werkOns;   // afdelingen: altijd alles; alleen Aandacht kent Mij/Alle
+const onsVoor = t => t === 'norm' ? werkOns : true;   // alleen Aandacht kent Mij/Alle; alle andere lijsten (afdelingen, In- en uitdienst, …) tonen altijd alles
 const schuifAan = t => !ZONDER_FILTER.has(t) && !t.startsWith('k:') && !onsVoor(t);
 const vanMij = (t, x) => isMijn(x);
 const soortKeuze = opslag.get('mict-soort') || {};   // per afdeling: alle | meldingen | changes
@@ -2401,7 +2409,7 @@ function openDetail(nr){
         ${x.afgesloten ? r('Gepland', x.gepland ? fmtDatum(x.gepland) : '') : `<span>Gepland</span><b><input type="date" id="d-gepland" class="datumkeuze" value="${x.gepland ? isoD(x.gepland) : ''}" data-oud="${x.gepland ? isoD(x.gepland) : ''}" title="Datum waarop het werk gepland staat"></b>`}${isChange(x) ? (x.afgesloten ? r('Startdatum project', x.projStart ? fmtDatum(x.projStart) : '') + r('Deadline', x.projEind ? fmtDatum(x.projEind) : '') : `<span>Startdatum project</span><b><input type="date" id="d-pstart" class="datumkeuze" value="${x.projStart ? isoD(x.projStart) : ''}" data-oud="${x.projStart ? isoD(x.projStart) : ''}" title="Begindatum project van deze change"></b><span>Deadline</span><b><input type="date" id="d-peind" class="datumkeuze" value="${x.projEind ? isoD(x.projEind) : ''}" data-oud="${x.projEind ? isoD(x.projEind) : ''}" title="Einddatum project (deadline) van deze change"></b>`) : ''}${r('Laatste reactie', x.reactieDatum ? fmtDatum(x.reactieDatum) + (x.reactieDoor ? ' · ' + x.reactieDoor : '') : '')}${r('Extern ticket', x.extern)}${x.afgesloten ? (x.kritiek ? r('Kritieke storing', 'Ja') : '') + (x.datalek ? r('Datalek', 'Ja') : '') + r('CC', x.cc) : `<span>CC</span><b><input id="d-cc" class="datumkeuze cckeuze" list="cc-lijst" value="${esc(x.cc || '')}" data-oud="${esc(x.cc || '')}" placeholder="– niemand –" title="Medewerker die een kopie van de mails krijgt" autocomplete="off"><datalist id="cc-lijst"></datalist></b>
           <span>Markeren</span><b class="vinkjes"><label class="vink"><input type="checkbox" id="d-kritiek" ${x.kritiek ? 'checked' : ''} data-oud="${x.kritiek ? 1 : 0}"> Kritieke storing</label><label class="vink"><input type="checkbox" id="d-datalek" ${x.datalek ? 'checked' : ''} data-oud="${x.datalek ? 1 : 0}"> Datalek</label></b>`}</div>
     </div>
-    <div class="toelblok"><h3>Toelichting</h3><div class="lang" id="d-toel">${x.toelichting ? esc(x.toelichting) : '<span class="hint">Toelichting ophalen…</span>'}</div></div>
+    <div class="toelblok"><h3>Toelichting</h3>${x.afgesloten ? `<div class="lang" id="d-toel">${x.toelichting ? esc(x.toelichting) : '<span class="hint">Toelichting ophalen…</span>'}</div>` : `<textarea class="lang toelinvoer" id="d-toel" rows="2" spellcheck="true" placeholder="${x.toelichting != null ? 'Geen toelichting ingevuld' : 'Toelichting ophalen…'}" ${x.toelichting != null ? `data-oud="${esc(String(x.toelichting).trim())}"` : 'disabled'}>${esc(String(x.toelichting || '').trim())}</textarea>`}</div>
     <div class="contextblok${opslag.get('mict-context-open') ? ' open' : ''}" id="d-context"></div>
     <div class="bijlbalk" id="d-bijl"${x.afgesloten ? '' : ' title="Sleep bestanden op de melding om ze als bijlage toe te voegen, of plak een schermafbeelding met Ctrl+V"'}><span class="bijltitel">${CLIP}<b id="bijl-titel">Bijlagen</b></span>
       <span id="bijl-lijst" class="bijlrij"><span class="hint">ophalen…</span></span><span class="klaarzet" id="klaar-ticket"></span>
@@ -2427,7 +2435,7 @@ function openDetail(nr){
   huidig.klaar = {ticket: [], reactie: []}; huidig.bijl = null;
   (DEMO ? Promise.resolve() : zorgSbId(x)).then(() => { laadBijlagen(x); return toonReacties(x); }).catch(e => { const el = $('#tijdlijn'); if(el) el.innerHTML = `<h3>Reacties</h3><p class="hint">Het interne nummer van deze melding kon niet worden opgezocht: ${esc(e.message)}</p>`; const bl = $('#bijl-lijst'); if(bl) bl.innerHTML = '<span class="hint">Bijlagen ophalen kan niet zonder het interne nummer van de melding.</span>'; });
   if(!x.afgesloten){ vulAfdKeuze(x); vulStatusKeuze(x); vulVerantwKeuze(x); vulLocKeuze(x); setTimeout(() => markeerOntbrekend(x), 0); }
-  if(!x.toelichting) toonToelichting(x);
+  if(x.toelichting == null || !x.toelichting) toonToelichting(x); else if($('#d-toel') && $('#d-toel').tagName === 'TEXTAREA') pasToelHoogte($('#d-toel'));
   toonContext(x);
   if(x.melder) toonMelderInfo(x);
   toonInstuurder(x);
@@ -2474,19 +2482,23 @@ async function zoekToelBron(){
   }
   return toelBron;
 }
+const pasToelHoogte = t => { t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight + 4, innerHeight * .4) + 'px'; };
+document.addEventListener('input', e => { if(e.target.id === 'd-toel') pasToelHoogte(e.target); });
 async function toonToelichting(x){
   const el = $('#d-toel'); if(!el) return;
   try{
     if(DEMO){ x.toelichting = 'Sinds vanochtend valt de wifi op de 2e verdieping steeds weg. Collega’s op de poli hebben hetzelfde probleem.'; }
     else if(toelCache.has(String(x.nr))){ x.toelichting = toelCache.get(String(x.nr)); }
     else { const b = await zoekToelBron();
-      if(!b){ el.innerHTML = '<span class="hint">De toelichting staat niet in de AFAS-connectors van deze pagina. Laat de beheerder een GetConnector ' + esc(INST.connToelichting) + ' maken (zonder groepering) met de velden Dossieritem en Toelichting.</span>'; return; }
+      if(!b){ if(el.tagName === 'TEXTAREA'){ el.placeholder = 'Toelichting niet gevonden in AFAS (GetConnector ' + INST.connToelichting + ' ontbreekt)'; return; } el.innerHTML = '<span class="hint">De toelichting staat niet in de AFAS-connectors van deze pagina. Laat de beheerder een GetConnector ' + esc(INST.connToelichting) + ' maken (zonder groepering) met de velden Dossieritem en Toelichting.</span>'; return; }
       if(b.opSbid) await zorgSbId(x);
       const rows = (await afas(`/connectors/${encodeURIComponent(b.conn)}?skip=0&take=1${filterOp(b.filter, b.opSbid ? x.sbid : x.nr)}`)).rows || [];
       x.toelichting = rows[0] ? kaal(rows[0][b.veld]) : ''; }
     if(!$('#d-toel') || !huidig || huidig.x !== x) return;
-    $('#d-toel').innerHTML = x.toelichting ? esc(x.toelichting) : '<span class="hint">Geen toelichting ingevuld.</span>';
-  }catch(e){ el.innerHTML = `<span class="hint">Toelichting ophalen lukte niet: ${esc(e.message)}</span>`; }
+    const t = $('#d-toel');
+    if(t.tagName === 'TEXTAREA'){ t.value = String(x.toelichting || '').trim(); t.dataset.oud = t.value; t.disabled = false; t.placeholder = 'Geen toelichting ingevuld'; pasToelHoogte(t); }
+    else t.innerHTML = x.toelichting ? esc(x.toelichting) : '<span class="hint">Geen toelichting ingevuld.</span>';
+  }catch(e){ if(el.tagName === 'TEXTAREA'){ el.placeholder = 'Toelichting ophalen lukte niet: ' + e.message; } else el.innerHTML = `<span class="hint">Toelichting ophalen lukte niet: ${esc(e.message)}</span>`; }
 }
 // toelichting ophalen zonder venster (voor de melding over een kritieke storing)
 async function haalToelichting(x){
@@ -2678,7 +2690,7 @@ function veldGewijzigd(el){
   if(el.tagName === 'SELECT' && !el.value) return false;
   return el.dataset.oud !== undefined && String(el.value).trim() !== String(el.dataset.oud);
 }
-const WIJZIG_VELDEN = ['#d-afd', '#d-verantw', '#d-status', '#d-loc', '#d-gepland', '#d-cc', '#d-tel', '#d-pstart', '#d-peind', '#d-kritiek', '#d-datalek'];
+const WIJZIG_VELDEN = ['#d-toel', '#d-afd', '#d-verantw', '#d-status', '#d-loc', '#d-gepland', '#d-cc', '#d-tel', '#d-pstart', '#d-peind', '#d-kritiek', '#d-datalek'];
 function zetKnoppen(){
   const d = $('#detail'); if(!d || !d.open || !huidig || huidig.bezig || huidig.x.afgesloten) return;
   let iets = false;
@@ -2793,7 +2805,7 @@ async function laadSubjMeta(){
   const zoek = (re, extra = () => true) => { const l = alle.filter(f => mag(f) && re.test(norm(f.label)) && extra(f)); return l.find(f => f.pad === tabel) || l[0]; };
   return (subjMeta = {verantw: zoek(/^verantwoordelijke$|^behandelaar$/), gepland: zoek(/werkzaamheden|gepland|planning|inplan/, f => /date/i.test(f.dataType || 'date')),
     status: zoek(/^(externe )?status$/, f => waardenVan(f.values).length > 0), locatie: zoek(/^locatie$/),
-    datalek: zoek(/^datalek$/), kritiek: zoek(/^kritieke storing$/), cc: zoek(/^cc$/), tel: zoek(/^(bereikbaarheid|bereikbaar|telefoon(nr|nummer)?)/),
+    datalek: zoek(/^datalek$/), kritiek: zoek(/^kritieke storing$/), cc: zoek(/^cc$/), tel: zoek(/^(bereikbaarheid|bereikbaar|telefoon(nr|nummer)?)/), toel: zoek(/^toelichting$/),
     projStart: zoek(/(begin|start)\s*datum\s*project|project\s*(begin|start)/, f => /date/i.test(f.dataType || 'date')), projEind: zoek(/eind\s*datum\s*project|project\s*eind|^deadline/, f => /date/i.test(f.dataType || 'date')), alle});
 }
 async function zetVelden(x, w){
@@ -3314,9 +3326,10 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
   const nieuwKritiek = dk && (dk.checked ? '1' : '0') !== dk.dataset.oud ? dk.checked : null, nieuwDatalek = dd && (dd.checked ? '1' : '0') !== dd.dataset.oud ? dd.checked : null;
   const nieuwCc = dc && dc.value.trim() !== dc.dataset.oud ? dc.value.trim() : null;
   const dt = $('#d-tel'), nieuwTel = dt && dt.value.trim() !== dt.dataset.oud ? dt.value.trim() : null;
+  const tl = $('#d-toel'), nieuweToel = tl && tl.tagName === 'TEXTAREA' && tl.dataset.oud !== undefined && tl.value.trim() !== tl.dataset.oud.trim() ? tl.value.trim() : null;
   const ps = $('#d-pstart'), pe = $('#d-peind'), nieuwProj = (ps && ps.value !== ps.dataset.oud) || (pe && pe.value !== pe.dataset.oud) ? {start: ps ? ps.value : '', eind: pe ? pe.value : '', startGew: !!ps && ps.value !== ps.dataset.oud, eindGew: !!pe && pe.value !== pe.dataset.oud} : null;
   const vs = $('#d-verantw'), nieuweVerantw = vs && vs.value && vs.value !== vs.dataset.oud ? {code: vs.value, naam: vs.options[vs.selectedIndex].textContent} : null;
-  if(!nieuweAfd && !nieuweStatus && !nieuweVerantw && !nieuwGepland && !nieuwProj && nieuwKritiek === null && nieuwDatalek === null && nieuwCc === null && nieuwTel === null && !nieuweLoc && actieIdx == null && !tekst && !bijlT.length){ if(sluiten === 'volgende'){ if(volgNr) openDetail(volgNr); else $('#detail').close(); return; } $('#d-fout').textContent = 'Er is niets gewijzigd: pas een veld aan, schrijf een reactie of voeg een bijlage toe.'; return; }
+  if(!nieuweAfd && !nieuweStatus && !nieuweVerantw && !nieuwGepland && !nieuwProj && nieuwKritiek === null && nieuwDatalek === null && nieuwCc === null && nieuwTel === null && nieuweToel === null && !nieuweLoc && actieIdx == null && !tekst && !bijlT.length){ if(sluiten === 'volgende'){ if(volgNr) openDetail(volgNr); else $('#detail').close(); return; } $('#d-fout').textContent = 'Er is niets gewijzigd: pas een veld aan, schrijf een reactie of voeg een bijlage toe.'; return; }
   const act = actieIdx != null && huidig.wf ? huidig.wf.acties[actieIdx] : null;
   { const plek = tekst.match(/\[(vul aan|stand van zaken|datum)\]/); if(plek){ $('#d-fout').textContent = `Vul in de reactie eerst "${plek[0]}" aan.`; const t = $('#tekst'); if(t){ t.focus(); const i = t.value.indexOf(plek[0]); if(i >= 0) t.setSelectionRange(i, i + plek[0].length); } return; } }
   // verplicht bij opslaan: afdeling, locatie en status
@@ -3341,6 +3354,8 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
     await zoekZichtVeld();
     // 1. afdeling (veld)
     if(nieuweAfd){ stap = 'afdeling'; lok.afdeling = await zetAfdelingVeld(x, nieuweAfd); gedaan.push('→ ' + lok.afdeling); }
+    // 0. toelichting (veld SbTx op het dossieritem)
+    if(nieuweToel !== null){ stap = 'toelichting'; const m = await laadSubjMeta(); await zetVelden(x, {[m.toel ? veldCode(m.toel) : 'SbTx']: nieuweToel}); x.toelichting = nieuweToel; toelCache.set(String(x.nr), nieuweToel); gedaan.push('toelichting aangepast'); }
     // 1b. locatie (veld)
     if(nieuweLoc){ stap = 'locatie'; const m = await laadSubjMeta(); await zetVelden(x, {[veldCode(m.locatie)]: m.locatie.dataType === 'int' && !isNaN(+nieuweLoc.code) ? +nieuweLoc.code : nieuweLoc.code}); lok.locatie = nieuweLoc.naam; gedaan.push('locatie ' + nieuweLoc.naam); }
     // 2. status als veld (alleen als AFAS een statusveld heeft)
@@ -3824,12 +3839,12 @@ function plaatsTour(){
 function ikMenu(){
   let m = $('#ikmenu');
   if(!m){ $('#ik').insertAdjacentHTML('afterend', '<div class="ikmenu" id="ikmenu" hidden role="menu"></div>'); m = $('#ikmenu'); }
-  if(m.hidden) m.innerHTML = `<button type="button" role="menuitem" class="nietstoren" data-ikm="stil"><span>Niet storen<small>geen pop-ups; kritieke storingen blijven</small></span><span class="schuif"><input type="checkbox" tabindex="-1" ${nietStoren ? 'checked' : ''}><i></i></span></button>
-    <button type="button" role="menuitem" class="nietstoren" data-ikm="win"><span>Windows-melding bij kritiek<small>ook als je in een ander programma zit</small></span><span class="schuif"><input type="checkbox" tabindex="-1" ${windowsAan() ? 'checked' : ''}><i></i></span></button>
+  if(m.hidden) m.innerHTML = `<button type="button" role="menuitem" class="nietstoren" data-ikm="stil"><span>Niet storen<small>alleen kritiek</small></span><span class="schuif"><input type="checkbox" tabindex="-1" ${nietStoren ? 'checked' : ''}><i></i></span></button>
+    <button type="button" role="menuitem" class="nietstoren" data-ikm="win"><span>Windows-melding<small>bij kritieke storing</small></span><span class="schuif"><input type="checkbox" tabindex="-1" ${windowsAan() ? 'checked' : ''}><i></i></span></button><hr>
     <button type="button" role="menuitem" data-ikm="thema">${isDonker() ? 'Lichte weergave' : 'Donkere weergave'}</button>
-    <button type="button" role="menuitem" data-ikm="import">To-do importeren<small>uit een Microsoft To Do-export (JSON)</small></button>
+    <button type="button" role="menuitem" data-ikm="import">To-do importeren<small>uit Microsoft To Do</small></button>
     <button type="button" role="menuitem" data-ikm="tour">Rondleiding</button>
-    <button type="button" role="menuitem" data-ikm="conn">Connectoren &amp; velden<small>voor de beheerder</small></button><hr>
+    <button type="button" role="menuitem" data-ikm="conn">Connectoren &amp; velden<small>beheer</small></button><hr>
     <button type="button" role="menuitem" data-ikm="uit">Uitloggen</button><p class="ikversie">Versie ${VERSIE.slice(1)} · ${VERSIE_DATUM}</p>`;
   m.hidden = !m.hidden;
 }
