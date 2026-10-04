@@ -840,7 +840,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
 <div class="app" id="app" hidden>
   <nav class="rail" aria-label="Onderdelen">
     <svg class="logo" viewBox="0 0 64 64" role="button" tabindex="0" data-weergave="mij" aria-label="Overzicht"><title>Mijn ICT-Omgeving · overzicht</title><rect width="64" height="64" rx="16"/><g transform="translate(-3.44 -3.52) scale(0.05670)"><path fill-rule="evenodd" d="M237 429H455C555 429 620 500 620 622C620 750 545 825 440 825H237ZM343 494H400C470 494 507 540 507 625C507 712 470 758 395 758C370 758 355 756 343 754Z"/><path d="M1005 431C960 422 910 418 862 418C735 418 650 500 650 627C650 755 735 835 868 835C920 835 970 828 1013 813V741C975 758 935 769 897 769C810 769 763 712 763 627C763 540 810 485 890 485C930 485 970 494 1005 507Z"/></g></svg>
-    <button type="button" class="r" id="meld-knop" title="Meldingen (terug naar waar je was)" aria-label="Meldingen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></button>
+    <button type="button" class="r" id="meld-knop" title="Meldingen (terug naar waar je was)" aria-label="Meldingen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></button>
     <button type="button" class="r" id="todo-knop" data-weergave="todo" title="To-do en notities" aria-label="To-do en notities"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span class="tel" id="todo-aantal"></span></button>
     <button type="button" class="r plus" id="nieuw-knop" title="Nieuwe melding" aria-label="Nieuwe melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
   </nav>
@@ -942,7 +942,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.47', VERSIE_DATUM = '03-10-2026';
+const VERSIE = 'v4.48', VERSIE_DATUM = '03-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1843,7 +1843,9 @@ function pasLokaalToe(){
 }
 const naAchtergrond = () => { setTimeout(async () => { await laadGegevens('open', true); if(!$('#detail').open) teken(); }, 4000); setTimeout(async () => { await laadGegevens('open', true); if(!$('#detail').open) teken(); }, 15000); };
 // terug naar Meldingen = terug naar dezelfde lijst, filters en scrollpositie
-const meldPlek = {tab: 'mij', scroll: 0};
+const meldPlek = {tab: 'toegewezen', scroll: 0};
+const isLijstTab = t => !['todo', 'mij', 'connectoren'].includes(t);
+addEventListener('scroll', () => { if(isLijstTab(tab)) meldPlek.scroll = scrollY; }, {passive: true});
 function teken(){
   if(!profiel) return;
   pasLokaalToe();
@@ -1856,8 +1858,8 @@ function teken(){
   if(tab === 'trajecten' || tab === 'ch:alle') tab = 'ch:mijn';
   if(tab === 'dichtalle') tab = 'mij';   // gesloten meldingen vind je via zoeken   // Alle changes vervallen: die staan al per afdeling
   $('#v-mij').hidden = tab !== 'mij' && tab !== 'connectoren' && tab !== 'projecten'; $('#v-lijst').hidden = tab === 'mij' || tab === 'todo' || tab === 'connectoren' || tab === 'projecten'; $('#v-todo').hidden = tab !== 'todo';
-  $('#todo-knop').setAttribute('aria-pressed', tab === 'todo'); $('#meld-knop').setAttribute('aria-pressed', tab !== 'todo');
-  if(tab !== 'todo') meldPlek.tab = tab;   // onthouden waar je in Meldingen was 
+  $('#todo-knop').setAttribute('aria-pressed', tab === 'todo'); $('#meld-knop').setAttribute('aria-pressed', isLijstTab(tab));
+  if(isLijstTab(tab) && meldPlek.tab !== tab){ meldPlek.tab = tab; meldPlek.scroll = 0; }   // onthouden in welke lijst je was (nooit het overzicht) 
   $('#nav').hidden = tab === 'todo';   // bij To-do hoort het meldingmenu er niet bij
   if(tab === 'mij'){ $('#titel').textContent = ''; tekenMij(); } else if(tab === 'connectoren') tekenConnectoren(); else if(tab === 'projecten') tekenProjecten(); else if(tab === 'todo') tdTeken(); else tekenLijst();
   pasTabelBreedtes(); if(typeof tekenAanwezig === 'function') tekenAanwezig();
@@ -3676,8 +3678,7 @@ document.addEventListener('click', e => {
   const vr = e.target.closest('.voorregel[data-nr]'); if(vr){ navLijst = [...vr.parentElement.querySelectorAll('.voorregel[data-nr]')].map(p => p.dataset.nr); openDetail(vr.dataset.nr); return; }
   const r = e.target.closest('tr[data-nr]'); if(r){ const tid = r.closest('table').dataset.tabel; navLijst = (tid && tabelVolgorde[tid]) || [...r.closest('tbody').querySelectorAll('tr[data-nr]')].map(t => t.dataset.nr); openDetail(r.dataset.nr); return; }
   const m = e.target.closest('.meer'); if(m){ const id = m.dataset.blok; blokOpen.has(id) ? blokOpen.delete(id) : blokOpen.add(id); teken(); return; }
-  if(e.target.closest('#meld-knop')){ if(tab !== 'todo') return; tab = meldPlek.tab || 'mij'; teken(); requestAnimationFrame(() => scrollTo(0, meldPlek.scroll)); return; }
-  if(e.target.closest('#todo-knop') && tab !== 'todo') meldPlek.scroll = scrollY;
+  if(e.target.closest('#meld-knop')){ if(isLijstTab(tab)) return; const y = meldPlek.scroll; tab = meldPlek.tab || 'toegewezen'; teken(); requestAnimationFrame(() => scrollTo(0, y)); return; }
   const w = e.target.closest('[data-weergave]'); if(w){ tab = w.dataset.weergave; filt.zoek = ''; $('#f-zoek').value = ''; teken(); scrollTo(0, 0); return; }
   if(e.target.closest('[data-sluit]')){ sluitDialoog($('#detail')); return; }
   const a = e.target.closest('[data-actie]'); if(a){ laatsteKnop = a; opslaanAlles(+a.dataset.actie); return; }
