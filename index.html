@@ -64,6 +64,8 @@ button{cursor:pointer}
 .rail .r[aria-pressed="true"]{background:var(--rail-act);color:var(--rail-act-ink)}
 .rail .tel{position:absolute;top:3px;right:2px;font-size:10px;font-weight:700;background:#D92D20;color:#fff;border-radius:999px;padding:0 5px;line-height:15px;box-shadow:0 0 0 2px var(--vlak)}
 .rail .tel:empty{display:none}
+.rail .tdstatus{position:absolute;bottom:3px;right:3px;width:15px;height:15px;border-radius:50%;font-size:10px;font-weight:800;line-height:15px;text-align:center;color:#fff;box-shadow:0 0 0 2px var(--vlak)}
+.rail .tdstatus.ok{background:var(--groen)}.rail .tdstatus.mist{background:#E8890C}
 .rail-onder{margin-top:auto;display:flex;flex-direction:column;gap:2px}
 
 .werk{flex:1;min-width:0;display:flex;flex-direction:column}
@@ -840,7 +842,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
   <nav class="rail" aria-label="Onderdelen">
     <svg class="logo" viewBox="0 0 64 64" role="button" tabindex="0" data-weergave="mij" aria-label="Overzicht"><title>Mijn ICT-Omgeving · overzicht</title><rect width="64" height="64" rx="16"/><g transform="translate(-3.44 -3.52) scale(0.05670)"><path fill-rule="evenodd" d="M237 429H455C555 429 620 500 620 622C620 750 545 825 440 825H237ZM343 494H400C470 494 507 540 507 625C507 712 470 758 395 758C370 758 355 756 343 754Z"/><path d="M1005 431C960 422 910 418 862 418C735 418 650 500 650 627C650 755 735 835 868 835C920 835 970 828 1013 813V741C975 758 935 769 897 769C810 769 763 712 763 627C763 540 810 485 890 485C930 485 970 494 1005 507Z"/></g></svg>
     <button type="button" class="r plus" id="nieuw-knop" title="Nieuwe melding" aria-label="Nieuwe melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
-    <button type="button" class="r" id="todo-knop" data-weergave="todo" title="To-do en notities" aria-label="To-do en notities"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span class="tel" id="todo-aantal"></span></button>
+    <button type="button" class="r" id="todo-knop" data-weergave="todo" title="To-do en notities" aria-label="To-do en notities"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span class="tel" id="todo-aantal"></span><span class="tdstatus" id="todo-status" hidden></span></button>
   </nav>
   <aside class="nav" id="nav"></aside>
   <div class="werk">
@@ -940,7 +942,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.43', VERSIE_DATUM = '03-10-2026';
+const VERSIE = 'v4.45', VERSIE_DATUM = '03-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3878,7 +3880,17 @@ async function tdStart(){
   try{ TD.handle = await tdIdb.get(tdSleutel()); }catch(e){}
   if(!TD.handle){ TD.status = 'geen'; return tdTeken(); }
   const p = await TD.handle.queryPermission({mode:'readwrite'});
-  if(p === 'granted') await tdLees(); else { TD.status = 'toestemming'; tdTeken(); }
+  if(p === 'granted') await tdLees(); else { TD.status = 'toestemming'; tdTeken(); tdHerstelBijKlik(); }
+}
+// na herladen vraagt de browser opnieuw toestemming (dat mag hij alleen na een klik): bij je eerste klik in de app meteen vragen,
+// dan is het één klik op 'Toestaan'. Kies je in die melding 'Bij elk bezoek toestaan', dan vraagt de browser het niet meer.
+function tdHerstelBijKlik(){
+  const vraag = async e => {
+    document.removeEventListener('pointerdown', vraag, true);
+    if(TD.status !== 'toestemming' || !TD.handle || e.target.closest('[data-td]')) return;
+    try{ if(await TD.handle.requestPermission({mode:'readwrite'}) === 'granted'){ await tdLees(); toast('To-do weer gekoppeld'); } }catch(err){}
+  };
+  document.addEventListener('pointerdown', vraag, true);
 }
 async function tdLees(){
   try{ const f = await TD.handle.getFile(), t = await f.text();
@@ -3932,6 +3944,10 @@ function tdRij(t){
 function tdTeken(){
   const aantal = TD.status === 'ok' ? TD.data.taken.filter(t => !t.klaar).length : 0;
   $('#todo-aantal').textContent = aantal || '';
+  // koppeling met je to-do-bestand: groen vinkje = gekoppeld, oranje vraagteken = nog koppelen
+  { const st = $('#todo-status'), ok = TD.status === 'ok', laden = !TD.status || TD.status === 'laden';
+    st.hidden = laden; st.className = 'tdstatus ' + (ok ? 'ok' : 'mist'); st.textContent = ok ? '✓' : '?';
+    $('#todo-knop').title = ok ? 'To-do en notities · gekoppeld aan ' + (TD.handle && TD.handle.name || 'je bestand') : 'To-do en notities · nog niet gekoppeld: klik om je to-do-bestand te koppelen'; }
   if(tab !== 'todo') return;
   const v = $('#todo-verbind'), paneel = $('#todo-paneel'), bestand = $('#todo-bestand');
   $('#titel').textContent = ''; $('#subtitel').textContent = '';
@@ -3943,7 +3959,7 @@ function tdTeken(){
       <p>Gebruik je ook het dashboard Mijn changes? Kies dan hetzelfde bestand, dan heb je één to-do-lijst voor beide.</p></div>`;
     v.innerHTML = TD.status === 'niet' ? '<h2>To-do en notities</h2><p>Deze browser kan geen bestanden bijhouden. Open Mijn ICT-Omgeving in <b>Microsoft Edge</b> of <b>Google Chrome</b>.</p>'
       : TD.status === 'toestemming' ? `<h2>Even opnieuw toegang geven</h2><p>Je to-do's staan in <b>${esc(TD.handle.name)}</b>. Na het opnieuw openen van de browser vraagt die om veiligheidsredenen weer even toestemming om dat bestand te gebruiken.</p>
-          <ol class="stappen-lijst"><li>Klik op <b>Toegang geven</b>.</li><li>Klik in de melding van de browser op <b>Bewerken toestaan</b> (of <b>Toestaan</b>).</li></ol>
+          <ol class="stappen-lijst"><li>Klik op <b>Toegang geven</b>.</li><li>Kies in de melding van de browser <b>Bij elk bezoek toestaan</b> (staat die er niet, dan <b>Bewerken toestaan</b>). Dan hoef je dit niet steeds opnieuw te doen.</li></ol>
           <div class="knoppen"><button type="button" class="knop vol" data-td="toegang">Toegang geven</button><button type="button" class="knop" data-td="kies">Ander bestand kiezen</button></div>`
       : TD.status === 'fout' ? `<h2>To-do en notities</h2><p class="fout">Het to-do-bestand kon niet worden gelezen: ${esc(TD.fout || '')}</p><div class="knoppen"><button type="button" class="knop vol" data-td="kies">Ander bestand kiezen</button></div>`
       : TD.status === 'laden' ? '<p class="hint">Laden…</p>'
@@ -3955,7 +3971,7 @@ function tdTeken(){
            <li>Klik hieronder op <b>Nieuw bestand maken</b>.</li>
            <li>Er opent een venster om op te slaan. Kies links <b>OneDrive - DC Klinieken</b> en eventueel een map, bijvoorbeeld <i>Documenten</i>.</li>
            <li>Laat de naam <b>Mijn to-do.json</b> staan en klik op <b>Opslaan</b>.</li>
-           <li>De browser vraagt of de pagina het bestand mag bewerken: klik op <b>Bewerken toestaan</b>.</li>
+           <li>De browser vraagt of de pagina het bestand mag bewerken: kies <b>Bij elk bezoek toestaan</b> (of <b>Bewerken toestaan</b>).</li>
          </ol>
          <p>Heb je al een to-do-bestand (bijvoorbeeld van Mijn changes of van een andere pc)? Kies dan <b>Bestaand bestand kiezen</b> en selecteer dat bestand.</p>
          <p class="hint">Op een andere pc of browser doe je dit één keer opnieuw met <b>Bestaand bestand kiezen</b>. Na het herstarten van de browser vraagt die soms opnieuw toestemming; dat is één klik.</p></div>
