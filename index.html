@@ -275,6 +275,8 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .blok > header small{color:var(--grijs);font-size:12.5px;margin-left:auto}
 .blok.rood > header b{background:var(--rood-licht);color:var(--rood)}
 .leeg{padding:6px 26px 18px;color:var(--grijs)}
+.subkop{display:flex;align-items:baseline;gap:10px;margin:8px 0 0;padding:16px 26px 10px;border-top:1px solid var(--lijn);font-size:16px;color:var(--blauw)}
+.subkop b{font-size:13px;background:var(--lichtblauw-2);color:var(--blauw);border-radius:999px;padding:1px 9px}
 
 .rij{display:grid;grid-template-columns:6px 72px minmax(0,1fr) auto;gap:14px;align-items:center;padding:10px 26px 10px 0;border-top:1px solid var(--lijn);cursor:pointer;width:100%;border-left:0;border-right:0;border-bottom:0;background:transparent;text-align:left}
 .rij:hover{background:var(--achtergrond)}
@@ -966,7 +968,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v5.5', VERSIE_DATUM = '03-10-2026';
+const VERSIE = 'v5.7', VERSIE_DATUM = '04-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1455,16 +1457,30 @@ const KOLOMMEN = [
   {k:'gepland', bw:'86px', t:'Gepland', w:x => +x.gepland || 0, html:x => x.gepland ? kortDatum(x.gepland) : '', cls:'zacht k-gepland'},
   {k:'sig', bw:'196px', t:'Signaal', w:x => sigGewicht(x), html:x => (x._sg || []).filter(s => s.ernst >= 1).slice(0, 2).map(chip).join(' '), cls:'sig'}
 ];
-KOLOMMEN.forEach(c => { if(!c.cls.split(' ').includes('k-' + c.k)) c.cls = (c.cls + ' k-' + c.k).trim(); });
+// Mijn projecten: zelfde tabel (sorteren, breedte, Filter, Kolommen) met eigen kolommen
+const projChip = (t, kl) => t ? `<span class="cn-badge ${kl}">${esc(t)}</span>` : '–';
+const PROJ_KOLOMMEN = [
+  {k:'p-nr', bw:'80px', t:'Nr.', w:x => norm(x.code), html:x => esc(x.code), cls:'nr'},
+  {k:'p-naam', t:'Project', w:x => norm(x.onderwerp), html:x => esc(x.onderwerp), cls:'ond'},
+  {k:'p-rol', bw:'120px', t:'Jouw rol', w:x => norm(x.rol), html:x => projChip(x.rol, x.rol === 'Projectleider' ? '' : 'grijs'), cls:''},
+  {k:'p-leider', bw:'140px', t:'Projectleider', w:x => norm(x.leider), html:x => esc(x.leider || '–'), cls:'zacht'},
+  {k:'p-fase', bw:'110px', t:'Fase', w:x => norm(x.status), html:x => esc(x.status || '–'), cls:''},
+  {k:'p-voort', bw:'110px', t:'Voortgang', w:x => norm(x.voortgang), html:x => projChip(x.voortgang, voortKleur(x.voortgang)), cls:''},
+  {k:'p-prio', bw:'86px', t:'Prioriteit', w:x => norm(x.prioriteit), html:x => esc(x.prioriteit || '–'), cls:'zacht'},
+  {k:'p-start', bw:'86px', t:'Start', w:x => +x.projStart || 0, html:x => x.projStart ? kortDatum(x.projStart) : '–', cls:'zacht'},
+  {k:'p-eind', bw:'86px', t:'Einde', w:x => +x.projEind || 0, html:x => x.projEind ? `<span${!x.afgesloten && +x.projEind < +beginDag(new Date()) ? ' style="color:var(--rood);font-weight:600"' : ''}>${kortDatum(x.projEind)}</span>` : '–', cls:''}
+];
+[...KOLOMMEN, ...PROJ_KOLOMMEN].forEach(c => { if(!c.cls.split(' ').includes('k-' + c.k)) c.cls = (c.cls + ' k-' + c.k).trim(); });
+const kolSet = proj => proj ? PROJ_KOLOMMEN : KOLOMMEN, elkeKol = k => KOLOMMEN.find(c => c.k === k) || PROJ_KOLOMMEN.find(c => c.k === k);
 /* kolommen kiezen: per gebruiker te verbergen (Nr. en Onderwerp blijven altijd staan) */
-const VAST_KOL = new Set(['nr', 'ond']);
+const VAST_KOL = new Set(['nr', 'ond', 'p-nr', 'p-naam']);
 let verborgenKol = new Set(opslag.get('mict-kolommen-uit') || []);
 /* kolombreedte: zelf slepen aan de rand van de kolomkop, of automatisch passend maken (Onderwerp vult de rest op) */
 const KOLBREED = 'mict-kolbreedte';
 let kolBreedte = opslag.get(KOLBREED) || {};
 // met eigen breedtes staan álle kolommen in pixels en is de tabel precies zo breed als de kolommen samen (zoals in AFAS);
 // zo loopt de rand van een kolom exact met de muis mee. Zonder eigen breedtes vult de tabel de breedte zoals voorheen.
-const KOL_PX = {melder:150, wie:150, type:100, status:150, ond:300};
+const KOL_PX = {melder:150, wie:150, type:100, status:150, ond:300, 'p-naam':300};
 const eigenBreedtes = () => Object.keys(kolBreedte).length > 0;
 const breedteVan = c => kolBreedte[c.k] ? kolBreedte[c.k] + 'px' : eigenBreedtes() ? (/px$/.test(c.bw || '') ? c.bw : (KOL_PX[c.k] || 120) + 'px') : c.bw;
 function pasTabelBreedtes(){
@@ -1475,7 +1491,7 @@ function pasTabelBreedtes(){
     const som = kop.reduce((n, th) => n + +th.dataset.basis, 0), ruimte = (t.parentElement && t.parentElement.clientWidth) || 0, over = ruimte - som;
     if(over > 4){
       // breder scherm: de extra ruimte naar Onderwerp en Signaal (anders de laatste kolom), zodat de tabel de hele breedte vult
-      let rek = kop.filter(th => th.dataset.sort === 'ond' || th.dataset.sort === 'sig'); if(!rek.length) rek = kop.slice(-1);
+      let rek = kop.filter(th => th.dataset.sort === 'ond' || th.dataset.sort === 'sig' || th.dataset.sort === 'p-naam'); if(!rek.length) rek = kop.slice(-1);
       const totaal = rek.reduce((n, th) => n + +th.dataset.basis, 0) || 1;
       let rest = Math.floor(over); rek.forEach((th, i) => { const plus = i === rek.length - 1 ? rest : Math.floor(over * th.dataset.basis / totaal); rest -= plus; th.style.width = (+th.dataset.basis + plus) + 'px'; });
       t.style.width = Math.floor(ruimte) + 'px';
@@ -1488,14 +1504,14 @@ function besteBreedtes(alleen = null){
   const meet = document.createElement('div'); meet.className = 'tabel'; meet.style.cssText = 'position:absolute;visibility:hidden;left:-9999px;top:0;white-space:nowrap;display:block;width:auto';
   document.body.append(meet);
   const b = {...kolBreedte};
-  KOLOMMEN.filter(c => !alleen || c.k === alleen).forEach(c => {
+  [...KOLOMMEN, ...PROJ_KOLOMMEN].filter(c => !alleen || c.k === alleen).forEach(c => {
     const cellen = [...document.querySelectorAll(`table.tabel tbody td.k-${c.k}`)].slice(0, 300), kop = document.querySelector(`table.tabel thead th.k-${c.k}`);
     if(!cellen.length && !kop) return;
     let max = 0;
     const maat = (html, vet) => { meet.innerHTML = `<span style="display:inline-block;white-space:nowrap;font-size:${vet ? '12px' : '13.5px'};font-weight:${vet ? 600 : 400}">${html}</span>`; return meet.firstChild.offsetWidth; };
     if(kop) max = maat(esc(c.t), true) + 30;   // ruimte voor sorteerpijl en greep
     cellen.forEach(td => { max = Math.max(max, maat(td.innerHTML, false) + 22); });
-    b[c.k] = Math.round(Math.min(c.k === 'sig' ? 340 : c.k === 'ond' ? 520 : 320, Math.max(c.k === 'nr' ? 66 : c.k === 'ond' ? 200 : 76, max)));   // niet smaller dan het filterveld
+    b[c.k] = Math.round(Math.min(c.k === 'sig' ? 340 : c.k === 'ond' || c.k === 'p-naam' ? 520 : 320, Math.max(c.k === 'nr' ? 66 : c.k === 'ond' || c.k === 'p-naam' ? 200 : 76, max)));   // niet smaller dan het filterveld
   });
   meet.remove();
   if(!alleen){
@@ -1536,7 +1552,7 @@ function kolKeuze(knop){
   const el = $('#kolkeuze');
   if(!el.hidden && el._knop === knop){ el.hidden = true; return; }
   el._knop = knop;
-  el.innerHTML = `<h4>Kolommen tonen</h4>${KOLOMMEN.filter(c => !VAST_KOL.has(c.k) && !c.ch).map(c => `<label><input type="checkbox" data-kol="${c.k}" ${verborgenKol.has(c.k) ? '' : 'checked'}> ${esc(c.t)}</label>`).join('')}
+  el.innerHTML = `<h4>Kolommen tonen</h4>${kolSet(knop.dataset.kolset === 'proj').filter(c => !VAST_KOL.has(c.k) && !c.ch).map(c => `<label><input type="checkbox" data-kol="${c.k}" ${verborgenKol.has(c.k) ? '' : 'checked'}> ${esc(c.t)}</label>`).join('')}
     <div class="knoppenrij"><button type="button" class="linkknop" data-kolpassend>Alle kolommen automatisch passend maken</button>
     ${Object.keys(kolBreedte).length ? '<button type="button" class="linkknop" data-kolbreedstd>Standaardbreedtes terugzetten</button>' : ''}</div>
     <p>Breedte zelf aanpassen: sleep de rand van een kolomkop. Dubbelklik op de rand maakt die kolom passend.</p>
@@ -1544,30 +1560,30 @@ function kolKeuze(knop){
   const r = knop.getBoundingClientRect(); el.hidden = false;
   el.style.top = (r.bottom + 6) + 'px'; el.style.left = Math.max(12, Math.min(innerWidth - el.offsetWidth - 12, r.right - el.offsetWidth)) + 'px';
 }
-const kolKnopAlleen = `<button type="button" class="kolknop" data-kolkeuze title="Kolommen kiezen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/></svg>Kolommen</button>`;
+const kolKnopAlleen = (proj = false) => `<button type="button" class="kolknop" data-kolkeuze${proj ? ' data-kolset="proj"' : ''} title="Kolommen kiezen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/></svg>Kolommen</button>`;
 // filterrij per kolom: standaard verborgen; via de knop Filter aan/uit, en altijd zichtbaar zolang er een filter actief is
 let filterRij = false;
-const kolKnop_ = () => `<button type="button" class="kolknop" data-filterknop aria-pressed="${filterRij}" title="Filtervakjes per kolom tonen of verbergen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6 7.5V19l-4-2v-4.5z"/></svg>Filter</button>` + kolKnopAlleen;
+const kolKnop_ = (proj = false) => `<button type="button" class="kolknop" data-filterknop aria-pressed="${filterRij}" title="Filtervakjes per kolom tonen of verbergen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6 7.5V19l-4-2v-4.5z"/></svg>Filter</button>` + kolKnopAlleen(proj);
 const sortering = {};   // per tabel-id: {k, op}
 const kolFilter = {};   // per tabel-id: {kolom: zoektekst}
-const KEUZE = new Set(['afd','melder','wie','status','type','loc']);   // kolommen met een keuzelijst in het filterveld
+const KEUZE = new Set(['afd','melder','wie','status','type','loc','p-rol','p-leider','p-fase','p-voort','p-prio']);   // kolommen met een keuzelijst in het filterveld
 const keuzeOpties = {};   // per tabel en kolom: de waarden voor de filterlijst
 const kolTekst = (c, x) => c.k === 'sig' ? (x._sg || []).map(s => s.tekst).join(' ') : String(c.html(x)).replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
 const tabelVolgorde = {};
 function tabel(id, l, opties = {}){
-  const zonder = new Set(opties.zonder || []), kol = KOLOMMEN.filter(c => c.ch ? opties.changes : !zonder.has(c.k) && !verborgenKol.has(c.k));   // Startdatum en Deadline: altijd bij changes
+  const zonder = new Set(opties.zonder || []), kol = kolSet(opties.proj).filter(c => c.ch ? opties.changes : !zonder.has(c.k) && !verborgenKol.has(c.k));   // Startdatum en Deadline: altijd bij changes
   const kf = kolFilter[id] || {}, actief = Object.entries(kf).filter(([, v]) => v && v.trim());
   const opties_ = {}; kol.filter(c => KEUZE.has(c.k)).forEach(c => opties_[c.k] = [...new Set(l.map(x => kolTekst(c, x)).filter(v => v && v !== '–'))].sort((a, b) => a.localeCompare(b, 'nl')));
   Object.entries(opties_).forEach(([k, v]) => keuzeOpties[id + '|' + k] = v);
   const totaal = l.length;
-  if(actief.length) l = l.filter(x => actief.every(([k, v]) => { const c = KOLOMMEN.find(c => c.k === k); return !c || norm(kolTekst(c, x)).includes(norm(v)); }));
+  if(actief.length) l = l.filter(x => actief.every(([k, v]) => { const c = elkeKol(k); return !c || norm(kolTekst(c, x)).includes(norm(v)); }));
   const s = sortering[id];
-  if(s){ const c = KOLOMMEN.find(c => c.k === s.k); l = [...l].sort((a, b) => { const x = c.w(a), y = c.w(b); return (x < y ? -1 : x > y ? 1 : 0) * s.op || (+b.aangemaakt || 0) - (+a.aangemaakt || 0); }); }
+  if(s && elkeKol(s.k)){ const c = elkeKol(s.k); l = [...l].sort((a, b) => { const x = c.w(a), y = c.w(b); return (x < y ? -1 : x > y ? 1 : 0) * s.op || (+b.aangemaakt || 0) - (+a.aangemaakt || 0); }); }
   const max = opties.max && !blokOpen.has(id) ? opties.max : 400, zicht = l.slice(0, max);
   tabelVolgorde[id] = l.map(x => String(x.nr));   // voor vorige/volgende in het ticket: de hele lijst in deze volgorde, ook wat (nog) niet getoond wordt
   return `<div class="tw"><table class="tabel" data-tabel="${id}"><thead><tr>${kol.map(c => `<th data-sort="${c.k}" ${breedteVan(c) ? `style="width:${breedteVan(c)}"` : ''} class="${c.cls.replace(/(^|\s)(nr|ond|sig|zacht)(?=\s|$)/g, '$1').trim()}" ${s && s.k === c.k ? `aria-sort="${s.op > 0 ? 'ascending' : 'descending'}"` : ''}>${c.t}${s && s.k === c.k ? `<span class="pijl">${s.op > 0 ? '▲' : '▼'}</span>` : ''}<span class="kolgreep" data-greep="${c.k}" title="Sleep om de breedte aan te passen · dubbelklik = passend"></span></th>`).join('')}</tr>
     <tr class="kolfilter"${filterRij || actief.length ? '' : ' hidden'}>${kol.map(c => `<th class="${c.cls.replace(/(^|\s)(nr|ond|sig|zacht)(?=\s|$)/g, '$1').trim()}"><input size="3" data-kf="${c.k}" ${KEUZE.has(c.k) ? 'data-keuze autocomplete="off"' : ''} value="${esc(kf[c.k] || '')}" placeholder="${KEUZE.has(c.k) ? 'Alle ▾' : 'Filter…'}" aria-label="Filter op ${c.t}" class="${kf[c.k] ? 'aan' : ''}"></th>`).join('')}</tr></thead>
-    <tbody>${!zicht.length ? `<tr class="geenrij"><td colspan="${kol.length}">Geen meldingen met deze filters. <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></td></tr>` : ''}${zicht.map(x => `<tr draggable="${x.afgesloten ? 'false' : 'true'}" class="${KLEUR[ernst(x)]}${x.kritiek && !x.afgesloten ? ' kritiekrij' : ''}${x.afgesloten ? ' dicht' : ''}${(x._sg || []).some(s => s.code === 'ongelezen') ? ' ongelezen' : ''}" data-nr="${esc(x.nr)}">${kol.map(c => `<td class="${c.cls}"${c.k === 'sig' ? '' : ` title="${esc(kolTekst(c, x))}"`}>${c.html(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    <tbody>${!zicht.length ? `<tr class="geenrij"><td colspan="${kol.length}">Geen ${opties.proj ? 'projecten' : 'meldingen'} met deze filters. <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></td></tr>` : ''}${zicht.map(x => opties.proj ? `<tr class="${x.afgesloten ? 'dicht' : ''}" data-proj="${esc(x.code)}" tabindex="0">${kol.map(c => `<td class="${c.cls}" title="${esc(kolTekst(c, x))}">${c.html(x)}</td>`).join('')}</tr>` : `<tr draggable="${x.afgesloten ? 'false' : 'true'}" class="${KLEUR[ernst(x)]}${x.kritiek && !x.afgesloten ? ' kritiekrij' : ''}${x.afgesloten ? ' dicht' : ''}${(x._sg || []).some(s => s.code === 'ongelezen') ? ' ongelezen' : ''}" data-nr="${esc(x.nr)}">${kol.map(c => `<td class="${c.cls}"${c.k === 'sig' ? '' : ` title="${esc(kolTekst(c, x))}"`}>${c.html(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
     ${actief.length ? `<p class="filterinfo">${l.length} van ${totaal} na filteren · <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></p>` : ''}
     ${l.length > max ? `<button type="button" class="meer" data-blok="${id}">${blokOpen.has(id) ? 'Minder tonen' : `Alle ${l.length} tonen`}</button>` : ''}`;
 }
@@ -1768,6 +1784,7 @@ function zichtbaar(t, l){
 const alleenEigen = t => t === 'toegewezen' || t === 'ch:mijn' || t.startsWith('k:') || schuifAan(t);
 function tekenLijst(){
   if(tab === 'historie') return tekenHistorie();
+  if(tab === 'projecten') return tekenProjLijst();
   const v = weergave(tab), w = norm(filt.zoek), kanDicht = dichtVan(tab) !== null, dicht = kanDicht && toonDicht();
   let l = dicht ? dichtVan(tab) : v.lijst;
   if((dicht || tab === 'zoek') && !alleDichtGeladen) laadAlleGesloten();
@@ -1790,12 +1807,48 @@ function tekenLijst(){
   if(tab === 'dicht' && !alleGeladen) $('#lijst-sub').textContent = 'Gesloten meldingen worden nog opgehaald…';
   if((dicht || tab === 'zoek') && !alleDichtGeladen) $('#lijst-sub').textContent = 'Oudere gesloten meldingen worden opgehaald…';
   const tlAan = alleenChanges() && chWeergave === 'tijdlijn' && !dicht;
-  const odKnop = kanDicht ? `<span class="wkeuze tlsoort" role="group" aria-label="Open of afgehandeld"><button type="button" data-opendicht="0" aria-pressed="${!dicht}">Open</button><button type="button" data-opendicht="1" aria-pressed="${dicht}">Afgehandeld</button></span>` : '';
-  const wKnop = alleenChanges() ? `<span class="wkeuze"><button type="button" data-chw="lijst" aria-pressed="${!tlAan}" aria-label="Lijst" title="Lijst"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button><button type="button" data-chw="tijdlijn" aria-pressed="${tlAan}" aria-label="Tijdlijn" title="Tijdlijn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h9M7 12h11M5 18h8"/></svg></button></span>` : '';
-  $('#lijst-kol').innerHTML = odKnop + (tlAan ? `<span class="wkeuze tlsoort" role="group" aria-label="Wat tonen">${[['changes', 'Changes'], ['projecten', 'Projecten'], ['beide', 'Beide']].map(([v, t]) => `<button type="button" data-tlsoort="${v}" aria-pressed="${TL.soort === v}">${t}</button>`).join('')}</span>` : '') + (tlAan ? `<select id="ch-zoom" class="periodekeuze" aria-label="Periode">${[['maand','6 weken'],['kwartaal','Kwartaal'],['halfjaar','Halfjaar']].map(([k, t]) => `<option value="${k}"${k === chZoom ? ' selected' : ''}>${t}</option>`).join('')}</select>` : kolKnop_()) + wKnop;
-  if(tlAan){ $('#lijst-sub').textContent = ''; $('#lijst').innerHTML = tekenChTijdlijn(l); $('#titel').textContent = ''; $('#subtitel').textContent = ''; return; }
-  $('#lijst').innerHTML = l.length ? tabel(lid, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(isDicht ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])], changes: alleenChanges() || soortVan(tab) === 'changes'}) : `<p class="leeg">${tab === 'zoek' && !w ? 'Typ bovenin wat je zoekt.' : dicht ? 'Geen afgehandelde meldingen in deze lijst.' : 'Geen meldingen gevonden.'}</p>`;
+  $('#lijst-kol').innerHTML = kopKnoppen({od: kanDicht, dicht, samen: alleenChanges(), tl: alleenChanges() ? tlAan : undefined});
+  const extra = alleenChanges() && TL.samen ? zoekProj(dicht ? PRJ.lijst.filter(p => p.afgesloten) : projOpen()) : null;
+  if(tlAan){ $('#lijst-sub').textContent = ''; $('#lijst').innerHTML = samenTijdlijn(l, extra || []); $('#titel').textContent = ''; $('#subtitel').textContent = ''; return; }
+  $('#lijst').innerHTML = (l.length ? tabel(lid, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(isDicht ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])], changes: alleenChanges() || soortVan(tab) === 'changes'}) : `<p class="leeg">${tab === 'zoek' && !w ? 'Typ bovenin wat je zoekt.' : dicht ? 'Geen afgehandelde meldingen in deze lijst.' : 'Geen meldingen gevonden.'}</p>`)
+    + (extra ? projSectie(extra, dicht) : '');
   $('#titel').textContent = ''; $('#subtitel').textContent = '';   // de naam staat al in het menu en boven de lijst
+}
+/* één kop voor elke lijst: Open|Afgehandeld · + Projecten/Changes · Filter+Kolommen (of periode bij tijdlijn) · lijst/tijdlijn */
+const TL = (() => { const s = opslag.get('mict-samen'); return {samen: s == null ? opslag.get('mict-tlsoort') === 'beide' : !!s}; })();
+const PERIODES = [['maand', '6 weken'], ['kwartaal', 'Kwartaal'], ['halfjaar', 'Halfjaar']];
+function kopKnoppen({od, dicht, samen, tl, proj = false}){
+  const odK = od ? `<span class="wkeuze tlsoort" role="group" aria-label="Open of afgehandeld"><button type="button" data-opendicht="0" aria-pressed="${!dicht}">Open</button><button type="button" data-opendicht="1" aria-pressed="${dicht}">Afgehandeld</button></span>` : '';
+  const sK = samen ? `<span class="wkeuze tlsoort"><button type="button" data-samen aria-pressed="${TL.samen}" title="${proj ? 'Jouw changes' : 'Jouw projecten'} meenemen in lijst en tijdlijn">+ ${proj ? 'Changes' : 'Projecten'}</button></span>` : '';
+  const midden = tl ? `<select id="ch-zoom" class="periodekeuze" aria-label="Periode">${PERIODES.map(([k, t]) => `<option value="${k}"${k === chZoom ? ' selected' : ''}>${t}</option>`).join('')}</select>` : kolKnop_(proj);
+  const wK = tl === undefined ? '' : `<span class="wkeuze"><button type="button" data-chw="lijst" aria-pressed="${!tl}" aria-label="Lijst" title="Lijst"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button><button type="button" data-chw="tijdlijn" aria-pressed="${tl}" aria-label="Tijdlijn" title="Tijdlijn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h9M7 12h11M5 18h8"/></svg></button></span>`;
+  return odK + sK + midden + wK;
+}
+document.addEventListener('click', e => { if(!e.target.closest('[data-samen]')) return; TL.samen = !TL.samen; opslag.set('mict-samen', TL.samen); teken(); });
+const zoekProj = l => { const w = norm(filt.zoek); return w ? l.filter(p => norm([p.code, p.onderwerp, p.leider, p.status, p.rol].join(' ')).includes(w)) : l; };
+const projStd = (a, b) => (a.rol !== 'Projectleider') - (b.rol !== 'Projectleider') || +(a.projEind || 9e15) - +(b.projEind || 9e15);
+const projTabel = (l, dicht) => l.length ? tabel('lijst:projecten', [...l].sort(projStd), {proj: true}) : `<p class="leeg">${dicht ? 'Geen afgeronde projecten.' : 'Geen lopende projecten waar je een rol in hebt.'}${PRJ.diag && !dicht ? `<br><small>Gelezen uit AFAS: ${esc(PRJ.diag)}</small>` : ''}</p>`;
+const projSectie = (l, dicht) => `<h3 class="subkop">Mijn projecten <b>${l.length}</b></h3>` + (PRJ.fout ? `<p class="leeg">Projecten ophalen lukte niet (${esc(PRJ.fout)}); zie Connectoren &amp; velden.</p>` : projTabel(l, dicht));
+function tekenProjLijst(){
+  const wb = document.querySelector('#v-lijst .werkbalk'); if(wb) wb.hidden = true;
+  const dicht = dichtTab === 'projecten', tlAan = chWeergave === 'tijdlijn' && !dicht, w = norm(filt.zoek);
+  const pl = zoekProj(PRJ.lijst.filter(p => !!p.afgesloten === dicht));
+  const cl = TL.samen ? zichtbaar('ch:mijn', dicht ? dichtVan('ch:mijn') : weergave('ch:mijn').lijst).filter(x => !w || x.zoek.includes(w)) : null;
+  $('#lijst-titel').textContent = 'Mijn projecten'; $('#lijst-n').hidden = false; $('#lijst-n').textContent = pl.length; $('#lijst-sub').textContent = PRJ.geladen ? '' : 'Projecten worden opgehaald…';
+  $('#lijst-kol').innerHTML = kopKnoppen({od: true, dicht, samen: true, tl: tlAan, proj: true});
+  $('#titel').textContent = ''; $('#subtitel').textContent = '';
+  if(PRJ.fout){ $('#lijst').innerHTML = `<p class="leeg">Projecten ophalen lukte niet: ${esc(PRJ.fout)}<br>Controleer bij <b>Connectoren &amp; velden</b> of GetConnector <code>${esc(INST.connProjecten)}</code> en UpdateConnector <code>PtProject</code> aan de app connector zijn toegevoegd.</p>`; return; }
+  if(tlAan){ $('#lijst').innerHTML = samenTijdlijn(cl || [], pl); return; }
+  $('#lijst').innerHTML = projTabel(pl, dicht) + (cl ? `<h3 class="subkop">Mijn changes <b>${cl.length}</b></h3>` + (cl.length ? tabel('lijst:ch:mijn' + (dicht ? ':dicht' : ''), cl, {zonder: dicht ? ['wie', 'sig'] : ['wie'], changes: true}) : `<p class="leeg">${dicht ? 'Geen afgehandelde changes.' : 'Geen lopende changes.'}</p>`) : '');
+}
+// één tijdlijn voor changes en projecten samen (met C/P-label zodra beide erin staan)
+function samenTijdlijn(c, p){
+  c = c.map(x => Object.assign(x, {_tr: 'c'})); p = p.map(x => Object.assign(x, {_tr: 'p'}));
+  const lijst = [...c, ...p];
+  if(!lijst.length) return `<p class="leeg">${TL.samen ? 'Geen lopende changes of projecten.' : tab === 'projecten' ? 'Geen lopende projecten.' : 'Geen lopende changes.'}</p>`;
+  let h = tekenTijdlijn(lijst, {drukte: true, tag: TL.samen});
+  p.forEach(x => { h = h.split(`data-nr="${esc(x.code)}"`).join(`data-proj="${esc(x.code)}"`); });
+  return h;
 }
 /* tijdlijn van changes: balk van begindatum tot einddatum (project); zonder einddatum de geplande datum */
 const weeknr = d => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())), dg = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - dg); const j = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - j) / DAG + 1) / 7); };
@@ -1882,11 +1935,11 @@ function teken(){
   tekenNav();
   if(tab === 'trajecten' || tab === 'ch:alle') tab = 'ch:mijn';
   if(tab === 'dichtalle') tab = 'mij';   // gesloten meldingen vind je via zoeken   // Alle changes vervallen: die staan al per afdeling
-  $('#v-mij').hidden = tab !== 'mij' && tab !== 'connectoren' && tab !== 'projecten'; $('#v-lijst').hidden = tab === 'mij' || tab === 'todo' || tab === 'connectoren' || tab === 'projecten'; $('#v-todo').hidden = tab !== 'todo';
+  $('#v-mij').hidden = tab !== 'mij' && tab !== 'connectoren'; $('#v-lijst').hidden = tab === 'mij' || tab === 'todo' || tab === 'connectoren'; $('#v-todo').hidden = tab !== 'todo';
   $('#todo-knop').setAttribute('aria-pressed', tab === 'todo'); $('#meld-knop').setAttribute('aria-pressed', isLijstTab(tab));
   if(isLijstTab(tab) && meldPlek.tab !== tab){ meldPlek.tab = tab; meldPlek.scroll = 0; }   // onthouden in welke lijst je was (nooit het overzicht) 
   $('#nav').hidden = tab === 'todo';   // bij To-do hoort het meldingmenu er niet bij
-  if(tab === 'mij'){ $('#titel').textContent = ''; tekenMij(); } else if(tab === 'connectoren') tekenConnectoren(); else if(tab === 'projecten') tekenProjecten(); else if(tab === 'todo') tdTeken(); else tekenLijst();
+  if(tab === 'mij'){ $('#titel').textContent = ''; tekenMij(); } else if(tab === 'connectoren') tekenConnectoren(); else if(tab === 'todo') tdTeken(); else tekenLijst();
   pasTabelBreedtes(); if(typeof tekenAanwezig === 'function') tekenAanwezig();
 }
 
@@ -3600,7 +3653,7 @@ const TOUR = [
   {el: '#globzoek', titel: 'Zoeken in alles', tekst: 'Typ een nummer, onderwerp of naam. Je ziet direct treffers, ook gesloten meldingen; Enter opent. Sneltoets: Ctrl+K of /.'},
   {el: 'table.tabel thead', titel: 'Sorteren, filteren, kolommen', tekst: 'Klik op een kolomkop om te sorteren. Met Filter verschijnen er zoekvakjes per kolom. Sleep een kolomrand om hem breder te maken; dubbelklik maakt hem passend. Via Kolommen kies je wat je ziet.'},
   {el: 'table.tabel tbody td.sig .chip, table.tabel tbody td.sig', titel: 'Signalen', tekst: 'Waarom een melding aandacht vraagt. Ga er met de muis op staan voor de uitleg. Sorteren op Signaal zet het ernstigste en langst lopende bovenaan.'},
-  {el: '[data-chw="tijdlijn"]', titel: 'Tijdlijn', tekst: 'Bij Changes zie je ook een tijdlijn, met bovenaan de drukte per week. Kies Changes, Projecten of Beide om te zien wanneer het druk wordt.', voor: async () => { sluitDetailStil(); await naarTab('ch:mijn'); await wacht(250); }},
+  {el: '[data-chw="tijdlijn"]', titel: 'Tijdlijn', tekst: 'Bij Changes zie je ook een tijdlijn, met bovenaan de drukte per week. Met + Projecten (of bij Mijn projecten + Changes) zie je alles samen en dus wanneer het druk wordt.', voor: async () => { sluitDetailStil(); await naarTab('ch:mijn'); await wacht(250); }},
   {el: '#detail .dlg-kop', titel: 'Een melding', tekst: 'Een melding opent in dit venster. Rechtsboven: openen in AFAS, er een to-do van maken, groter maken. Het oogje laat zien wie de melding ook open heeft.', voor: async () => { soortKeuze.toegewezen = 'alle'; await naarTab('toegewezen'); return tourOpenMelding(); }},
   {el: '#d-melderinfo', titel: 'Melder en instuurder', tekst: 'De melder is de persoon met het probleem; de instuurder heeft de melding aangemaakt. Via ⓘ zie je locatie en organisatorische eenheid van de melder.', alleenMetDetail: true},
   {el: '#detail .kaart2:nth-child(2)', titel: 'Behandeling', tekst: 'Afdeling, verantwoordelijke en status wijzig je hier; * is verplicht. Een status kiezen voert de juiste workflowstap in AFAS uit, inclusief de mail aan de melder.', alleenMetDetail: true},
@@ -4272,25 +4325,6 @@ function voortgangVoorstel(p, eind = p.gereedPlanning || p.projEind){
   if(+beginDag(eind) < +beginDag(new Date())) return 'Loopt achter';
   return /loopt voor/i.test(p.voortgang) ? p.voortgang : 'Op schema';
 }
-function tekenProjecten(){
-  $('#titel').textContent = ''; $('#subtitel').textContent = ''; $('#tegels').innerHTML = '';
-  if(PRJ.fout){ $('#blokken').innerHTML = `<section class="blok cn-kaart"><header><h2>Projecten ophalen lukte niet</h2></header><p class="hint" style="padding:0 22px 18px">${esc(PRJ.fout)}<br>Controleer bij <b>Connectoren &amp; velden</b> of GetConnector <code>${esc(INST.connProjecten)}</code> en UpdateConnector <code>PtProject</code> aan de app connector zijn toegevoegd.</p></section>`; return; }
-  const sorteer = (a, b) => (a.rol !== 'Projectleider') - (b.rol !== 'Projectleider') || +(a.projEind || 9e15) - +(b.projEind || 9e15);
-  const lijst = PRJ.lijst.filter(p => PRJ.afgerond || !p.afgesloten).sort(sorteer), nAf = PRJ.lijst.filter(p => p.afgesloten).length;
-  const w = chWeergave === 'tijdlijn' ? 'tijdlijn' : 'lijst';
-  const balk = `<div class="werkbalk"><div class="schakel klein" role="group" aria-label="Weergave">${['lijst', 'tijdlijn'].map(v => `<button type="button" data-projw="${v}" aria-pressed="${w === v}">${v === 'lijst' ? 'Lijst' : 'Tijdlijn'}</button>`).join('')}</div>
-    ${w === 'tijdlijn' ? `<div class="schakel klein" role="group" aria-label="Periode">${[['maand', '6 weken'], ['kwartaal', 'Kwartaal'], ['halfjaar', 'Halfjaar']].map(([z, t]) => `<button type="button" data-projz="${z}" aria-pressed="${chZoom === z}">${t}</button>`).join('')}</div>` : ''}
-    ${nAf ? `<label class="schuif"><input type="checkbox" id="p-afgerond" ${PRJ.afgerond ? 'checked' : ''}><i></i><span>Ook afgeronde (${nAf})</span></label>` : ''}</div>`;
-  const chip = (t, kl) => t ? `<span class="cn-badge ${kl}">${esc(t)}</span>` : '<span class="hint">–</span>';
-  const rij = p => `<tr data-proj="${esc(p.code)}" tabindex="0" style="cursor:pointer">
-    <td class="mono">${esc(p.code)}</td><td><b style="font-weight:600">${esc(p.onderwerp)}</b>${p.laatste ? `<small class="hint" style="display:block;max-width:520px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.laatsteOp ? fmtDatum(p.laatsteOp) + ' · ' : ''}${esc(p.laatste)}</small>` : ''}</td>
-    <td>${chip(p.rol, p.rol === 'Projectleider' ? '' : 'grijs')}</td><td>${esc(p.status || '–')}</td><td>${chip(p.voortgang, voortKleur(p.voortgang))}</td>
-    <td>${fmtDatum(p.projStart)}</td><td class="${p.projEind && !p.afgesloten && +p.projEind < +beginDag(new Date()) ? 'rood' : ''}">${fmtDatum(p.projEind)}</td></tr>`;
-  const inhoud = !lijst.length ? `<p class="hint" style="padding:18px 22px">Geen lopende projecten waar je een rol in hebt.${PRJ.diag ? `<br><small>Gelezen uit AFAS: ${esc(PRJ.diag)}</small>` : ''}</p>`
-    : w === 'tijdlijn' ? tekenTijdlijn(lijst).replace(/data-nr=/g, 'data-proj=')
-    : `<table class="tabel projtabel"><thead><tr><th>Nr</th><th>Project</th><th>Jouw rol</th><th>Fase</th><th>Voortgang</th><th>Start</th><th>Einde</th></tr></thead><tbody>${lijst.map(rij).join('')}</tbody></table>`;
-  $('#blokken').innerHTML = balk + `<div class="blok"><header><h2>Projecten waar je bij betrokken bent</h2><b>${lijst.length}</b></header>${inhoud}</div>`;
-}
 /* ================= Trajecten: changes en projecten samen, met drukte per week ================= */
 // Mij = changes op jouw naam + projecten waar jij een rol in hebt; Team = alle lopende changes en projecten.
 const TR = {scope: opslag.get('mict-trscope') || 'mij', soort: opslag.get('mict-trsoort') || 'alles', weergave: opslag.get('mict-trweergave') || 'tijdlijn'};
@@ -4358,19 +4392,6 @@ document.addEventListener('click', e => {
   teken();
 }, true);
 
-/* tijdlijn bij Changes: kies Changes (standaard), Projecten of Beide; met drukte per week bovenaan */
-const TL = {soort: opslag.get('mict-tlsoort') || 'changes'};
-function tekenChTijdlijn(l){
-  const c = TL.soort === 'projecten' ? [] : l.map(x => Object.assign(x, {_tr: 'c'}));
-  const p = TL.soort === 'changes' ? [] : (tab === 'ch:alle' ? PRJ.alle : PRJ.lijst).filter(x => !x.afgesloten).map(x => Object.assign(x, {_tr: 'p'}));
-  const lijst = [...c, ...p];
-  const hint = TL.soort !== 'changes' && PRJ.fout ? `<p class="hint" style="padding:10px 26px 0">Projecten ophalen lukte niet (${esc(PRJ.fout)}); zie Connectoren &amp; velden.</p>` : '';
-  if(!lijst.length) return hint + `<p class="leeg">${TL.soort === 'projecten' ? 'Geen lopende projecten.' : TL.soort === 'beide' ? 'Geen lopende changes of projecten.' : 'Geen lopende changes.'}</p>`;
-  let h = tekenTijdlijn(lijst, {drukte: true, tag: TL.soort === 'beide'});
-  p.forEach(x => { h = h.split(`data-nr="${esc(x.code)}"`).join(`data-proj="${esc(x.code)}"`); });
-  return hint + h;
-}
-document.addEventListener('click', e => { const b = e.target.closest('[data-tlsoort]'); if(!b) return; TL.soort = b.dataset.tlsoort; opslag.set('mict-tlsoort', TL.soort); teken(); });
 /* ---- bijwerken ---- */
 async function projMeta(){
   if(PRJ.meta) return PRJ.meta;
@@ -4466,7 +4487,7 @@ document.addEventListener('keydown', e => { if(e.key === 'Enter' && (tab === 'pr
 // Wat je instelt staat in de browser én online, per AFAS-gebruiker. Bij inloggen halen we het op en voegen we samen
 // (per instelling wint de nieuwste); wijzig je iets, dan gaat het 3 seconden later mee. Zonder verbinding werkt alles gewoon lokaal.
 const SYNC_VAST = ['mict-thema', 'mict-soort', 'mict-kolommen-uit', 'mict-kolbreedte', 'mict-chzoom', 'mict-chweergave', 'mict-werk-ons', 'mict-afd-ons',
-  'mict-venster-groot', 'mict-recente-melders', 'mict-tlsoort', 'mict-tour-gezien', 'mict-gelezen', 'mict-interne-notities'];
+  'mict-venster-groot', 'mict-recente-melders', 'mict-tlsoort', 'mict-samen', 'mict-tour-gezien', 'mict-gelezen', 'mict-interne-notities'];
 const SYNC_META = 'mict-sync-tijden';
 const syncUrl = () => INST.instellingenUrl || String(INST.tokenFunctie || '').replace(/afas-token\/?$/, 'ict-instellingen');
 const syncNaam = k => k.startsWith('mict-profiel-') ? 'profiel' : SYNC_VAST.includes(k) ? k : null;   // profiel staat lokaal per AFAS-sub, online gewoon 'profiel'
