@@ -615,6 +615,38 @@ textarea.voorstel{background:var(--lichtblauw-2)}
 .oog{display:inline-grid;place-items:center;color:var(--blauw-2);margin-right:6px;vertical-align:-3px;cursor:help}
 .oog svg{width:15px;height:15px}
 .oog.bezig{color:var(--oranje)}
+/* samen: wie zit er op een melding (initialen op de rij, stipjes als iemand typt) */
+.live{display:inline-flex;align-items:center;margin-right:6px;vertical-align:-4px;cursor:help}
+.live i{width:19px;height:19px;border-radius:50%;background:var(--lichtblauw-2);color:var(--blauw);font-style:normal;font-size:9px;font-weight:700;display:grid;place-items:center;box-shadow:0 0 0 2px var(--vlak)}
+.live i + i{margin-left:-5px}
+.live.bezig i{background:var(--oranje-licht);color:var(--oranje)}
+.typt{display:inline-flex;gap:2px;margin-left:4px}
+.typt b{width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.35;animation:typt 1.2s infinite}
+.typt b:nth-child(2){animation-delay:.2s}.typt b:nth-child(3){animation-delay:.4s}
+@keyframes typt{0%,60%,100%{opacity:.25;transform:none}30%{opacity:1;transform:translateY(-2px)}}
+tr.flits td{animation:flits 2.4s ease-out}
+@keyframes flits{0%,25%{background:var(--goud-licht)}100%{background:transparent}}
+/* team rechtsboven: gezichtjes van wie online is */
+.teamstapel{display:flex;align-items:center;margin-left:10px}
+.teamstapel:empty{display:none}
+.teamstapel i{position:relative;width:30px;height:30px;border-radius:50%;background:var(--lichtblauw-2);color:var(--blauw);font-style:normal;font-size:11px;font-weight:700;display:grid;place-items:center;box-shadow:0 0 0 2.5px var(--achtergrond);cursor:default}
+.teamstapel i + i{margin-left:-4px}
+.teamstapel i::after{content:'';position:absolute;right:-1px;bottom:-1px;width:8px;height:8px;border-radius:50%;background:var(--groen);box-shadow:0 0 0 2px var(--achtergrond)}
+.teamstapel i.weg::after{background:var(--goud)}
+.teamstapel i.meer{background:var(--vlak);color:var(--grijs);border:1px solid var(--lijn)}.teamstapel i.meer::after{display:none}
+/* Teamstroom: paneel naast de rail */
+.rail .r .stip{position:absolute;top:9px;right:9px;width:9px;height:9px;border-radius:50%;background:var(--goud);box-shadow:0 0 0 2px var(--rail-bg)}
+.rail .r .stip[hidden]{display:none}
+.teampaneel{position:fixed;left:92px;top:90px;right:auto;width:min(380px,calc(100vw - 110px));max-height:calc(100vh - 110px);overflow:auto;padding:8px}
+.teampaneel h4{font-size:15px;color:var(--blauw);margin:6px 12px 2px}
+.teampaneel .act{flex-direction:row;align-items:flex-start;gap:10px;padding:7px 12px;text-align:left}
+.teampaneel .act > i{flex:none;width:28px;height:28px;border-radius:50%;background:var(--lichtblauw-2);color:var(--blauw);font-style:normal;font-size:11px;font-weight:700;display:grid;place-items:center}
+.teampaneel .act > i.k{background:var(--rood-licht);color:var(--rood)}.teampaneel .act > i.g{background:var(--groen-licht);color:var(--groen)}
+.teampaneel .act > span{display:flex;flex-direction:column;line-height:1.4;font-size:13px;min-width:0}.teampaneel .act > span > span{display:block}
+.teampaneel .act small{color:var(--grijs);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.teampaneel .act.nieuw{box-shadow:inset 3px 0 0 var(--goud)}
+.teampaneel .act[tabindex="-1"]{cursor:default}.teampaneel .act[tabindex="-1"]:hover{background:transparent}
+.ikmenu .nietstoren{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
 .aanwezig{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--blauw);background:var(--lichtblauw-2);border-radius:999px;padding:4px 12px 4px 9px;white-space:nowrap}
 .aanwezig[hidden]{display:none}
 .aanwezig svg{width:16px;height:16px}
@@ -890,6 +922,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
     <svg class="logo" viewBox="0 0 64 64" role="button" tabindex="0" data-weergave="mij" aria-label="Overzicht"><title>SubmIT · overzicht</title><rect width="64" height="64" rx="16"/><svg x="9" y="10" width="46" height="44" viewBox="105 110 505 435"><g><path d="M518 257L517 258L512 259L509 261L507 261L506 262L489 267L486 269L472 273L469 275L446 282L443 284L441 284L440 285L438 285L437 286L402 297L432 312L437 316L414 341L414 342L403 353L403 354L376 384L342 345L342 344L331 332L331 331L325 325L320 318L313 311L295 331L295 332L278 350L278 351L271 358L271 359L261 369L261 370L221 414L221 415L212 424L212 425L205 432L205 433L181 459L181 460L166 476L166 477L118 531L164 496L168 494L184 482L188 478L204 466L208 464L235 443L243 438L255 428L259 426L260 427L258 431L256 433L247 451L245 453L242 460L240 462L227 488L318 396L319 396L326 403L326 404L372 454L469 347L471 348L471 349L475 353L475 354L479 358L479 359L483 363L495 379L496 379L496 375L497 374L497 370L498 369L498 364L499 363L499 359L500 358L500 353L501 352L501 347L502 346L502 342L503 341L503 337L504 336L504 332L505 331L506 320L507 319L507 315L508 314L508 309L509 308L509 304L510 303L510 298L511 297L511 293L512 292L512 287L513 286L514 276L515 275L515 270L516 269L516 264L517 263L517 259Z"/><path d="M505 121L505 124L504 125L502 136L500 140L500 143L498 147L498 150L497 151L495 161L484 165L481 165L480 166L465 169L461 171L454 172L456 172L460 174L463 174L464 175L467 175L468 176L471 176L472 177L475 177L479 179L486 180L490 182L493 182L496 186L496 189L498 193L500 204L502 208L505 223L506 218L508 214L508 211L510 207L510 204L511 203L513 192L515 188L515 185L517 182L520 182L521 181L524 181L525 180L528 180L536 177L539 177L547 174L557 172L554 172L553 171L546 170L542 168L535 167L531 165L524 164L520 162L517 162L515 160L513 149L511 145L511 142L510 141L510 138L509 137L509 134L508 133L508 130L507 129L506 122Z"/><path d="M452 195L446 217L444 219L442 219L441 220L438 220L434 222L423 224L427 226L430 226L431 227L434 227L435 228L438 228L439 229L444 230L446 232L447 237L448 238L448 241L449 242L449 245L450 246L450 249L451 250L451 253L452 254L452 251L455 243L457 232L459 230L461 230L462 229L465 229L473 226L480 225L480 224L477 224L476 223L473 223L472 222L469 222L465 220L459 219L457 217L457 214L454 206Z"/><path d="M567 228L565 233L564 240L562 244L562 247L559 250L539 255L549 257L550 258L553 258L557 260L560 260L563 266L563 269L564 270L564 273L565 274L565 277L566 278L567 283L567 280L569 276L569 273L572 265L572 262L574 260L577 260L581 258L584 258L585 257L588 257L589 256L594 255L573 249L569 238Z"/><path d="M576 177L572 191L569 193L566 193L565 194L557 196L560 196L561 197L571 199L573 202L574 209L576 213L577 207L580 199L594 196L589 194L582 193L579 191L579 188L577 184Z"/></g></svg></svg>
     <button type="button" class="r" id="meld-knop" title="Meldingen (terug naar waar je was)" aria-label="Meldingen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></button>
     <button type="button" class="r" id="todo-knop" data-weergave="todo" title="To-do en notities" aria-label="To-do en notities"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span class="tel" id="todo-aantal"></span></button>
+    <button type="button" class="r" id="team-knop" title="Team: wie is er online en wat gebeurt er" aria-label="Team" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 20a6.5 6.5 0 0 0-2.6-5.2"/></svg><span class="stip" id="team-stip" hidden></span></button>
     <button type="button" class="r plus" id="nieuw-knop" title="Nieuwe melding" aria-label="Nieuwe melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
   </nav>
   <aside class="nav" id="nav"></aside>
@@ -897,7 +930,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
     <div class="bovenbalk">
       <h1 id="titel">Voor mij</h1><span class="sub" id="subtitel"></span>
       <div class="globzoek" id="globzoek"><label class="zoek" title="Zoeken (Ctrl+K)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="f-zoek" placeholder="Zoek op nummer, onderwerp of naam…" autocomplete="off" spellcheck="false" aria-label="Zoeken in meldingen"><kbd id="zoek-kbd">Ctrl K</kbd></label><div class="zoekres" id="zoekres" hidden></div></div>
-      <div class="rechts"><div class="schakel klein" id="mijalles-top" role="group" aria-label="Welke meldingen je ziet"><button type="button" data-v="mij" title="Alleen meldingen waar jij behandelaar bent of een taak hebt">Mij</button><button type="button" data-v="afd" title="Jouw meldingen plus alles in je ★-afdelingen, wie de behandelaar ook is">Afdelingen</button><button type="button" data-v="alles" title="Alle meldingen">Alles</button></div><button type="button" class="ik" id="ik" title="Menu" aria-haspopup="menu"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
+      <div class="teamstapel" id="teamstapel" aria-label="Collega’s online"></div><div class="rechts"><div class="schakel klein" id="mijalles-top" role="group" aria-label="Welke meldingen je ziet"><button type="button" data-v="mij" title="Alleen meldingen waar jij behandelaar bent of een taak hebt">Mij</button><button type="button" data-v="afd" title="Jouw meldingen plus alles in je ★-afdelingen, wie de behandelaar ook is">Afdelingen</button><button type="button" data-v="alles" title="Alle meldingen">Alles</button></div><button type="button" class="ik" id="ik" title="Menu" aria-haspopup="menu"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
     </div>
     <main>
       <section id="v-mij">
@@ -995,7 +1028,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v5.9', VERSIE_DATUM = '04-10-2026';
+const VERSIE = 'v5.11', VERSIE_DATUM = '04-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1942,7 +1975,7 @@ let tab = 'mij';
 /* wat je zelf wijzigt staat meteen in beeld; de GetConnector van AFAS loopt vaak 5-10 seconden achter.
    Tot AFAS de wijziging teruggeeft (max. 3 minuten) houdt de pagina de eigen waarde vast. */
 const lokaalNieuw = new Map();
-function onthoudLokaal(x, v, duur = 3 * 60e3){ const k = String(x.nr), o = lokaalNieuw.get(k) || {velden:{}}; Object.assign(o.velden, v); o.tot = Math.max(o.tot || 0, Date.now() + duur); lokaalNieuw.set(k, o); pasLokaalToe(); }
+function onthoudLokaal(x, v, duur = 3 * 60e3){ meldActiviteitVan(x, v); const k = String(x.nr), o = lokaalNieuw.get(k) || {velden:{}}; Object.assign(o.velden, v); o.tot = Math.max(o.tot || 0, Date.now() + duur); lokaalNieuw.set(k, o); pasLokaalToe(); }
 const zelfde = (k, a, b) => (!a && !b) ? true : k === 'afgesloten' ? !!a === !!b : (k === 'gepland' || k === 'projStart' || k === 'projEind' || k === 'reactieDatum') ? (!!a && !!b && Math.abs(+a - +b) < (k === 'reactieDatum' ? 10 * 60e3 : DAG)) : norm(a) === norm(b);
 function pasLokaalToe(){
   lokaalNieuw.forEach((o, nr) => {
@@ -3761,18 +3794,18 @@ function plaatsTour(){
 function ikMenu(){
   let m = $('#ikmenu');
   if(!m){ $('#ik').insertAdjacentHTML('afterend', '<div class="ikmenu" id="ikmenu" hidden role="menu"></div>'); m = $('#ikmenu'); }
-  if(m.hidden) m.innerHTML = `<div id="ik-online"></div><hr>
+  if(m.hidden) m.innerHTML = `<button type="button" role="menuitem" class="nietstoren" data-ikm="stil"><span>Niet storen<small>geen pop-ups; kritieke storingen blijven</small></span><span class="schuif"><input type="checkbox" tabindex="-1" ${nietStoren ? 'checked' : ''}><i></i></span></button>
     <button type="button" role="menuitem" data-ikm="thema">${isDonker() ? 'Lichte weergave' : 'Donkere weergave'}</button>
     <button type="button" role="menuitem" data-ikm="import">To-do importeren<small>uit een Microsoft To Do-export (JSON)</small></button>
     <button type="button" role="menuitem" data-ikm="tour">Rondleiding</button>
     <button type="button" role="menuitem" data-ikm="conn">Connectoren &amp; velden<small>voor de beheerder</small></button><hr>
     <button type="button" role="menuitem" data-ikm="uit">Uitloggen</button><p class="ikversie">Versie ${VERSIE.slice(1)} · ${VERSIE_DATUM}</p>`;
   m.hidden = !m.hidden;
-  if(!m.hidden){ tekenOnline(); seinAanwezig(); }
 }
 document.addEventListener('click', e => {
-  const on = e.target.closest('[data-onlnr]'); if(on){ $('#ikmenu').hidden = true; const x = items.find(y => String(y.nr) === on.dataset.onlnr); if(x){ navLijst = []; openDetail(x.nr); } else toast('Melding ' + on.dataset.onlnr + ' staat (nog) niet in de lijst.'); return; }
+  const on = e.target.closest('[data-onlnr]'); if(on){ if($('#ikmenu')) $('#ikmenu').hidden = true; if($('#teampaneel')) $('#teampaneel').hidden = true; const x = items.find(y => String(y.nr) === on.dataset.onlnr); if(x){ navLijst = []; openDetail(x.nr); } else toast('Melding ' + on.dataset.onlnr + ' staat (nog) niet in de lijst.'); return; }
   const im = e.target.closest('[data-ikm]'); if(im){ $('#ikmenu').hidden = true; const k = im.dataset.ikm;
+    if(k === 'stil'){ nietStoren = !nietStoren; opslag.set('mict-nietstoren', nietStoren); toast(nietStoren ? 'Niet storen staat aan: wat er gebeurt zie je in Team' : 'Niet storen staat uit'); return; }
     if(k === 'tour') startTour(); else if(k === 'thema') wisselThema(); else if(k === 'uit') uitloggen();
     else if(k === 'import'){ if(tab !== 'todo'){ tab = 'todo'; teken(); } if(TD.status === 'ok'){ $('#td-import-bestand').value = ''; $('#td-import-bestand').click(); } else toast('Kies eerst je to-do-bestand; daarna kun je importeren'); }
     else { tab = 'connectoren'; teken(); } return; }
@@ -4624,20 +4657,23 @@ function syncToepassen(){
 /* ================= aanwezig: wie heeft welke melding nu open (oogje) ================= */
 // Via de Azure Function ict-aanwezig: elke 20 seconden een seintje met de melding dat je open hebt. Alleen nummer + naam, geen inhoud.
 const OOG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
-const AANW = {lijst: [], ik: '', fouten: 0, uit: false, bezig: false, sessie: Math.random().toString(36).slice(2, 10)};
+const AANW = {lijst: [], ik: '', fouten: 0, uit: false, bezig: false, actStart: false, flits: new Map(), sessie: Math.random().toString(36).slice(2, 10)};
 const aanwezigUrl = () => INST.aanwezigUrl || String(INST.tokenFunctie || '').replace(/afas-token\/?$/, 'ict-aanwezig');
 const anderenOp = nr => AANW.lijst.filter(a => String(a.nr) === String(nr) && a.code !== AANW.ik && !benIk(a.naam));
 async function seinAanwezig(){
   if(AANW.uit || AANW.bezig || !profiel) return; AANW.bezig = true;
   const nr = huidig && $('#detail').open ? String(huidig.x.nr) : null, bezig = !!(nr && $('#detail').dataset.gewijzigd === '1');
+  const tk = $('#tekst'), typt = !!(nr && tk && tk.value.trim() && Date.now() - laatstGetypt < 8000);
   try{
-    if(DEMO){ AANW.ik = 'ik'; AANW.lijst = [{nr:'12601', code:'kg', naam:'Kelly Groen', bezig:false, zicht:true}, {nr:'12604', code:'gb', naam:'Glenn Brons', bezig:true, zicht:true}, {nr:'', code:'mc', naam:'Mehmet Ceylan', zicht:true}, {nr:'', code:'el', naam:'Eleandro', zicht:false}]; }
-    else { const r = await fetch(aanwezigUrl(), {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + await geldigToken()}, body: JSON.stringify({nr, naam: profiel.naam, bezig, zicht: !document.hidden})});
+    if(DEMO){ AANW.ik = 'ik'; AANW.lijst = [{nr:'12601', code:'kg', naam:'Kelly Groen', bezig:false, zicht:true}, {nr:'12604', code:'gb', naam:'Glenn Brons', bezig:true, typt:true, zicht:true}, {nr:'', code:'mc', naam:'Mehmet Ceylan', zicht:true}, {nr:'', code:'el', naam:'Eleandro', zicht:false}];
+      if(!AANW.geb){ const m = n => Date.now() - n * 60e3; AANW.geb = [{id:'d1', soort:'opgepakt', nr:'12606', onderwerp:'Emma loopt vast bij opslaan decursus', door:'Glenn Brons', code:'gb', t:m(95)}, {id:'d2', soort:'gesloten', nr:'12598', onderwerp:'Wachtwoord resetten', door:'Kelly Groen', code:'kg', t:m(52)},
+        {id:'d3', soort:'doorgezet', nr:'12603', onderwerp:'Nieuwe laptop voor locatiemanager', naar:'Robert van der Veen', door:'Mehmet Ceylan', code:'mc', t:m(18)}, {id:'d4', soort:'reactie', nr:'12610', onderwerp:'Storing faxkoppeling huisartsen', door:'Eleandro', code:'el', t:m(6)}]; } }
+    else { const r = await fetch(aanwezigUrl(), {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + await geldigToken()}, body: JSON.stringify({nr, naam: profiel.naam, bezig, typt, zicht: !document.hidden})});
       if(!r.ok) throw new Error('HTTP ' + r.status);
       const j = await r.json(); AANW.ik = j.ik || ''; AANW.lijst = j.lijst || []; AANW.geb = j.gebeurtenissen || []; AANW.fouten = 0; AANW.status = 'ok'; }
   }catch(e){ AANW.status = e.message; if(++AANW.fouten >= 3){ AANW.uit = true; console.info('Aanwezigheid (oogje) staat uit: ' + e.message); } }
   finally{ AANW.bezig = false; }
-  meldInUit(); checkKritiek();
+  meldInUit(); checkKritiek(); toonActiviteit();
   tekenAanwezig(); tekenOnline();
 }
 // melding als een collega inlogt of uitlogt (niet bij de eerste keer laden, en jezelf telt niet mee)
@@ -4651,27 +4687,31 @@ function meldInUit(){
     for(const [c, n] of twijfel) if(!nu.has(c)) weg.push(n);
     const erbij = [...nu].filter(([c]) => !AANW.vorige.has(c) && !twijfel.has(c)).map(([, n]) => n);
     AANW.twijfel = new Map([...AANW.vorige].filter(([c]) => !nu.has(c) && !twijfel.has(c)));
-    const zin = [erbij.length && `${lijstje(erbij)} ${erbij.length === 1 ? 'is' : 'zijn'} zojuist ingelogd`, weg.length && `${lijstje(weg)} ${weg.length === 1 ? 'is' : 'zijn'} uitgelogd`].filter(Boolean).join(' · ');
-    if(zin) toast(zin);
+    // geen pop-up meer (rustig): in- en uitloggen gaat stil naar Team
+    const t = Date.now(); erbij.forEach(n => stroomErbij({id: `in-${n}-${t}`, soort: 'in', door: n, t})); weg.forEach(n => stroomErbij({id: `uit-${n}-${t}`, soort: 'uit', door: n, t}));
   }
   AANW.vorige = nu;
 }
 function tekenAanwezig(){
   // in de lijsten: oogje achter het meldingnummer
   document.querySelectorAll('tr[data-nr]').forEach(tr => { const a = anderenOp(tr.dataset.nr), td = tr.querySelector('td.ond') || tr.querySelector('td.nr'); if(!td) return;
-    let o = td.querySelector('.oog');
+    const f = AANW.flits.get(tr.dataset.nr); if(f && f > Date.now() && !tr.classList.contains('flits')){ tr.classList.add('flits'); setTimeout(() => tr.classList.remove('flits'), 2500); }
+    let o = td.querySelector('.live');
     if(!a.length){ if(o) o.remove(); return; }
-    if(!o){ o = document.createElement('span'); o.className = 'oog'; td.prepend(o); }
-    o.innerHTML = OOG; o.classList.toggle('bezig', a.some(x => x.bezig)); o.dataset.uitleg = a.map(x => `${x.naam} ${x.bezig ? 'is deze melding aan het bewerken' : 'heeft deze melding open'}`).join('\n'); });
+    if(!o){ o = document.createElement('span'); o.className = 'live'; td.prepend(o); }
+    o.innerHTML = a.slice(0, 2).map(x => `<i>${esc(initialen(x.naam))}</i>`).join('') + (a.some(x => x.typt) ? '<span class="typt"><b></b><b></b><b></b></span>' : '');
+    o.classList.toggle('bezig', a.some(x => x.bezig || x.typt)); o.dataset.uitleg = a.map(x => `${x.naam} ${x.typt ? 'typt een reactie op deze melding' : x.bezig ? 'is deze melding aan het bewerken' : 'heeft deze melding open'}`).join('\n'); });
   // in het open ticket: wie kijkt er mee
   const el = $('#d-aanwezig'); if(!el || !huidig) return;
   const a = anderenOp(huidig.x.nr);
-  el.hidden = !a.length; el.classList.toggle('bezig', a.some(x => x.bezig));
-  el.innerHTML = a.length ? `${OOG}<span>${a.map(x => `<b>${esc(x.naam.split(' ')[0])}</b>${x.bezig ? ' is aan het bewerken' : ' kijkt mee'}`).join(', ')}</span>` : '';
+  el.hidden = !a.length; el.classList.toggle('bezig', a.some(x => x.bezig || x.typt));
+  el.innerHTML = a.length ? `${OOG}<span>${a.map(x => `<b>${esc(x.naam.split(' ')[0])}</b>${x.typt ? ' typt een reactie<span class="typt"><b></b><b></b><b></b></span>' : x.bezig ? ' is aan het bewerken' : ' kijkt mee'}`).join(', ')}</span>` : '';
   el.title = a.map(x => `${x.naam} ${x.bezig ? 'heeft deze melding open en is iets aan het wijzigen; let op dat jullie elkaar niet overschrijven' : 'heeft deze melding ook open'}`).join('\n');
 }
 let aanwTik = 0;
-setInterval(() => { aanwTik++; if(!document.hidden || aanwTik % 2 === 0) seinAanwezig(); }, 20000);   // op een ander tabblad om de 40 seconden: dan blijf je 'online'
+setInterval(() => { aanwTik++; const open = !document.hidden && $('#detail').open; if(open || (!document.hidden && aanwTik % 4 === 0) || aanwTik % 8 === 0) seinAanwezig(); }, 5000);   // 5 s met een melding open, anders 20 s (40 s op een ander tabblad)
+let laatstGetypt = 0, typtSein = 0;
+document.addEventListener('input', e => { if(e.target.id !== 'tekst') return; const was = Date.now() - laatstGetypt > 8000; laatstGetypt = Date.now(); if(was && Date.now() - typtSein > 3000){ typtSein = Date.now(); seinAanwezig(); } });   // op een ander tabblad om de 40 seconden: dan blijf je 'online'
 document.addEventListener('visibilitychange', () => seinAanwezig());
 // pagina dicht: meteen afmelden (anders verdwijn je na anderhalve minuut vanzelf)
 addEventListener('pagehide', () => { if(DEMO || AANW.uit || !profiel || !tok || Date.now() > tokTot) return; try{ fetch(aanwezigUrl(), {method:'POST', keepalive:true, headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + tok}, body:'{"uit":true}'}); }catch(e){} });
@@ -4688,6 +4728,66 @@ function tekenOnline(){
 const KRIT_ICO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>';
 const kritiekOpen = () => items.filter(x => x.kritiek && !x.afgesloten);
 const kort = (t, n = 180) => { t = String(t || '').replace(/\s+/g, ' ').trim(); return t.length > n ? t.slice(0, n - 1).trimEnd() + '…' : t; };
+/* samen: wat jij in SubmIT doet, zien je collega's in Team (en een pop-up als het hen raakt) */
+let nietStoren = !!opslag.get('mict-nietstoren');
+function meldActiviteitVan(x, v){
+  const naar = [v.verantw && norm(v.verantw) !== norm(x.verantw) && !benIk(v.verantw) && v.verantw, v.afdeling && norm(v.afdeling) !== norm(x.afdeling) && 'afdeling ' + v.afdeling].filter(Boolean).join(' · ');
+  const soort = v.afgesloten && !x.afgesloten ? 'gesloten' : naar ? 'doorgezet' : v.verantw && benIk(v.verantw) && !benIk(x.verantw) ? 'opgepakt' : v.reactieDatum && v.reactieDoor ? 'reactie' : '';
+  if(!soort) return;
+  stroomErbij({id: 'ik-' + Date.now(), soort, nr: String(x.nr), onderwerp: x.onderwerp, naar, door: profiel.naam, code: AANW.ik, sessie: AANW.sessie, t: Date.now(), zelf: true});
+  if(DEMO || AANW.uit) return;
+  (async () => { try{ await fetch(aanwezigUrl(), {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + await geldigToken()},
+    body: JSON.stringify({nr: null, naam: profiel.naam, zicht: !document.hidden, gebeurtenis: {soort, nr: String(x.nr), onderwerp: x.onderwerp, naar, sessie: AANW.sessie}})}); }catch(e){} })();
+}
+const STROOM = new Map();   // id -> gebeurtenis (van de server, plus in/uit en je eigen acties)
+const doorMij = e => e.zelf || (e.sessie ? e.sessie === AANW.sessie : (e.code && e.code === AANW.ik));
+function stroomErbij(e){ if(!e || !e.id || STROOM.has(e.id)) return false; STROOM.set(e.id, e); return true; }
+const STROOM_ZIN = {gesloten: e => `heeft <b>${esc(e.nr)}</b> afgehandeld`, doorgezet: e => `heeft <b>${esc(e.nr)}</b> doorgezet naar ${esc(String(e.naar || '').split(' · ').map(d => benIk(d) ? 'jou' : d).join(' · '))}`, opgepakt: e => `heeft <b>${esc(e.nr)}</b> opgepakt`,
+  reactie: e => `reageerde op <b>${esc(e.nr)}</b>`, kritiek: e => `zette <b>${esc(e.nr)}</b> op kritieke storing`, in: () => 'is ingelogd', uit: () => 'is uitgelogd'};
+const geleden = t => { const m = Math.round((Date.now() - t) / 60e3); return m < 1 ? 'zojuist' : m < 60 ? m + ' min' : new Date(t).toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'}); };
+// raakt deze gebeurtenis jou? dan (en alleen dan) een pop-up
+function raaktMij(e){
+  const x = items.find(y => String(y.nr) === String(e.nr));
+  if(e.soort === 'doorgezet') return String(e.naar || '').split(' · ').some(d => /^afdeling /.test(d) ? favorieten().some(f => norm(navAfd(f)) === norm(navAfd(d.slice(9)))) : benIk(d));
+  if(e.soort === 'gesloten' || e.soort === 'reactie') return !!x && (isMijn(x) || benIk(x.melder));
+  return false;
+}
+function toonActiviteit(){
+  const nieuw = (AANW.geb || []).filter(e => e.id && e.soort !== 'kritiek' && stroomErbij(e)).concat((AANW.geb || []).filter(e => e.soort === 'kritiek' && stroomErbij({...e, id: 'k-' + e.id})));
+  if(!AANW.actStart){ AANW.actStart = true; tekenTeam(); return; }   // bij het openen: wel in Team, geen pop-ups
+  const anderen = nieuw.filter(e => !doorMij(e) && e.soort !== 'kritiek').sort((a, b) => a.t - b.t);
+  if(!anderen.length){ tekenTeam(); return; }
+  anderen.forEach(e => AANW.flits.set(String(e.nr), Date.now() + 2500));
+  const raak = anderen.filter(raaktMij), zin = e => `${e.door} ${STROOM_ZIN[e.soort](e).replace(/<[^>]+>/g, '')}`;
+  if(raak.length && !nietStoren) toast(raak.length > 2 ? `${raak.slice(-2).map(zin).join(' · ')} · en nog ${raak.length - 2}` : raak.map(zin).join(' · '));
+  tekenTeam();
+  if(!$('#detail').open && !$('#app').hidden && anderen.some(e => e.soort !== 'reactie')) laadGegevens('open', true).then(() => { if(!$('#detail').open) teken(); }).catch(() => {});   // lijst meteen bijwerken
+  else tekenAanwezig();
+}
+// Team: rail-stipje, gezichtjes rechtsboven en het paneel
+function tekenTeam(){
+  const ander = AANW.lijst.filter(a => a.code !== AANW.ik && !benIk(a.naam)).sort((a, b) => (b.zicht !== false) - (a.zicht !== false) || String(a.naam).localeCompare(b.naam, 'nl'));
+  const st = $('#teamstapel'); if(st){ const wat = a => a.nr ? `${a.typt ? 'typt in' : a.bezig ? 'bewerkt' : 'bekijkt'} melding ${a.nr}` : a.zicht === false ? 'op een ander tabblad' : 'in SubmIT';
+    st.innerHTML = ander.slice(0, 5).map(a => `<i class="${a.zicht === false ? 'weg' : ''}" title="${esc(a.naam)} · ${esc(wat(a))}">${esc(initialen(a.naam))}</i>`).join('') + (ander.length > 5 ? `<i class="meer" title="${esc(ander.slice(5).map(a => a.naam).join(', '))}">+${ander.length - 5}</i>` : ''); }
+  const gezien = +opslag.get('mict-team-gezien') || 0, ongezien = [...STROOM.values()].some(e => !doorMij(e) && e.t > gezien);
+  if($('#team-stip')) $('#team-stip').hidden = !ongezien;
+  const p = $('#teampaneel'); if(!p || p.hidden) return;
+  const lijst = [...STROOM.values()].sort((a, b) => b.t - a.t).slice(0, 80);
+  p.innerHTML = `<div id="ik-online"></div><hr><h5>Vandaag in het team</h5>` + (lijst.length ? lijst.map(e => `<button type="button" class="act${!doorMij(e) && e.t > (p._gezien || 0) ? ' nieuw' : ''}" ${e.nr ? `data-onlnr="${esc(e.nr)}" title="Melding ${esc(e.nr)} openen"` : 'tabindex="-1"'}><i class="${e.soort === 'kritiek' ? 'k' : e.soort === 'gesloten' ? 'g' : ''}">${esc(initialen(e.door))}</i><span><span><b>${esc(doorMij(e) ? 'Jij' : String(e.door || '').split(' ')[0])}</b> ${STROOM_ZIN[e.soort] ? STROOM_ZIN[e.soort](e) : esc(e.soort)}</span><small>${geleden(e.t)}${e.onderwerp ? ' · ' + esc(e.onderwerp) : ''}</small></span></button>`).join('') : '<p class="onl-leeg">Nog niets gebeurd vandaag.</p>');
+  tekenOnline();
+}
+function wisselTeam(){
+  let p = $('#teampaneel');
+  if(!p){ document.body.insertAdjacentHTML('beforeend', '<div class="ikmenu teampaneel" id="teampaneel" role="dialog" aria-label="Team" hidden></div>'); p = $('#teampaneel'); }
+  p.hidden = !p.hidden; $('#team-knop').setAttribute('aria-pressed', !p.hidden);
+  if(!p.hidden){ const r = $('#team-knop').getBoundingClientRect(); p.style.top = Math.max(16, Math.min(r.top, innerHeight - 420)) + 'px'; p.style.left = (r.right + 14) + 'px';
+    p._gezien = +opslag.get('mict-team-gezien') || 0; opslag.set('mict-team-gezien', Date.now()); tekenTeam(); seinAanwezig(); }
+}
+document.addEventListener('click', e => {
+  if(e.target.closest('#team-knop')){ wisselTeam(); return; }
+  const p = $('#teampaneel'); if(p && !p.hidden && !e.target.closest('#teampaneel')){ p.hidden = true; $('#team-knop').setAttribute('aria-pressed', false); }
+});
+document.addEventListener('keydown', e => { const p = $('#teampaneel'); if(e.key === 'Escape' && p && !p.hidden){ p.hidden = true; $('#team-knop').setAttribute('aria-pressed', false); $('#team-knop').focus(); } });
 async function meldKritiekAanAllen(x){
   const bekend = new Set(opslag.get('mict-kritiek-bekend') || []); bekend.add(String(x.nr)); opslag.set('mict-kritiek-bekend', [...bekend]);
   if(DEMO || AANW.uit) return;
