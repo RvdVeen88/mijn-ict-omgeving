@@ -949,7 +949,8 @@ const INST = Object.assign({
   soortVeld: 'Omschrijving', slaSoorten: 'Aanvraag ICT', afdVerbergen: 'Zorgadministratie',
   ticketUrl: 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}',   // leeg = geen link
   connReacties: 'Helpdesk_Reacties',
-  connProjecten: 'PowerBI_PBI_Team',                          // projecten uit het projectbureau (Mijn projecten); leeg = uit
+  connProjecten: 'PowerBI_PBI_Team',
+  connProjectInfo: 'PowerBI_PBI_Projecten',                  // per project: code, omschrijving, projectleider, status, datums, voortgang, prioriteit                          // projecten uit het projectbureau (Mijn projecten); leeg = uit
   projUpdStId: 77,                                            // type dossieritem 'Update projectvoortgang'
   projFaseCodes: 'Verkenning=110, Pilot=120, Realisatie=200, Afgerond=300, On Hold=400, Evaluatie en Borging=500, Opschaling=600, Implementatie=700, Vervallen=990',
   projectUrl: 'https://88406.afasinsite.nl/project-prs?PrId={code}',
@@ -965,7 +966,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v5.3', VERSIE_DATUM = '03-10-2026';
+const VERSIE = 'v5.5', VERSIE_DATUM = '03-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3493,6 +3494,11 @@ const CONN_KAART = () => [
     v(/^(projectleider|projectmanager)/i, 'Projectleider (zonder dit veld haalt SubmIT het uit Rol)', 'opt', 'Projectleider'), v(/^(medewerker|teamlid|projectlid|naam)$/i, 'Teamlid: jouw rol', 'opt', 'Teamlid'), v(/^(rol|projectrol)/i, 'Rol in het project', 'opt', 'Rol'),
     v(/^(projectfase|fase|status)/i, 'Projectfase', 'opt', 'Projectfase'), v(/voortgang/i, 'Voortgang', 'opt', 'Voortgang'), v(/^(begindatum|startdatum)/i, 'Start (tijdlijn)', 'opt', 'Startdatum'), v(/^(einddatum|deadline|opleverdatum)/i, 'Einde (tijdlijn)', 'opt', 'Einddatum'),
     v(/laatste update|stand van zaken|statusupdate/i, 'Laatste update', 'opt', 'Laatste update'), v(/gereed.*planning|planning.*gereed/i, 'Datum gereed (planning): einde op de tijdlijn', 'opt', 'Datum gereed planning'), v(/werkelijk.*gereed|gereed.*werkelijk/i, 'Werkelijke datum gereed: project is af', 'opt', 'Werkelijke datum gereed')]},
+  {conn: INST.connProjectInfo, sleutel: 'connProjectInfo', soort: 'GET', nodig: 'opt', doel: 'Mijn projecten: per project de code (nodig om bij te werken), naam, projectleider, status, datums, voortgang en prioriteit.', velden: [
+    v(/^project$/i, 'Projectcode (koppelt met PtProject)', 'ja', 'Project'), v(/^omschrijving$/i, 'Projectnaam', 'ja', 'Omschrijving'), v(/^projectleider$/i, 'Projectleider', 'opt', 'Projectleider'),
+    v(/^projectstatus_?code$/i, 'Code van de projectfase', 'opt', 'Projectstatus_code'), v(/^projectstatus_?$/i, 'Projectfase', 'opt', 'Projectstatus'), v(/^begindatum$/i, 'Start (tijdlijn)', 'opt', 'Begindatum'),
+    v(/gereed.*planning/i, 'Datum gereed (planning)', 'opt', 'Datum_gereed_planning'), v(/werkelijk.*gereed/i, 'Werkelijke datum gereed: project is af', 'opt', 'Werkelijke_datum_gereed'),
+    v(/^voortgang$/i, 'Voortgang', 'opt', 'Voortgang'), v(/^prioriteit$/i, 'Prioriteit', 'opt', 'Prioriteit')]},
   {conn: 'PtProject', soort: 'UPDATE', nodig: 'opt', doel: 'Mijn projecten bijwerken: projectfase, voortgang en datum gereed (planning).', velden: [
     v('PrId', 'Projectnummer'), v(/fase/i, 'Projectfase', 'opt', 'Projectfase'), v(/voortgang/i, 'Voortgang', 'opt', 'Voortgang'), v(/gereed.*planning|planning.*gereed/i, 'Datum gereed (planning)', 'opt', 'Datum gereed planning')]},
   {conn: 'SubjectConnector', soort: 'GET', nodig: 'ja', doel: 'Bestand van een bijlage openen of downloaden (AppConnectorSubject).', velden: [v('filedata', 'Inhoud van het bestand'), v('filename', 'Bestandsnaam', 'opt')], geenMeta: true}
@@ -4193,6 +4199,15 @@ async function projKolommen(){
   if(!k.nr && !k.naam) throw new Error(`In ${INST.connProjecten} is geen projectnummer of projectnaam herkend.`);
   return (PRJ.kol = k);
 }
+// naam in een projectconnector staat vaak anders dan in je profiel ("Veen, Robert van der", "R. van der Veen", gebruikerscode): ruimer vergelijken
+const naamWoorden = n => String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean);
+function benIkLos(naam){
+  if(benIk(naam)) return true; if(!profiel || !naam) return false;
+  const a = naamWoorden(naam), b = naamWoorden(profiel.naam); if(!a.length || !b.length) return false;
+  if([...a].sort().join(' ') === [...b].sort().join(' ')) return true;   // zelfde woorden, andere volgorde
+  const achter = b[b.length - 1], voor = b[0];   // achternaam + voorletter
+  return a.includes(achter) && a.some(w => w === voor || (w.length === 1 && w === voor[0])) && a.length <= b.length + 1;
+}
 async function laadProjecten(){
   if(!INST.connProjecten || !profiel) return;
   try{
@@ -4200,12 +4215,15 @@ async function laadProjecten(){
     if(k.status && k.faseCode) rijen.forEach(r => { const n = String(r[k.status] ?? '').trim(), c = String(r[k.faseCode] ?? '').trim(); if(n && c) PRJ.faseCodes[n] = c; });
     if(k.status) PRJ.fasenGezien = [...new Set(rijen.map(r => String(r[k.status] ?? '').trim()).filter(Boolean))];
     rijen.forEach(r => { const nr = String(r[k.nr || k.naam] ?? '').trim(); if(nr) (groep[nr] = groep[nr] || []).push(r); });
+    // staat er in de hele connector maar één persoon, dan filtert AFAS al op de ingelogde gebruiker: alles is van jou
+    const personen = k.wie ? new Set(rijen.map(r => norm(r[k.wie])).filter(Boolean)) : new Set(), alleenIk = personen.size === 1;
+    PRJ.diag = `${rijen.length} regels, ${personen.size} verschillende namen in ${k.wie || '(geen naamveld)'}${personen.size ? ', bijv. ' + [...new Set(rijen.map(r => String(r[k.wie] ?? '').trim()).filter(Boolean))].slice(0, 3).join(', ') : ''}; jouw naam: ${profiel.naam}`;
     const uit = [];
     Object.entries(groep).forEach(([code, rs]) => {
       const r0 = rs[0]; let rol = '';
-      if(k.leider && rs.some(r => benIk(r[k.leider]))) rol = 'Projectleider';
-      else if(k.opdrachtgever && rs.some(r => benIk(r[k.opdrachtgever]))) rol = 'Opdrachtgever';
-      else { const mijn = rs.find(r => (k.wie && benIk(r[k.wie])) || (k.wieCode && benIk(r[k.wieCode]))); if(mijn) rol = String((k.rol && mijn[k.rol]) || '').trim() || 'Projectlid'; }
+      if(k.leider && rs.some(r => benIkLos(r[k.leider]))) rol = 'Projectleider';
+      else if(k.opdrachtgever && rs.some(r => benIkLos(r[k.opdrachtgever]))) rol = 'Opdrachtgever';
+      else { const mijn = rs.find(r => (k.wie && benIkLos(r[k.wie])) || (k.wieCode && benIkLos(r[k.wieCode])) || alleenIk); if(mijn) rol = String((k.rol && mijn[k.rol]) || '').trim() || 'Projectlid'; }
       const status = String(k.status ? r0[k.status] ?? '' : '').trim(), voortgang = String(k.voortgang ? r0[k.voortgang] ?? '' : '').trim();
       const afgesloten = (k.afgerond && ja(r0[k.afgerond])) || /afgerond|gesloten|beeindigd|beëindigd|opgeleverd|geannuleerd|vervallen|gestopt/.test(norm(status)) || /afgerond|vervallen/.test(norm(voortgang));
       uit.push({nr: code, code, onderwerp: String(k.naam ? r0[k.naam] ?? '' : '').trim() || `Project ${code}`, rol: rol ? rol.charAt(0).toUpperCase() + rol.slice(1) : '', status, voortgang,
@@ -4214,6 +4232,32 @@ async function laadProjecten(){
         leider: k.leider ? String(r0[k.leider] ?? '').trim() : '', laatste: k.bericht ? String(r0[k.bericht] ?? '').trim() : '', laatsteOp: k.berichtDatum ? datum(r0[k.berichtDatum]) : null,
         team: k.wie ? [...new Set(rs.map(r => String(r[k.wie] ?? '').trim()).filter(Boolean))] : [], afgesloten, emmer: ''});
     });
+    // projectgegevens uit PowerBI_PBI_Projecten: echte projectcode (nodig voor bijwerken), naam, projectleider, status, datums
+    PRJ.infoFout = '';
+    if(INST.connProjectInfo){ try{
+      const info = await connectorAlles(INST.connProjectInfo), keys = Object.keys(info[0] || {});
+      const kk = n => keys.find(x => norm(x).replace(/_/g, ' ').trim() === norm(n).replace(/_/g, ' ').trim());
+      const f = {code: kk('Project'), naam: kk('Omschrijving'), leider: kk('Projectleider'), statusCode: kk('Projectstatus code'), status: kk('Projectstatus') || kk('Projectstatus_'),
+        start: kk('Begindatum'), gereedPlanning: kk('Datum gereed planning'), gereedWerkelijk: kk('Werkelijke datum gereed'), voortgang: kk('Voortgang'), prio: kk('Prioriteit')};
+      const t = (r, k) => k ? String(r[k] ?? '').trim() : '';
+      const opCode = new Map(), opNaam = new Map();
+      info.forEach(r => { if(t(r, f.code)) opCode.set(norm(t(r, f.code)), r); if(t(r, f.naam)) opNaam.set(norm(t(r, f.naam)), r);
+        if(t(r, f.status) && t(r, f.statusCode)) PRJ.faseCodes[t(r, f.status)] = t(r, f.statusCode); });
+      if(f.status) PRJ.fasenGezien = [...new Set([...(PRJ.fasenGezien || []), ...info.map(r => t(r, f.status)).filter(Boolean)])];
+      const vulAan = (p, r) => {
+        p.code = p.nr = t(r, f.code) || p.code; p.prId = t(r, f.code); p.onderwerp = t(r, f.naam) || p.onderwerp; p.leider = t(r, f.leider) || p.leider;
+        p.status = t(r, f.status) || p.status; p.voortgang = t(r, f.voortgang) || p.voortgang; p.prioriteit = t(r, f.prio);
+        if(f.start && r[f.start]) p.projStart = datum(r[f.start]);
+        if(f.gereedPlanning && r[f.gereedPlanning]){ p.gereedPlanning = datum(r[f.gereedPlanning]); p.projEind = p.projEind || p.gereedPlanning; }
+        if(f.gereedWerkelijk && r[f.gereedWerkelijk]) p.gereedWerkelijk = datum(r[f.gereedWerkelijk]);
+        p.afgesloten = !!p.gereedWerkelijk || /afgerond|gesloten|beeindigd|beëindigd|opgeleverd|geannuleerd|vervallen|gestopt/.test(norm(p.status)) || /afgerond|vervallen/.test(norm(p.voortgang));
+        if(!p.rol && benIkLos(p.leider)) p.rol = 'Projectleider'; };
+      const gezien = new Set();
+      uit.forEach(p => { const r = opCode.get(norm(p.code)) || opNaam.get(norm(p.onderwerp)) || opNaam.get(norm(p.code)); if(r){ vulAan(p, r); gezien.add(norm(p.code)); } });
+      // projecten waar jij projectleider bent maar (nog) niet in het team staat
+      info.forEach(r => { if(!benIkLos(t(r, f.leider)) || gezien.has(norm(t(r, f.code)))) return;
+        const p = {nr: '', code: '', onderwerp: '', rol: 'Projectleider', status: '', voortgang: '', team: [], emmer: '', laatste: ''}; vulAan(p, r); uit.push(p); });
+    }catch(e){ PRJ.infoFout = e.message; } }
     PRJ.alle = uit; PRJ.lijst = uit.filter(p => p.rol); PRJ.fout = '';
   }catch(e){ PRJ.fout = e.message; PRJ.lijst = []; PRJ.alle = []; }
   PRJ.geladen = true;
@@ -4242,7 +4286,7 @@ function tekenProjecten(){
     <td class="mono">${esc(p.code)}</td><td><b style="font-weight:600">${esc(p.onderwerp)}</b>${p.laatste ? `<small class="hint" style="display:block;max-width:520px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.laatsteOp ? fmtDatum(p.laatsteOp) + ' · ' : ''}${esc(p.laatste)}</small>` : ''}</td>
     <td>${chip(p.rol, p.rol === 'Projectleider' ? '' : 'grijs')}</td><td>${esc(p.status || '–')}</td><td>${chip(p.voortgang, voortKleur(p.voortgang))}</td>
     <td>${fmtDatum(p.projStart)}</td><td class="${p.projEind && !p.afgesloten && +p.projEind < +beginDag(new Date()) ? 'rood' : ''}">${fmtDatum(p.projEind)}</td></tr>`;
-  const inhoud = !lijst.length ? '<p class="hint" style="padding:18px 22px">Geen lopende projecten waar je een rol in hebt.</p>'
+  const inhoud = !lijst.length ? `<p class="hint" style="padding:18px 22px">Geen lopende projecten waar je een rol in hebt.${PRJ.diag ? `<br><small>Gelezen uit AFAS: ${esc(PRJ.diag)}</small>` : ''}</p>`
     : w === 'tijdlijn' ? tekenTijdlijn(lijst).replace(/data-nr=/g, 'data-proj=')
     : `<table class="tabel projtabel"><thead><tr><th>Nr</th><th>Project</th><th>Jouw rol</th><th>Fase</th><th>Voortgang</th><th>Start</th><th>Einde</th></tr></thead><tbody>${lijst.map(rij).join('')}</tbody></table>`;
   $('#blokken').innerHTML = balk + `<div class="blok"><header><h2>Projecten waar je bij betrokken bent</h2><b>${lijst.length}</b></header>${inhoud}</div>`;
@@ -4397,7 +4441,7 @@ async function bewaarProject(p){
     if(nieuwFase && m.fase) w[m.fase.code] = nieuwFase;
     if(nieuwVoort && m.voort) w[m.voort.code] = nieuwVoort;
     if(nieuwG !== undefined && m.gereed) w[m.gereed] = nieuwG || null;
-    if(Object.keys(w).length && !(PRJ.kol && PRJ.kol.nr)) throw new Error(`In ${INST.connProjecten} ontbreekt het projectnummer. Zonder dat nummer weet AFAS niet welk project bijgewerkt moet worden: laat de beheerder het veld Project (code) aan de connector toevoegen.`);
+    if(Object.keys(w).length && !p.prId && !(PRJ.kol && PRJ.kol.nr)) throw new Error(`In ${INST.connProjecten} ontbreekt het projectnummer en het project is niet gevonden in ${INST.connProjectInfo}. Zonder nummer weet AFAS niet welk project bijgewerkt moet worden.`);
     if(Object.keys(w).length){ const top = {}, obj = {};
       Object.entries(w).forEach(([c, v]) => { const i = c.indexOf('/'); if(i > 0) (obj[c.slice(0, i)] = obj[c.slice(0, i)] || {})[c.slice(i + 1)] = v; else top[c] = v; });
       const objecten = Object.entries(obj).map(([o, fl]) => ({[o]: {Element: {Fields: fl}}}));
@@ -4735,6 +4779,11 @@ function laadKaart(naam){
 function demoAfas(pad, opties){
   // demo: projecten (Mijn projecten)
   if(pad === `/metainfo/get/${INST.connProjecten}`) return {fields:['Projectnummer','Projectnaam','Projectleider','Teamlid','Rol','Projectfase','Voortgang','Startdatum','Einddatum','Datum_gereed_planning','Laatste_update','Datum_laatste_update'].map(id => ({id, label: id.replace(/_/g, ' ')}))};
+  if(pad.startsWith(`/connectors/${INST.connProjectInfo}`)){ const d = n => new Date(Date.now() + n * DAG).toISOString().slice(0, 10) + 'T00:00:00';
+    const r = (Project, Omschrijving, Projectleider, s, vg, prio, st, gp, wg) => ({Project, Omschrijving, Projectleider, Projectstatus_code: s.slice(0, 3).toUpperCase(), Projectstatus_: s, Begindatum: d(st), Datum_gereed_planning: d(gp), Werkelijke_datum_gereed: wg == null ? null : d(wg), Voortgang: vg, Prioriteit: prio});
+    return {rows: [r('P-0142', 'Vernieuwde werkplekken uitrol', 'Robert van der Veen', 'Realisatie', 'Op schema', '2. Midden', -90, 75), r('P-0157', 'Patiëntenportaal 2.0 per specialisme', 'Kelly Groen', 'Pilot', 'Loopt achter', '1. Hoog', -60, -4),
+      r('P-0163', 'Vervanging telefooncentrale alle locaties', 'Glenn Brons', 'Verkenning', 'Te Plannen', '2. Midden', 20, 180), r('P-0099', 'Migratie fileservers naar SharePoint', 'Robert van der Veen', 'Afgerond', 'Afgerond', '3. Laag', -200, -30, -30),
+      r('P-0180', 'Zorgeloos verbonden (netwerkvervanging)', 'Veen, Robert van der', 'Realisatie', 'On Hold', '2. Midden', -40, 120)]}; }
   if(pad.startsWith(`/connectors/${INST.connProjecten}`)){
     if(!window._demoProj){ const d = n => new Date(Date.now() + n * DAG).toISOString().slice(0, 10) + 'T00:00:00';
       const p = (nr, naam, pl, team, fase, vg, st, ei, upd, ud) => team.map(([t, rol]) => ({Projectnummer:nr, Projectnaam:naam, Projectleider:pl, Teamlid:t, Rol:rol, Projectfase:fase, Voortgang:vg, Startdatum:d(st), Einddatum:d(ei), Datum_gereed_planning:null, Laatste_update:upd, Datum_laatste_update:ud == null ? null : d(ud)}));
