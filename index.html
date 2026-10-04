@@ -64,8 +64,7 @@ button{cursor:pointer}
 .rail .r[aria-pressed="true"]{background:var(--rail-act);color:var(--rail-act-ink)}
 .rail .tel{position:absolute;top:3px;right:2px;font-size:10px;font-weight:700;background:#D92D20;color:#fff;border-radius:999px;padding:0 5px;line-height:15px;box-shadow:0 0 0 2px var(--vlak)}
 .rail .tel:empty{display:none}
-.rail .tdstatus{position:absolute;bottom:3px;right:3px;width:15px;height:15px;border-radius:50%;font-size:10px;font-weight:800;line-height:15px;text-align:center;color:#fff;box-shadow:0 0 0 2px var(--vlak)}
-.rail .tdstatus.ok{background:var(--groen)}.rail .tdstatus.mist{background:#E8890C}
+.rail #todo-knop.ontkoppeld{color:#E8890C}.rail #todo-knop.ontkoppeld svg{stroke-width:2.4}
 .rail-onder{margin-top:auto;display:flex;flex-direction:column;gap:2px}
 
 .werk{flex:1;min-width:0;display:flex;flex-direction:column}
@@ -842,7 +841,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
   <nav class="rail" aria-label="Onderdelen">
     <svg class="logo" viewBox="0 0 64 64" role="button" tabindex="0" data-weergave="mij" aria-label="Overzicht"><title>Mijn ICT-Omgeving · overzicht</title><rect width="64" height="64" rx="16"/><g transform="translate(-3.44 -3.52) scale(0.05670)"><path fill-rule="evenodd" d="M237 429H455C555 429 620 500 620 622C620 750 545 825 440 825H237ZM343 494H400C470 494 507 540 507 625C507 712 470 758 395 758C370 758 355 756 343 754Z"/><path d="M1005 431C960 422 910 418 862 418C735 418 650 500 650 627C650 755 735 835 868 835C920 835 970 828 1013 813V741C975 758 935 769 897 769C810 769 763 712 763 627C763 540 810 485 890 485C930 485 970 494 1005 507Z"/></g></svg>
     <button type="button" class="r plus" id="nieuw-knop" title="Nieuwe melding" aria-label="Nieuwe melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
-    <button type="button" class="r" id="todo-knop" data-weergave="todo" title="To-do en notities" aria-label="To-do en notities"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span class="tel" id="todo-aantal"></span><span class="tdstatus" id="todo-status" hidden></span></button>
+    <button type="button" class="r" id="todo-knop" data-weergave="todo" title="To-do en notities" aria-label="To-do en notities"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span class="tel" id="todo-aantal"></span></button>
   </nav>
   <aside class="nav" id="nav"></aside>
   <div class="werk">
@@ -942,7 +941,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v4.45', VERSIE_DATUM = '03-10-2026';
+const VERSIE = 'v4.46', VERSIE_DATUM = '03-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3944,9 +3943,9 @@ function tdRij(t){
 function tdTeken(){
   const aantal = TD.status === 'ok' ? TD.data.taken.filter(t => !t.klaar).length : 0;
   $('#todo-aantal').textContent = aantal || '';
-  // koppeling met je to-do-bestand: groen vinkje = gekoppeld, oranje vraagteken = nog koppelen
-  { const st = $('#todo-status'), ok = TD.status === 'ok', laden = !TD.status || TD.status === 'laden';
-    st.hidden = laden; st.className = 'tdstatus ' + (ok ? 'ok' : 'mist'); st.textContent = ok ? '✓' : '?';
+    // koppeling: werkt hij, dan staat het aantal taken op het icoon; zo niet, dan kleurt het icoon zelf oranje
+  { const ok = TD.status === 'ok', laden = !TD.status || TD.status === 'laden';
+    $('#todo-knop').classList.toggle('ontkoppeld', !ok && !laden);
     $('#todo-knop').title = ok ? 'To-do en notities · gekoppeld aan ' + (TD.handle && TD.handle.name || 'je bestand') : 'To-do en notities · nog niet gekoppeld: klik om je to-do-bestand te koppelen'; }
   if(tab !== 'todo') return;
   const v = $('#todo-verbind'), paneel = $('#todo-paneel'), bestand = $('#todo-bestand');
