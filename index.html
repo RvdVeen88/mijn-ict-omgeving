@@ -72,7 +72,13 @@ button{cursor:pointer}
 .bovenbalk h1{font-size:22px;color:var(--blauw);white-space:nowrap}
 .bovenbalk .sub{color:var(--grijs);font-size:14px}
 .bovenbalk .rechts{display:flex;align-items:center;gap:12px}
-.globzoek{position:relative;flex:0 1 420px;min-width:200px;margin:0 0 0 auto}
+.globzoek{position:relative;flex:0 1 420px;min-width:200px;margin:0 0 0 auto;transition:flex-basis .25s ease,min-width .25s ease}
+/* ingeklapt: alleen het vergrootglas; klik (of Ctrl+K of /) schuift het veld uit, ergens anders klikken klapt het weer in (behalve als er nog een zoekterm staat) */
+.globzoek:not(.open){flex-basis:40px;min-width:40px}
+.globzoek:not(.open) .zoek{padding:0;gap:0;height:40px;justify-content:center;cursor:pointer}
+.globzoek:not(.open) .zoek input{width:0;padding:0;opacity:0}
+.globzoek:not(.open) kbd{display:none}
+.globzoek:not(.open) .zoek:hover{border-color:var(--blauw-2)}.globzoek:not(.open) .zoek:hover svg{color:var(--blauw)}
 @media (min-width:900px){.bovenbalk{flex-wrap:nowrap}.bovenbalk h1{overflow:hidden;text-overflow:ellipsis}}
 .globzoek .zoek{margin-left:0;flex:none;width:100%;box-sizing:border-box}
 .globzoek .zoek:focus-within{border-color:var(--blauw-2);box-shadow:0 0 0 4px rgba(46,95,176,.15)}
@@ -616,6 +622,7 @@ textarea.voorstel{background:var(--lichtblauw-2)}
 .grootknop svg{width:17px;height:17px}
 .grootknop:hover{color:var(--blauw);background:var(--lichtblauw-2)}
 .grootknop + .sluit{margin-left:4px}
+.dlg-kop > button + button{margin-left:6px}
 dialog#detail .navpijl{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:26px;height:64px;display:grid;place-items:center;border:0;background:transparent;color:var(--blauw);opacity:.3;cursor:pointer;border-radius:10px;padding:0;transition:opacity .15s,background .15s}
 dialog#detail .navpijl:hover,dialog#detail .navpijl:focus-visible{opacity:1;background:var(--lichtblauw-2)}
 dialog#detail .navpijl svg{width:20px;height:20px}
@@ -870,7 +877,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
   <div class="werk">
     <div class="bovenbalk">
       <h1 id="titel">Voor mij</h1><span class="sub" id="subtitel"></span>
-      <div class="globzoek" id="globzoek"><label class="zoek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="f-zoek" placeholder="Zoek op nummer, onderwerp of naam…" autocomplete="off" spellcheck="false" aria-label="Zoeken in meldingen"><kbd id="zoek-kbd">Ctrl K</kbd></label><div class="zoekres" id="zoekres" hidden></div></div>
+      <div class="globzoek" id="globzoek"><label class="zoek" title="Zoeken (Ctrl+K)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="f-zoek" placeholder="Zoek op nummer, onderwerp of naam…" autocomplete="off" spellcheck="false" aria-label="Zoeken in meldingen"><kbd id="zoek-kbd">Ctrl K</kbd></label><div class="zoekres" id="zoekres" hidden></div></div>
       <div class="rechts"><div class="schakel klein" id="mijalles-top" role="group" aria-label="Welke meldingen je ziet"><button type="button" data-v="mij" title="Alleen meldingen waar jij behandelaar bent of een taak hebt">Mij</button><button type="button" data-v="afd" title="Jouw meldingen plus alles in je ★-afdelingen, wie de behandelaar ook is">Afdelingen</button><button type="button" data-v="alles" title="Alle meldingen">Alles</button></div><button type="button" class="ik" id="ik" title="Menu" aria-haspopup="menu"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
     </div>
     <main>
@@ -952,6 +959,7 @@ const INST = Object.assign({
   ticketUrl: 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}',   // leeg = geen link
   connReacties: 'Helpdesk_Reacties',
   connProjecten: 'PowerBI_PBI_Team',
+  connProjUpdates: 'PowerBI_PBI_Projectupdates',               // eerdere updates (dossieritems) per project, voor de reacties in het projectvenster
   connProjectInfo: 'PowerBI_PBI_Projecten',                  // per project: code, omschrijving, projectleider, status, datums, voortgang, prioriteit                          // projecten uit het projectbureau (Mijn projecten); leeg = uit
   projUpdStId: 77,                                            // type dossieritem 'Update projectvoortgang'
   projFaseCodes: 'Verkenning=110, Pilot=120, Realisatie=200, Afgerond=300, On Hold=400, Evaluatie en Borging=500, Opschaling=600, Implementatie=700, Vervallen=990',
@@ -968,7 +976,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v5.7.1', VERSIE_DATUM = '04-10-2026';
+const VERSIE = 'v5.8.1', VERSIE_DATUM = '04-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1929,6 +1937,7 @@ const meldPlek = {tab: 'toegewezen', scroll: 0};
 const isLijstTab = t => !['todo', 'mij', 'connectoren'].includes(t);
 addEventListener('scroll', () => { if(isLijstTab(tab)) meldPlek.scroll = scrollY; }, {passive: true});
 function teken(){
+  { const z = $('#f-zoek'); if(z && document.activeElement !== z && !z.value.trim()) $('#globzoek').classList.remove('open'); }
   if(!profiel) return;
   pasLokaalToe();
   { const z = $('#f-zoek'), td = tab === 'todo'; z.placeholder = td ? 'Zoek in je to-do’s…' : 'Zoek op nummer, onderwerp of naam…'; z.setAttribute('aria-label', td ? 'Zoeken in to-do’s' : 'Zoeken in meldingen'); if(td) $('#zoekres').hidden = true; }
@@ -3556,6 +3565,9 @@ const CONN_KAART = () => [
     v(/^projectstatus_?code$/i, 'Code van de projectfase', 'opt', 'Projectstatus_code'), v(/^projectstatus_?$/i, 'Projectfase', 'opt', 'Projectstatus'), v(/^begindatum$/i, 'Start (tijdlijn)', 'opt', 'Begindatum'),
     v(/gereed.*planning/i, 'Datum gereed (planning)', 'opt', 'Datum_gereed_planning'), v(/werkelijk.*gereed/i, 'Werkelijke datum gereed: project is af', 'opt', 'Werkelijke_datum_gereed'),
     v(/^voortgang$/i, 'Voortgang', 'opt', 'Voortgang'), v(/^prioriteit$/i, 'Prioriteit', 'opt', 'Prioriteit')]},
+  {conn: INST.connProjUpdates, sleutel: 'connProjUpdates', soort: 'GET', nodig: 'opt', doel: 'Projectvenster: eerdere updates (dossieritems van type Update projectvoortgang) per project, net als de reacties bij een melding. Filter in AFAS op type dossieritem 77.', velden: [
+    v(/^(project|projectcode|projectnummer)$/i, 'Projectcode (koppelt met PtProject)', 'ja', 'Project'), v(/^(toelichting|tekst|inhoud|bericht|update)$/i, 'Tekst van de update', 'ja', 'Toelichting'),
+    v(/^(datum|instuurdatum|aangemaakt op|datum aanmaak)/i, 'Datum', 'opt', 'Datum'), v(/^(aangemaakt door|medewerker|instuurder|gebruiker|naam)/i, 'Wie schreef de update', 'opt', 'Aangemaakt door'), v(/^(onderwerp|omschrijving)$/i, 'Onderwerp', 'opt', 'Onderwerp')]},
   {conn: 'PtProject', soort: 'UPDATE', nodig: 'opt', doel: 'Mijn projecten bijwerken: projectfase, voortgang en datum gereed (planning).', velden: [
     v('PrId', 'Projectnummer'), v(/fase/i, 'Projectfase', 'opt', 'Projectfase'), v(/voortgang/i, 'Voortgang', 'opt', 'Voortgang'), v(/gereed.*planning|planning.*gereed/i, 'Datum gereed (planning)', 'opt', 'Datum gereed planning')]},
   {conn: 'SubjectConnector', soort: 'GET', nodig: 'ja', doel: 'Bestand van een bijlage openen of downloaden (AppConnectorSubject).', velden: [v('filedata', 'Inhoud van het bestand'), v('filename', 'Bestandsnaam', 'opt')], geenMeta: true}
@@ -3938,6 +3950,9 @@ $('#zoekres').addEventListener('mousedown', e => e.preventDefault());   // focus
 function zoekAlles(){ $('#zoekres').hidden = true; $('#f-zoek').blur(); tab = 'zoek'; teken(); scrollTo(0, 0); }
 $('#zoekres').addEventListener('click', e => { if(e.target.closest('[data-zoekalles]')) return zoekAlles(); const b = e.target.closest('[data-zoeknr]'); if(b) openZoekHit(b.dataset.zoeknr); });
 document.addEventListener('mousedown', e => { if(!e.target.closest('#globzoek')) $('#zoekres').hidden = true; });
+// zoekveld uitschuiven bij focus, inklappen zodra je ergens anders klikt en het leeg is
+$('#f-zoek').addEventListener('focus', () => $('#globzoek').classList.add('open'));
+$('#f-zoek').addEventListener('blur', () => setTimeout(() => { if(document.activeElement !== $('#f-zoek') && !$('#f-zoek').value.trim()) $('#globzoek').classList.remove('open'); }, 120));
 document.addEventListener('keydown', e => {
   if(document.querySelector('dialog[open]') || $('#app').hidden) return;
   const inVeld = document.activeElement && document.activeElement.matches('input, textarea, select, [contenteditable="true"]');
@@ -4410,6 +4425,25 @@ async function projMeta(){
   return (PRJ.meta = {fase: fase && {code: code(fase), waarden: (fasen.length ? fasen : vast.length ? vast : PRJ.fasenGezien.map(n => ({code: PRJ.faseCodes[n] || n, naam: n}))).filter(v => !/^te plannen$/i.test(v.naam))},
     voort: voort && {code: code(voort), waarden: waardenVan(voort.values)}, gereed: gp && code(gp)});
 }
+/* eerdere updates van een project: dezelfde reactieweergave als bij een melding */
+async function haalProjUpdates(p){
+  if(!INST.connProjUpdates) throw new Error('Geen GetConnector voor projectupdates ingesteld.');
+  const eerst = ((await afas(`/connectors/${encodeURIComponent(INST.connProjUpdates)}?skip=0&take=1`)).rows || [])[0];
+  if(!eerst) return [];
+  const keys = Object.keys(eerst), kk = re => keys.find(x => re.test(norm(x).replace(/_/g, ' ').trim()));
+  const k = {pr: kk(/^(project|projectcode|projectnummer)$/), tekst: kk(/^(toelichting|tekst|inhoud|bericht|update)$/) || kk(/toelichting|tekst/), datum: kk(/^(datum|instuurdatum|aangemaakt op|datum aanmaak)/), wie: kk(/^(aangemaakt door|medewerker|instuurder|gebruiker|naam)/), ond: kk(/^(onderwerp|omschrijving)$/)};
+  if(!k.pr || !k.tekst) throw new Error(`In ${INST.connProjUpdates} ontbreekt ${!k.pr ? 'het veld Project' : 'de tekst van de update'} (kolommen: ${keys.join(', ')}).`);
+  const rows = DEMO ? ((await afas(`/connectors/${INST.connProjUpdates}`)).rows || []).filter(r => String(r[k.pr]) === String(p.code)) : (await afas(`/connectors/${encodeURIComponent(INST.connProjUpdates)}?skip=0&take=500${filterOp(k.pr, p.prId || p.code)}`)).rows || [];
+  return rows.map(r => ({t: datum(r[k.datum]), tekst: kaal(r[k.tekst]), wie: wieNaam(String(r[k.wie] ?? '').trim()), ond: k.ond ? String(r[k.ond] ?? '').trim() : ''})).filter(r => r.tekst).sort((a, b) => (a.t || 0) - (b.t || 0));
+}
+async function toonProjUpdates(p){
+  const el = $('#p-tijdlijn'); if(!el) return;
+  try{
+    const l = await haalProjUpdates(p); if(!$('#projdlg').open || el !== $('#p-tijdlijn')) return;
+    el.innerHTML = `<h3>Reacties (${l.length}) <small class="hint">nieuwste bovenaan</small></h3>` + (l.length ? [...l].reverse().map(r => `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''}"><i>${esc(initialen(r.wie))}</i>
+      <div class="wolk"><div class="kopje"><b>${esc(r.wie || 'Onbekend')}</b><span>${r.t ? fmtDatum(r.t) + ' ' + fmtTijd(r.t) : ''}</span></div><div class="tekst">${esc(r.tekst)}</div></div></div>`).join('') : '<p class="hint">Nog geen reacties.</p>');
+  }catch(e){ el.innerHTML = `<h3>Reacties</h3>${p.laatste ? `<div class="bericht"><i>?</i><div class="wolk"><div class="kopje"><b>Laatste update</b><span>${p.laatsteOp ? fmtDatum(p.laatsteOp) : ''}</span></div><div class="tekst">${esc(p.laatste)}</div></div></div>` : ''}<p class="hint" style="font-size:11.5px">Eerdere updates ophalen lukte niet: ${esc(e.message)} Laat GetConnector ${esc(INST.connProjUpdates)} maken en aan de app connector koppelen (zie Connectoren &amp; velden).</p>`; }
+}
 const waardeBij = (l, naam) => (l || []).find(v => norm(v.naam) === norm(naam)) || (l || []).find(v => norm(v.code) === norm(naam));
 function openProject(code){
   const p = PRJ.lijst.find(y => String(y.code) === String(code)); if(!p) return;
@@ -4418,7 +4452,8 @@ function openProject(code){
   $('#projdlg-in').innerHTML = `<div class="dlg-kop"><div><small>Project ${esc(p.code)} · jij bent ${esc(p.rol.toLowerCase())}</small><h2>${esc(p.onderwerp)}</h2></div>
       ${INST.projectUrl ? `<button type="button" class="afasknop" id="p-afas" title="Project openen in AFAS InSite (nieuw tabblad)" aria-label="Project openen in AFAS">${ICO_AFAS}</button>` : ''}<button class="sluit" data-psluit aria-label="Sluiten">×</button></div>
     <div class="kaart2"><span>Projectleider</span><b>${esc(p.leider || '–')}</b><span>Start</span><b>${fmtDatum(p.projStart)}</b><span>Einde</span><b>${fmtDatum(p.projEind)}</b>${p.team.length ? `<span>Team</span><b style="font-weight:400">${esc(p.team.join(', '))}</b>` : ''}
-      ${p.laatste ? `<div class="lang"><small class="hint">Laatste update${p.laatsteOp ? ' · ' + fmtDatum(p.laatsteOp) : ''}</small><br>${esc(p.laatste)}</div>` : ''}</div>
+</div>
+    <div class="tijdlijn" id="p-tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>
     <form class="nform" id="p-form" onsubmit="return false">
       <div class="drie"><label>Projectfase<select name="fase" disabled><option>Laden…</option></select></label>
         <label>Voortgang<select name="voort" disabled><option>Laden…</option></select><span class="hint" id="p-voorstel"></span></label>
@@ -4439,6 +4474,7 @@ function openProject(code){
   dlg.onclick = e => { if(e.target.closest('[data-psluit]')) dlg.close(); if(e.target.id === 'p-neem'){ e.preventDefault(); const w = waardeBij(PRJ.meta.voort.waarden, voorstel); if(w) f.voort.value = w.code; } };
   if($('#p-afas')) $('#p-afas').onclick = () => window.open(INST.projectUrl.replace(/\{code\}/gi, encodeURIComponent(p.code)), '_blank', 'noopener');
   $('#p-opslaan').onclick = () => bewaarProject(p);
+  toonProjUpdates(p);
   setTimeout(() => f.tekst.focus(), 50);
 }
 async function bewaarProject(p){
@@ -4818,11 +4854,15 @@ function demoAfas(pad, opties){
         ...p('P-0099', 'Migratie fileservers naar SharePoint', 'Robert van der Veen', [['Eleandro Martis', 'Projectlid']], 'Afgerond', 'Afgerond', -200, -30, 'Opgeleverd en geëvalueerd.', -30),
         ...p('P-0170', 'Nieuw planningssysteem OK-complex', 'Iemand Anders', [['Kelly Groen', 'Projectlid']], 'Verkenning', 'Op schema', -10, 120, '', null)]; }
     return {rows: window._demoProj}; }
+  if(pad.startsWith(`/connectors/${INST.connProjUpdates}`)){ const d = (n, u) => new Date(Date.now() + n * DAG + (u || 10) * 36e5).toISOString().slice(0, 19);
+    window._demoUpd = window._demoUpd || [['P-0142', -40, 'Robert van der Veen', 'Planning per locatie rond; Utrecht start in week 38.'], ['P-0142', -20, 'Kelly Groen', 'Utrecht klaar, twee werkplekken nagezet i.v.m. printers.'], ['P-0142', -3, 'Robert van der Veen', 'Utrecht en Breda zijn over; Hanzeplein volgt in week 44.'],
+      ['P-0157', -30, 'Kelly Groen', 'Allergologie live, eerste reacties positief.'], ['P-0157', -8, 'Kelly Groen', 'Allergologie live; Dermatologie wacht op inrichting Timeff.']].map(([Project, n, Aangemaakt_door, Toelichting]) => ({Project, Datum: d(n), Aangemaakt_door, Onderwerp: 'Update projectvoortgang', Toelichting}));
+    return {rows: window._demoUpd}; }
   if(pad === '/metainfo/update/PtProject') return {name:'PtProject', fields:[{fieldId:'PrId', label:'Project'},{fieldId:'PrSt', label:'Projectfase', values:['Verkenning','Pilot','Realisatie','Implementatie','Afgerond'].map(n => ({id:n, description:n}))},{fieldId:'UVoort', label:'Voortgang', values:['Op schema','Loopt achter','Loopt voor','On Hold','Te Plannen','Afgerond','Vervallen'].map(n => ({id:n, description:n}))},{fieldId:'UGereed', label:'Datum gereed planning', dataType:'date'}]};
   if(pad === '/connectors/PtProject'){ const f = JSON.parse(opties.body).PtProject.Element.Fields; (window._demoProj || []).filter(r => r.Projectnummer === f.PrId).forEach(r => { if(f.PrSt) r.Projectfase = f.PrSt; if(f.UVoort) r.Voortgang = f.UVoort; if('UGereed' in f) r.Datum_gereed_planning = f.UGereed; });
     window._ptPut = opties.body; return new Promise(r => setTimeout(() => r({}), 300)); }
   if(opties.method === 'POST' && pad === '/connectors/KnSubject' && JSON.parse(opties.body).KnSubject.Element.Fields.StId === +INST.projUpdStId){ const b = JSON.parse(opties.body).KnSubject.Element;
-    const pj = b.Objects[0].KnSubjectLink.Element.Fields.PjId; (window._demoProj || []).filter(r => r.Projectnummer === pj).forEach(r => { r.Laatste_update = b.Fields.SbTx; r.Datum_laatste_update = new Date().toISOString().slice(0, 19); });
+    const pj = b.Objects[0].KnSubjectLink.Element.Fields.PjId; (window._demoUpd = window._demoUpd || []).push({Project: pj, Datum: new Date().toISOString().slice(0, 19), Aangemaakt_door: 'Robert van der Veen', Onderwerp: 'Update projectvoortgang', Toelichting: b.Fields.SbTx}); (window._demoProj || []).filter(r => r.Projectnummer === pj).forEach(r => { r.Laatste_update = b.Fields.SbTx; r.Datum_laatste_update = new Date().toISOString().slice(0, 19); });
     window._projUpd = opties.body; return new Promise(r => setTimeout(() => r({results:{KnSubject:{SbId: 500001}}}), 300)); }
   if(opties.method === 'POST' && pad === '/connectors/KnSubject'){ const b = JSON.parse(opties.body).KnSubject.Element, D = window._demo, nr = 12700 + D.sla.length;
     const afdC = ((b.Objects || []).find(o => o.KnS38) || {KnS38:{Element:{Fields:{}}}}).KnS38.Element.Fields.UAfd;
