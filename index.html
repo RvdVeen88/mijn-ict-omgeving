@@ -157,6 +157,12 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .tdlijst[data-lijst="belangrijk"] svg{color:#F5B400}
 .tdlijst b{font-size:11.5px;font-weight:600;background:var(--lijn);color:var(--grijs);border-radius:999px;padding:0 8px;line-height:19px}
 .tdlijst:hover{background:var(--vlak)}
+.tdhernoem{width:100%;font:inherit;font-size:14px;border:1.5px solid var(--blauw-2);border-radius:8px;padding:2px 8px;background:var(--vlak);color:var(--inkt)}
+#tdmenu{z-index:95;min-width:170px}
+.taak[draggable="true"]{cursor:grab}.taak.sleept{opacity:.45}
+.td-sleep .tdlijst:not([data-lijst="alle"]){outline:1.5px dashed var(--lichtblauw);outline-offset:-2px}
+.tdlijst.doel{background:var(--lichtblauw-2)!important;outline:2px solid var(--blauw-2)!important;color:var(--blauw)}
+.tdlijst.ontvangen b{animation:telPuls .45s ease-out}
 .tdlijst[aria-pressed="true"]{background:var(--blauw);color:var(--opaccent);font-weight:600}
 .tdlijst[aria-pressed="true"] svg{color:inherit}
 .tdlijst[aria-pressed="true"] b{background:rgba(255,255,255,.22);color:inherit}
@@ -959,7 +965,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v5.0', VERSIE_DATUM = '03-10-2026';
+const VERSIE = 'v5.2', VERSIE_DATUM = '03-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3958,7 +3964,7 @@ function tdRij(t){
       <select data-veld="lijst">${TD.data.lijsten.map(l => `<option value="${esc(l.id)}" ${l.id === t.lijst ? 'selected' : ''}>${esc(l.naam)}</option>`).join('')}</select>
       <input data-veld="titel" value="${esc(t.titel)}" title="Titel">
       <div class="acties">${!t.klaar && !t.melding && !t.ticket ? '<button type="button" class="knop klein" data-tdactie="naarafas">Omzetten naar melding in AFAS</button>' : ''}${t.melding ? `<button type="button" class="knop klein" data-tdactie="ticket">Melding ${esc(t.melding)} openen</button>` : ''}<button type="button" class="linkknop weg" data-tdactie="weg">Verwijderen</button></div></div>` : '';
-  return `<div class="taak ${t.klaar ? 'klaar' : ''} ${TD.open === t.id ? 'open' : ''}" data-taak="${esc(t.id)}">
+  return `<div class="taak ${t.klaar ? 'klaar' : ''} ${TD.open === t.id ? 'open' : ''}" data-taak="${esc(t.id)}" draggable="${TD.open === t.id ? 'false' : 'true'}">
     <button type="button" class="tdvink" data-tdactie="vink" aria-label="${t.klaar ? 'Weer openzetten' : 'Afvinken'}">${TD_VINK}</button>
     <span class="titel" data-tdactie="open">${esc(t.titel)}${sub.length ? `<small>${sub.join(' · ')}</small>` : ''}</span>
     ${t.melding ? '<span class="gekoppeld">✓ in AFAS</span>' : t.klaar || t.ticket ? '<span></span>' : '<button type="button" class="naarafas" data-tdactie="naarafas" title="Maak er een melding in AFAS van">→ AFAS</button>'}
@@ -3967,6 +3973,47 @@ function tdRij(t){
 }
 const TD_ALLE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>';
 const TD_LIJST = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
+// taken slepen naar een andere lijst (of naar Belangrijk) in de zijbalk
+let tdSleep = null;
+document.addEventListener('dragstart', e => { const r = e.target.closest && e.target.closest('.taak[data-taak]'); if(!r) return;
+  tdSleep = r.dataset.taak; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', tdSleep); r.classList.add('sleept'); document.body.classList.add('td-sleep'); });
+document.addEventListener('dragend', () => { tdSleep = null; document.querySelectorAll('.taak.sleept').forEach(r => r.classList.remove('sleept')); document.querySelectorAll('.tdlijst.doel').forEach(b => b.classList.remove('doel')); document.body.classList.remove('td-sleep'); });
+document.addEventListener('dragover', e => { if(!tdSleep) return; const b = e.target.closest('.tdlijst[data-lijst]'); document.querySelectorAll('.tdlijst.doel').forEach(x => x !== b && x.classList.remove('doel'));
+  if(!b || b.dataset.lijst === 'alle') return; e.preventDefault(); e.dataTransfer.dropEffect = 'move'; b.classList.add('doel'); });
+document.addEventListener('drop', e => { if(!tdSleep) return; const b = e.target.closest('.tdlijst[data-lijst]'); if(!b || b.dataset.lijst === 'alle') return; e.preventDefault();
+  const t = tdTaak(tdSleep); if(!t) return; const doel = b.dataset.lijst;
+  if(doel === 'belangrijk'){ if(t.belangrijk) return; t.belangrijk = true; toast(`"${t.titel}" staat nu bij Belangrijk`); }
+  else { if(t.lijst === doel) return; t.lijst = doel; toast(`"${t.titel}" verplaatst naar ${tdLijstNaam(doel)}`); }
+  b.classList.add('ontvangen'); setTimeout(() => b.classList.remove('ontvangen'), 600);
+  tdBewaar(); });
+// rechtermuisknop op een eigen lijst: hernoemen of verwijderen (dubbelklik = hernoemen)
+function tdLijstMenu(b, x, y){
+  let m = $('#tdmenu'); if(!m){ document.body.insertAdjacentHTML('beforeend', '<div class="ikmenu" id="tdmenu" role="menu" hidden style="position:fixed"></div>'); m = $('#tdmenu'); }
+  m.dataset.lijst = b.dataset.lijst;
+  m.innerHTML = '<button type="button" role="menuitem" data-tdm="hernoem">Hernoemen</button><button type="button" role="menuitem" data-tdm="weg" style="color:var(--rood)">Verwijderen</button>';
+  m.style.left = Math.min(x, innerWidth - 200) + 'px'; m.style.top = Math.min(y, innerHeight - 100) + 'px'; m.style.right = 'auto'; m.hidden = false;
+}
+function tdHernoem(id){
+  const b = document.querySelector(`.tdlijst[data-lijst="${CSS.escape(id)}"]`), l = TD.data.lijsten.find(x => x.id === id); if(!b || !l) return;
+  const span = b.querySelector('span'); span.innerHTML = `<input class="tdhernoem" value="${esc(l.naam)}" aria-label="Nieuwe naam">`;
+  const inp = span.querySelector('input'); inp.focus(); inp.select();
+  let klaar = false; const sluit = opslaan => { if(klaar) return; klaar = true; const n = inp.value.trim(); if(opslaan && n && n !== l.naam){ l.naam = n; tdBewaar(); } else tdTeken(); };
+  inp.addEventListener('keydown', e => { e.stopPropagation(); if(e.key === 'Enter'){ e.preventDefault(); sluit(true); } if(e.key === 'Escape'){ e.preventDefault(); sluit(false); } });
+  inp.addEventListener('blur', () => sluit(true)); inp.addEventListener('click', e => e.stopPropagation());
+}
+async function tdVerwijderLijst(id){
+  const l = TD.data.lijsten.find(x => x.id === id); if(!l) return;
+  const rest = TD.data.lijsten.filter(x => x.id !== id); if(!rest.length){ toast('Dit is je enige lijst; die kan niet weg', true); return; }
+  const taken = TD.data.taken.filter(t => t.lijst === id), open = taken.filter(t => !t.klaar).length;
+  if(!(await vraag(`Lijst "${l.naam}" verwijderen?`, taken.length ? `De ${taken.length} ${taken.length === 1 ? 'taak' : 'taken'} (${open} open) uit deze lijst ${taken.length === 1 ? 'gaat' : 'gaan'} naar "${rest[0].naam}". Er gaat niets verloren.` : 'De lijst is leeg.', 'Verwijderen', 'Annuleren', true))) return;
+  taken.forEach(t => t.lijst = rest[0].id); TD.data.lijsten = rest; if(TD.lijst === id) TD.lijst = 'alle';
+  tdBewaar(); toast(`Lijst "${l.naam}" verwijderd`);
+}
+document.addEventListener('contextmenu', e => { const b = e.target.closest('.tdlijst[data-lijst]'); if(!b || ['alle', 'belangrijk'].includes(b.dataset.lijst)) return; e.preventDefault(); tdLijstMenu(b, e.clientX, e.clientY); });
+document.addEventListener('dblclick', e => { const b = e.target.closest('.tdlijst[data-lijst]'); if(b && !['alle', 'belangrijk'].includes(b.dataset.lijst)) tdHernoem(b.dataset.lijst); });
+document.addEventListener('click', e => { const m = $('#tdmenu'); if(!m || m.hidden) return; const k = e.target.closest('[data-tdm]'); m.hidden = true;
+  if(k){ if(k.dataset.tdm === 'hernoem') tdHernoem(m.dataset.lijst); else tdVerwijderLijst(m.dataset.lijst); } }, true);
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && $('#tdmenu') && !$('#tdmenu').hidden) $('#tdmenu').hidden = true; });
 function tdTeken(){
   const aantal = TD.status === 'ok' ? TD.data.taken.filter(t => !t.klaar).length : 0;
   $('#todo-aantal').textContent = aantal || '';
@@ -4011,7 +4058,7 @@ function tdTeken(){
   const d = TD.data, inLijst = t => past(t) && (TD.lijst === 'alle' || (TD.lijst === 'belangrijk' ? t.belangrijk : t.lijst === TD.lijst));
   const tel = f => d.taken.filter(t => !t.klaar && f(t)).length;
   $('#todo-lijsten').innerHTML = [['alle', 'Alle', tel(() => true)], ['belangrijk', 'Belangrijk', tel(t => t.belangrijk)], ...d.lijsten.map(l => [l.id, l.naam, tel(t => t.lijst === l.id)])]
-    .map(([id, naam, n]) => `<button type="button" class="tdlijst" data-lijst="${esc(id)}" aria-pressed="${TD.lijst === id}">${id === 'belangrijk' ? TD_STER : id === 'alle' ? TD_ALLE : TD_LIJST}<span>${esc(naam)}</span>${n ? `<b>${n}</b>` : ''}</button>`).join('') +
+    .map(([id, naam, n]) => `<button type="button" class="tdlijst" data-lijst="${esc(id)}" aria-pressed="${TD.lijst === id}"${["alle","belangrijk"].includes(id) ? "" : " title=\"Rechtermuisknop: hernoemen of verwijderen. Sleep taken hierheen om ze te verplaatsen.\""}>${id === 'belangrijk' ? TD_STER : id === 'alle' ? TD_ALLE : TD_LIJST}<span>${esc(naam)}</span>${n ? `<b>${n}</b>` : ''}</button>`).join('') +
     `<span class="lijstnieuw"><input id="todo-nieuwe-lijst" placeholder="+ Nieuwe lijst"></span>`;
   const open = d.taken.filter(t => !t.klaar && inLijst(t)).sort(tdSorteer), klaar = d.taken.filter(t => t.klaar && inLijst(t)).sort((a, b) => (b.klaarOp || '').localeCompare(a.klaarOp || ''));
   $('#todo-open').innerHTML = open.length ? open.map(tdRij).join('') : `<p class="todo-leeg">${q ? `Geen to-do’s gevonden voor “${esc(filt.zoek)}”.` : 'Niets te doen in deze lijst.'}</p>`;
