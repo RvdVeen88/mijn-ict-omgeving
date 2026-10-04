@@ -965,7 +965,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v5.2', VERSIE_DATUM = '03-10-2026';
+const VERSIE = 'v5.3', VERSIE_DATUM = '03-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3490,9 +3490,9 @@ const CONN_KAART = () => [
     v('FileName', 'Bijlage bij een reactie: bestandsnaam (KnReactionAttachment)', 'opt'), v('FileStream', 'Bijlage bij een reactie: inhoud', 'opt')]},
   {conn: INST.connProjecten, sleutel: 'connProjecten', soort: 'GET', nodig: 'opt', doel: 'Mijn projecten: projecten uit het projectbureau waarin jij projectleider, opdrachtgever of teamlid bent.', velden: [
     v(/^(projectnummer|projectcode|code|nummer)$/i, 'Projectnummer (koppelt met PtProject)', 'ja', 'Projectnummer'), v(/^(projectnaam|omschrijving( project)?|project)$/i, 'Projectnaam', 'ja', 'Projectnaam'),
-    v(/^(projectleider|projectmanager)/i, 'Projectleider: jouw rol', 'ja', 'Projectleider'), v(/^(medewerker|teamlid|projectlid|naam)$/i, 'Teamlid: jouw rol', 'opt', 'Teamlid'), v(/^(rol|projectrol)/i, 'Rol in het project', 'opt', 'Rol'),
+    v(/^(projectleider|projectmanager)/i, 'Projectleider (zonder dit veld haalt SubmIT het uit Rol)', 'opt', 'Projectleider'), v(/^(medewerker|teamlid|projectlid|naam)$/i, 'Teamlid: jouw rol', 'opt', 'Teamlid'), v(/^(rol|projectrol)/i, 'Rol in het project', 'opt', 'Rol'),
     v(/^(projectfase|fase|status)/i, 'Projectfase', 'opt', 'Projectfase'), v(/voortgang/i, 'Voortgang', 'opt', 'Voortgang'), v(/^(begindatum|startdatum)/i, 'Start (tijdlijn)', 'opt', 'Startdatum'), v(/^(einddatum|deadline|opleverdatum)/i, 'Einde (tijdlijn)', 'opt', 'Einddatum'),
-    v(/laatste update|stand van zaken|statusupdate/i, 'Laatste update', 'opt', 'Laatste update')]},
+    v(/laatste update|stand van zaken|statusupdate/i, 'Laatste update', 'opt', 'Laatste update'), v(/gereed.*planning|planning.*gereed/i, 'Datum gereed (planning): einde op de tijdlijn', 'opt', 'Datum gereed planning'), v(/werkelijk.*gereed|gereed.*werkelijk/i, 'Werkelijke datum gereed: project is af', 'opt', 'Werkelijke datum gereed')]},
   {conn: 'PtProject', soort: 'UPDATE', nodig: 'opt', doel: 'Mijn projecten bijwerken: projectfase, voortgang en datum gereed (planning).', velden: [
     v('PrId', 'Projectnummer'), v(/fase/i, 'Projectfase', 'opt', 'Projectfase'), v(/voortgang/i, 'Voortgang', 'opt', 'Voortgang'), v(/gereed.*planning|planning.*gereed/i, 'Datum gereed (planning)', 'opt', 'Datum gereed planning')]},
   {conn: 'SubjectConnector', soort: 'GET', nodig: 'ja', doel: 'Bestand van een bijlage openen of downloaden (AppConnectorSubject).', velden: [v('filedata', 'Inhoud van het bestand'), v('filename', 'Bestandsnaam', 'opt')], geenMeta: true}
@@ -4397,6 +4397,7 @@ async function bewaarProject(p){
     if(nieuwFase && m.fase) w[m.fase.code] = nieuwFase;
     if(nieuwVoort && m.voort) w[m.voort.code] = nieuwVoort;
     if(nieuwG !== undefined && m.gereed) w[m.gereed] = nieuwG || null;
+    if(Object.keys(w).length && !(PRJ.kol && PRJ.kol.nr)) throw new Error(`In ${INST.connProjecten} ontbreekt het projectnummer. Zonder dat nummer weet AFAS niet welk project bijgewerkt moet worden: laat de beheerder het veld Project (code) aan de connector toevoegen.`);
     if(Object.keys(w).length){ const top = {}, obj = {};
       Object.entries(w).forEach(([c, v]) => { const i = c.indexOf('/'); if(i > 0) (obj[c.slice(0, i)] = obj[c.slice(0, i)] || {})[c.slice(i + 1)] = v; else top[c] = v; });
       const objecten = Object.entries(obj).map(([o, fl]) => ({[o]: {Element: {Fields: fl}}}));
