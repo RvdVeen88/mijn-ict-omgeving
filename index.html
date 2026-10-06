@@ -1196,7 +1196,7 @@ const INST = Object.assign({
   ticketUrl: 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}',   // leeg = geen link
   connReacties: 'Helpdesk_Reacties',
   feedbackNaar: 'Robert van der Veen',                        // feedback uit de app komt als melding bij deze verantwoordelijke
-  connBerichten: 'SubmIT_Berichten',                          // mailcontrole: GetConnector op gegevensverzameling Berichten (welke mails AFAS echt verstuurde)
+  connBerichten: 'PowerBI_ICT_Berichten',                          // mailcontrole: GetConnector op gegevensverzameling Berichten (welke mails AFAS echt verstuurde)
   connProjecten: 'PowerBI_PBI_Team',
   msClientId: 'c7ab5576-02c4-439c-89a6-f70e613d0b71',          // Entra-app SubmIT (openbaar id, geen geheim): To-do via Microsoft To Do
   msTenant: '0ceb8564-e296-4331-9dce-d837ea00eab8',
@@ -1217,7 +1217,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v6.5.2', VERSIE_DATUM = '06-10-2026';
+const VERSIE = 'v6.6.1', VERSIE_DATUM = '06-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2409,8 +2409,9 @@ async function toonReacties(x){
       <div class="wolk"><div class="kopje"><b>${esc(r.wie || 'Onbekend')}</b><span>${r.t ? fmtDatum(r.t) + ' ' + fmtTijd(r.t) : ''}</span>${r.intern ? '<span class="internlabel">Intern</span>' : ''}</div><div class="tekst">${esc(r.tekst)}</div></div></div>`).join('') : `<p class="hint">Nog geen reacties.</p>${DEMO ? '' : `<p class="hint" style="font-size:11.5px;opacity:.7">${esc(reactieDiag)}</p>`}`);
     if(!DEMO && reactieKol && !reactieKol.zicht) el.insertAdjacentHTML('beforeend', `<p class="hint" style="font-size:11.5px">Of een reactie intern is, staat niet in ${esc(INST.connReacties)}; alleen jouw eigen interne notities zijn herkend. Laat het veld "Reactie zichtbaar" aan die GetConnector toevoegen.</p>`);
     el.scrollTop = 0;   // nieuwste reactie bovenaan, ouder = naar beneden scrollen
+    if(berichtUit && mails.length && !DEMO) el.insertAdjacentHTML('beforeend', `<p class="hint" style="font-size:11.5px">Mailcontrole (✓ verstuurd) werkt nog niet: ${esc(berichtDiag || 'GetConnector ' + INST.connBerichten + ' niet bereikbaar')}. Koppel GetConnector ${esc(INST.connBerichten)} aan de app connector van Mijn ICT-Omgeving.</p>`);
     el.dataset.klaar = '1'; verdeelBijlagen(x);
-    if(INST.connBerichten && !berichtUit && !((berichtCache.get(String(x.nr)) || {}).t > Date.now() - 2 * 6e4)) haalBerichten(x).then(() => { if(huidig && huidig.x === x) toonReacties(x); }).catch(e => console.warn('Mailcontrole', e));
+    if(INST.connBerichten && !berichtUit && !((berichtCache.get(String(x.nr)) || {}).t > Date.now() - 2 * 6e4)) haalBerichten(x).then(() => { if(huidig && huidig.x === x) toonReacties(x); }).catch(e => { console.warn('Mailcontrole', e); if(huidig && huidig.x === x) toonReacties(x); });
   }catch(e){ el.innerHTML = `<h3>Reacties</h3><p class="hint">Reacties ophalen lukte niet: ${esc(e.message)} Laat GetConnector ${esc(INST.connReacties)} koppelen aan de app connector van Mijn ICT-Omgeving.</p>`; }
 }
 let huidig = null;
@@ -4294,7 +4295,7 @@ document.addEventListener('input', e => {
 // pijltjes: eigen klik-afhandeling, zodat niets anders de klik kan opvangen
 $('#nav-vorige').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); gaNaar(-1); });
 $('#nav-volgende').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); gaNaar(1); });
-$('#detail').addEventListener('close', () => { huidig = null; setTimeout(seinAanwezig, 50); });
+$('#detail').addEventListener('close', () => { huidig = null; setTimeout(seinAanwezig, 50); if(tekenNaSluiten){ tekenNaSluiten = false; teken(); } });
 /* vensters sluiten: klik naast het venster, Esc, × of Annuleren; met niet-opgeslagen wijzigingen eerst vragen */
 /* eigen bevestigingsvenster midden in beeld (i.p.v. de browsermelding met het webadres erin) */
 function vraag(titel, tekst, ja = 'OK', nee = 'Annuleren', gevaar = false){
@@ -5121,7 +5122,7 @@ function tekenAanwezig(){
   el.title = a.map(x => `${x.naam} ${x.bezig ? 'heeft deze melding open en is iets aan het wijzigen; let op dat jullie elkaar niet overschrijven' : 'heeft deze melding ook open'}`).join('\n');
 }
 let aanwTik = 0;
-setInterval(() => { aanwTik++; const open = !document.hidden && $('#detail').open; if(open || (!document.hidden && aanwTik % 4 === 0) || aanwTik % 8 === 0) seinAanwezig(); }, 5000);   // 5 s met een melding open, anders 20 s (40 s op een ander tabblad)
+setInterval(() => { aanwTik++; const open = !document.hidden && $('#detail').open; if(open || !document.hidden || aanwTik % 8 === 0) seinAanwezig(); }, 5000);   // elke 5 s zolang de app in beeld is (wijzigingen van collega's komen dan meteen binnen), anders 40 s
 let laatstGetypt = 0, typtSein = 0;
 document.addEventListener('input', e => { if(e.target.id !== 'tekst') return; const was = Date.now() - laatstGetypt > 8000; laatstGetypt = Date.now(); if(was && Date.now() - typtSein > 3000){ typtSein = Date.now(); seinAanwezig(); } });   // op een ander tabblad om de 40 seconden: dan blijf je 'online'
 document.addEventListener('visibilitychange', () => seinAanwezig());
@@ -5199,14 +5200,34 @@ const kritiekOpen = () => items.filter(x => x.kritiek && !x.afgesloten);
 const kort = (t, n = 180) => { t = String(t || '').replace(/\s+/g, ' ').trim(); return t.length > n ? t.slice(0, n - 1).trimEnd() + '…' : t; };
 /* samen: wat jij in SubmIT doet, zien je collega's in Team (en een pop-up als het hen raakt) */
 let nietStoren = !!opslag.get('mict-nietstoren');
+/* wijzigingen meteen bij collega's: de nieuwe waarden gaan mee met de teamgebeurtenis en worden daar direct toegepast (niet wachten op AFAS) */
+const DEEL_VELDEN = ['status', 'verantw', 'afdeling', 'gepland', 'locatie', 'afgesloten', 'reactieDatum', 'reactieDoor', 'cc', 'tel', 'kritiek', 'datalek', 'projStart', 'projEind'];
+const DEEL_DATUM = new Set(['gepland', 'reactieDatum', 'projStart', 'projEind']);
+const DEEL_LABEL = {status: 'status', verantw: 'verantwoordelijke', afdeling: 'afdeling', gepland: 'planning', locatie: 'locatie', cc: 'CC', tel: 'bereikbaarheid', kritiek: 'kritieke storing', datalek: 'datalek', projStart: 'startdatum', projEind: 'deadline'};
+function deelVelden(v){ const w = {}; DEEL_VELDEN.forEach(k => { if(k in v) w[k] = v[k] instanceof Date ? +v[k] : v[k] ?? null; }); return Object.keys(w).length ? JSON.stringify(w).slice(0, 1500) : ''; }
+let tekenNaSluiten = false;
+function neemOver(e){
+  let w; try{ w = JSON.parse(e.w); }catch(err){ return false; }
+  const x = items.find(y => String(y.nr) === String(e.nr)); if(!x) return false;
+  Object.keys(w).forEach(k => { if(DEEL_DATUM.has(k) && w[k] != null) w[k] = new Date(w[k]); });
+  if((w.verantw && !benIk(w.verantw)) || w.afgesloten){ x.taakBij = (x.taakBij || []).filter(n => !benIk(n)); mijnTaken = mijnTaken.filter(t => String(t.SubjectId) !== String(x.sbid)); }
+  const o = lokaalNieuw.get(String(x.nr)) || {velden: {}}; Object.assign(o.velden, w); o.tot = Math.max(o.tot || 0, Date.now() + 3 * 60e3); lokaalNieuw.set(String(x.nr), o);
+  x._lokaal = null; pasLokaalToe(); x._sg = signalen(x);
+  if(huidig && String(huidig.x.nr) === String(x.nr) && $('#detail').open){ const wat = Object.keys(w).map(k => DEEL_LABEL[k]).filter(Boolean).join(', ') || 'een reactie';
+    const k = $('#k-opslaan'), bezig = (k && !k.disabled) || ($('#tekst') && $('#tekst').value.trim());
+    if(!bezig){ openDetail(x.nr); toast(`${e.door} wijzigde ${wat}; je ziet het al`); }   // niets eigens onder handen: venster meteen bijwerken
+    else toast(`${e.door} wijzigde ${wat} van deze melding. Sla eerst je eigen wijziging op; daarna zie je het.`); }
+  return true;
+}
 function meldActiviteitVan(x, v){
   const naar = [v.verantw && norm(v.verantw) !== norm(x.verantw) && !benIk(v.verantw) && v.verantw, v.afdeling && norm(v.afdeling) !== norm(x.afdeling) && 'afdeling ' + v.afdeling].filter(Boolean).join(' · ');
-  const soort = v.afgesloten && !x.afgesloten ? 'gesloten' : naar ? 'doorgezet' : v.verantw && benIk(v.verantw) && !benIk(x.verantw) ? 'opgepakt' : v.reactieDatum && v.reactieDoor ? 'reactie' : '';
+  const w = deelVelden(v);
+  const soort = v.afgesloten && !x.afgesloten ? 'gesloten' : naar ? 'doorgezet' : v.verantw && benIk(v.verantw) && !benIk(x.verantw) ? 'opgepakt' : v.reactieDatum && v.reactieDoor ? 'reactie' : w ? 'gewijzigd' : '';
   if(!soort) return;
   stroomErbij({id: 'ik-' + Date.now(), soort, nr: String(x.nr), onderwerp: x.onderwerp, naar, door: profiel.naam, code: AANW.ik, sessie: AANW.sessie, t: Date.now(), zelf: true});
   if(soort === 'reactie' || v.reactieDatum){ const t = huidig && String(huidig.x.nr) === String(x.nr) && $('#tekst') ? $('#tekst').value : ''; const wie = vermeldIn(t);
     if(wie.length) stuurGebeurtenis({soort: 'vermeld', nr: String(x.nr), onderwerp: x.onderwerp, naar: wie.join(' · '), tekst: kort(t.replace(/\s+/g, ' '), 160)}); }
-  stuurGebeurtenis({soort, nr: String(x.nr), onderwerp: x.onderwerp, naar});
+  stuurGebeurtenis({soort, nr: String(x.nr), onderwerp: x.onderwerp, naar, ...(w ? {w} : {})});
 }
 function stuurGebeurtenis(g){
   if(g.soort === 'vermeld') stroomErbij({id: 'ikv-' + Date.now(), ...g, door: profiel.naam, code: AANW.ik, sessie: AANW.sessie, t: Date.now(), zelf: true});
@@ -5260,7 +5281,7 @@ document.addEventListener('mousedown', e => { const b = e.target.closest('[data-
 const STROOM = new Map();   // id -> gebeurtenis (van de server, plus in/uit en je eigen acties)
 const doorMij = e => e.zelf || (e.sessie ? e.sessie === AANW.sessie : (e.code && e.code === AANW.ik));
 function stroomErbij(e){ if(!e || !e.id || STROOM.has(e.id)) return false; STROOM.set(e.id, e); return true; }
-const STROOM_ZIN = {gesloten: e => `heeft <b>${esc(e.nr)}</b> afgehandeld`, doorgezet: e => `heeft <b>${esc(e.nr)}</b> doorgezet naar ${esc(String(e.naar || '').split(' · ').map(d => benIk(d) ? 'jou' : d).join(' · '))}`, opgepakt: e => `heeft <b>${esc(e.nr)}</b> opgepakt`,
+const STROOM_ZIN = {gewijzigd: e => { let w = {}; try{ w = JSON.parse(e.w || '{}'); }catch(err){} const l = Object.keys(w).map(k => DEEL_LABEL[k]).filter(Boolean); return `wijzigde ${l.length ? esc(l.join(', ')) + ' van ' : ''}<b>${esc(e.nr)}</b>`; }, gesloten: e => `heeft <b>${esc(e.nr)}</b> afgehandeld`, doorgezet: e => `heeft <b>${esc(e.nr)}</b> doorgezet naar ${esc(String(e.naar || '').split(' · ').map(d => benIk(d) ? 'jou' : d).join(' · '))}`, opgepakt: e => `heeft <b>${esc(e.nr)}</b> opgepakt`,
   reactie: e => `reageerde op <b>${esc(e.nr)}</b>`, vermeld: e => `noemde ${esc(String(e.naar || '').split(' · ').map(d => benIk(d) ? 'jou' : d.split(' ')[0]).join(', '))} in <b>${esc(e.nr)}</b>${e.tekst ? ': “' + esc(kort(e.tekst, 90)) + '”' : ''}`, kritiek: e => `zette <b>${esc(e.nr)}</b> op kritieke storing`, in: () => 'is ingelogd', uit: () => 'is uitgelogd'};
 const geleden = t => { const m = Math.round((Date.now() - t) / 60e3); return m < 1 ? 'zojuist' : m < 60 ? m + ' min' : new Date(t).toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'}); };
 // raakt deze gebeurtenis jou? dan (en alleen dan) een pop-up
@@ -5277,10 +5298,11 @@ function toonActiviteit(){
   const anderen = nieuw.filter(e => !doorMij(e) && e.soort !== 'kritiek').sort((a, b) => a.t - b.t);
   if(!anderen.length){ tekenTeam(); return; }
   anderen.forEach(e => AANW.flits.set(String(e.nr), Date.now() + 2500));
+  if(anderen.filter(e => e.w).map(neemOver).some(Boolean)){ if($('#detail').open) tekenNaSluiten = true; else teken(); }
   const raak = anderen.filter(raaktMij), zin = e => `${e.door} ${STROOM_ZIN[e.soort](e).replace(/<[^>]+>/g, '')}`;
   if(raak.length && !nietStoren) toast(raak.length > 2 ? `${raak.slice(-2).map(zin).join(' · ')} · en nog ${raak.length - 2}` : raak.map(zin).join(' · '));
   tekenTeam();
-  if(!$('#detail').open && !$('#app').hidden && anderen.some(e => e.soort !== 'reactie')) laadGegevens('open', true).then(() => { if(!$('#detail').open) teken(); }).catch(() => {});   // lijst meteen bijwerken
+  if(!$('#detail').open && !$('#app').hidden && anderen.some(e => e.soort !== 'reactie' && !e.w)) laadGegevens('open', true).then(() => { if(!$('#detail').open) teken(); }).catch(() => {});   // lijst meteen bijwerken
   else tekenAanwezig();
 }
 // Team: rail-stipje, gezichtjes rechtsboven en het paneel
