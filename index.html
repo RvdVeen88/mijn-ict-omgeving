@@ -1179,7 +1179,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v6.2', VERSIE_DATUM = '04-10-2026';
+const VERSIE = 'v6.3', VERSIE_DATUM = '04-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1685,7 +1685,7 @@ const PROJ_KOLOMMEN = [
 [...KOLOMMEN, ...PROJ_KOLOMMEN].forEach(c => { if(!c.cls.split(' ').includes('k-' + c.k)) c.cls = (c.cls + ' k-' + c.k).trim(); });
 const kolSet = proj => proj ? PROJ_KOLOMMEN : KOLOMMEN, elkeKol = k => KOLOMMEN.find(c => c.k === k) || PROJ_KOLOMMEN.find(c => c.k === k);
 /* kolommen kiezen: per gebruiker te verbergen (Nr. en Onderwerp blijven altijd staan) */
-const VAST_KOL = new Set(['nr', 'ond', 'p-nr', 'p-naam']);
+const VAST_KOL = new Set(['nr', 'ond', 'wie', 'p-nr', 'p-naam']);
 let verborgenKol = new Set(opslag.get('mict-kolommen-uit') || []);
 let regels = opslag.get('mict-regels') || 'compact';
 const zetRegels = r => { regels = r; opslag.set('mict-regels', r); document.body.classList.remove('regels-ruim', 'regels-extra'); if(r !== 'compact') document.body.classList.add('regels-' + r); };
@@ -1791,7 +1791,7 @@ const keuzeOpties = {};   // per tabel en kolom: de waarden voor de filterlijst
 const kolTekst = (c, x) => c.k === 'sig' ? (x._sg || []).map(s => s.tekst).join(' ') : String(c.html(x)).replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
 const tabelVolgorde = {};
 function tabel(id, l, opties = {}){
-  const zonder = new Set(opties.zonder || []), kol = kolSet(opties.proj).filter(c => c.ch ? opties.changes : !zonder.has(c.k) && !verborgenKol.has(c.k));   // Startdatum en Deadline: altijd bij changes
+  const zonder = new Set(opties.zonder || []), kol = kolSet(opties.proj).filter(c => c.ch ? opties.changes : !zonder.has(c.k) && (VAST_KOL.has(c.k) || !verborgenKol.has(c.k)));   // Startdatum en Deadline: altijd bij changes
   const kf = kolFilter[id] || {}, actief = Object.entries(kf).filter(([, v]) => v && v.trim());
   const opties_ = {}; kol.filter(c => KEUZE.has(c.k)).forEach(c => opties_[c.k] = [...new Set(l.map(x => kolTekst(c, x)).filter(v => v && v !== '–'))].sort((a, b) => a.localeCompare(b, 'nl')));
   Object.entries(opties_).forEach(([k, v]) => keuzeOpties[id + '|' + k] = v);
@@ -2128,7 +2128,9 @@ let tab = 'mij';
 /* wat je zelf wijzigt staat meteen in beeld; de GetConnector van AFAS loopt vaak 5-10 seconden achter.
    Tot AFAS de wijziging teruggeeft (max. 3 minuten) houdt de pagina de eigen waarde vast. */
 const lokaalNieuw = new Map();
-function onthoudLokaal(x, v, duur = 3 * 60e3){ meldActiviteitVan(x, v); const k = String(x.nr), o = lokaalNieuw.get(k) || {velden:{}}; Object.assign(o.velden, v); o.tot = Math.max(o.tot || 0, Date.now() + duur); lokaalNieuw.set(k, o); pasLokaalToe(); }
+function onthoudLokaal(x, v, duur = 3 * 60e3){ meldActiviteitVan(x, v);
+  if((v.verantw && !benIk(v.verantw)) || v.afgesloten){ x.taakBij = (x.taakBij || []).filter(n => !benIk(n)); mijnTaken = mijnTaken.filter(t => String(t.SubjectId) !== String(x.sbid)); }   // doorgezet of afgehandeld: jouw taak is weg
+  const k = String(x.nr), o = lokaalNieuw.get(k) || {velden:{}}; Object.assign(o.velden, v); o.tot = Math.max(o.tot || 0, Date.now() + duur); lokaalNieuw.set(k, o); pasLokaalToe(); }
 const zelfde = (k, a, b) => (!a && !b) ? true : k === 'afgesloten' ? !!a === !!b : (k === 'gepland' || k === 'projStart' || k === 'projEind' || k === 'reactieDatum') ? (!!a && !!b && Math.abs(+a - +b) < (k === 'reactieDatum' ? 10 * 60e3 : DAG)) : norm(a) === norm(b);
 function pasLokaalToe(){
   lokaalNieuw.forEach((o, nr) => {
@@ -2376,7 +2378,9 @@ async function handtekening(){
   return mijnHandtekening = [profiel.naam, functie, INST.handtekeningAfdeling || 'Afdeling Digitale Zorg & ICT'].filter(Boolean).join('\n');
 }
 async function maakBrief(x, delen){
-  const voornaam = String(x.melder || '').trim().split(/\s+/)[0] || '';
+  // roepnaam uit de medewerkerslijst (AFAS geeft bij de melder de officiële voornaam)
+  let voornaam = String(x.melder || '').trim().split(/\s+/)[0] || '';
+  try{ const m = await zoekMedewerker(x.melder); if(m && m.roep) voornaam = m.roep; }catch(e){}
   return `Beste ${voornaam || 'collega'},\n\n${delen.join('\n\n')}\n\nMet vriendelijke groet,\n${await handtekening()}`;
 }
 const vulIn = (t, w) => String(t || '').replace(/\{(\w+)\}/g, (m, k) => w[k] ?? m);
@@ -2523,7 +2527,7 @@ function openDetail(nr){
     <div class="kaarten">
       <div class="kaart2"><h3>Melding</h3><span>Instuurder</span><b id="d-inst" title="Wie de melding heeft aangemaakt (niet aan te passen)">${esc(instCache.get(String(x.nr)) || '…')}</b><span>Melder</span><b class="meldercel"><span id="d-melder">${esc(x.melder || '–')}</span>${x.melder ? `<button type="button" class="melderinfo" id="d-melderinfo" aria-label="Gegevens van de melder" data-uitleg="Gegevens ophalen…"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 7.5h.01"></path></svg></button>` : ''}</b>${x.afgesloten ? (x.tel ? `<span>Bereikbaar</span><b>${belLink(x.tel)}</b>` : '') : `<span>Bereikbaar</span><b class="telcel"><input id="d-tel" class="datumkeuze telkeuze" inputmode="tel" value="${esc(x.tel || '')}" data-oud="${esc(x.tel || '')}" placeholder="– navragen –" title="Waar de melder nu bereikbaar is; wijzigt per keer" autocomplete="off">${x.tel ? belLink(x.tel).replace(/<\/svg>[^<]*<\/a>$/, '</svg></a>') : ''}</b>`}${r('Type melding', x.type)}${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}<span>Locatie${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.locatie || '–') : `<select id="d-loc" class="afdkeuze" title="Klik om de locatie te wijzigen"><option value="">${esc(x.locatie || '– kies locatie –')}</option></select>`}</b></div>
       <div class="kaart2"><h3>Behandeling</h3><span>Afdeling${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.afdeling || '–') : `<select id="d-afd" class="afdkeuze" title="Klik om de afdeling te wijzigen"><option>${esc(x.afdeling || '– kies afdeling –')}</option></select>`}</b><span>Verantwoordelijke</span><b>${x.afgesloten ? esc(x.verantw || '–') : `<select id="d-verantw" class="afdkeuze" title="Klik om de verantwoordelijke te wijzigen"><option value="">${esc(x.verantw || '– niemand –')}</option></select>${benIk(x.verantw) ? '' : '<button type="button" class="linkknop aanmij" id="d-aanmij">Aan mij toewijzen</button>'}`}</b><span>Status${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(toonStatus(x.status) || '–') : `<select id="d-status" class="afdkeuze" title="Klik om de status te wijzigen"><option value="">${esc(toonStatus(x.status) || '– kies status –')}</option></select>`}</b>
-        ${x.afgesloten ? r('Gepland', x.gepland ? fmtDatum(x.gepland) : '') : `<span>Gepland</span><b><input type="date" id="d-gepland" class="datumkeuze" value="${x.gepland ? isoD(x.gepland) : ''}" data-oud="${x.gepland ? isoD(x.gepland) : ''}" title="Datum waarop het werk gepland staat"></b>`}${isChange(x) ? (x.afgesloten ? r('Startdatum project', x.projStart ? fmtDatum(x.projStart) : '') + r('Deadline', x.projEind ? fmtDatum(x.projEind) : '') : `<span>Startdatum project</span><b><input type="date" id="d-pstart" class="datumkeuze" value="${x.projStart ? isoD(x.projStart) : ''}" data-oud="${x.projStart ? isoD(x.projStart) : ''}" title="Begindatum project van deze change"></b><span>Deadline</span><b><input type="date" id="d-peind" class="datumkeuze" value="${x.projEind ? isoD(x.projEind) : ''}" data-oud="${x.projEind ? isoD(x.projEind) : ''}" title="Einddatum project (deadline) van deze change"></b>`) : ''}${r('Laatste reactie', x.reactieDatum ? fmtDatum(x.reactieDatum) + (x.reactieDoor ? ' · ' + x.reactieDoor : '') : '')}${r('Extern ticket', x.extern)}${x.afgesloten ? (x.kritiek ? r('Kritieke storing', 'Ja') : '') + (x.datalek ? r('Datalek', 'Ja') : '') + r('CC', x.cc) : `<span>CC</span><b><input id="d-cc" class="datumkeuze cckeuze" list="cc-lijst" value="${esc(x.cc || '')}" data-oud="${esc(x.cc || '')}" placeholder="– niemand –" title="Medewerker die een kopie van de mails krijgt" autocomplete="off"><datalist id="cc-lijst"></datalist></b>
+        ${x.afgesloten ? r('Gepland', x.gepland ? fmtDatum(x.gepland) : '') : `<span>Gepland</span><b><input type="date" id="d-gepland" class="datumkeuze" value="${x.gepland ? isoD(x.gepland) : ''}" data-oud="${x.gepland ? isoD(x.gepland) : ''}" title="Datum waarop het werk gepland staat"></b>`}${isChange(x) ? (x.afgesloten ? r('Startdatum project', x.projStart ? fmtDatum(x.projStart) : '') + r('Deadline', x.projEind ? fmtDatum(x.projEind) : '') : `<span>Startdatum project</span><b><input type="date" id="d-pstart" class="datumkeuze" value="${x.projStart ? isoD(x.projStart) : ''}" data-oud="${x.projStart ? isoD(x.projStart) : ''}" title="Begindatum project van deze change"></b><span>Deadline</span><b><input type="date" id="d-peind" class="datumkeuze" value="${x.projEind ? isoD(x.projEind) : ''}" data-oud="${x.projEind ? isoD(x.projEind) : ''}" title="Einddatum project (deadline) van deze change"></b>`) : ''}${r('Laatste reactie', x.reactieDatum ? fmtDatum(x.reactieDatum) + (x.reactieDoor ? ' · ' + x.reactieDoor : '') : '')}${r('Extern ticket', x.extern)}${x.afgesloten ? (x.kritiek ? r('Kritieke storing', 'Ja') : '') + (x.datalek ? r('Datalek', 'Ja') : '') + r('CC', x.cc) : `<span>CC</span><b><input id="d-cc" class="datumkeuze cckeuze metpijl" value="${esc(x.cc || '')}" data-oud="${esc(x.cc || '')}" placeholder="– niemand –" title="Medewerker die een kopie van de mails krijgt" autocomplete="off" spellcheck="false"></b>
           <span>Markeren</span><b class="vinkjes"><label class="vink"><input type="checkbox" id="d-kritiek" ${x.kritiek ? 'checked' : ''} data-oud="${x.kritiek ? 1 : 0}"> Kritieke storing</label><label class="vink"><input type="checkbox" id="d-datalek" ${x.datalek ? 'checked' : ''} data-oud="${x.datalek ? 1 : 0}"> Datalek</label></b>`}</div>
     </div>
     <div class="toelblok"><h3>Toelichting</h3>${x.afgesloten ? `<div class="lang" id="d-toel">${x.toelichting ? esc(x.toelichting) : '<span class="hint">Toelichting ophalen…</span>'}</div>` : `<textarea class="lang toelinvoer" id="d-toel" rows="2" spellcheck="true" placeholder="${x.toelichting != null ? 'Geen toelichting ingevuld' : 'Toelichting ophalen…'}" ${x.toelichting != null ? `data-oud="${esc(String(x.toelichting).trim())}"` : 'disabled'}>${esc(String(x.toelichting || '').trim())}</textarea>`}</div>
@@ -2851,7 +2855,7 @@ async function vulVerantwKeuze(x){
     if(collegaDiag) sel.title += ' · ' + collegaDiag;
   }catch(e){ sel.disabled = true; sel.title = e.message; }
   ['#d-gepland', '#d-pstart', '#d-peind', '#d-cc', '#d-tel'].forEach(sel => { const gp = $(sel); if(gp) gp.oninput = () => gp.classList.toggle('gewijzigd', gp.value !== gp.dataset.oud); });
-  if($('#cc-lijst')) laadMedewerkers().then(l => { const dl = $('#cc-lijst'); if(dl) dl.innerHTML = l.map(m => `<option value="${esc(m.vol || m.naam)}">${esc(m.oe || '')}</option>`).join(''); }).catch(() => {});
+  if($('#d-cc')) koppelCc($('#d-cc'));
   const mij = $('#d-aanmij');
   if(mij) mij.onclick = () => { const s2 = $('#d-verantw'), code = (profiel.alias || [])[0]; if(!s2 || !code) return;
     let o = [...s2.options].find(o => o.value === code) || [...s2.options].find(o => benIk(o.textContent));
@@ -3113,14 +3117,14 @@ async function nieuweMelding(){
       </div>
       ${m.extra.map((f, i) => `<label>${esc(f.label || f.code)}${keuze(f, 'x' + i, '')}</label>`).join('')}
       <span class="hint" id="n-beh-hint">Geen verantwoordelijke = de melding komt bij Nieuwe meldingen.</span>
-      <label>CC <small class="hint" style="font-weight:400">· krijgt ook alle mails over deze melding</small><input name="cc" list="n-cc-lijst" autocomplete="off" spellcheck="false" placeholder="Niemand"><datalist id="n-cc-lijst"></datalist></label>
+      <label>CC <small class="hint" style="font-weight:400">· krijgt ook alle mails over deze melding</small><input name="cc" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Niemand"></label>
       </section>
     <div class="fout" id="n-fout">${m.stId ? '' : `Het type dossieritem "Aanvraag ICT" is niet gevonden in AFAS (gevonden: ${esc(m.typen.map(t => t.naam).join(', ') || 'geen')}). Zet nieuwStId in mijn-ict-config.js.`}</div>
     <div style="display:flex;gap:10px;justify-content:flex-end"><button type="button" class="knop" data-sluitnieuw>Annuleren</button><button type="button" class="knop vol" id="n-maak" title="Ctrl+Enter" ${m.stId ? '' : 'disabled'}>Melding aanmaken <kbd>Ctrl+Enter</kbd></button></div>
   </form>`;
   { const mi = $('#n-form').melder; mi.focus(); mi.select(); mi.addEventListener('click', () => { if(mi.dataset.std === '1') mi.select(); }); }   // typen vervangt 'jijzelf' direct
   koppelMelder(); koppelBehandelaar();
-  laadMedewerkers().then(l => { const dl = $('#n-cc-lijst'); if(dl) dl.innerHTML = l.map(m => `<option value="${esc(m.vol || m.naam)}">${esc(m.oe || '')}</option>`).join(''); }).catch(() => {});
+  koppelCc($('#n-form').cc);
 }
 async function maakMelding(){
   const vanTodo = todoBron;   // het venster sluit (en wist todoBron) voordat AFAS het meldingnummer teruggeeft
@@ -3139,7 +3143,7 @@ async function maakMelding(){
   m.extra.forEach((x, i) => zet(x, f['x' + i].value));
   if(f.cc && f.cc.value.trim()){ const sm = await laadSubjMeta(), cc = f.cc.value.trim();
     if(!sm.cc){ fout.textContent = 'Het veld CC is niet gevonden in AFAS (UpdateConnector KnSubject); laat CC leeg of vraag de beheerder.'; return; }
-    const o = waardenVan(sm.cc.values).find(o => norm(o.naam) === norm(cc)); let code = o ? o.code : null;
+    const o = waardenVan(sm.cc.values).find(o => norm(o.naam) === norm(cc) || norm(o.naam) === norm(ccNaam(cc)) || (ccId(cc) && o.code === ccId(cc))); let code = o ? o.code : ccId(cc) || null;
     if(!code){ const mw = await zoekMedewerker(cc); if(!mw){ fout.textContent = `CC "${cc}" is geen (eenduidige) medewerker. Kies een naam uit de lijst.`; f.cc.focus(); return; } code = mw.id; }
     w[veldCode(sm.cc)] = code; }
   if(f.behCode && f.behCode.value){ const sm = await laadSubjMeta(); if(!sm.verantw){ fout.textContent = 'Het veld Verantwoordelijke is niet gevonden in AFAS; laat Verantwoordelijke leeg.'; return; } w[veldCode(sm.verantw)] = f.behCode.value; }
@@ -3217,7 +3221,7 @@ let medewerkers = null, medewerkerFout = '', medewerkerConn = '', medewerkerKolD
 let heeftFunctieKol = DEMO;
 async function laadMedewerkers(){
   if(medewerkers) return medewerkers;
-  if(DEMO) return (medewerkers = [['Robert','van der','Veen'],['Anouk','de','Vries'],['Kelly','','Groen'],['Glenn','','Brons'],['Daphne','van de','Weert'],['Teun','','Kessels'],['Wilma','','Balm'],['Bianca','van den','Berg'],['Guillonard','','Leer'],['Steven','van','Dijk'],['Anouk','van','Riel'],['Noah','','Westerweel']].map(([v, t, a], i) => ({id: String(488760 + i), oe: i === 0 ? 'Manager Digitale Zorg en ICT' : i === 11 ? 'Medewerkers SIC' : ['Artsen DC Klinieken Almere','Doktersassistenten DC Klinieken Amsterdam','Medewerkers DC Klinieken Breda','Radiodiagnostisch laborant DC Klinieken Utrecht','Balie DC Klinieken Hanzeplein'][i % 5], naam: `${a}, ${[v, t].filter(Boolean).join(' ')}`, vol: [v, t, a].filter(Boolean).join(' ')})).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
+  if(DEMO) return (medewerkers = [['Robert','van der','Veen'],['Anouk','de','Vries'],['Kelly','','Groen'],['Glenn','','Brons'],['Daphne','van de','Weert'],['Teun','','Kessels'],['Wilma','','Balm'],['Bianca','van den','Berg'],['Guillonard','','Leer'],['Steven','van','Dijk'],['Anouk','van','Riel'],['Noah','','Westerweel']].map(([v, t, a], i) => ({id: String(488760 + i), mail: `${v[0].toLowerCase()}${(t + a).replace(/\s/g, '').toLowerCase()}@dcklinieken.nl`, oe: i === 0 ? 'Manager Digitale Zorg en ICT' : i === 11 ? 'Medewerkers SIC' : ['Artsen DC Klinieken Almere','Doktersassistenten DC Klinieken Amsterdam','Medewerkers DC Klinieken Breda','Radiodiagnostisch laborant DC Klinieken Utrecht','Balie DC Klinieken Hanzeplein'][i % 5], naam: `${a}, ${[v, t].filter(Boolean).join(' ')}`, vol: [v, t, a].filter(Boolean).join(' ')})).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
   medewerkerConn = await kiesMedewerkerConnector();
   const rijen = await connectorAlles(medewerkerConn), k = medewerkerKolommen(Object.keys(rijen[0] || {}));
   const t = v => String(v ?? '').trim();
@@ -3234,7 +3238,7 @@ async function laadMedewerkers(){
   const locK = Object.keys(rijen[0] || {}).find(c => /^(locatie|standplaats|werklocatie|werkplek|vestiging)/i.test(c.replace(/_/g, ' ')));
   const mailK = Object.keys(rijen[0] || {}).find(c => /mail/i.test(c) && /werk|work|zakelijk|business|^e.?mail$|^mail$/i.test(c)) || Object.keys(rijen[0] || {}).find(c => /mail/i.test(c) && !/prive|privé|home|personal/i.test(c));
   const funK = Object.keys(rijen[0] || {}).find(c => /^functie/i.test(c.replace(/_/g, ' ')) && !/code|id$/i.test(c)) || Object.keys(rijen[0] || {}).find(c => /functie/i.test(c)); heeftFunctieKol = !!funK;
-  const uniek = new Map(); rijen.filter(inDienst).forEach(r => { const id = t(r[k.idK]), n = naamVan(r); if(id && n.label && !uniek.has(id)) uniek.set(id, {id, naam: n.label, vol: n.vol, oe: k.oeK ? t(r[k.oeK]) : '', loc: locK ? t(r[locK]) : '', functie: funK ? t(r[funK]) : '', mail: mailK && /@/.test(t(r[mailK])) ? t(r[mailK]) : ''}); });
+  const uniek = new Map(); rijen.filter(inDienst).forEach(r => { const id = t(r[k.idK]), n = naamVan(r); if(id && n.label && !uniek.has(id)) uniek.set(id, {id, naam: n.label, vol: n.vol, roep: t(r[k.roep]), off: [t(r[k.voor]), t(r[k.tus]), t(r[k.ach])].filter(Boolean).join(' '), oe: k.oeK ? t(r[k.oeK]) : '', loc: locK ? t(r[locK]) : '', functie: funK ? t(r[funK]) : '', mail: mailK && /@/.test(t(r[mailK])) ? t(r[mailK]) : ''}); });
   return (medewerkers = [...uniek.values()].sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
 }
 // werklocatie van de medewerker koppelen aan één keuze uit de Locatie-lijst: volledig of deels gelijk, maar alleen als er precies één kandidaat is
@@ -3272,13 +3276,13 @@ const locTekst = m => { const opties = [...(($('#n-form') && $('#n-form').loc) |
 // melder in de medewerkerslijst zoeken op naam (eenduidig) of nummer
 async function zoekMedewerker(naam){
   const lijst = await laadMedewerkers(), n = norm(naam);
-  const l = lijst.filter(m => norm(m.vol) === n || norm(m.naam) === n || m.id === String(naam).trim());
+  const l = lijst.filter(m => norm(m.vol) === n || norm(m.naam) === n || (m.off && norm(m.off) === n) || m.id === String(naam).trim());
   if(l.length === 1) return l[0];
   if(l.length > 1) return null;
   // ruimer: zonder accenten (ğ, ş, é…) en ongeacht volgorde/komma ("Dağaşan, Samet" = "Samet Dagasan")
   const sl = v => String(v ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ı/g, 'i').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean).sort().join(' ');
   const z = sl(naam); if(!z) return null;
-  const l2 = lijst.filter(m => sl(m.vol) === z || sl(m.naam) === z);
+  const l2 = lijst.filter(m => sl(m.vol) === z || sl(m.naam) === z || (m.off && sl(m.off) === z));
   return l2.length === 1 ? l2[0] : null;
 }
 // Locatie voorstellen op basis van de melder; alleen als de registreerder zelf nog niets koos
@@ -3304,6 +3308,23 @@ async function koppelBehandelaar(){
     () => { f.behCode.value = ''; });
   inp.addEventListener('blur', () => setTimeout(() => { if(!f.behCode.value) inp.value = ''; }, 200));   // alleen een gekozen naam telt
 }
+// CC: dezelfde zoekbare keuzelijst als bij Melder ("Achternaam, Voornaam (nummer)", afdeling eronder, laatst gekozen bovenaan)
+async function koppelCc(inp){
+  if(!inp || inp.dataset.cc) return; inp.dataset.cc = '1';
+  let l = []; try{ l = await laadMedewerkers(); }catch(e){ inp.title = 'Medewerkers ophalen lukte niet: ' + e.message; return; }
+  const tekst = m => `${m.naam} (${m.id})`;
+  const items = () => { const recent = (opslag.get('mict-recente-cc') || []).map(id => l.find(m => m.id === id)).filter(Boolean);
+    const als = (m, recent) => ({waarde: tekst(m), sub: m.mail || m.oe, id: m.id, zoek: [m.vol, m.id, m.mail].join(' '), recent});
+    return [{waarde: 'Niemand', sub: 'geen CC', leeg: true}, ...recent.map(m => als(m, true)), ...l.filter(m => !recent.includes(m)).map(m => als(m))]; };
+  let gekozen = inp.value;
+  comboKoppel(inp, items, k => { inp.value = gekozen = k.leeg ? '' : k.waarde;
+    if(k.id) opslag.set('mict-recente-cc', [k.id, ...(opslag.get('mict-recente-cc') || []).filter(x => x !== k.id)].slice(0, 5));
+    if(inp.dataset.oud !== undefined){ inp.classList.toggle('gewijzigd', inp.value !== inp.dataset.oud); const d = inp.closest('dialog'); if(d) d.dataset.gewijzigd = '1'; } });
+  inp.addEventListener('focus', () => setTimeout(() => inp.select(), 0));
+  inp.addEventListener('blur', () => setTimeout(() => { if(inp.value !== gekozen && !(comboHuidig && comboHuidig.inp === inp)) inp.value = gekozen; }, 200));
+}
+const ccId = v => (String(v || '').match(/\((\w+)\)\s*$/) || [])[1] || '';
+const ccNaam = v => String(v || '').replace(/\s*\(\w+\)\s*$/, '').trim();
 async function koppelMelder(){
   const inp = $('#n-melder'), hint = $('#n-melder-hint'), f = $('#n-form'); if(!inp) return;
   // standaard: jijzelf, met je medewerkernummer (uit AFAS of eenmalig ingevuld)
@@ -3332,7 +3353,7 @@ async function koppelMelder(){
   // net als in AFAS: jijzelf en de laatst gekozen melders bovenaan
   const items = () => { const recent = (opslag.get('mict-recente-melders') || []).map(id => lijst.find(m => m.id === id)).filter(Boolean);
     const boven = [...new Set([ik, ...recent].filter(Boolean))];
-    const als = (m, recent) => ({waarde: tekst(m), sub: m.oe, id: m.id, zoek: m.vol + ' ' + m.id, recent});
+    const als = (m, recent) => ({waarde: tekst(m), sub: m.mail || m.oe, id: m.id, zoek: [m.vol, m.id, m.mail].join(' '), recent});
     return [...boven.map(m => als(m, true)), ...lijst.filter(m => !boven.includes(m)).map(m => als(m))]; };
   comboKoppel(inp, items, keus => { inp.value = keus.waarde; f.melderId.value = keus.id; inp.dataset.std = '0'; stelLocatieVoor(lijst.find(m => m.id === keus.id)); const mk = lijst.find(m => m.id === keus.id); hint.textContent = (ik && keus.id === ik.id ? 'Jij · ' : '') + ((mk && mk.oe) || keus.id); if(f.tel && !f.tel.value) setTimeout(() => f.tel.focus(), 0); },   // volgende vraag in het gesprek: waar bereikbaar?
     () => { f.melderId.value = ''; inp.dataset.std = '0'; hint.textContent = 'Kies de melder uit de lijst.'; });
@@ -3505,9 +3526,9 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
       if(nieuwKritiek !== null){ w[veldCode(m.kritiek)] = nieuwKritiek; lok.kritiek = nieuwKritiek; gedaan.push(nieuwKritiek ? 'kritieke storing' : 'geen kritieke storing meer'); }
       if(nieuwDatalek !== null){ w[veldCode(m.datalek)] = nieuwDatalek; lok.datalek = nieuwDatalek; gedaan.push(nieuwDatalek ? 'gemarkeerd als datalek' : 'datalek-markering weg'); }
       if(nieuwCc !== null){ let code = null;
-        if(nieuwCc){ const opties = waardenVan(m.cc.values); const o = opties.find(o => norm(o.naam) === norm(nieuwCc));
-          if(o) code = o.code; else { const mw = await zoekMedewerker(nieuwCc); if(!mw) throw new Error(`CC "${nieuwCc}" is geen (eenduidige) medewerker. Kies een naam uit de lijst.`); code = mw.id; } }
-        w[veldCode(m.cc)] = code; lok.cc = nieuwCc; gedaan.push(nieuwCc ? 'CC: ' + nieuwCc : 'CC gewist'); }
+        if(nieuwCc){ const opties = waardenVan(m.cc.values); const o = opties.find(o => norm(o.naam) === norm(nieuwCc) || norm(o.naam) === norm(ccNaam(nieuwCc)) || (ccId(nieuwCc) && o.code === ccId(nieuwCc)));
+          if(o) code = o.code; else if(ccId(nieuwCc)) code = ccId(nieuwCc); else { const mw = await zoekMedewerker(nieuwCc); if(!mw) throw new Error(`CC "${nieuwCc}" is geen (eenduidige) medewerker. Kies een naam uit de lijst.`); code = mw.id; } }
+        w[veldCode(m.cc)] = code; lok.cc = ccNaam(nieuwCc); gedaan.push(nieuwCc ? 'CC: ' + ccNaam(nieuwCc) : 'CC gewist'); }
       if(nieuwTel !== null){ w[veldCode(m.tel)] = nieuwTel || null; lok.tel = nieuwTel; gedaan.push(nieuwTel ? 'bereikbaar op ' + nieuwTel : 'bereikbaarheid gewist'); }
       await zetVelden(x, w); const ev = extraCache.get(String(x.nr)) || {}; ['datalek', 'cc', 'tel'].forEach(k => { if(k in lok) ev[k] = lok[k]; }); extraCache.set(String(x.nr), ev); }
     // 4a. change: startdatum project en deadline (velden)
@@ -4199,7 +4220,7 @@ if(!opslag.get(TOUR_GEZIEN)) $('#ik').classList.add('nieuw');
 const isDonker = () => (document.documentElement.dataset.thema || (matchMedia('(prefers-color-scheme: dark)').matches ? 'donker' : 'licht')) === 'donker';
 function wisselThema(){ document.documentElement.dataset.thema = isDonker() ? 'licht' : 'donker'; opslag.set('mict-thema', document.documentElement.dataset.thema); }
 { const t = opslag.get('mict-thema'); document.documentElement.dataset.thema = t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'donker' : 'licht'); }
-setInterval(async () => { if(!$('#app').hidden && !$('#detail').open){ await laadGegevens('open', true); teken(); await verrijkMelders(); controleerIctReacties(); } }, INST.verversMinuten * 60e3);
+setInterval(async () => { if(!$('#app').hidden && !$('#detail').open){ await laadGegevens('open', true); await verrijkMetTaken(); teken(); await verrijkMelders(); controleerIctReacties(); } }, INST.verversMinuten * 60e3);   // ook je workflowtaken opnieuw: anders blijft een doorgezette melding bij Mijn meldingen staan
 
 
 /* ================= To-do en notities: rechtstreeks in Microsoft To Do (Microsoft Graph) ================= */
@@ -4572,6 +4593,9 @@ async function projKolommen(){
 const naamWoorden = n => String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean);
 function benIkLos(naam){
   if(benIk(naam)) return true; if(!profiel || !naam) return false;
+  { const v = norm(String(naam)), codes = [profiel.emId, ...(profiel.alias || [])].filter(Boolean).map(c => norm(String(c)));
+    if(codes.some(c => v === c || v.includes('(' + c + ')') || v.split(/[\s,;()]+/).includes(c))) return true;
+    naam = String(naam).replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim(); if(benIk(naam)) return true; }
   const a = naamWoorden(naam), b = naamWoorden(profiel.naam); if(!a.length || !b.length) return false;
   if([...a].sort().join(' ') === [...b].sort().join(' ')) return true;   // zelfde woorden, andere volgorde
   const achter = b[b.length - 1], voor = b[0];   // achternaam + voorletter
