@@ -1217,7 +1217,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v6.6.2', VERSIE_DATUM = '06-10-2026';
+const VERSIE = 'v6.6.3', VERSIE_DATUM = '06-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2358,7 +2358,7 @@ async function haalBerichten(x){
   try{
     const k = await zorgBerichtKol();
     if(!k.keys.length || !k.datum){ if(k.keys.length){ berichtUit = true; berichtDiag = `In ${INST.connBerichten} ontbreekt de verzenddatum (kolommen: ${k.keys.join(', ')}).`; } berichtCache.set(nr, {t: Date.now(), l: []}); return []; }
-    const rij = r => ({t: new Date(r[k.datum]), naar: String(r[k.naar] || ''), naam: String(r[k.naam] || ''), status: String(r[k.status] || ''), sjabloon: String(r[k.sjabloon] || '')});
+    const rij = r => ({t: datum(r[k.datum]) || new Date(NaN), naar: String(r[k.naar] || ''), naam: String(r[k.naam] || ''), status: String(r[k.status] || ''), sjabloon: String(r[k.sjabloon] || '')});
     const basis = `/connectors/${encodeURIComponent(INST.connBerichten)}?skip=0&take=`;
     let l = [];
     if(k.dossier && (x.sbid || DEMO)){
@@ -5541,7 +5541,7 @@ function laadKaart(naam){
 function demoAfas(pad, opties){
   if(pad.startsWith(`/connectors/${INST.connBerichten}`)){   // zoals de echte connector: geen dossieritem; AFAS 'verstuurt' elke gelogde mail een minuut later
     const lok = t => new Date(t - new Date(t).getTimezoneOffset() * 6e4).toISOString().slice(0, 19), log = opslag.get(MAILLOG) || {};
-    return {rows: Object.values(log).flat().filter(m => m.aan && m.aan !== 'GEEN mail' && !/^volgens/.test(m.aan)).map(m => ({Naam: m.aan, Mail_werk: '', Datum_tijd_toegevoegd: lok(m.t + 6e4), Berichtstatus: 'Verzonden', Berichtsjabloon: 'Tickets ICT - Reactie geplaatst', Bestemming: '', Datum_tijd_verzending: lok(m.t + 6e4), Onderwerp_e_mail: ''}))}; }
+    return {rows: Object.values(log).flat().filter(m => m.aan && m.aan !== 'GEEN mail' && !/^volgens/.test(m.aan)).map(m => ({Naam: m.aan, Mail_werk: '', Datum_tijd_toegevoegd: lok(m.t + 6e4) + 'Z', Berichtstatus: 'Verzonden', Berichtsjabloon: 'Tickets ICT - Reactie geplaatst', Bestemming: '', Datum_tijd_verzending: lok(m.t + 6e4) + 'Z', Onderwerp_e_mail: ''}))}; }
   // demo: projecten (Mijn projecten)
   if(pad === `/metainfo/get/${INST.connProjecten}`) return {fields:['Projectnummer','Projectnaam','Projectleider','Teamlid','Rol','Projectfase','Voortgang','Startdatum','Einddatum','Datum_gereed_planning','Laatste_update','Datum_laatste_update'].map(id => ({id, label: id.replace(/_/g, ' ')}))};
   if(pad.startsWith(`/connectors/${INST.connProjectInfo}`)){ const d = n => new Date(Date.now() + n * DAG).toISOString().slice(0, 10) + 'T00:00:00';
