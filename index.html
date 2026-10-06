@@ -1217,7 +1217,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v6.6.1', VERSIE_DATUM = '06-10-2026';
+const VERSIE = 'v6.6.2', VERSIE_DATUM = '06-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2346,7 +2346,7 @@ async function zorgBerichtKol(){
   const eerst = ((await afas(`/connectors/${encodeURIComponent(INST.connBerichten)}?skip=0&take=1`)).rows || [])[0] || {};
   const keys = Object.keys(eerst), nk = k => norm(k.replace(/_/g, ' '));
   const vind = (...res) => { for(const re of res){ const k = keys.find(k => re.test(nk(k))); if(k) return k; } };   // eerste patroon heeft voorrang
-  berichtKol = {naam: vind(/^naam$/), datum: vind(/verzend/, /verzonden/, /datum/), naar: vind(/bestemming/, /ontvanger/, /e ?mail werk|adres/), status: vind(/status e ?mail/, /berichtstatus/, /^status/), omschr: vind(/onderwerp e ?mail/, /^onderwerp$/, /^omschrijving$/), dossier: vind(/dossier/, /subject|sbid/), sjabloon: vind(/sjabloon/), keys};
+  berichtKol = {naam: vind(/^naam$/), datum: vind(/verzend/, /verzonden/, /datum/), naar: vind(/bestemming/, /ontvanger/, /e ?mail werk|adres/), status: vind(/berichtstatus/, /status e ?mail/, /^status/), omschr: vind(/onderwerp e ?mail/, /^onderwerp$/, /^omschrijving$/), dossier: vind(/dossier/, /subject|sbid/), sjabloon: vind(/sjabloon/), keys};
   return berichtKol;
 }
 // AFAS legt in Berichten niet vast bij welke melding een mail hoort. Daarom: per mail die SubmIT liet versturen
