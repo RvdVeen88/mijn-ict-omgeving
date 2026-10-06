@@ -2,7 +2,11 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#053787">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="SubmIT">
+<link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>SubmIT · DC Klinieken</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23053787'/%3E%3Csvg x='7' y='8' width='50' height='48' viewBox='105 110 505 435'%3E%3Cg fill='%23fff'%3E%3Cpath d='M518 257L517 258L512 259L509 261L507 261L506 262L489 267L486 269L472 273L469 275L446 282L443 284L441 284L440 285L438 285L437 286L402 297L432 312L437 316L414 341L414 342L403 353L403 354L376 384L342 345L342 344L331 332L331 331L325 325L320 318L313 311L295 331L295 332L278 350L278 351L271 358L271 359L261 369L261 370L221 414L221 415L212 424L212 425L205 432L205 433L181 459L181 460L166 476L166 477L118 531L164 496L168 494L184 482L188 478L204 466L208 464L235 443L243 438L255 428L259 426L260 427L258 431L256 433L247 451L245 453L242 460L240 462L227 488L318 396L319 396L326 403L326 404L372 454L469 347L471 348L471 349L475 353L475 354L479 358L479 359L483 363L495 379L496 379L496 375L497 374L497 370L498 369L498 364L499 363L499 359L500 358L500 353L501 352L501 347L502 346L502 342L503 341L503 337L504 336L504 332L505 331L506 320L507 319L507 315L508 314L508 309L509 308L509 304L510 303L510 298L511 297L511 293L512 292L512 287L513 286L514 276L515 275L515 270L516 269L516 264L517 263L517 259Z'/%3E%3Cpath d='M505 121L505 124L504 125L502 136L500 140L500 143L498 147L498 150L497 151L495 161L484 165L481 165L480 166L465 169L461 171L454 172L456 172L460 174L463 174L464 175L467 175L468 176L471 176L472 177L475 177L479 179L486 180L490 182L493 182L496 186L496 189L498 193L500 204L502 208L505 223L506 218L508 214L508 211L510 207L510 204L511 203L513 192L515 188L515 185L517 182L520 182L521 181L524 181L525 180L528 180L536 177L539 177L547 174L557 172L554 172L553 171L546 170L542 168L535 167L531 165L524 164L520 162L517 162L515 160L513 149L511 145L511 142L510 141L510 138L509 137L509 134L508 133L508 130L507 129L506 122Z'/%3E%3Cpath d='M452 195L446 217L444 219L442 219L441 220L438 220L434 222L423 224L427 226L430 226L431 227L434 227L435 228L438 228L439 229L444 230L446 232L447 237L448 238L448 241L449 242L449 245L450 246L450 249L451 250L451 253L452 254L452 251L455 243L457 232L459 230L461 230L462 229L465 229L473 226L480 225L480 224L477 224L476 223L473 223L472 222L469 222L465 220L459 219L457 217L457 214L454 206Z'/%3E%3Cpath d='M567 228L565 233L564 240L562 244L562 247L559 250L539 255L549 257L550 258L553 258L557 260L560 260L563 266L563 269L564 270L564 273L565 274L565 277L566 278L567 283L567 280L569 276L569 273L572 265L572 262L574 260L577 260L581 258L584 258L585 257L588 257L589 256L594 255L573 249L569 238Z'/%3E%3Cpath d='M576 177L572 191L569 193L566 193L565 194L557 196L560 196L561 197L571 199L573 202L574 209L576 213L577 207L580 199L594 196L589 194L582 193L579 191L579 188L577 184Z'/%3E%3C/g%3E%3C/svg%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,700&display=swap" rel="stylesheet">
@@ -154,7 +158,7 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 #v-todo{display:flex;flex-direction:column;gap:12px}
 #v-todo[hidden]{display:none}
 .todo-indeling{display:grid;grid-template-columns:230px minmax(0,1fr);gap:22px;align-items:start}
-@media (max-width:800px){.todo-indeling{grid-template-columns:1fr}}
+@media (max-width:800px){.todo-indeling{grid-template-columns:minmax(0,1fr)}.todo-kop{position:static}}
 .todo-kop{display:flex;flex-direction:column;gap:14px;position:sticky;top:12px}
 .todo-lijsten{display:flex;flex-direction:column;gap:2px}
 .tdlijst{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;color:var(--inkt);border-radius:0 999px 999px 0;padding:8px 12px;font-size:14px;cursor:pointer;text-align:left}
@@ -479,7 +483,7 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .nav h4 button svg{width:12px;height:12px;transition:transform .2s}
 .nav h4 button[aria-expanded="false"] svg{transform:rotate(-90deg)}
 .nav .favhint{font-size:12px;color:var(--grijs);padding:2px 12px 6px 28px}
-@media (max-width:1000px){.nav{display:none}}
+
 .tw{overflow-x:auto}
 .voet .achter{display:inline-flex;align-items:center;gap:8px;margin-right:14px}
 .voet .achter i{display:block;width:120px;height:4px;border-radius:2px;background:var(--lijn);overflow:hidden}
@@ -605,7 +609,12 @@ dialog #combo{position:fixed}
 .linkknop{border:0;background:none;color:var(--blauw-2);text-decoration:underline;font-size:12.5px;padding:0;cursor:pointer}
 /* kolommen vallen weg op volgorde van belang zodra de tabel smaller wordt (werkt op elk scherm en elke zoomstand) */
 .tw{container-type:inline-size}
-@container (max-width:1250px){.tabel .k-reactie{display:none}}
+@container (max-width:1600px){.tabel .k-reactie{display:none}}
+/* smaller (laptop/tablet): vaste kolommen iets smaller, zodat Onderwerp leesbaar blijft */
+@container (max-width:1050px){.tabel:not([style*="width"]) th:is(.k-melder,.k-wie,.k-status){width:118px!important}.tabel:not([style*="width"]) th.k-sig{width:150px!important}.tabel .k-gepland{display:none}}
+/* breed (QHD/ultrawide/4K): vaste kolommen groeien mee, zodat Onderwerp niet alles krijgt (niet als je zelf breedtes hebt gezet) */
+@container (min-width:2100px){.tabel:not([style*="width"]) th:is(.k-melder,.k-wie,.k-status){width:200px!important}.tabel:not([style*="width"]) th.k-sig{width:260px!important}.tabel:not([style*="width"]) th.k-type{width:130px!important}}
+@container (min-width:2900px){.tabel:not([style*="width"]) th:is(.k-melder,.k-wie,.k-status){width:250px!important}.tabel:not([style*="width"]) th.k-sig{width:320px!important}.tabel:not([style*="width"]) th:is(.k-afd,.k-loc){width:150px!important}}
 @container (max-width:1200px){.tabel .k-loc{display:none}}
 @container (max-width:1120px){.tabel .k-afd{display:none}.tabel .k-in{display:none}}
 @container (max-width:920px){.tabel .k-type{display:none}.tabel{font-size:12.8px}.tabel th.k-sig{width:160px!important}}
@@ -712,9 +721,10 @@ dialog#detail .navpijl[hidden]{display:none}
 .stap.nu i::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--blauw)}
 .lijntje{flex:0 0 46px;height:2px;background:var(--lijn);margin:0 10px}
 .lijntje.klaar{background:var(--blauw-2)}
-.kaarten{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.kaarten{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+@media (max-width:1000px){.kaarten{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:760px){.kaarten{grid-template-columns:1fr}}
-.kaart2{background:var(--achtergrond);border-radius:18px;padding:14px 18px;display:grid;grid-template-columns:130px 1fr;gap:7px 14px;align-content:start;font-size:13.5px}
+.kaart2{background:var(--achtergrond);border-radius:18px;padding:14px 18px;display:grid;grid-template-columns:130px minmax(0,1fr);gap:7px 14px;align-content:start;font-size:13.5px;min-width:0}
 .kaart2 h3{grid-column:1/-1;font-size:13px;color:var(--blauw);margin-bottom:2px}
 .kaart2 span{color:var(--grijs)}
 .kaart2 b{font-weight:500;overflow-wrap:anywhere}
@@ -930,7 +940,7 @@ dialog#detail.sleept .composer{outline:1.5px dashed var(--lijn);outline-offset:4
 .bekijkin iframe{width:100%;height:100%;border:0;background:#fff}
 .bekijkin pre{align-self:start;justify-self:stretch;margin:0;padding:16px;white-space:pre-wrap;font-size:12.5px;overflow-wrap:anywhere}
 
-@media (max-width:700px){.rail{display:none}.bovenbalk,main,.voet{padding-left:16px;padding-right:16px}.rij{padding-right:16px}.chips{display:none}}
+@media (max-width:700px){.bovenbalk,main,.voet{padding-left:16px;padding-right:16px}.rij{padding-right:16px}.chips{display:none}}
 /* smalle balk: alleen eenvoudige lijn-icoontjes; alleen de pagina waar je bent krijgt een rand */
 .rail .r{border:1.5px solid transparent;box-sizing:border-box;background:transparent;color:var(--rail-ico)}
 .rail .r svg{width:24px;height:24px;stroke-width:1.9}
@@ -941,6 +951,99 @@ dialog#detail .dlg-in > *{flex-shrink:0}
 dialog#detail .tijdlijn{min-height:120px}
 /* reactievak: standaard ruim, groeit mee met de tekst (bv. een standaardtekst met ondertekening) */
 dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:vertical;line-height:1.5;box-sizing:border-box}
+
+/* ================= responsive: tablet en telefoon ================= */
+.menuknop{display:none;width:40px;height:40px;border-radius:12px;border:1.5px solid var(--lijn);background:var(--vlak);color:var(--blauw);place-items:center;padding:0;flex:none}
+.menuknop svg{width:22px;height:22px}
+.menuknop[hidden]{display:none!important}
+.navscherm{display:none}
+@media (max-width:1000px){
+  .menuknop{display:grid}
+  .nav{display:flex!important;position:fixed;z-index:85;left:0;top:0;bottom:0;height:auto;width:min(300px,86vw);background:var(--vlak);box-shadow:12px 0 40px rgba(3,31,77,.25);transform:translateX(-105%);transition:transform .22s ease;padding-top:14px}
+  body.navopen .nav{transform:none}
+  body.navopen .navscherm{display:block;position:fixed;inset:0;z-index:84;background:rgba(12,19,35,.35)}
+}
+@media (max-width:700px){
+  body{--onder:64px}
+  /* onderbalk i.p.v. linkerbalk */
+  .rail{display:flex!important;position:fixed;z-index:70;left:0;right:0;bottom:0;top:auto;margin:0;width:auto;height:calc(var(--onder) + env(safe-area-inset-bottom));padding:0 8px env(safe-area-inset-bottom);border-radius:18px 18px 0 0;flex-direction:row;justify-content:space-around;align-items:center;gap:0;box-shadow:0 -6px 24px rgba(3,31,77,.12)}
+  .rail .logo{display:none}
+  .rail .r,.rail .r.plus{margin:0}
+  .werk{padding-bottom:calc(var(--onder) + env(safe-area-inset-bottom))}
+  .bovenbalk{padding:12px 12px 6px;gap:10px}
+  .bovenbalk h1:empty,.bovenbalk .sub:empty{display:none}
+  .globzoek{margin-left:auto}
+  .globzoek.open{position:absolute;left:62px;right:62px;z-index:60;flex-basis:auto;min-width:0}
+  .bovenbalk{position:relative}
+  .ik span,.ik > svg{display:none}
+  main{padding:4px 10px 16px;gap:12px}
+  .voet{padding:4px 14px 10px;font-size:11.5px}
+  .blok{border-radius:20px}
+  input,select,textarea{font-size:16px!important}   /* iPhone zoomt anders in */
+  /* kop van een lijst: titel boven, knoppen eronder (scrollbaar) */
+  .blok > header{flex-wrap:wrap;padding:14px 16px 8px;row-gap:8px}
+  #lijst-kol{order:5;width:100%;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-left:0}
+  #lijst-kol::-webkit-scrollbar{display:none}
+  #lijst-kol .kolknop{display:none}
+  .blok > header small{margin-left:0;flex-basis:100%}
+  /* tabellen worden kaartjes */
+  .tw{overflow:visible}
+  .tabel,.tabel tbody{display:block;width:100%!important}
+  .tabel thead,.filterinfo{display:none}
+  .tabel tbody tr{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:10px;row-gap:3px;padding:10px 14px 10px 12px;border-bottom:1px solid var(--lijn);align-items:baseline}
+  .tabel tbody tr.geenrij{display:block}
+  .tabel tbody td{display:none;padding:0;border:0;max-width:none;width:auto!important}
+  .tabel tbody td{background:transparent!important}
+  .tabel tbody tr:nth-child(even){background:var(--zebra)}
+  .tabel tbody tr.kritiekrij{background:var(--rood-licht)}
+  .tabel tbody tr.geenrij td{display:block}
+  .tabel td.nr,.tabel td.k-p-nr{display:block;grid-row:1 / span 2;grid-column:1;align-self:start;text-align:left;width:auto;padding-left:6px;box-shadow:inset 3px 0 0 transparent}
+  .tabel td.ond,.tabel td.k-p-naam{display:block;grid-row:1;grid-column:2;white-space:normal;line-height:1.35;font-size:14.5px}
+  .tabel td.k-status,.tabel td.k-p-voort{display:block;grid-row:1;grid-column:3;font-size:12px;color:var(--grijs);max-width:120px;overflow:hidden;text-overflow:ellipsis}
+  .tabel td.k-melder,.tabel td.k-p-rol{display:block;grid-row:2;grid-column:2 / -1;font-size:12.5px;color:var(--grijs)}
+  .tabel td.sig{display:block;grid-row:3;grid-column:2 / -1;white-space:normal;line-height:1.7}
+  .tabel td.sig:empty{display:none}
+  .tabel td.k-peind,.tabel td.k-p-eind{display:block;grid-row:2;grid-column:3;font-size:12px;text-align:right}
+  .tabel .kolgreep{display:none}
+  /* paneel (melding, project, nieuw) vult het scherm */
+  dialog.lade,dialog#detail.lade,dialog#detail.lade.groot,dialog.lade.nieuwdlg{width:100vw;max-width:100vw;height:100dvh;border-radius:0}
+  dialog.lade .dlg-in{padding:16px 14px calc(12px + env(safe-area-inset-bottom));max-height:100dvh}
+  dialog#detail .grootknop,dialog#detail .navpijl,dialog#detail .todoknop{display:none!important}
+  .kaarten{grid-template-columns:1fr}
+  .kaart2{grid-template-columns:110px minmax(0,1fr);padding:12px 14px}
+  .dlg-kop h2{font-size:17px}
+  .onderbalk{gap:8px}.onderbalk kbd,.knop kbd{display:none}
+  .mailvooraf{display:none!important}
+  /* overzicht */
+  .vb-kritiek,.vb-storing{padding:12px 14px 8px;margin-bottom:16px}
+  .vb-storing .vbs-kop{flex-wrap:wrap}
+  /* Team-paneel als onderblad */
+  .teampaneel{left:8px!important;right:8px;top:auto!important;bottom:calc(var(--onder) + 8px + env(safe-area-inset-bottom));width:auto;max-height:70dvh}
+  .teamwolk{display:none}
+  #kritiekbox{top:10px;right:10px;left:10px;width:auto}
+  #toast{bottom:calc(var(--onder) + 14px + env(safe-area-inset-bottom))!important}
+  .ikmenu{position:fixed;right:10px;left:auto;top:62px}
+  #kolkeuze{left:10px!important;right:10px;width:auto}
+  /* tijdlijn: zijwaarts scrollen */
+  .chtijdlijn{--links:130px;overflow-x:auto}
+  .chtijdlijn > *{min-width:620px}
+  /* to-do */
+  .todo-indeling{gap:10px}
+  .todo-lijsten{flex-direction:row!important;overflow-x:auto;gap:6px;scrollbar-width:none}.todo-lijsten::-webkit-scrollbar{display:none}
+  .tdlijst{width:auto!important;flex:none;border-radius:999px!important;border:1.5px solid var(--lijn)!important;padding:6px 12px!important}
+}
+
+/* ================= brede schermen (QHD, ultrawide, 4K) ================= */
+@media (min-width:1800px){
+  #v-mij,#v-todo{width:100%;max-width:1560px;margin:0 auto}
+  dialog#detail.lade{width:clamp(880px,44vw,1180px)}
+  dialog.lade.nieuwdlg{width:clamp(700px,34vw,900px)}
+  .teampaneel{width:420px}
+}
+@media (min-width:2600px){
+  #v-mij,#v-todo{max-width:1800px}
+  .tabel td.ond,.tabel td.k-p-naam{font-size:14.5px}
+}
 </style>
 <script src="mijn-ict-config.js"></script>
 </head>
@@ -959,12 +1062,13 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
     <button type="button" class="r" id="team-knop" title="Team: wie is er online en wat gebeurt er" aria-label="Team" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 20a6.5 6.5 0 0 0-2.6-5.2"/></svg><span class="tel online" id="team-aantal"></span><span class="stip" id="team-stip" hidden></span></button>
     <button type="button" class="r plus" id="nieuw-knop" title="Nieuwe melding" aria-label="Nieuwe melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
   </nav>
-  <aside class="nav" id="nav"></aside>
+  <aside class="nav" id="nav"></aside><div class="navscherm" id="navscherm"></div>
   <div class="werk">
     <div class="bovenbalk">
+      <button type="button" class="menuknop" id="menu-knop" aria-label="Menu" aria-controls="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       <h1 id="titel">Voor mij</h1><span class="sub" id="subtitel"></span>
       <div class="globzoek" id="globzoek"><label class="zoek" title="Zoeken (Ctrl+K)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="f-zoek" placeholder="Zoek op nummer, onderwerp of naam…" autocomplete="off" spellcheck="false" aria-label="Zoeken in meldingen"><kbd id="zoek-kbd">Ctrl K</kbd></label><div class="zoekres" id="zoekres" hidden></div></div>
-      <div class="rechts"><div class="schakel klein" id="mijalles-top" role="group" aria-label="Welke meldingen je ziet"><button type="button" data-v="mij" title="Alleen meldingen waar jij behandelaar bent of een taak hebt">Mij</button><button type="button" data-v="afd" title="Jouw meldingen plus alles in je ★-afdelingen, wie de behandelaar ook is">Afdelingen</button><button type="button" data-v="alles" title="Alle meldingen">Alles</button></div><button type="button" class="ik" id="ik" title="Menu" aria-haspopup="menu"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
+      <div class="rechts"><div class="schakel klein" id="mijalles-top" role="group" aria-label="Welke meldingen je ziet"><button type="button" data-v="mij" title="Alleen meldingen waar jij verantwoordelijke bent of een taak hebt">Mij</button><button type="button" data-v="afd" title="Jouw meldingen plus alles in je ★-afdelingen, wie de verantwoordelijke ook is">Afdelingen</button><button type="button" data-v="alles" title="Alle meldingen">Alles</button></div><button type="button" class="ik" id="ik" title="Menu" aria-haspopup="menu"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
     </div>
     <main>
       <section id="v-mij">
@@ -1013,6 +1117,17 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
 <div class="topbalk" id="topbalk"><i></i></div>
 
 <script>
+/* terugkomst van de Microsoft-login (pop-up): code doorgeven aan het hoofdvenster en verder niets laden */
+(function(){ const q = new URLSearchParams(location.search), st = q.get('state') || '';
+  if(!st.startsWith('ms.') || !(q.get('code') || q.get('error'))) return;
+  const uit = {msCode: q.get('code') || '', msFout: q.get('error_description') || q.get('error') || '', state: st};
+  try{ localStorage.setItem('ms-login-uitkomst', JSON.stringify({...uit, t: Date.now()})); }catch(e){}
+  try{ if(window.opener) window.opener.postMessage(uit, location.origin); }catch(e){}
+  document.write('<p style="font:16px system-ui;margin:40px;text-align:center">Gekoppeld met Microsoft. Dit venster sluit vanzelf…</p>');
+  setTimeout(() => window.close(), 300); throw new Error('ms-login-popup');
+})();
+</script>
+<script>
 'use strict';
 /* ================= instellingen (mijn-ict-config.js mag dit overschrijven; daar staat géén geheim in) ================= */
 const INST = Object.assign({
@@ -1045,6 +1160,8 @@ const INST = Object.assign({
   ticketUrl: 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}',   // leeg = geen link
   connReacties: 'Helpdesk_Reacties',
   connProjecten: 'PowerBI_PBI_Team',
+  msClientId: 'c7ab5576-02c4-439c-89a6-f70e613d0b71',          // Entra-app SubmIT (openbaar id, geen geheim): To-do via Microsoft To Do
+  msTenant: '0ceb8564-e296-4331-9dce-d837ea00eab8',
   connProjUpdates: 'PowerBI_PBI_Projectupdates',               // eerdere updates (dossieritems) per project, voor de reacties in het projectvenster
   connProjectInfo: 'PowerBI_PBI_Projecten',                  // per project: code, omschrijving, projectleider, status, datums, voortgang, prioriteit                          // projecten uit het projectbureau (Mijn projecten); leeg = uit
   projUpdStId: 77,                                            // type dossieritem 'Update projectvoortgang'
@@ -1062,7 +1179,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v5.13.6', VERSIE_DATUM = '04-10-2026';
+const VERSIE = 'v6.2', VERSIE_DATUM = '04-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1239,7 +1356,7 @@ function maakItem(r, extra){
   { const pd = projCache.get(String(x.nr)) || projDatums(r); if(pd){ x.projStart = pd.start; x.projEind = pd.eind; } }
   { const ev = extraCache.get(String(x.nr)) || extraVelden(r); if(ev) Object.assign(x, ev); }
   x.zorgadmin = lijst(INST.afdVerbergen).includes(norm(x.afdeling));
-  x.inuit = /(^|\s)(in|uit)[\s-]*dienst/i.test(x.soort);
+  x.inuit = /(^|[\s\/(-])(in|uit)[\s-]*dienst(treding)?(?![a-zà-ÿ])/i.test(x.soort) || /^(in|uit)dienst/i.test(x.soort);
   x.emmer = emmer(x.status);
   x.afgesloten = x.afgerond || lijst(INST.st_afgesloten).includes(norm(x.status));
   x.sla = (!lijst(INST.slaSoorten).length || lijst(INST.slaSoorten).includes(norm(x.soort))) && !x.zorgadmin;
@@ -1495,7 +1612,7 @@ function signalen(x){
   return s;
 }
 const ICTR = 'mict-ictreactie';
-// is de schrijver iemand van ICT bij deze melding (behandelaar, taakhouder of jijzelf)? Telt ook als die toevallig zelf de melder is (bv. een testmelding)
+// is de schrijver iemand van ICT bij deze melding (verantwoordelijke, taakhouder of jijzelf)? Telt ook als die toevallig zelf de melder is (bv. een testmelding)
 const ictPersoon = (x, wie) => !!wie && (norm(wie) === norm(x.verantw) || benIk(wie) || (x.taakBij || []).some(t => norm(t) === norm(wie)));
 const laatsteVanMelder = x => !!(x.melder && norm(x.reactieDoor) === norm(x.melder) && !ictPersoon(x, x.reactieDoor));
 const ictReactieBekend = nr => !!(opslag.get(ICTR) || {})[nr];
@@ -1540,12 +1657,12 @@ const KOLOMMEN = [
   {k:'nr', bw:'64px', t:'Nr.', w:x => +x.nr || 0, html:x => esc(x.nr), cls:'nr'},
   {k:'afd', bw:'118px', t:'Afdeling', w:x => norm(x.afdeling), html:x => esc(x.afdeling || '–'), cls:'zacht k-afd'},
   {k:'in', bw:'98px', t:'Ingestuurd', w:x => +x.aangemaakt || 0, html:x => kortDatum(x.aangemaakt), cls:'zacht k-in'},
-  {k:'melder', bw:'12%', t:'Melder', w:x => norm(x.melder), html:x => esc(x.melder || '–'), cls:'k-melder'},
+  {k:'melder', bw:'150px', t:'Melder', w:x => norm(x.melder), html:x => esc(x.melder || '–'), cls:'k-melder'},
   {k:'ond', t:'Onderwerp', w:x => norm(x.onderwerp), html:x => esc(x.onderwerp), cls:'ond'},
-  {k:'wie', bw:'12%', t:'Behandelaar', w:x => norm(x.verantw), html:x => esc(x.verantw || '–'), cls:'zacht k-wie'},
+  {k:'wie', bw:'150px', t:'Verantwoordelijke', w:x => norm(x.verantw), html:x => esc(x.verantw || '–'), cls:'zacht k-wie'},
   {k:'reactie', bw:'96px', t:'Laatste reactie', w:x => +x.reactieDatum || 0, html:x => x.reactieDatum ? kortDatum(x.reactieDatum) : '–', cls:'zacht k-reactie'},
-  {k:'type', bw:'9%', t:'Type', w:x => norm(x.type), html:x => esc(x.type || '–'), cls:'zacht k-type'},
-  {k:'status', bw:'12%', t:'Status', w:x => norm(x.status), html:x => statusIco(x) + esc(toonStatus(x.status) || 'Open'), cls:''},
+  {k:'type', bw:'100px', t:'Type', w:x => norm(x.type), html:x => esc(x.type || '–'), cls:'zacht k-type'},
+  {k:'status', bw:'150px', t:'Status', w:x => norm(x.status), html:x => statusIco(x) + esc(toonStatus(x.status) || 'Open'), cls:''},
   {k:'loc', bw:'110px', t:'Locatie', w:x => norm(x.locatie || locCache.get(String(x.nr)) || ''), html:x => esc(x.locatie || locCache.get(String(x.nr)) || '–'), cls:'zacht k-loc'},
   {k:'pstart', bw:'96px', t:'Startdatum', ch:true, w:x => +x.projStart || 0, html:x => x.projStart ? kortDatum(x.projStart) : '–', cls:'zacht k-pstart'},
   {k:'peind', bw:'96px', t:'Deadline', ch:true, w:x => +x.projEind || 0, html:x => x.projEind ? `<span${!x.afgesloten && +x.projEind < +beginDag(new Date()) ? ' style="color:var(--rood);font-weight:600"' : ''}>${kortDatum(x.projEind)}</span>` : '–', cls:'k-peind'},
@@ -1700,11 +1817,11 @@ const open = () => items.filter(x => !x.afgesloten);
 const VAST = [
   {id:'mij', t:'Overzicht', ico:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'},
   {id:'historie', t:'Historie', ico:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'},
-  {id:'toegewezen', t:'Mijn meldingen', ongelezen:true, ico:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>', f:() => meld().filter(isMijn)},
+  {id:'toegewezen', t:'Mijn meldingen', ongelezen:true, ico:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>', f:() => open().filter(isMijn)},
   {id:'norm', t:'Aandacht nodig', ico:'<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>', f:() => meld().filter(actie), rood:true},
   {id:'nieuw', t:'Nieuwe meldingen', ico:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>', f:() => meld().filter(x => x.emmer === 'nieuw' && !x.inuit), stuiter:true}   // in- en uitdienst heeft een eigen overzicht
 ];
-const ALLE = {id:'alle', t:'Alle meldingen', ico:'<path d="M4 6h16M4 12h16M4 18h10"/>', f:() => meld()};
+const ALLE = {id:'alle', t:'Alle meldingen', ico:'<path d="M4 6h16M4 12h16M4 18h10"/>', f:() => open()};   // incl. changes en RfC's
 // Changes (RfC + Change) hebben een eigen kopje; Projecten ook
 const CH_ICO = '<path d="M4 7h12l-3-3M20 17H8l3 3"/>';
 const CHANGES = [{id:'ch:mijn', t:'Mijn changes', ico:CH_ICO, f:() => open().filter(isChange).filter(isMijn)}];
@@ -1729,8 +1846,8 @@ let dichtTab = null;
 const toonDicht = () => dichtTab === tab;
 function dichtVan(t){
   const d = items.filter(x => x.afgesloten);
-  if(t === 'toegewezen') return d.filter(x => !isChange(x) && isMijn(x));
-  if(t === 'alle') return d.filter(x => !isChange(x));
+  if(t === 'toegewezen') return d.filter(isMijn);
+  if(t === 'alle') return d;
   if(t === 'ch:mijn') return d.filter(x => isChange(x) && isMijn(x));
   if(t === 'inuit') return d.filter(x => x.inuit);
   if(t.startsWith('afd:')){ const a = t.slice(4); return d.filter(x => !isChange(x) && !x.inuit && norm(navAfd(x.afdeling)) === norm(a)); }
@@ -1780,7 +1897,7 @@ let overigeOpen = false;   // bij openen altijd dichtgeklapt
 function tekenNav(){
   const mini = id => `<span class="minischak" role="group" aria-label="Mij of alles">${['mij','alles'].map(v => `<span role="button" tabindex="0" data-mijalles="${id}" data-v="${v}" aria-pressed="${(v === 'mij') === schuifAan(id)}" title="${v === 'mij' ? 'Alleen mijn meldingen en wat bij niemand ligt' : 'Alle meldingen'}">${v === 'mij' ? 'Mij' : 'Alle'}</span>`).join('')}</span>`;
   const it = (id, t, n, o = {}) => { const ong = o.ongelezen ? open().filter(x => (x._sg || []).some(s => s.code === 'ongelezen')).length : 0;
-    return `<button type="button" class="it${o.rood && n ? ' rinkel' : ''}${(o.stuiter && n) || ong ? ' stuiter' : ''}" data-weergave="${esc(id)}" aria-pressed="${tab === id}" ${ong ? `title="${ong} melding${ong === 1 ? '' : 's'} met iets nieuws voor jou"` : ''}>${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${o.mini || ''}${n == null ? (ong ? '<b class="stip leeg"></b>' : '') : `<b class="${o.rood && n ? 'rood' : ''}${ong ? ' stip' : ''}">${n}</b>`}</button>`; };
+    return `<button type="button" class="it${o.rood && n ? ' rinkel' : ''}${(o.stuiter && n && profiel && profiel.rol === 'servicedesk') || ong ? ' stuiter' : ''}" data-weergave="${esc(id)}" aria-pressed="${tab === id}" ${ong ? `title="${ong} melding${ong === 1 ? '' : 's'} met iets nieuws voor jou"` : ''}>${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${o.mini || ''}${n == null ? (ong ? '<b class="stip leeg"></b>' : '') : `<b class="${o.rood && n ? 'rood' : ''}${ong ? ' stip' : ''}">${n}</b>`}</button>`; };
   const fav = favorieten(), isFav = a => fav.some(x => norm(x) === norm(a));
   const afd = afdelingen();
   const rijA = ([a, n]) => `<div class="afdrij"><button type="button" class="favknop ${isFav(a) ? 'aan' : ''}" data-fav="${esc(a)}" title="${isFav(a) ? 'Uit favorieten halen' : 'Als favoriet bovenaan zetten'}">★</button>${it('afd:' + a, a, zichtbaar('afd:' + a, weergave('afd:' + a).lijst).length)}</div>`;
@@ -1856,11 +1973,11 @@ function tekenMijOud(){
   const mijnRust = mijn.filter(x => !actie(x));
   const tegel = (n, t, sub, kl, doel) => `<button type="button" class="tegel ${n ? kl : 'nul'}" data-weergave="${doel}" title="${esc(sub)}"><span>${t}</span><b>${n}</b><small>${esc(sub)}</small></button>`;
   $('#tegels').innerHTML = tegel(mijnActie.length, 'Actie nodig', 'op jouw naam', 'rood', 'toegewezen')
-    + tegel(nieuwLos.length, 'Nieuw op te pakken', profiel.rol === 'servicedesk' ? 'zonder behandelaar' : 'in je afdelingen', 'oranje', 'nieuw')
+    + tegel(nieuwLos.length, 'Nieuw op te pakken', profiel.rol === 'servicedesk' ? 'zonder verantwoordelijke' : 'in je afdelingen', 'oranje', 'nieuw')
     + (!heeftGebied() ? '' : tegel(gebiedActie.length, profiel.rol === 'servicedesk' ? 'Aandacht nodig bij collega’s' : 'Aandacht in mijn afdelingen', gebiedLabel(), 'oranje', 'norm'))
     + tegel(mijn.length, 'Mijn open meldingen', 'verantwoordelijk of taak bij jou', '', 'toegewezen');
   let html = blok('actie', 'Actie nodig', mijnActie, {rood:true, zonder:['wie'], leeg:'Niets dat over een norm gaat. Mooi zo.', sub:'Verlopen planning, te lang geen reactie, nieuwe meldingen'});
-  if(profiel.rol === 'servicedesk' || nieuwLos.length) html += blok('nieuwlos', 'Nieuwe meldingen zonder behandelaar', nieuwLos, {zonder:['wie','reactie','gepland'], leeg:'Geen nieuwe meldingen die wachten.', sub:`Binnen ${INST.nieuwUren} werkuren oppakken`});
+  if(profiel.rol === 'servicedesk' || nieuwLos.length) html += blok('nieuwlos', 'Nieuwe meldingen zonder verantwoordelijke', nieuwLos, {zonder:['wie','reactie','gepland'], leeg:'Geen nieuwe meldingen die wachten.', sub:`Binnen ${INST.nieuwUren} werkuren oppakken`});
   if(heeftGebied()) html += blok('gebied', profiel.rol === 'servicedesk' ? 'Aandacht nodig, bij een collega' : 'In mijn afdelingen: ' + gebiedLabel(),
     profiel.rol === 'servicedesk' ? gebiedActie : gebied, {leeg:'Niets open in je afdelingen, of nog geen afdeling met ★ gekozen.', sub:'Ook als het bij een collega ligt', max:8});
   html += blok('rust', 'Mijn overige open meldingen', mijnRust, {zonder:['wie'], leeg:'Geen andere open meldingen.', max:10});
@@ -1884,7 +2001,7 @@ function zichtbaar(t, l){
   const sk = soortVan(t); if(sk === 'changes') l = l.filter(isChange); if(sk === 'meldingen') l = l.filter(x => !isChange(x));
   return l;
 }
-// alleen eigen meldingen in beeld: dan is de kolom Behandelaar overbodig (dat ben je zelf)
+// alleen eigen meldingen in beeld: dan is de kolom Verantwoordelijke overbodig (dat ben je zelf)
 const alleenEigen = t => t === 'toegewezen' || t === 'ch:mijn' || t.startsWith('k:') || schuifAan(t);
 function tekenLijst(){
   if(tab === 'historie') return tekenHistorie();
@@ -2043,7 +2160,7 @@ function teken(){
   $('#v-mij').hidden = tab !== 'mij' && tab !== 'connectoren'; $('#v-lijst').hidden = tab === 'mij' || tab === 'todo' || tab === 'connectoren'; $('#v-todo').hidden = tab !== 'todo';
   $('#todo-knop').setAttribute('aria-pressed', tab === 'todo'); $('#meld-knop').setAttribute('aria-pressed', isLijstTab(tab));
   if(isLijstTab(tab) && meldPlek.tab !== tab){ meldPlek.tab = tab; meldPlek.scroll = 0; }   // onthouden in welke lijst je was (nooit het overzicht) 
-  $('#nav').hidden = tab === 'todo';   // bij To-do hoort het meldingmenu er niet bij
+  $('#nav').hidden = tab === 'todo'; $('#menu-knop').hidden = tab === 'todo';   // bij To-do hoort het meldingmenu er niet bij
   if(tab === 'mij'){ $('#titel').textContent = ''; tekenMij(); } else if(tab === 'connectoren') tekenConnectoren(); else if(tab === 'todo') tdTeken(); else tekenLijst();
   pasTabelBreedtes(); if(typeof tekenAanwezig === 'function') tekenAanwezig();
 }
@@ -2200,7 +2317,7 @@ function statusIco(x){ const st = stapVan(x);
   return `<svg class="stico st${st}" viewBox="6 8 50 50" aria-label="${STAPPEN[st]}" role="img"><title>${STAPPEN[st]}</title>${st < 2 ? '<path class="rs" d="M49.62 36.2A20 20 0 0 1 10.08 32.26A20 20 0 0 1 33.47 14.3"/>' : ''}<path class="s1" d="M49.62 36.2A20 20 0 0 1 31.74 53.92"/>${st ? '<path class="s2" d="M28.26 53.92A20 20 0 0 1 10.08 32.26"/>' : ''}${st === 2 ? '<path class="s3" d="M10.68 28.82A20 20 0 0 1 33.47 14.3"/><path class="vk" d="M21 35l7 7 24-30"/>' : ''}</svg>`; }
 const isReactieActie = a => /reactie plaatsen|^reageren/i.test(a.naam), isNotitieActie = a => /interne notitie/i.test(a.naam);
 const isOppakActie = a => !sluitActie(a) && /toewijzen aan mij|in behandeling|oppakken|behandel/i.test(a.naam);
-// wat een actie in deze pagina doet: behandelaar zetten, datum plannen of (via de workflow) de status wijzigen
+// wat een actie in deze pagina doet: verantwoordelijke zetten, datum plannen of (via de workflow) de status wijzigen
 /* statussen zoals in de workflow van Aanvraag ICT: welke actie leidt tot welke status */
 const STATUS_NA = [[/^afhandelen$/i, 'Afgehandeld'], [/vraag aan melder/i, 'In afwachting melder'], [/wachten op leverancier/i, 'In afwachting leverancier'], [/inplannen|plannen/i, 'Werkzaamheden gepland'],
   [/accorderen rfc|ter akkoord/i, 'In afwachting akkoord'], [/interne release/i, 'In interne release'], [/externe release/i, 'In externe release'], [/ticket sluiten|^akkoord$/i, 'Gesloten'],
@@ -2274,7 +2391,7 @@ async function zetVoorstel(tekst, expliciet){
   if(expliciet){ t.focus(); const i = t.value.indexOf('['); if(i >= 0) t.setSelectionRange(i, t.value.indexOf(']', i) + 1); }
 }
 const pasHoogteAan = t => { if(!t) return; t.style.height = 'auto'; t.style.height = Math.min(460, Math.max(190, t.scrollHeight + 4)) + 'px'; };
-// automatisch voorstel bij het wijzigen van afdeling, behandelaar, status of planning
+// automatisch voorstel bij het wijzigen van afdeling, verantwoordelijke, status of planning
 async function autoReactie(){
   if(!huidig) return; const x = huidig.x, delen = [];
   if(x.melder && benIk(x.melder)){ vraagVoorstel(null); return; }   // je bent zelf de melder: geen update-tekst nodig
@@ -2711,7 +2828,7 @@ setInterval(zetKnoppen, 400);   // vangt ook voorstellen op die de app zelf invu
 function mailVooraf(){
   const el = $('#mailvooraf'); if(!el || !huidig) return;
   const x = huidig.x, uit = [], nb = huidig.klaar ? huidig.klaar.reactie.length : 0, tekst = ($('#tekst') && $('#tekst').value.trim()) || (nb ? 'bijlage' : ''), notitie = !!($('#notitie') && $('#notitie').checked);
-  const vs = $('#d-verantw'); if(vs && vs.value && vs.value !== vs.dataset.oud){ const naam = vs.options[vs.selectedIndex].textContent; if(!benIk(naam)) uit.push(`${naam} (toegewezen)`); }
+  const vs = $('#d-verantw'); if(vs && vs.value && vs.value !== vs.dataset.oud){ const naam = vs.options[vs.selectedIndex].textContent; if(!benIk(naam)) uit.push(`${naam} (taak via AFAS; mail als de workflow dat instelt)`); }
   const ss = $('#d-status'); const stap = ss && ss.value.startsWith('a:') ? ss.options[ss.selectedIndex].textContent : '';
   const wfL = huidig.wf ? huidig.wf.acties : null, kanReageren = !wfL || wfL.some(notitie ? isNotitieActie : isReactieActie);
   const geenMail = tekst && !stap && !kanReageren;   // er is geen actie 'Reactie plaatsen' in deze stap: AFAS stuurt dan geen mail
@@ -2796,7 +2913,7 @@ async function laadWorkflow(x){
 
   }catch(e){ el.innerHTML = `<span class="fout">Acties ophalen mislukt: ${esc(e.message)}</span>`; ($('#d-taak') || {}).textContent = '?'; }
 }
-/* ---- velden van het dossieritem zelf (UpdateConnector KnSubject): behandelaar, geplande datum, status ---- */
+/* ---- velden van het dossieritem zelf (UpdateConnector KnSubject): verantwoordelijke, geplande datum, status ---- */
 let subjMeta = null;
 async function laadSubjMeta(){
   if(subjMeta) return subjMeta;
@@ -2814,7 +2931,7 @@ async function zetVelden(x, w){
   const objecten = Object.entries(obj).map(([o, f]) => ({[o]: {Element: {Fields: f}}}));
   await afas('/connectors/KnSubject', {method:'PUT', body: JSON.stringify({KnSubject: {Element: {'@SbId': isNaN(+x.sbid) ? x.sbid : +x.sbid, Fields: top, ...(objecten.length ? {Objects: objecten} : {})}}})});
 }
-// ICT-collega's: de waarden van het veld Verantwoordelijke, beperkt tot mensen die bij ICT-tickets behandelaar zijn
+// ICT-collega's: de waarden van het veld Verantwoordelijke, beperkt tot mensen die bij ICT-tickets verantwoordelijke zijn
 // AFAS-gebruikerscodes (bv. 88406.dvandeweert) bij namen opzoeken via de workflowtaken; Verantwoordelijke wil een gebruiker, geen medewerkernummer
 const gebruikerCode = new Map();
 async function gebruikersCodes(namen){
@@ -2891,7 +3008,7 @@ async function voerUit(actieIdx, nieuweAfd = ''){
   document.querySelectorAll('#detail button, #detail select').forEach(b => b.disabled = true); $('#d-fout').textContent = '';
   try{
     let waarschuwing = '';
-    // 1. eerst het dossieritem zelf bijwerken (behandelaar / datum), dan de workflowstap
+    // 1. eerst het dossieritem zelf bijwerken (verantwoordelijke / datum), dan de workflowstap
     if(sa === 'mij' || sa === 'collega' || sa === 'plannen'){
       const m = await laadSubjMeta();
       if(sa === 'plannen'){ if(!m.gepland) throw new Error('Het veld voor de geplande datum is niet gevonden in KnSubject.'); await zetVelden(x, {[veldCode(m.gepland)]: actieKeuze.datum}); }
@@ -2992,15 +3109,18 @@ async function nieuweMelding(){
       <div class="drie">
         ${m.afd ? `<label><span>Afdeling <i class="verpl" title="Verplicht">*</i></span>${keuze(m.afd, 'afd', stdAfd)}</label>` : '<span></span>'}
         ${m.type ? `<label>Type${keuze(m.type, 'type', 'Incident')}</label>` : '<span></span>'}
-        <label>Behandelaar<input name="beh" id="n-beh" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Nog niemand"><input type="hidden" name="behCode"></label>
+        <label>Verantwoordelijke<input name="beh" id="n-beh" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Nog niemand"><input type="hidden" name="behCode"></label>
       </div>
       ${m.extra.map((f, i) => `<label>${esc(f.label || f.code)}${keuze(f, 'x' + i, '')}</label>`).join('')}
-      <span class="hint" id="n-beh-hint">Geen behandelaar = de melding komt bij Nieuwe meldingen.</span></section>
+      <span class="hint" id="n-beh-hint">Geen verantwoordelijke = de melding komt bij Nieuwe meldingen.</span>
+      <label>CC <small class="hint" style="font-weight:400">· krijgt ook alle mails over deze melding</small><input name="cc" list="n-cc-lijst" autocomplete="off" spellcheck="false" placeholder="Niemand"><datalist id="n-cc-lijst"></datalist></label>
+      </section>
     <div class="fout" id="n-fout">${m.stId ? '' : `Het type dossieritem "Aanvraag ICT" is niet gevonden in AFAS (gevonden: ${esc(m.typen.map(t => t.naam).join(', ') || 'geen')}). Zet nieuwStId in mijn-ict-config.js.`}</div>
     <div style="display:flex;gap:10px;justify-content:flex-end"><button type="button" class="knop" data-sluitnieuw>Annuleren</button><button type="button" class="knop vol" id="n-maak" title="Ctrl+Enter" ${m.stId ? '' : 'disabled'}>Melding aanmaken <kbd>Ctrl+Enter</kbd></button></div>
   </form>`;
   { const mi = $('#n-form').melder; mi.focus(); mi.select(); mi.addEventListener('click', () => { if(mi.dataset.std === '1') mi.select(); }); }   // typen vervangt 'jijzelf' direct
   koppelMelder(); koppelBehandelaar();
+  laadMedewerkers().then(l => { const dl = $('#n-cc-lijst'); if(dl) dl.innerHTML = l.map(m => `<option value="${esc(m.vol || m.naam)}">${esc(m.oe || '')}</option>`).join(''); }).catch(() => {});
 }
 async function maakMelding(){
   const vanTodo = todoBron;   // het venster sluit (en wist todoBron) voordat AFAS het meldingnummer teruggeeft
@@ -3017,7 +3137,12 @@ async function maakMelding(){
     if(leeg.length){ fout.textContent = `Vul ${leeg.join(' en ')} in; ${leeg.length === 1 ? 'dit veld is' : 'deze velden zijn'} verplicht.`; (leeg[0] === 'Afdeling' ? f.afd : f.loc).focus(); return; } }
   if(m.afd && f.afd) zet(m.afd, f.afd.value); if(m.loc && f.loc) zet(m.loc, f.loc.value); if(m.type && f.type) zet(m.type, f.type.value);
   m.extra.forEach((x, i) => zet(x, f['x' + i].value));
-  if(f.behCode && f.behCode.value){ const sm = await laadSubjMeta(); if(!sm.verantw){ fout.textContent = 'Het veld Verantwoordelijke is niet gevonden in AFAS; laat Behandelaar leeg.'; return; } w[veldCode(sm.verantw)] = f.behCode.value; }
+  if(f.cc && f.cc.value.trim()){ const sm = await laadSubjMeta(), cc = f.cc.value.trim();
+    if(!sm.cc){ fout.textContent = 'Het veld CC is niet gevonden in AFAS (UpdateConnector KnSubject); laat CC leeg of vraag de beheerder.'; return; }
+    const o = waardenVan(sm.cc.values).find(o => norm(o.naam) === norm(cc)); let code = o ? o.code : null;
+    if(!code){ const mw = await zoekMedewerker(cc); if(!mw){ fout.textContent = `CC "${cc}" is geen (eenduidige) medewerker. Kies een naam uit de lijst.`; f.cc.focus(); return; } code = mw.id; }
+    w[veldCode(sm.cc)] = code; }
+  if(f.behCode && f.behCode.value){ const sm = await laadSubjMeta(); if(!sm.verantw){ fout.textContent = 'Het veld Verantwoordelijke is niet gevonden in AFAS; laat Verantwoordelijke leeg.'; return; } w[veldCode(sm.verantw)] = f.behCode.value; }
   // velden met een / horen in een onderliggend object (vrije velden KnS<StId>)
   const top = {}, obj = {};
   Object.entries(w).forEach(([c, v]) => { const i = c.indexOf('/'); if(i > 0) (obj[c.slice(0, i)] = obj[c.slice(0, i)] || {})[c.slice(i + 1)] = v; else top[c] = v; });
@@ -3166,7 +3291,7 @@ function stelLocatieVoor(m){
   else if(sel.dataset.auto === '1'){ sel.value = ''; sel.dataset.auto = ''; sel.classList.remove('voorstel'); hint().textContent = ''; }   // geen zekere match: niets invullen
   if(!sel._voorstel){ sel._voorstel = true; sel.addEventListener('change', e => { if(e.isTrusted){ sel.dataset.auto = '0'; sel.classList.remove('voorstel'); const h = $('#n-loc-hint'); if(h) h.textContent = ''; } }); }
 }
-// behandelaar bij een nieuwe melding: zelfde ICT-lijst als bij 'Toewijzen aan collega', standaard leeg
+// verantwoordelijke bij een nieuwe melding: zelfde ICT-lijst als bij 'Toewijzen aan collega', standaard leeg
 async function koppelBehandelaar(){
   const inp = $('#n-beh'), f = $('#n-form'); if(!inp) return;
   let l = [];
@@ -3269,8 +3394,8 @@ async function toewijsActie(x, ikZelf, wie){
   const a = wf.acties.find(a => re.test(a.naam)); if(!a) return null;
   await zoekZichtVeld();
   const extra = {};
-  const naarVeld = !ikZelf && (a.type === 2 || a.type === 3 || /deleg|doorst/i.test(a.typeOms)) ? wfVelden.find(f => !/^(SbId|WfNm|TkNm|AcNm|Tx)$/i.test(f.fieldId) && (!zichtVeld || f.fieldId !== zichtVeld.code) && /gebruiker|medewerker|deleg|doorst|toewij|ontvanger|naar/i.test(f.label)) : null;
-  if(naarVeld) extra[naarVeld.fieldId] = wie.code;
+  const naarVeld = !ikZelf && (a.type === 2 || a.type === 3 || +a.type === 109 || /deleg|doorst|verantwoordelijk/i.test(a.typeOms)) ? (wfVelden.find(f => /^UsTa$/i.test(f.fieldId)) || wfVelden.find(f => !/^(SbId|WfNm|TkNm|AcNm|Tx)$/i.test(f.fieldId) && (!zichtVeld || f.fieldId !== zichtVeld.code) && /gebruiker|medewerker|deleg|doorst|toewij|ontvanger|naar/i.test(f.label))) || (+a.type === 109 ? {fieldId: 'UsTa'} : null) : null;
+  if(naarVeld) extra[naarVeld.fieldId] = wie.code;   // UsTa = gebruikerscode van de nieuwe verantwoordelijke (bv. 88406.kgroen)
   try{
     await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body: JSON.stringify({KnWorkflow:{Element:{Fields:{SbId: isNaN(+x.sbid) ? x.sbid : +x.sbid, WfNm:a.wf, TkNm:a.tk, AcNm:a.ac, ...extra}}}})});
   }catch(e){
@@ -3361,7 +3486,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
     // 2. status als veld (alleen als AFAS een statusveld heeft)
     if(nieuweStatus){ stap = 'status'; const m = await laadSubjMeta(); await zetVelden(x, {[veldCode(m.status)]: nieuweStatus});
       lok.status = (waardenVan(m.status.values).find(w => w.code === nieuweStatus) || {naam: statusNaam}).naam; gedaan.push('status ' + statusNaam); }
-    // 3. verantwoordelijke: veld zetten en daarna de toewijs-actie, zodat de nieuwe behandelaar de mail krijgt
+    // 3. verantwoordelijke: veld zetten en daarna de toewijs-actie, zodat de nieuwe verantwoordelijke de mail krijgt
     if(nieuweVerantw){ stap = 'verantwoordelijke'; const m = await laadSubjMeta(); if(!m.verantw) throw new Error('Het veld Verantwoordelijke is niet gevonden in AFAS.');
       await zetVelden(x, {[veldCode(m.verantw)]: nieuweVerantw.code}); lok.verantw = nieuweVerantw.naam;
       const ikZelf = benIk(nieuweVerantw.naam) || (profiel.alias || []).some(a => norm(a) === norm(nieuweVerantw.code));
@@ -3569,11 +3694,11 @@ function telGebruik(pad, ok, fout){
 // v(id-regex of exacte namen, omschrijving, nodig: 'ja' | 'opt' | 'filter')
 const v = (match, oms, nodig = 'ja', toon = '') => ({match: match instanceof RegExp ? match : new RegExp('^(' + [].concat(match).map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')$', 'i'), naam: toon || (match instanceof RegExp ? '' : [].concat(match).join(' of ')), oms, nodig});
 const CONN_KAART = () => [
-  {conn: INST.connSla, sleutel: 'connSla', soort: 'GET', nodig: 'ja', doel: 'Hoofdlijst: alle meldingen (Aanvraag ICT) met status, behandelaar, datums en normen. Basis van elk overzicht.', velden: [
+  {conn: INST.connSla, sleutel: 'connSla', soort: 'GET', nodig: 'ja', doel: 'Hoofdlijst: alle meldingen (Aanvraag ICT) met status, verantwoordelijke, datums en normen. Basis van elk overzicht.', velden: [
     v('Nummer', 'Meldingnummer; koppelt alle andere connectoren'),
     v('Onderwerp', 'Onderwerp in lijsten en meldingvenster'),
     v('Status', 'Externe status: bepaalt fase, normen en signalen'),
-    v('Omschrijving_4', 'Verantwoordelijke (behandelaar): Mijn meldingen, kolom Behandelaar'),
+    v('Omschrijving_4', 'Verantwoordelijke: Mijn meldingen, kolom Verantwoordelijke'),
     v('Omschrijving_2', 'Reserve-melder als Sollicitant_3 ontbreekt', 'opt'),
     v(INST.soortVeld || 'Omschrijving', 'Type dossieritem: alleen "Aanvraag ICT" telt mee voor de normen; In- en uitdienst'),
     v('Type_ticket_ICT', 'Type melding (Incident, Serviceverzoek, Change …): kolom Type, Changes-tab'),
@@ -3644,7 +3769,7 @@ const CONN_KAART = () => [
     v(/groep/i, 'Autorisatiegroepen (aandachtsgebieden)', 'opt', 'Groep')]},
   {conn: INST.connToelichting, sleutel: 'connToelichting', soort: 'GET', nodig: 'reserve', doel: 'Reserve voor de toelichting: alleen nodig als Helpdesk_PowerBI en de SLA-connector geen veld Toelichting hebben.', velden: [
     v(/^(dossieritem|nummer)$/i, 'Koppeling met de melding (filter)', 'ja', 'Dossieritem of Nummer'), v(/^toelichting|^sbtx$/i, 'Toelichting', 'ja', 'Toelichting')]},
-  {conn: 'KnSubject', soort: 'UPDATE', nodig: 'ja', doel: 'Melding aanmaken en velden wijzigen (afdeling, locatie, status, behandelaar, planning, change-datums) en bijlagen toevoegen.', velden: [
+  {conn: 'KnSubject', soort: 'UPDATE', nodig: 'ja', doel: 'Melding aanmaken en velden wijzigen (afdeling, locatie, status, verantwoordelijke, planning, change-datums) en bijlagen toevoegen.', velden: [
     v('StId', 'Type dossieritem (Aanvraag ICT) bij een nieuwe melding'), v('Ds', 'Onderwerp'), v('SbTx', 'Toelichting'),
     v(/^afdeling$/i, 'Afdeling (vrij veld KnS38)', 'ja', 'Afdeling'), v(/^locatie$/i, 'Locatie (vrij veld)', 'ja', 'Locatie'), v(/^type( ticket)?( ict)?$|type ticket/i, 'Type melding (vrij veld)', 'ja', 'Type ticket ICT'),
     v(/^verantwoordelijke$|^behandelaar$/i, 'Verantwoordelijke (vrij veld)', 'ja', 'Verantwoordelijke'), v(/^(externe )?status$/i, 'Status als veld (anders via workflowactie)', 'opt', 'Status'),
@@ -3723,7 +3848,7 @@ function tekenConnectoren(){
       ${buitenRij('afas-token', 'Azure Function: wisselt de AFAS-login om voor een token (client secret staat alleen in Azure)', 'Verplicht', DEMO ? 'demo' : tok ? 'ok' : 'nog niet', INST.tokenFunctie || '')}
       ${buitenRij('ict-aanwezig', 'Azure Function: wie is er online, en het oogje "kijkt mee" (wie heeft dezelfde melding open)', 'Optioneel', DEMO ? 'demo' : AANW.status || 'nog niet', aanwezigUrl())}
       ${buitenRij('ict-instellingen', 'Azure Function: je instellingen online, overal hetzelfde', 'Optioneel', DEMO ? 'demo' : syncStatus, syncUrl())}
-      ${buitenRij('OneDrive-bestand', 'To-do’s per gebruiker (eigen bestand, niet in AFAS)', 'Optioneel', ({ok:'ok', geen:'nog niet gekoppeld', toestemming:'wacht op toestemming', niet:'browser ondersteunt het niet', laden:'nog niet'})[TD.status] || TD.fout || TD.status, TD.handle ? TD.handle.name : 'per gebruiker')}</tbody></table></section>`;
+      ${buitenRij('Microsoft To Do', 'To-do per gebruiker (Microsoft Graph, Entra-app SubmIT)', 'Optioneel', DEMO ? 'demo' : ({ok:'ok', geen:'nog niet gekoppeld', verlopen:'opnieuw verbinden', fout:'fout', laden:'laden…'})[TD.status] || TD.status, 'graph.microsoft.com')}</tbody></table></section>`;
   if(!c && !connBezig) controleerConnectoren();
 }
 // regel in "Buiten AFAS": met een statusbolletje zoals bij de connectoren
@@ -3840,9 +3965,8 @@ function ikMenu(){
   let m = $('#ikmenu');
   if(!m){ $('#ik').insertAdjacentHTML('afterend', '<div class="ikmenu" id="ikmenu" hidden role="menu"></div>'); m = $('#ikmenu'); }
   if(m.hidden) m.innerHTML = `<button type="button" role="menuitem" class="nietstoren" data-ikm="stil"><span>Niet storen<small>alleen kritiek</small></span><span class="schuif"><input type="checkbox" tabindex="-1" ${nietStoren ? 'checked' : ''}><i></i></span></button>
-    <button type="button" role="menuitem" class="nietstoren" data-ikm="win"><span>Windows-melding<small>bij kritieke storing</small></span><span class="schuif"><input type="checkbox" tabindex="-1" ${windowsAan() ? 'checked' : ''}><i></i></span></button><hr>
+    <button type="button" role="menuitem" class="nietstoren" data-ikm="win"><span>${/Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Pushmelding' : 'Windows-melding'}<small>bij kritieke storing</small></span><span class="schuif"><input type="checkbox" tabindex="-1" ${windowsAan() ? 'checked' : ''}><i></i></span></button><hr>
     <button type="button" role="menuitem" data-ikm="thema">${isDonker() ? 'Lichte weergave' : 'Donkere weergave'}</button>
-    <button type="button" role="menuitem" data-ikm="import">To-do importeren<small>uit Microsoft To Do</small></button>
     <button type="button" role="menuitem" data-ikm="tour">Rondleiding</button>
     <button type="button" role="menuitem" data-ikm="conn">Connectoren &amp; velden<small>beheer</small></button><hr>
     <button type="button" role="menuitem" data-ikm="uit">Uitloggen</button><p class="ikversie">Versie ${VERSIE.slice(1)} · ${VERSIE_DATUM}</p>`;
@@ -4078,66 +4202,140 @@ function wisselThema(){ document.documentElement.dataset.thema = isDonker() ? 'l
 setInterval(async () => { if(!$('#app').hidden && !$('#detail').open){ await laadGegevens('open', true); teken(); await verrijkMelders(); controleerIctReacties(); } }, INST.verversMinuten * 60e3);
 
 
-/* ================= To-do en notities: opgeslagen in een eigen bestand (bijv. in je OneDrive), net als in Mijn changes ================= */
-// De pagina krijgt via de browser (File System Access) toegang tot één bestand dat de gebruiker zelf kiest.
-// OneDrive synchroniseert dat bestand; de pagina bewaart alleen de verwijzing ernaar (per browser, in IndexedDB).
-// Hetzelfde bestandsformaat als Mijn changes: je kunt in beide pagina's hetzelfde bestand kiezen.
-const TD = {handle:null, status:'laden', data:null, lijst:'alle', open:null, bewerk:false, gelezenOp:0};
+/* ================= To-do en notities: rechtstreeks in Microsoft To Do (Microsoft Graph) ================= */
+// SubmIT ís je Microsoft To Do: lijsten, taken, ster (= belangrijk), deadline (= vervaldatum) en notitie zijn dezelfde als in de To Do-app,
+// Outlook en op je telefoon. Inloggen gaat met je eigen Microsoft-account (OAuth met PKCE, in de browser; geen geheim, geen server).
+const TD = {status:'laden', data:null, lijst:'alle', open:null, bewerk:false};
 const TD_LEEG = () => ({versie:1, lijsten:[{id:'mijn', naam:'Mijn taken'}], taken:[]});
-const tdIdb = (() => { let db = null;
-  const open = () => db ? Promise.resolve(db) : new Promise((ok, nee) => { const r = indexedDB.open('mijn-ict', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => ok(db = r.result); r.onerror = () => nee(r.error); });
-  return { get: k => open().then(d => new Promise(ok => { const q = d.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => ok(q.result); q.onerror = () => ok(null); })),
-           set: (k, v) => open().then(d => new Promise(ok => { const t = d.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = () => ok(); })) }; })();
-const tdSleutel = () => 'todoBestand-' + (sub || 'demo');
-const tdId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const tdId = () => 'tmp-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const tdIso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-async function tdStart(){
-  if(DEMO){ TD.data = opslag.get('mict-demo-todo') || {...TD_LEEG(), taken:[{id:'a1', titel:'Licentie scansoftware verlengen, offerte opvragen', lijst:'mijn', belangrijk:true, klaar:false, deadline: tdIso(new Date(Date.now() + 2 * DAG)), gemaakt:new Date().toISOString()}, {id:'a2', titel:'Bellen met leverancier faxkoppeling', lijst:'mijn', klaar:false, notitie:'Contactpersoon: Peter, 06-…', gemaakt:new Date().toISOString()}]};
-    TD.handle = {name:'Mijn to-do.json (demo)'}; TD.status = 'ok'; return tdTeken(); }
-  if(!('showOpenFilePicker' in window)){ TD.status = 'niet'; return tdTeken(); }
-  try{ TD.handle = await tdIdb.get(tdSleutel()); }catch(e){}
-  if(!TD.handle){ TD.status = 'geen'; return tdTeken(); }
-  const p = await TD.handle.queryPermission({mode:'readwrite'});
-  if(p === 'granted') await tdLees(); else { TD.status = 'toestemming'; tdTeken(); tdHerstelBijKlik(); }
+/* ---- inloggen bij Microsoft ---- */
+const MS = {sleutel: () => 'mict-ms-' + (sub || 'demo'), terug: () => location.origin + location.pathname.replace(/index\.html$/, ''), scope: 'openid offline_access User.Read Tasks.ReadWrite'};
+const msOpgeslagen = () => opslag.get(MS.sleutel()) || null;
+async function msToken(form){
+  const r = await fetch(`https://login.microsoftonline.com/${INST.msTenant}/oauth2/v2.0/token`, {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({client_id: INST.msClientId, scope: MS.scope, ...form})});
+  const j = await r.json().catch(() => ({}));
+  if(!r.ok || !j.access_token) throw new Error(j.error_description ? j.error_description.split('\r\n')[0] : 'HTTP ' + r.status);
+  const t = {at: j.access_token, tot: Date.now() + (j.expires_in - 120) * 1000, rt: j.refresh_token || form.refresh_token || ''};
+  opslag.set(MS.sleutel(), t); return t;
 }
-// na herladen vraagt de browser opnieuw toestemming (dat mag hij alleen na een klik): bij je eerste klik in de app meteen vragen,
-// dan is het één klik op 'Toestaan'. Kies je in die melding 'Bij elk bezoek toestaan', dan vraagt de browser het niet meer.
-function tdHerstelBijKlik(){
-  const vraag = async e => {
-    document.removeEventListener('pointerdown', vraag, true);
-    if(TD.status !== 'toestemming' || !TD.handle || e.target.closest('[data-td]')) return;
-    try{ if(await TD.handle.requestPermission({mode:'readwrite'}) === 'granted'){ await tdLees(); toast('To-do weer gekoppeld'); } }catch(err){}
-  };
-  document.addEventListener('pointerdown', vraag, true);
+// koppelen: Microsoft-login in een klein venster (na een klik; anders blokkeert de browser het)
+function msKoppel(){
+  return new Promise(async (ok, nee) => {
+    const ver = b64url(crypto.getRandomValues(new Uint8Array(32))), uitd = b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(ver)));
+    const state = 'ms.' + b64url(crypto.getRandomValues(new Uint8Array(12)));
+    const url = `https://login.microsoftonline.com/${INST.msTenant}/oauth2/v2.0/authorize?` + new URLSearchParams({client_id: INST.msClientId, response_type: 'code', redirect_uri: MS.terug(), response_mode: 'query', scope: MS.scope, state, code_challenge: uitd, code_challenge_method: 'S256', prompt: 'select_account'});
+    try{ localStorage.removeItem('ms-login-uitkomst'); }catch(e){}
+    const w = window.open(url, 'ms-login', 'width=520,height=680'); if(!w){ nee(new Error('De browser blokkeerde het inlogvenster. Sta pop-ups toe voor SubmIT en probeer opnieuw.')); return; }
+    let klaar = false;
+    const verwerk = async u => { if(klaar || !u || u.state !== state) return; klaar = true; clearInterval(tik); removeEventListener('message', bericht); removeEventListener('storage', opslagEv);
+      if(!u.msCode){ nee(new Error(u.msFout || 'Inloggen afgebroken')); return; }
+      try{ ok(await msToken({grant_type: 'authorization_code', code: u.msCode, redirect_uri: MS.terug(), code_verifier: ver})); }catch(e){ nee(e); } };
+    const bericht = e => { if(e.origin === location.origin && e.data && e.data.state) verwerk(e.data); };
+    const opslagEv = e => { if(e.key === 'ms-login-uitkomst' && e.newValue) verwerk(JSON.parse(e.newValue)); };
+    addEventListener('message', bericht); addEventListener('storage', opslagEv);
+    const tik = setInterval(() => { try{ const u = JSON.parse(localStorage.getItem('ms-login-uitkomst') || 'null'); if(u) verwerk(u); }catch(e){}
+      if(w.closed && !klaar){ setTimeout(() => { if(!klaar){ klaar = true; clearInterval(tik); nee(new Error('Inlogvenster gesloten')); } }, 800); } }, 500);
+  });
 }
+async function msGeldig(){
+  const t = msOpgeslagen(); if(!t) throw Object.assign(new Error('niet gekoppeld'), {soort: 'geen'});
+  if(Date.now() < t.tot) return t.at;
+  if(!t.rt) throw Object.assign(new Error('opnieuw verbinden'), {soort: 'verlopen'});
+  try{ return (await msToken({grant_type: 'refresh_token', refresh_token: t.rt})).at; }
+  catch(e){ throw Object.assign(new Error('opnieuw verbinden: ' + e.message), {soort: 'verlopen'}); }
+}
+async function graph(pad, opties = {}){
+  const at = await msGeldig();
+  const r = await fetch(pad.startsWith('https:') ? pad : 'https://graph.microsoft.com/v1.0' + pad, {...opties, headers: {'Authorization': 'Bearer ' + at, ...(opties.body ? {'Content-Type': 'application/json'} : {}), ...(opties.headers || {})}});
+  if(r.status === 204) return null;
+  const j = await r.json().catch(() => ({}));
+  if(!r.ok) throw new Error((j.error && j.error.message) || 'Microsoft Graph: HTTP ' + r.status);
+  return j;
+}
+async function graphAlles(pad){ let uit = [], url = pad; while(url){ const j = await graph(url); uit = uit.concat(j.value || []); url = j['@odata.nextLink'] || ''; } return uit; }
+/* ---- vertalen tussen To Do en SubmIT ---- */
+const LINK = 'https://rvdveen88.github.io/mijn-ict-omgeving/';
+const msDatum = d => d && d.dateTime ? tdIso(new Date(String(d.dateTime).slice(0, 19) + (/utc/i.test(d.timeZone || 'UTC') ? 'Z' : ''))) : undefined;
+function naarTaak(t, lijst){
+  const lr = t.linkedResources || [], m = r => (lr.find(x => String(x.externalId || '').startsWith(r)) || {}).externalId;
+  return {id: t.id, titel: t.title || '', lijst, belangrijk: t.importance === 'high', klaar: t.status === 'completed', klaarOp: t.completedDateTime ? t.completedDateTime.dateTime : '',
+    deadline: msDatum(t.dueDateTime), notitie: (t.body && t.body.content || '').trim() || undefined, gemaakt: t.createdDateTime || '',
+    melding: m('submit-melding:') ? m('submit-melding:').split(':')[1] : undefined, ticket: m('submit-ticket:') ? m('submit-ticket:').split(':')[1] : undefined};
+}
+const naarMs = t => ({title: t.titel, importance: t.belangrijk ? 'high' : 'normal', status: t.klaar ? 'completed' : 'notStarted',
+  body: {content: t.notitie || '', contentType: 'text'}, dueDateTime: t.deadline ? {dateTime: t.deadline + 'T00:00:00', timeZone: 'UTC'} : null});
+const msLink = (soort, nr) => ({webUrl: LINK + '#melding=' + nr, applicationName: 'SubmIT', displayName: 'Melding ' + nr + ' in SubmIT', externalId: `submit-${soort}:${nr}`});
+let tdSnap = null;   // stand zoals die in Microsoft To Do staat (om alleen wijzigingen te sturen)
+const kloon = o => JSON.parse(JSON.stringify(o));
 async function tdLees(){
-  try{ const f = await TD.handle.getFile(), t = await f.text();
-    TD.data = t.trim() ? JSON.parse(t) : TD_LEEG(); TD.data.lijsten = TD.data.lijsten || TD_LEEG().lijsten; TD.data.taken = TD.data.taken || [];
-    TD.gelezenOp = f.lastModified; TD.status = 'ok'; }
-  catch(e){ TD.status = 'fout'; TD.fout = e.message; }
+  try{
+    const lijsten = (await graphAlles('/me/todo/lists')).filter(l => l.wellknownListName !== 'flaggedEmails')
+      .sort((a, b) => (b.wellknownListName === 'defaultList') - (a.wellknownListName === 'defaultList'));
+    const sinds = new Date(Date.now() - 30 * DAG).toISOString().slice(0, 19) + 'Z';
+    const taken = (await Promise.all(lijsten.map(async l => {
+      const open = await graphAlles(`/me/todo/lists/${l.id}/tasks?$expand=linkedResources&$top=100&$filter=status ne 'completed'`);
+      const af = await graphAlles(`/me/todo/lists/${l.id}/tasks?$expand=linkedResources&$top=100&$filter=status eq 'completed' and lastModifiedDateTime ge ${sinds}`).catch(() => []);
+      return [...open, ...af].map(t => naarTaak(t, l.id)); }))).flat();
+    TD.data = {versie: 2, lijsten: lijsten.map(l => ({id: l.id, naam: l.displayName, vast: l.wellknownListName === 'defaultList'})), taken};
+    tdSnap = kloon(TD.data); TD.status = 'ok'; TD.gelezen = Date.now();
+    if(TD.lijst !== 'alle' && TD.lijst !== 'belangrijk' && !TD.data.lijsten.some(l => l.id === TD.lijst)) TD.lijst = 'alle';
+  }catch(e){ TD.status = e.soort || 'fout'; TD.fout = e.message; }
   tdTeken();
 }
-let tdTimer = 0;
+async function tdStart(){
+  if(DEMO){ TD.data = opslag.get('mict-demo-todo') || {...TD_LEEG(), taken:[{id:'a1', titel:'Licentie scansoftware verlengen, offerte opvragen', lijst:'mijn', belangrijk:true, klaar:false, deadline: tdIso(new Date(Date.now() + 2 * DAG)), gemaakt:new Date().toISOString()}, {id:'a2', titel:'Bellen met leverancier faxkoppeling', lijst:'mijn', klaar:false, notitie:'Contactpersoon: Peter, 06-…', gemaakt:new Date().toISOString()}]};
+    TD.data.lijsten[0].vast = true; TD.status = 'ok'; return tdTeken(); }
+  if(!msOpgeslagen()){ TD.status = 'geen'; return tdTeken(); }
+  await tdLees();
+}
+// wijzigingen naar Microsoft To Do sturen (alleen wat anders is dan de laatst bekende stand)
+let tdTimer = 0, tdBezig = false, tdNogEens = false;
 function tdBewaar(){
   tdTeken(); clearTimeout(tdTimer);
   tdTimer = setTimeout(async () => {
     if(DEMO){ opslag.set('mict-demo-todo', TD.data); return; }
-    try{ const w = await TD.handle.createWritable(); await w.write(JSON.stringify(TD.data, null, 2)); await w.close(); TD.gelezenOp = (await TD.handle.getFile()).lastModified; }
-    catch(e){ toast('To-do opslaan lukte niet: ' + e.message, true); }
-  }, 300);
+    if(tdBezig){ tdNogEens = true; return; }
+    tdBezig = true;
+    try{ await tdSync(); }catch(e){ toast('Microsoft To Do bijwerken lukte niet: ' + e.message, true); await tdLees(); }
+    finally{ tdBezig = false; if(tdNogEens){ tdNogEens = false; tdBewaar(); } }
+  }, 400);
 }
-// wijzigingen van een andere pc (via OneDrive) oppikken als je terugkomt in het venster
-document.addEventListener('visibilitychange', async () => {
-  if(document.hidden || TD.status !== 'ok' || TD.bewerk || DEMO) return;
-  try{ const f = await TD.handle.getFile(); if(f.lastModified > TD.gelezenOp + 1000) await tdLees(); }catch(e){}
-});
-async function tdKies(nieuw){
-  try{ const opties = {types:[{description:'To-do-bestand', accept:{'application/json':['.json']}}], startIn:'documents'};
-    TD.handle = nieuw ? await window.showSaveFilePicker({...opties, suggestedName:'Mijn to-do.json'}) : (await window.showOpenFilePicker(opties))[0];
-    if(await TD.handle.requestPermission({mode:'readwrite'}) !== 'granted') return;
-    try{ await tdIdb.set(tdSleutel(), TD.handle); }catch(e){}
-    if(nieuw){ TD.data = TD_LEEG(); TD.status = 'ok'; tdBewaar(); toast('To-do-bestand gemaakt: ' + TD.handle.name); } else { await tdLees(); toast('To-do-bestand gekoppeld: ' + TD.handle.name); }
-  }catch(e){ if(e.name !== 'AbortError') toast(e.message, true); }
+async function tdSync(){
+  const d = TD.data, oud = tdSnap || {lijsten: [], taken: []}, oudL = new Map(oud.lijsten.map(l => [l.id, l])), oudT = new Map(oud.taken.map(t => [t.id, t]));
+  const nieuwId = new Map(), verplaatst = new Set();
+  // lijsten: nieuw en hernoemd
+  for(const l of d.lijsten){
+    if(!oudL.has(l.id)){ const j = await graph('/me/todo/lists', {method: 'POST', body: JSON.stringify({displayName: l.naam})}); nieuwId.set(l.id, j.id); if(TD.lijst === l.id) TD.lijst = j.id; l.id = j.id; }
+    else if(oudL.get(l.id).naam !== l.naam) await graph(`/me/todo/lists/${l.id}`, {method: 'PATCH', body: JSON.stringify({displayName: l.naam})});
+  }
+  d.taken.forEach(t => { if(nieuwId.has(t.lijst)) t.lijst = nieuwId.get(t.lijst); });
+  // taken: nieuw, verplaatst (To Do kent geen verplaatsen: nieuw in de andere lijst en de oude weg), gewijzigd
+  for(const t of d.taken){
+    const o = oudT.get(t.id), links = [t.melding && msLink('melding', t.melding), t.ticket && msLink('ticket', t.ticket)].filter(Boolean);
+    if(!o || o.lijst !== t.lijst){
+      const j = await graph(`/me/todo/lists/${t.lijst}/tasks`, {method: 'POST', body: JSON.stringify(Object.fromEntries(Object.entries({...naarMs(t), ...(links.length ? {linkedResources: links} : {})}).filter(([, v]) => v !== null)))});
+      if(o){ verplaatst.add(o.id); await graph(`/me/todo/lists/${o.lijst}/tasks/${o.id}`, {method: 'DELETE'}).catch(() => {}); }
+      if(TD.open === t.id) TD.open = j.id; t.id = j.id; continue; }
+    const a = naarMs(t), b = naarMs(o), w = {};
+    Object.keys(a).forEach(k => { if(JSON.stringify(a[k]) !== JSON.stringify(b[k])) w[k] = a[k]; });
+    if(Object.keys(w).length) await graph(`/me/todo/lists/${t.lijst}/tasks/${t.id}`, {method: 'PATCH', body: JSON.stringify(w)});
+    for(const [soort, nr] of [['melding', t.melding], ['ticket', t.ticket]]) if(nr && nr !== o[soort]) await graph(`/me/todo/lists/${t.lijst}/tasks/${t.id}/linkedResources`, {method: 'POST', body: JSON.stringify(msLink(soort, nr))}).catch(() => {});
+  }
+  // verwijderde taken en lijsten
+  const nu = new Set(d.taken.map(t => t.id));
+  for(const o of oud.taken) if(!nu.has(o.id) && !verplaatst.has(o.id)) await graph(`/me/todo/lists/${o.lijst}/tasks/${o.id}`, {method: 'DELETE'}).catch(() => {});
+  const nuL = new Set(d.lijsten.map(l => l.id));
+  for(const o of oud.lijsten) if(!nuL.has(o.id) && !o.vast) await graph(`/me/todo/lists/${o.id}`, {method: 'DELETE'}).catch(() => {});
+  tdSnap = kloon(d); tdTeken();
+}
+// wijzigingen uit de To Do-app of van een andere pc oppikken: als je terugkomt in het venster en elke 2 minuten in To-do
+const tdVers = async () => { if(TD.status !== 'ok' || TD.bewerk || tdBezig || DEMO || Date.now() - (TD.gelezen || 0) < 20e3) return; const bezig = TD.open; await tdLees(); TD.open = bezig; tdTeken(); };
+document.addEventListener('visibilitychange', () => { if(!document.hidden) tdVers(); });
+setInterval(() => { if(tab === 'todo' && !document.hidden) tdVers(); }, 120e3);
+async function tdKoppel(){
+  try{ TD.status = 'laden'; tdTeken(); await msKoppel(); await tdLees(); if(TD.status === 'ok') toast('Gekoppeld met Microsoft To Do'); }
+  catch(e){ TD.status = msOpgeslagen() ? 'verlopen' : 'geen'; tdTeken(); toast(e.message, true); }
 }
 const tdLijstNaam = id => ((TD.data.lijsten || []).find(l => l.id === id) || {}).naam || '';
 const tdSorteer = (a, b) => (b.belangrijk ? 1 : 0) - (a.belangrijk ? 1 : 0) || (a.deadline || '9999').localeCompare(b.deadline || '9999') || (b.gemaakt || '').localeCompare(a.gemaakt || '');
@@ -4197,8 +4395,9 @@ async function tdVerwijderLijst(id){
   taken.forEach(t => t.lijst = rest[0].id); TD.data.lijsten = rest; if(TD.lijst === id) TD.lijst = 'alle';
   tdBewaar(); toast(`Lijst "${l.naam}" verwijderd`);
 }
-document.addEventListener('contextmenu', e => { const b = e.target.closest('.tdlijst[data-lijst]'); if(!b || ['alle', 'belangrijk'].includes(b.dataset.lijst)) return; e.preventDefault(); tdLijstMenu(b, e.clientX, e.clientY); });
-document.addEventListener('dblclick', e => { const b = e.target.closest('.tdlijst[data-lijst]'); if(b && !['alle', 'belangrijk'].includes(b.dataset.lijst)) tdHernoem(b.dataset.lijst); });
+const tdVast = id => ['alle', 'belangrijk'].includes(id) || !!(TD.data && (TD.data.lijsten.find(l => l.id === id) || {}).vast);
+document.addEventListener('contextmenu', e => { const b = e.target.closest('.tdlijst[data-lijst]'); if(!b || tdVast(b.dataset.lijst)) return; e.preventDefault(); tdLijstMenu(b, e.clientX, e.clientY); });
+document.addEventListener('dblclick', e => { const b = e.target.closest('.tdlijst[data-lijst]'); if(b && !tdVast(b.dataset.lijst)) tdHernoem(b.dataset.lijst); });
 document.addEventListener('click', e => { const m = $('#tdmenu'); if(!m || m.hidden) return; const k = e.target.closest('[data-tdm]'); m.hidden = true;
   if(k){ if(k.dataset.tdm === 'hernoem') tdHernoem(m.dataset.lijst); else tdVerwijderLijst(m.dataset.lijst); } }, true);
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && $('#tdmenu') && !$('#tdmenu').hidden) $('#tdmenu').hidden = true; });
@@ -4208,45 +4407,30 @@ function tdTeken(){
     // koppeling: werkt hij, dan staat het aantal taken op het icoon; zo niet, dan kleurt het icoon zelf oranje
   { const ok = TD.status === 'ok', laden = !TD.status || TD.status === 'laden';
     $('#todo-knop').classList.toggle('ontkoppeld', !ok && !laden);
-    $('#todo-knop').title = ok ? 'To-do en notities · gekoppeld aan ' + (TD.handle && TD.handle.name || 'je bestand') : 'To-do en notities · nog niet gekoppeld: klik om je to-do-bestand te koppelen'; }
+    $('#todo-knop').title = ok ? 'To-do · Microsoft To Do' : 'To-do · nog niet gekoppeld met Microsoft To Do: klik om te koppelen'; }
   if(tab !== 'todo') return;
   const v = $('#todo-verbind'), paneel = $('#todo-paneel'), bestand = $('#todo-bestand');
   $('#titel').textContent = ''; $('#subtitel').textContent = '';
   if(TD.status !== 'ok'){
     paneel.hidden = true; v.hidden = false; $('#todo-lijsten').innerHTML = ''; bestand.textContent = '';
-    const waarom = `<div class="uitleg"><h3>Waarom een bestand?</h3>
-      <p>Je to-do's en notities zijn alleen van jou. Ze staan daarom niet in AFAS en niet op een server, maar in één bestand in <b>jouw eigen OneDrive</b>. OneDrive bewaart en synchroniseert het, dus:</p>
-      <ul><li>je ziet dezelfde to-do's op elke pc waar je met je account bent ingelogd;</li><li>ze gaan niet verloren als je browsergegevens wist of een andere pc krijgt;</li><li>niemand anders kan ze zien.</li></ul>
-      <p>Gebruik je ook het dashboard Mijn changes? Kies dan hetzelfde bestand, dan heb je één to-do-lijst voor beide.</p></div>`;
-    v.innerHTML = TD.status === 'niet' ? '<h2>To-do en notities</h2><p>Deze browser kan geen bestanden bijhouden. Open SubmIT in <b>Microsoft Edge</b> of <b>Google Chrome</b>.</p>'
-      : TD.status === 'toestemming' ? `<h2>Even opnieuw toegang geven</h2><p>Je to-do's staan in <b>${esc(TD.handle.name)}</b>. Na het opnieuw openen van de browser vraagt die om veiligheidsredenen weer even toestemming om dat bestand te gebruiken.</p>
-          <ol class="stappen-lijst"><li>Klik op <b>Toegang geven</b>.</li><li>Kies in de melding van de browser <b>Bij elk bezoek toestaan</b> (staat die er niet, dan <b>Bewerken toestaan</b>). Dan hoef je dit niet steeds opnieuw te doen.</li></ol>
-          <div class="knoppen"><button type="button" class="knop vol" data-td="toegang">Toegang geven</button><button type="button" class="knop" data-td="kies">Ander bestand kiezen</button></div>`
-      : TD.status === 'fout' ? `<h2>To-do en notities</h2><p class="fout">Het to-do-bestand kon niet worden gelezen: ${esc(TD.fout || '')}</p><div class="knoppen"><button type="button" class="knop vol" data-td="kies">Ander bestand kiezen</button></div>`
-      : TD.status === 'laden' ? '<p class="hint">Laden…</p>'
-      : `<h2>To-do en notities koppelen (eenmalig)</h2>
-         <p>Leg hier taken en notities vast die (nog) geen melding zijn, zoals "leverancier terugbellen" of "offerte opvragen". Met één klik maak je er later een melding in AFAS van.</p>
-         ${waarom}
-         <div class="uitleg"><h3>Zo koppel je het (1 minuut)</h3>
-         <ol class="stappen-lijst">
-           <li>Klik hieronder op <b>Nieuw bestand maken</b>.</li>
-           <li>Er opent een venster om op te slaan. Kies links <b>OneDrive - DC Klinieken</b> en eventueel een map, bijvoorbeeld <i>Documenten</i>.</li>
-           <li>Laat de naam <b>Mijn to-do.json</b> staan en klik op <b>Opslaan</b>.</li>
-           <li>De browser vraagt of de pagina het bestand mag bewerken: kies <b>Bij elk bezoek toestaan</b> (of <b>Bewerken toestaan</b>).</li>
-         </ol>
-         <p>Heb je al een to-do-bestand (bijvoorbeeld van Mijn changes of van een andere pc)? Kies dan <b>Bestaand bestand kiezen</b> en selecteer dat bestand.</p>
-         <p class="hint">Op een andere pc of browser doe je dit één keer opnieuw met <b>Bestaand bestand kiezen</b>. Na het herstarten van de browser vraagt die soms opnieuw toestemming; dat is één klik.</p></div>
-         <div class="knoppen"><button type="button" class="knop vol" data-td="nieuw">Nieuw bestand maken</button><button type="button" class="knop" data-td="kies">Bestaand bestand kiezen</button></div>`;
+    v.innerHTML = TD.status === 'laden' ? '<p class="hint">Microsoft To Do laden…</p>'
+      : TD.status === 'verlopen' ? `<h2>Even opnieuw verbinden</h2><p>De koppeling met Microsoft To Do is verlopen (dat doet Microsoft om veiligheidsredenen elke dag). Eén klik, meestal zonder wachtwoord.</p><div class="knoppen"><button type="button" class="knop vol" data-td="koppel">Opnieuw verbinden</button></div>`
+      : TD.status === 'fout' ? `<h2>To-do</h2><p class="fout">Microsoft To Do ophalen lukte niet: ${esc(TD.fout || '')}</p><div class="knoppen"><button type="button" class="knop vol" data-td="opnieuw">Opnieuw proberen</button><button type="button" class="knop" data-td="koppel">Opnieuw verbinden</button></div>`
+      : `<h2>To-do koppelen met Microsoft To Do</h2>
+         <p>Je to-do's in SubmIT zijn dezelfde als in <b>Microsoft To Do</b>: in de To Do-app, in Outlook en op je telefoon. Vink je hier iets af, dan is het daar ook afgevinkt, en andersom.</p>
+         <div class="uitleg"><ul><li>Lijsten, ster (= belangrijk), deadline en notitie zijn hetzelfde als in To Do.</li><li>Maak je een to-do bij een melding, dan staat in To Do een link die die melding in SubmIT opent.</li><li>Alleen jij ziet je to-do's; SubmIT bewaart niets op een server.</li></ul></div>
+         <div class="knoppen"><button type="button" class="knop vol" data-td="koppel">Koppelen met Microsoft To Do</button></div>
+         <p class="hint">Er opent een klein venster van Microsoft: kies je werkaccount. De eerste keer vraagt Microsoft of SubmIT je taken mag lezen en bijwerken.</p>`;
     return;
   }
   v.hidden = true; paneel.hidden = false;
-  bestand.innerHTML = `Opgeslagen in ${esc(TD.handle.name)}${DEMO ? '' : '<button type="button" data-td="kies" title="Een ander to-do-bestand kiezen">wijzigen</button>'}`;
+  bestand.innerHTML = `Microsoft To Do${DEMO ? ' (demo)' : ' · <button type="button" data-td="opnieuw" title="Nu ophalen uit Microsoft To Do">verversen</button> · <button type="button" data-td="ontkoppel" title="Koppeling met Microsoft To Do verwijderen (je taken blijven in To Do)">ontkoppelen</button>'}`;
   const lnaam = TD.lijst === 'alle' ? 'Alle taken' : TD.lijst === 'belangrijk' ? 'Belangrijk' : tdLijstNaam(TD.lijst);
   const q = tab === 'todo' ? norm(filt.zoek || '') : '', past = t => !q || norm([t.titel, t.notitie, t.melding].join(' ')).includes(q);
   const d = TD.data, inLijst = t => past(t) && (TD.lijst === 'alle' || (TD.lijst === 'belangrijk' ? t.belangrijk : t.lijst === TD.lijst));
   const tel = f => d.taken.filter(t => !t.klaar && f(t)).length;
   $('#todo-lijsten').innerHTML = [['alle', 'Alle', tel(() => true)], ['belangrijk', 'Belangrijk', tel(t => t.belangrijk)], ...d.lijsten.map(l => [l.id, l.naam, tel(t => t.lijst === l.id)])]
-    .map(([id, naam, n]) => `<button type="button" class="tdlijst" data-lijst="${esc(id)}" aria-pressed="${TD.lijst === id}"${["alle","belangrijk"].includes(id) ? "" : " title=\"Rechtermuisknop: hernoemen of verwijderen. Sleep taken hierheen om ze te verplaatsen.\""}>${id === 'belangrijk' ? TD_STER : id === 'alle' ? TD_ALLE : TD_LIJST}<span>${esc(naam)}</span>${n ? `<b>${n}</b>` : ''}</button>`).join('') +
+    .map(([id, naam, n]) => `<button type="button" class="tdlijst" data-lijst="${esc(id)}" aria-pressed="${TD.lijst === id}"${tdVast(id) ? "" : " title=\"Rechtermuisknop: hernoemen of verwijderen. Sleep taken hierheen om ze te verplaatsen.\""}>${id === 'belangrijk' ? TD_STER : id === 'alle' ? TD_ALLE : TD_LIJST}<span>${esc(naam)}</span>${n ? `<b>${n}</b>` : ''}</button>`).join('') +
     `<span class="lijstnieuw"><input id="todo-nieuwe-lijst" placeholder="+ Nieuwe lijst"></span>`;
   const open = d.taken.filter(t => !t.klaar && inLijst(t)).sort(tdSorteer), klaar = d.taken.filter(t => t.klaar && inLijst(t)).sort((a, b) => (b.klaarOp || '').localeCompare(a.klaarOp || ''));
   $('#todo-open').innerHTML = open.length ? open.map(tdRij).join('') : `<p class="todo-leeg">${q ? `Geen to-do’s gevonden voor “${esc(filt.zoek)}”.` : 'Niets te doen in deze lijst.'}</p>`;
@@ -4257,7 +4441,10 @@ function tdTeken(){
 const tdTaak = id => TD.data.taken.find(t => t.id === id);
 $('#v-todo').addEventListener('click', async e => {
   const k = e.target.closest('[data-td]');
-  if(k){ if(k.dataset.td === 'toegang'){ if(await TD.handle.requestPermission({mode:'readwrite'}) === 'granted') await tdLees(); } else tdKies(k.dataset.td === 'nieuw'); return; }
+  if(k){ const w = k.dataset.td;
+    if(w === 'koppel') tdKoppel(); else if(w === 'opnieuw'){ TD.status = 'laden'; tdTeken(); await tdLees(); }
+    else if(w === 'ontkoppel'){ if(!(await vraag('Ontkoppelen van Microsoft To Do?', 'Je taken blijven gewoon in Microsoft To Do staan. SubmIT toont ze pas weer als je opnieuw koppelt.', 'Ontkoppelen', 'Annuleren'))) return; opslag.weg(MS.sleutel()); TD.status = 'geen'; TD.data = null; tdTeken(); }
+    return; }
   if(e.target.closest('#knop-td-import')){ $('#td-import-bestand').value = ''; $('#td-import-bestand').click(); return; }
   const l = e.target.closest('[data-lijst]'); if(l){ TD.lijst = l.dataset.lijst; TD.open = null; tdTeken(); return; }
   const a = e.target.closest('[data-tdactie]'), rij = e.target.closest('[data-taak]'); if(!a || !rij) return;
@@ -4499,7 +4686,7 @@ function tekenTrajecten(){
   const laat = x => { const e = x.projEind || x.gepland; return e && !x.afgesloten && +e < +beginDag(new Date()); };
   const rij = x => x._tr === 'p'
     ? `<tr data-proj="${esc(x.code)}" tabindex="0"><td>${tag(x)}</td><td class="mono">${esc(x.code)}</td><td><b>${esc(x.onderwerp)}</b></td><td>${chip(x.rol || (x.leider ? 'PL: ' + x.leider : ''), x.rol === 'Projectleider' ? '' : 'grijs')}</td><td>${esc(x.status || '–')}</td><td>${chip(x.voortgang, voortKleur(x.voortgang))}</td><td>${fmtDatum(x.projStart)}</td><td class="${laat(x) ? 'rood' : ''}">${fmtDatum(x.projEind)}</td></tr>`
-    : `<tr data-nr="${esc(x.nr)}" tabindex="0"><td>${tag(x)}</td><td class="mono">${esc(x.nr)}</td><td><b>${esc(x.onderwerp)}</b></td><td>${chip(isMijn(x) ? 'behandelaar' : (x.verantw || ''), isMijn(x) ? '' : 'grijs')}</td><td>${esc(toonStatus(x.status) || '–')}</td><td></td><td>${fmtDatum(x.projStart)}</td><td class="${laat(x) ? 'rood' : ''}">${fmtDatum(x.projEind || x.gepland)}</td></tr>`;
+    : `<tr data-nr="${esc(x.nr)}" tabindex="0"><td>${tag(x)}</td><td class="mono">${esc(x.nr)}</td><td><b>${esc(x.onderwerp)}</b></td><td>${chip(isMijn(x) ? 'verantwoordelijke' : (x.verantw || ''), isMijn(x) ? '' : 'grijs')}</td><td>${esc(toonStatus(x.status) || '–')}</td><td></td><td>${fmtDatum(x.projStart)}</td><td class="${laat(x) ? 'rood' : ''}">${fmtDatum(x.projEind || x.gepland)}</td></tr>`;
   let inhoud;
   if(!lijst.length) inhoud = `<p class="hint" style="padding:18px 22px">${TR.scope === 'mij' ? 'Je hebt geen lopende changes of projecten. Kijk bij Team voor het werk van iedereen.' : 'Geen lopende changes of projecten.'}</p>`;
   else if(w === 'tijdlijn'){
@@ -4948,6 +5135,14 @@ function wisselTeam(){
   if(!p.hidden){ const r = $('#team-knop').getBoundingClientRect(); p.style.top = Math.max(16, Math.min(r.top, innerHeight - 420)) + 'px'; p.style.left = (r.right + 14) + 'px';
     p._gezien = +opslag.get('mict-team-gezien') || 0; opslag.set('mict-team-gezien', Date.now()); tekenTeam(); seinAanwezig(); }
 }
+// telefoon/tablet: het menu schuift van links in; na een keuze gaat het weer dicht
+document.addEventListener('click', e => {
+  if(e.target.closest('#menu-knop')){ document.body.classList.toggle('navopen'); return; }
+});
+document.addEventListener('click', e => {   // vangen vóór het menu opnieuw getekend wordt
+  if(document.body.classList.contains('navopen') && (e.target.closest('#navscherm') || (e.target.closest('#nav') && e.target.closest('[data-weergave], [data-tab], .it, a')) && !e.target.closest('.minischak, [data-fav], #k-overige, .wisselkop'))) setTimeout(() => document.body.classList.remove('navopen'), 60);
+}, true);
+document.addEventListener('keydown', e => { if(e.key === 'Escape') document.body.classList.remove('navopen'); });
 document.addEventListener('click', e => {
   if(e.target.closest('#team-knop')){ wisselTeam(); return; }
   const p = $('#teampaneel'); if(p && !p.hidden && !e.target.closest('#teampaneel')){ p.hidden = true; $('#team-knop').setAttribute('aria-pressed', false); }
@@ -4982,11 +5177,16 @@ function checkKritiek(){
   opslag.set('mict-kritiek-bekend', [...bekend]);
 }
 // Windows-melding (rechtsonder, boven elk programma) bij een kritieke storing, ook als SubmIT op de achtergrond staat
+let swReg = null;
+if('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').then(r => { swReg = r; }).catch(() => {});
+if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { const m = e.data || {}; if(m.soort === 'openMelding' && m.nr){ const x = items.find(y => String(y.nr) === String(m.nr)); if(x){ navLijst = []; openDetail(x.nr); } } });
 const kanWindows = () => 'Notification' in window;
 const windowsAan = () => kanWindows() && Notification.permission === 'granted' && opslag.get('mict-winmelding') !== false;
 function windowsMelding(k){
   if(!windowsAan() || (document.hasFocus() && !document.hidden)) return;
-  try{ const n = new Notification(`Kritieke storing · melding ${k.nr}`, {body: [k.onderwerp, k.door ? 'Op kritiek gezet door ' + k.door : ''].filter(Boolean).join('\n'), tag: 'submit-kritiek-' + k.nr, requireInteraction: true, icon: document.querySelector('link[rel="icon"]') ? document.querySelector('link[rel="icon"]').href : undefined});
+  const titel = `Kritieke storing · melding ${k.nr}`, opt = {body: [k.onderwerp, k.door ? 'Op kritiek gezet door ' + k.door : ''].filter(Boolean).join('\n'), tag: 'submit-kritiek-' + k.nr, requireInteraction: true, icon: 'icon-192.png', badge: 'icon-192.png', data: {nr: String(k.nr)}};
+  if(swReg && swReg.showNotification){ swReg.showNotification(titel, opt).catch(() => {}); return; }
+  try{ const n = new Notification(titel, {body: [k.onderwerp, k.door ? 'Op kritiek gezet door ' + k.door : ''].filter(Boolean).join('\n'), tag: 'submit-kritiek-' + k.nr, requireInteraction: true, icon: document.querySelector('link[rel="icon"]') ? document.querySelector('link[rel="icon"]').href : undefined});
     n.onclick = () => { window.focus(); n.close(); const x = items.find(y => String(y.nr) === String(k.nr)); if(x){ navLijst = kritiekOpen().map(y => String(y.nr)); openDetail(x.nr); } }; }catch(e){}
 }
 async function wisselWindows(){
