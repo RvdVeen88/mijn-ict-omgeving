@@ -1179,7 +1179,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v6.3.1', VERSIE_DATUM = '04-10-2026';
+const VERSIE = 'v6.3.2', VERSIE_DATUM = '04-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1389,7 +1389,12 @@ const isoD = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-
 /* open tickets: workflow niet afgerond én status niet afgesloten. De waarde voor ja/nee verschilt per omgeving, dus we proberen een paar varianten. */
 function openFilters(){
   const st = lijst(INST.st_afgesloten).map(w => ['Status', INST.st_afgesloten.split(',').map(x => x.trim()).find(x => x.toLowerCase() === w), 7]);
-  return ['false', '0'].map(w => filterEn([['Workflow_afgerond', w, 1]]));   // statusfilter niet in AFAS: meldingen zonder status vielen daardoor weg
+  const opWf = ['false', '0'].map(w => filterEn([['Workflow_afgerond', w, 1]]));
+  // reserve als AFAS het filter op Workflow_afgerond weigert (HTTP 500): status is niet een van de afgesloten statussen, OF status is leeg
+  // (AFAS: komma = EN, puntkomma = OF). Wat toch al afgerond is, herkent SubmIT daarna zelf aan Workflow_afgerond.
+  const dicht = String(INST.st_afgesloten || '').split(',').map(x => x.trim()).filter(Boolean);
+  const opStatus = dicht.length ? `&filterfieldids=${dicht.map(() => 'Status').join(',')};Status&filtervalues=${dicht.map(encodeURIComponent).join(',')};&operatortypes=${dicht.map(() => 7).join(',')};8` : '';
+  return [...opWf, ...(opStatus ? [opStatus] : [])];
 }
 let afdVeld = '';
 /* welk veld bevat de afdeling (Radiologie, Emma, ICT, ...)? Het veld waarin de meeste bekende namen voorkomen. */
