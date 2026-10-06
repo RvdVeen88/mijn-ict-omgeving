@@ -533,12 +533,19 @@ select.voorstel{color:var(--grijs)}
 i.verpl{font-style:normal;color:var(--oranje);margin-left:3px;font-weight:700}
 select.afdkeuze.mist{border-bottom:2px solid var(--oranje);color:var(--oranje)}
 textarea.mist{border-color:var(--oranje)}
-.mailregel{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 2px 42px;padding:6px 12px;border:1.5px dashed var(--lichtblauw);border-radius:12px;font-size:12.5px;color:var(--blauw);background:var(--vlak)}
-.mailregel small{margin-left:auto;color:var(--grijs)}
-.mailcheck{font-size:11.5px;font-weight:600;border-radius:999px;padding:1px 8px}
+.mailregel{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 0 42px;padding:1px 4px;font-size:11.5px;color:var(--grijs)}
+.mailregel b{font-weight:600}
+.mailregel .mailicoon{width:auto;height:auto;background:none;color:var(--grijs);font-size:12px}
+.bericht.wacht{opacity:.6}
+.mailcheck.wacht{color:var(--grijs);background:var(--achtergrond)}
+.mailcheck.wacht::before{content:'';display:inline-block;width:8px;height:8px;border:1.5px solid currentColor;border-top-color:transparent;border-radius:50%;margin-right:5px;vertical-align:-1px;animation:draai .8s linear infinite}
+.mailcheck.pop{animation:mailPop .5s ease}
+@keyframes mailPop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.15);opacity:1}100%{transform:scale(1)}}
+.mailregel small{margin-left:auto;color:var(--grijs);font-size:11px}
+.mailcheck{font-size:11px;font-weight:600;border-radius:999px;padding:0 7px}
 .mailcheck.ok{color:var(--groen,#1E7B4F);background:var(--groen-licht,#E6F4EC)}
 .mailcheck.mis{color:var(--rood);background:var(--rood-licht,#FDECEA)}
-.mailregel.geen{border-color:var(--oranje);color:var(--oranje);background:var(--oranje-licht)}
+.mailregel.geen,.mailregel.geen .mailicoon{color:var(--oranje)}
 .mailvooraf.waarschuw{background:var(--oranje-licht);color:var(--oranje)}
 .mailvooraf.waarschuw .mailicoon{background:var(--oranje);color:#fff}
 .mailicoon{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--blauw);color:#fff;font-size:11px;flex:none}
@@ -1217,7 +1224,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v6.6.3', VERSIE_DATUM = '06-10-2026';
+const VERSIE = 'v6.7', VERSIE_DATUM = '06-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2390,27 +2397,34 @@ function mailsVoor(x){
   eigen.forEach(m => { if(m.aan === 'GEEN mail') return;
     let i = am.findIndex((a, j) => !gebruikt.has(j) && a.logT === +m.t);
     if(i < 0) i = am.findIndex((a, j) => !gebruikt.has(j) && a.logT === undefined && +a.t >= +m.t - 2 * 6e4 && +a.t <= +m.t + 30 * 6e4);
-    if(i >= 0){ gebruikt.add(i); m.afas = am[i]; } else if(Date.now() - m.t > 15 * 6e4) m.nietGevonden = true; });
+    if(i >= 0){ gebruikt.add(i); m.afas = am[i]; } else if(Date.now() - m.t > 15 * 6e4) m.nietGevonden = true; else m.onderweg = true; });
   am.forEach((a, j) => { if(!gebruikt.has(j)) eigen.push({t: a.t, mail: true, alleenAfas: true, afas: a}); });
   return eigen;
 }
+const mailOnderweg = new Set();   // mails die 'verzenden…' toonden: krijgen een animatie als het vinkje komt
 const mailRegel = r => r.alleenAfas
   ? `<div class="mailregel"><span class="mailicoon">✉</span><span>Mail naar <b>${esc(r.afas.naar || 'onbekend')}</b>${r.afas.sjabloon ? ' · ' + esc(r.afas.sjabloon) : ''}</span><small>${fmtDatum(r.t)} ${fmtTijd(r.t)}</small>${mailVink(r.afas)}</div>`
-  : `<div class="mailregel${r.aan === 'GEEN mail' ? ' geen' : ''}" title="Verstuurd door AFAS (noreply@dcklinieken.nl) via de actie '${esc(r.actie)}', uitgevoerd door ${esc(r.door || '')} vanuit SubmIT"><span class="mailicoon">${r.aan === 'GEEN mail' ? '!' : '✉'}</span><span>${r.aan === 'GEEN mail' ? '<b>Geen mail verstuurd</b>' : `Mail ${/^volgens/.test(r.aan) ? esc(r.aan) : `naar <b>${esc(r.aan)}</b>`}`} · ${esc(r.wat)}</span><small>${fmtDatum(r.t)} ${fmtTijd(r.t)} · actie ${esc(r.actie)}</small>${r.afas ? mailVink(r.afas) : r.nietGevonden ? '<span class="mailcheck mis" title="AFAS heeft rond dit tijdstip geen mail voor deze melding verstuurd">✗ niet gevonden in AFAS</span>' : ''}</div>`;
+  : `<div class="mailregel${r.aan === 'GEEN mail' ? ' geen' : ''}" title="Verstuurd door AFAS (noreply@dcklinieken.nl) via de actie '${esc(r.actie)}', uitgevoerd door ${esc(r.door || '')} vanuit SubmIT"><span class="mailicoon">${r.aan === 'GEEN mail' ? '!' : '✉'}</span><span>${r.aan === 'GEEN mail' ? '<b>Geen mail verstuurd</b>' : `Mail ${/^volgens/.test(r.aan) ? esc(r.aan) : `naar <b>${esc(r.aan)}</b>`}`} · ${esc(r.wat)}</span><small>${fmtDatum(r.t)} ${fmtTijd(r.t)} · actie ${esc(r.actie)}</small>${r.afas ? mailVink(r.afas).replace('class="mailcheck', `class="mailcheck${mailOnderweg.delete(+r.t) ? ' pop' : ''}`) : r.onderweg && mailOnderweg.add(+r.t) ? '<span class="mailcheck wacht" title="AFAS verstuurt de mail via de wachtrij; dit ververst vanzelf">verzenden…</span>' : r.nietGevonden ? '<span class="mailcheck mis" title="AFAS heeft rond dit tijdstip geen mail voor deze melding verstuurd">✗ niet gevonden in AFAS</span>' : ''}</div>`;
+const wachtReactie = new Map(); let volgReacties = null;   // eigen reacties die AFAS nog niet teruggeeft
 async function toonReacties(x){
   const el = $('#tijdlijn'); if(!el) return;
   try{
     const l = await (vers(reactieVoor, x.nr) || haalReacties(x)); reactieVoor.delete(String(x.nr)); if(!huidig || huidig.x !== x) return;
     { const voor = ontbreekt(x).includes('reactie'); zetIctReactie(x, ictReageerde(x, l));
       if(voor && !ontbreekt(x).includes('reactie')){ x._sg = signalen(x); const c = $('#d-check'); if(c) c.innerHTML = checklist(x); const t = $('#tekst'); if(t && t.classList.contains('mist')){ t.classList.remove('mist'); t.placeholder = 'Schrijf een reactie aan de melder…'; } } }
+    const nr = String(x.nr), wacht = (wachtReactie.get(nr) || []).filter(w => Date.now() - w.t < 10 * 60e3 && !l.some(r => benIk(r.wie) && norm(r.tekst) === norm(w.tekst)));
+    wachtReactie.set(nr, wacht);
     const mails = mailsVoor(x);
-    const alles = [...l, ...mails].sort((a, b) => (a.t || 0) - (b.t || 0));
-    el.innerHTML = `<h3>Reacties (${l.length})${mails.length ? ` · ✉ ${mails.length} mail${mails.length === 1 ? '' : 's'}` : ''} <small class="hint">nieuwste bovenaan</small></h3>` + (alles.length ? [...alles].reverse().map(r => r.mail ? mailRegel(r) : `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''} ${r.intern ? 'intern' : ''}"${r.rid ? ` data-rid="${esc(r.rid)}"` : ''}><i>${esc(initialen(r.wie))}</i>
-      <div class="wolk"><div class="kopje"><b>${esc(r.wie || 'Onbekend')}</b><span>${r.t ? fmtDatum(r.t) + ' ' + fmtTijd(r.t) : ''}</span>${r.intern ? '<span class="internlabel">Intern</span>' : ''}</div><div class="tekst">${esc(r.tekst)}</div></div></div>`).join('') : `<p class="hint">Nog geen reacties.</p>${DEMO ? '' : `<p class="hint" style="font-size:11.5px;opacity:.7">${esc(reactieDiag)}</p>`}`);
+    const alles = [...l, ...wacht, ...mails].sort((a, b) => (a.t || 0) - (b.t || 0));
+    el.innerHTML = `<h3>Reacties (${l.length + wacht.length})${mails.length ? ` · ✉ ${mails.length} mail${mails.length === 1 ? '' : 's'}` : ''} <small class="hint">nieuwste bovenaan</small></h3>` + (alles.length ? [...alles].reverse().map(r => r.mail ? mailRegel(r) : `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''} ${r.intern ? 'intern' : ''} ${r.wacht ? 'wacht' : ''}"${r.rid ? ` data-rid="${esc(r.rid)}"` : ''}><i>${esc(initialen(r.wie))}</i>
+      <div class="wolk"><div class="kopje"><b>${esc(r.wie || 'Onbekend')}</b><span>${r.t ? fmtDatum(r.t) + ' ' + fmtTijd(r.t) : ''}</span>${r.wacht ? '<span class="hint">wordt verwerkt…</span>' : ''}${r.intern ? '<span class="internlabel">Intern</span>' : ''}</div><div class="tekst">${esc(r.tekst)}</div></div></div>`).join('') : `<p class="hint">Nog geen reacties.</p>${DEMO ? '' : `<p class="hint" style="font-size:11.5px;opacity:.7">${esc(reactieDiag)}</p>`}`);
     if(!DEMO && reactieKol && !reactieKol.zicht) el.insertAdjacentHTML('beforeend', `<p class="hint" style="font-size:11.5px">Of een reactie intern is, staat niet in ${esc(INST.connReacties)}; alleen jouw eigen interne notities zijn herkend. Laat het veld "Reactie zichtbaar" aan die GetConnector toevoegen.</p>`);
     el.scrollTop = 0;   // nieuwste reactie bovenaan, ouder = naar beneden scrollen
     if(berichtUit && mails.length && !DEMO) el.insertAdjacentHTML('beforeend', `<p class="hint" style="font-size:11.5px">Mailcontrole (✓ verstuurd) werkt nog niet: ${esc(berichtDiag || 'GetConnector ' + INST.connBerichten + ' niet bereikbaar')}. Koppel GetConnector ${esc(INST.connBerichten)} aan de app connector van Mijn ICT-Omgeving.</p>`);
     el.dataset.klaar = '1'; verdeelBijlagen(x);
+    clearTimeout(volgReacties);
+    if(wacht.length || (!berichtUit && mails.some(m => m.onderweg || (!m.afas && !m.nietGevonden && m.aan !== 'GEEN mail' && Date.now() - m.t < 15 * 6e4))))
+      volgReacties = setTimeout(() => { if(huidig && huidig.x === x && $('#detail').open){ reactieVoor.delete(nr); berichtCache.delete(nr); toonReacties(x); } }, 8000);
     if(INST.connBerichten && !berichtUit && !((berichtCache.get(String(x.nr)) || {}).t > Date.now() - 2 * 6e4)) haalBerichten(x).then(() => { if(huidig && huidig.x === x) toonReacties(x); }).catch(e => { console.warn('Mailcontrole', e); if(huidig && huidig.x === x) toonReacties(x); });
   }catch(e){ el.innerHTML = `<h3>Reacties</h3><p class="hint">Reacties ophalen lukte niet: ${esc(e.message)} Laat GetConnector ${esc(INST.connReacties)} koppelen aan de app connector van Mijn ICT-Omgeving.</p>`; }
 }
@@ -3702,6 +3716,8 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
     // 6. alleen een reactie: via 'Reactie plaatsen' / 'Interne notitie'
     if(tekst && !reactieGedaan) await plaatsReactie();
     if(tekst){ lok.reactieDatum = new Date(); lok.reactieDoor = profiel.naam; if(notitie) opslag.set(NOTITIES, [notitieSleutel(x.sbid, tekst), ...(opslag.get(NOTITIES) || [])].slice(0, 500)); }
+    if(tekst){ const k = String(x.nr); wachtReactie.set(k, [...(wachtReactie.get(k) || []), {wie: profiel.naam, t: new Date(), tekst, intern: !!notitie, wacht: true}]); }
+    reactieVoor.delete(String(x.nr)); berichtCache.delete(String(x.nr));
     $('#detail').dataset.gewijzigd = '';
     if(sluiten && !volgNr){ const k = laatsteKnop && laatsteKnop.isConnected ? laatsteKnop : null; if(k){ bevestigOpslaan(k, bevestigTekst(k)); await wacht(matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : 800); } $('#detail').close(); }
     logHistorie(x, gedaan.join(' · '));
@@ -5541,7 +5557,7 @@ function laadKaart(naam){
 function demoAfas(pad, opties){
   if(pad.startsWith(`/connectors/${INST.connBerichten}`)){   // zoals de echte connector: geen dossieritem; AFAS 'verstuurt' elke gelogde mail een minuut later
     const lok = t => new Date(t - new Date(t).getTimezoneOffset() * 6e4).toISOString().slice(0, 19), log = opslag.get(MAILLOG) || {};
-    return {rows: Object.values(log).flat().filter(m => m.aan && m.aan !== 'GEEN mail' && !/^volgens/.test(m.aan)).map(m => ({Naam: m.aan, Mail_werk: '', Datum_tijd_toegevoegd: lok(m.t + 6e4) + 'Z', Berichtstatus: 'Verzonden', Berichtsjabloon: 'Tickets ICT - Reactie geplaatst', Bestemming: '', Datum_tijd_verzending: lok(m.t + 6e4) + 'Z', Onderwerp_e_mail: ''}))}; }
+    return {rows: Object.values(log).flat().filter(m => m.aan && m.aan !== 'GEEN mail' && !/^volgens/.test(m.aan) && m.t + 6e4 <= Date.now()).map(m => ({Naam: m.aan, Mail_werk: '', Datum_tijd_toegevoegd: lok(m.t + 6e4) + 'Z', Berichtstatus: 'Verzonden', Berichtsjabloon: 'Tickets ICT - Reactie geplaatst', Bestemming: '', Datum_tijd_verzending: lok(m.t + 6e4) + 'Z', Onderwerp_e_mail: ''}))}; }
   // demo: projecten (Mijn projecten)
   if(pad === `/metainfo/get/${INST.connProjecten}`) return {fields:['Projectnummer','Projectnaam','Projectleider','Teamlid','Rol','Projectfase','Voortgang','Startdatum','Einddatum','Datum_gereed_planning','Laatste_update','Datum_laatste_update'].map(id => ({id, label: id.replace(/_/g, ' ')}))};
   if(pad.startsWith(`/connectors/${INST.connProjectInfo}`)){ const d = n => new Date(Date.now() + n * DAG).toISOString().slice(0, 10) + 'T00:00:00';
