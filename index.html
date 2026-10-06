@@ -1179,7 +1179,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v6.3', VERSIE_DATUM = '04-10-2026';
+const VERSIE = 'v6.3.1', VERSIE_DATUM = '04-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1382,7 +1382,9 @@ function laadAlleGesloten(){
     if((tab === 'dichtalle' || tab === 'zoek' || toonDicht()) && !$('#detail').open) teken();
   })();
 }
-let alleGeladen = false, mijnTaken = [], achterBezig = null, openFilter = null;
+let alleGeladen = false, mijnTaken = [], achterBezig = null, openFilter = opslag.get('mict-openfilter') || null;
+const START = {t0: performance.now(), fasen: [], filterFout: ''};   // opstarttijden, te zien bij Connectoren & velden
+const startFase = naam => { const nu = performance.now(); START.fasen.push([naam, Math.round(nu - (START.vorige || START.t0))]); START.vorige = nu; };
 const isoD = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 /* open tickets: workflow niet afgerond én status niet afgesloten. De waarde voor ja/nee verschilt per omgeving, dus we proberen een paar varianten. */
 function openFilters(){
@@ -1477,14 +1479,16 @@ async function laadGegevensEcht(fase, stil){
     let sla = null;
     if(fase === 'open'){
       for(const f of (openFilter ? [openFilter] : openFilters())){
-        try{ sla = await connectorAlles(INST.connSla, f, mee); if(sla.length){ openFilter = f; break; } sla = null; }catch(e){ sla = null; }
+        try{ sla = await connectorAlles(INST.connSla, f, mee); if(sla.length){ if(openFilter !== f) opslag.set('mict-openfilter', f); openFilter = f; break; } sla = null; START.filterFout = 'filter gaf 0 regels'; }catch(e){ sla = null; START.filterFout = e.message; if(f === openFilter){ openFilter = null; opslag.weg('mict-openfilter'); } }
       }
-      if(!sla){ fase = 'alles'; sla = await connectorAlles(INST.connSla, '', mee); }
+      if(!sla && !openFilter){ for(const f of openFilters()){ try{ sla = await connectorAlles(INST.connSla, f, mee); if(sla.length){ opslag.set('mict-openfilter', f); openFilter = f; break; } sla = null; }catch(e){ sla = null; START.filterFout = e.message; } } }
+      if(!sla){ fase = 'alles'; console.warn('SubmIT: filter op open meldingen werkt niet, alles wordt geladen:', START.filterFout); sla = await connectorAlles(INST.connSla, '', mee); }
     } else sla = await connectorAlles(INST.connSla, '', mee);
     const nieuw = bouwItems(sla, new Map(sbCache));
     if(fase === 'open' && alleGeladen){ const nrs = new Set(nieuw.map(x => String(x.nr))); items = [...nieuw, ...items.filter(x => x.afgesloten && !nrs.has(String(x.nr)))]; }
     else items = nieuw;
     if(fase === 'alles'){ alleGeladen = true; alleDichtGeladen = true; }
+    if(!START.meldingen) START.meldingen = {fase, n: sla.length};
     status = {bijgewerkt: new Date(), fout: null};
     vg.stop(); $('#live').classList.remove('uit'); laadScherm(100, 0, 0);
   }catch(e){ vg.stop(); status.fout = e.message; if(!stil) toast('Laden mislukt: ' + e.message, true); $('#topbalk').classList.remove('aan'); }
@@ -3859,7 +3863,8 @@ function tekenConnectoren(){
   }).join('');
   const nietGebruikt = c && c.alle ? [...c.alle.get.map(x => ({...x, s: 'GET'})), ...c.alle.upd.map(x => ({...x, s: 'UPDATE'}))].filter(x => !gebruikt.has(norm(x.id)) && !(x.s === 'UPDATE' && /^(KnSubjectAttachment|KnReaction)/i.test(x.id))) : [];
   $('#tegels').innerHTML = '';
-  $('#blokken').innerHTML = `<div class="cn-kop"><p>Per connector: welke velden SubmIT gebruikt, waarvoor, en of ze in AFAS aanwezig zijn. <b>Verplicht</b> = zonder dit veld werkt een onderdeel niet. Velden die in de connector staan maar niet gebruikt worden, staan onder elke kaart.</p>
+  const opstart = START.fasen.length ? `<p class="hint" style="margin:0 0 10px"><b>Laatste opstart:</b> ${START.fasen.map(([n, ms]) => `${esc(n)} ${(ms / 1000).toFixed(1).replace('.', ',')} s`).join(' · ')}${START.meldingen ? ` · ${START.meldingen.n} meldingen (${START.meldingen.fase === 'open' ? 'alleen open, rest op de achtergrond' : '<b style="color:var(--rood)">alles in één keer: filter op open werkte niet' + (START.filterFout ? ' – ' + esc(START.filterFout) : '') + '</b>'})` : ''}</p>` : '';
+  $('#blokken').innerHTML = opstart + `<div class="cn-kop"><p>Per connector: welke velden SubmIT gebruikt, waarvoor, en of ze in AFAS aanwezig zijn. <b>Verplicht</b> = zonder dit veld werkt een onderdeel niet. Velden die in de connector staan maar niet gebruikt worden, staan onder elke kaart.</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="knop vol" id="cn-check" ${connBezig ? 'disabled' : ''}>${connBezig ? 'Controleren…' : c ? 'Opnieuw controleren' : 'Controleer in AFAS'}</button><button type="button" class="knop" id="cn-kopie">Kopieer als tekst</button></div></div>
     ${c ? `<section class="blok cn-kaart"><header><h2>Connectoren in de app connector die SubmIT niet gebruikt</h2><span class="cn-badge ${nietGebruikt.length ? 'oranje' : 'groen'}">${c.alle ? nietGebruikt.length : '?'}</span></header>
       <p class="cn-doel">${c.alle ? (nietGebruikt.length ? 'Deze staan in de app connector "Mijn ICT-omgeving" maar worden door deze pagina niet aangeroepen. Kunnen eruit, tenzij een ander dashboard dezelfde app connector gebruikt.' : 'Alle connectoren in de app connector worden gebruikt.') : `Lijst niet op te halen: ${esc(c.alleFout || '')}`}</p>
@@ -5351,16 +5356,18 @@ function laadKaart(naam){
       const terug = await terugVanAfas();
       if(!terug){ if(!opslag.get(RT)){ startInlog(); return; } try{ await vernieuw(); }catch(e){ opslag.weg(RT); startInlog('Je sessie is verlopen. Log opnieuw in.'); return; } }
     } else sub = 'demo';
-    const ik = await wieBenIk();
+    startFase('inloggen');
+    const ik = await wieBenIk(); startFase('wie ben ik');
     if(!ik){ startInlog(`AFAS gaf niet door wie je bent. ${ikDiag}`); return; }
-    await syncLaad();   // instellingen van andere pc's/browsers ophalen vóór we het profiel lezen
+    await syncLaad(); startFase('instellingen');   // instellingen van andere pc's/browsers ophalen vóór we het profiel lezen
     const opgeslagen = opslag.get(profielSleutel());
     const auto = autoRol(ik);
     profiel = {rol:auto.rol, domeinen:auto.domeinen, ...(opgeslagen && norm(opgeslagen.naam) === norm(ik.naam) ? opgeslagen : {}),
       naam:ik.naam, alias:[ik.code].filter(Boolean), functie:ik.functie, groepen:ik.groepen || []};
     if(ik.emId) profiel.emId = ik.emId;
     laadKaart(ik.naam);
-    await laadGegevens();
+    await laadGegevens(); startFase('meldingen');
+    console.info('SubmIT opstarten:', START.fasen.map(([n, ms]) => `${n} ${(ms / 1000).toFixed(1)} s`).join(' · '), START.meldingen, START.filterFout);
     if(status.fout && !items.length){ startInlog('Meldingen ophalen mislukt: ' + status.fout); return; }
     if(!profiel.ingesteld){ profiel = {...profiel, ingesteld: true}; opslag.set(profielSleutel(), profiel); }
     await introUit(); toonApp(); if(!opslag.get(TOUR_GEZIEN)) setTimeout(() => { if(!document.querySelector('dialog[open]')) startTour(); }, 2500);
