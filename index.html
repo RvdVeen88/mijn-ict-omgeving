@@ -170,8 +170,9 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .tdlijst[data-lijst="belangrijk"] svg{color:#F5B400}
 .it.potstoring svg{color:var(--oranje)}.it.kritstoring svg{color:var(--rood);animation:knipper 1.4s ease-in-out infinite}.it.kritstoring span{color:var(--rood);font-weight:600}
 .it.kritstoring[aria-pressed="true"] span{color:inherit}.it.kritstoring[aria-pressed="true"] svg{color:#FFB4AB}.it.potstoring[aria-pressed="true"] svg{color:#FFD08A}
-.ondinvoer{width:100%;font:inherit;color:inherit;background:transparent;border:0;border-bottom:1.5px dashed transparent;padding:0;outline:0}
-.ondinvoer:hover{border-bottom-color:var(--lichtblauw)}.ondinvoer:focus{border-bottom:1.5px solid var(--blauw-2)}.ondinvoer.gewijzigd{color:var(--grijs)}
+.ondinvoer{width:100%;font:inherit;color:inherit;background:transparent;border:0;border-bottom:1.5px dashed var(--lichtblauw);padding:0 0 2px;outline:0;cursor:text}
+.ondinvoer:hover{border-bottom-color:var(--blauw-2)}
+#detail .dlg-kop > div:first-child{flex:1;min-width:0;margin-right:12px}.ondinvoer:focus{border-bottom:1.5px solid var(--blauw-2)}.ondinvoer.gewijzigd{color:var(--grijs)}
 .tdscheid{border:0;border-top:1px solid var(--lijn);margin:6px 12px}
 .tdlijst .tdgedeeld{display:inline-flex;color:var(--grijs)}.tdlijst .tdgedeeld svg{width:14px;height:14px}
 .tdlijst[data-lijst="mij"] svg{color:#2E8B57}
@@ -1234,7 +1235,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.6.1', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.6.2', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
