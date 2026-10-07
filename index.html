@@ -1235,7 +1235,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.7', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.7.1', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1745,7 +1745,8 @@ function signalen(x){
   if(u) s.push({ernst:1, code:'ongelezen', tekst: u.wat === 'toegewezen' ? 'Nieuw voor jou' : u.wat === 'reactie' ? `Ongelezen reactie · ${u.wie.split(' ')[0]}` : 'Ongelezen update', uitleg: u.wat === 'toegewezen' ? `Deze melding is${u.wie && !benIk(u.wie) ? ' door ' + u.wie : ''} aan jou toegewezen en je hebt het nog niet geopend.` : u.wat === 'reactie' ? `${u.wie} reageerde op ${wanneer(u.t)}, nadat jij de melding voor het laatst opende. Open de melding om deze te lezen.` : `${u.wie} wijzigde de melding op ${wanneer(u.t)} (status nu "${toonStatus(x.status)}"), nadat jij het voor het laatst opende.`});
   if(!x.afdeling && !x.inuit) s.push({ernst:3, code:'afdeling', tekst:'Geen afdeling', uitleg:'Er is geen afdeling aan deze melding toegewezen, waardoor deze bij niemand in beeld komt. Zet deze door naar de juiste afdeling.'});
   if(isNieuw(x)){ const mist = ontbreekt(x); if(mist.length) s.push({ernst:2, code:'onvolledig', tekst:'Mist: ' + mist.join(' · '), uitleg:`Een nieuwe melding is pas compleet als afdeling, ${heeftLocKolom ? 'locatie ' : ''}en een reactie aan de melder zijn ingevuld. Nog nodig: ${mist.join(', ')}.`}); }
-  if(x.kritiek) s.unshift({ernst:3, code:'kritiek', tekst:'Kritieke storing', uitleg:'In AFAS als kritieke storing gemarkeerd: direct oppakken.'});
+  if(kritiekActief(x)) s.unshift({ernst:3, code:'kritiek', tekst:'Kritieke storing', uitleg:'In AFAS als kritieke storing gemarkeerd: direct oppakken.'});
+  else if(x.kritiek && x.opgelost && !x.afgesloten) s.push({ernst:1, code:'kritiekopgelost', tekst:'Storing opgelost', uitleg:`Kritieke storing, opgelost op ${fmtDatum(x.opgelost)} ${fmtTijd(x.opgelost)}. De melding zelf staat nog open.`});
   if(x.datalek) s.unshift({ernst:3, code:'datalek', tekst:'Datalek', uitleg:'Gemarkeerd als (mogelijk) datalek: volg de datalekprocedure en betrek Kwaliteit & Veiligheid / de FG.'});
   return s;
 }
@@ -1953,7 +1954,7 @@ function tabel(id, l, opties = {}){
   tabelVolgorde[id] = l.map(x => String(x.nr));   // voor vorige/volgende in het ticket: de hele lijst in deze volgorde, ook wat (nog) niet getoond wordt
   return `<div class="tw"><table class="tabel" data-tabel="${id}"><thead><tr>${kol.map(c => `<th data-sort="${c.k}" ${breedteVan(c) ? `style="width:${breedteVan(c)}"` : ''} class="${c.cls.replace(/(^|\s)(nr|ond|sig|zacht)(?=\s|$)/g, '$1').trim()}" ${s && s.k === c.k ? `aria-sort="${s.op > 0 ? 'ascending' : 'descending'}"` : ''}>${c.t}${s && s.k === c.k ? `<span class="pijl">${s.op > 0 ? '▲' : '▼'}</span>` : ''}<span class="kolgreep" data-greep="${c.k}" title="Sleep om de breedte aan te passen · dubbelklik = passend"></span></th>`).join('')}</tr>
     <tr class="kolfilter${kfOpen && kfOpen.id === id ? ' open' : ''}">${kol.map(c => `<th class="${c.cls.replace(/(^|\s)(nr|ond|sig|zacht)(?=\s|$)/g, '$1').trim()}">${KEUZE.has(c.k) ? `<button type="button" class="kfknop${kfActief(kf[c.k]) ? ' aan' : ''}" data-kf="${c.k}" data-keuze aria-haspopup="true" aria-label="Filter op ${c.t}">${esc(kfLabel(kf[c.k], opties_[c.k] || []))}</button>` : `<input size="3" data-kf="${c.k}" value="${esc(typeof kf[c.k] === 'string' ? kf[c.k] : '')}" placeholder="Filter…" aria-label="Filter op ${c.t}" class="${kfActief(kf[c.k]) ? 'aan' : ''}">`}</th>`).join('')}</tr></thead>
-    <tbody>${!zicht.length ? `<tr class="geenrij"><td colspan="${kol.length}">Geen ${opties.proj ? 'projecten' : 'meldingen'} met deze filters. <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></td></tr>` : ''}${zicht.map(x => opties.set ? `<tr class="${x._dicht || (opties.klik && x.afgesloten) ? 'dicht' : ''}"${x.nr && (x._x || opties.klik) ? ` data-nr="${esc(x.nr)}"` : ''}>${kol.map(c => `<td class="${c.cls}" title="${esc(kolTekst(c, x))}">${c.html(x)}</td>`).join('')}</tr>` : opties.proj ? `<tr class="${x.afgesloten ? 'dicht' : ''}" data-proj="${esc(x.code)}" tabindex="0">${kol.map(c => `<td class="${c.cls}" title="${esc(kolTekst(c, x))}">${c.html(x)}</td>`).join('')}</tr>` : `<tr draggable="${x.afgesloten ? 'false' : 'true'}" class="${KLEUR[ernst(x)]}${x.kritiek && !x.afgesloten ? ' kritiekrij' : ''}${x.afgesloten ? ' dicht' : ''}${(x._sg || []).some(s => s.code === 'ongelezen') ? ' ongelezen' : ''}" data-nr="${esc(x.nr)}">${kol.map(c => `<td class="${c.cls}"${c.k === 'sig' ? '' : ` title="${esc(kolTekst(c, x))}"`}>${c.html(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    <tbody>${!zicht.length ? `<tr class="geenrij"><td colspan="${kol.length}">Geen ${opties.proj ? 'projecten' : 'meldingen'} met deze filters. <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></td></tr>` : ''}${zicht.map(x => opties.set ? `<tr class="${x._dicht || (opties.klik && x.afgesloten) ? 'dicht' : ''}"${x.nr && (x._x || opties.klik) ? ` data-nr="${esc(x.nr)}"` : ''}>${kol.map(c => `<td class="${c.cls}" title="${esc(kolTekst(c, x))}">${c.html(x)}</td>`).join('')}</tr>` : opties.proj ? `<tr class="${x.afgesloten ? 'dicht' : ''}" data-proj="${esc(x.code)}" tabindex="0">${kol.map(c => `<td class="${c.cls}" title="${esc(kolTekst(c, x))}">${c.html(x)}</td>`).join('')}</tr>` : `<tr draggable="${x.afgesloten ? 'false' : 'true'}" class="${KLEUR[ernst(x)]}${kritiekActief(x) ? ' kritiekrij' : ''}${x.afgesloten ? ' dicht' : ''}${(x._sg || []).some(s => s.code === 'ongelezen') ? ' ongelezen' : ''}" data-nr="${esc(x.nr)}">${kol.map(c => `<td class="${c.cls}"${c.k === 'sig' ? '' : ` title="${esc(kolTekst(c, x))}"`}>${c.html(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
     ${actief.length ? `<p class="filterinfo">${l.length} van ${totaal} na filteren · <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></p>` : ''}
     ${l.length > max ? `<button type="button" class="meer" data-blok="${id}">${blokOpen.has(id) ? 'Minder tonen' : `Alle ${l.length} tonen`}</button>` : ''}`;
 }
@@ -5398,7 +5399,7 @@ function zoekStoringen(){
   const groepen = [];
   [...perWoord.entries()].filter(([, l]) => l.length >= STORING_MIN).sort((a, b) => b[1].length - a[1].length).forEach(([w, l]) => {
     const nrs = l.map(x => String(x.nr)); if(groepen.some(g => nrs.every(n => g.nrs.includes(n)))) return;   // zelfde groep onder een ander woord
-    if(l.some(x => x.kritiek)) return;   // al kritiek: dan staat hij al in het rode blok
+    if(l.some(kritiekActief)) return;   // al kritiek: dan staat hij al in het rode blok
     const locs = [...new Set(l.map(x => x.locatie || locCache.get(String(x.nr)) || '').filter(Boolean))];
     groepen.push({woord: w, nrs: l.sort((a, b) => a.aangemaakt - b.aangemaakt).map(x => String(x.nr)), loc: locs.length === 1 ? locs[0] : '', sinds: new Date(Math.min(...l.map(x => +x.aangemaakt)))}); });
   STORINGEN = groepen.slice(0, 3); STORING_NR = new Map(); STORINGEN.forEach(g => g.nrs.forEach(n => STORING_NR.set(n, g)));
@@ -5406,7 +5407,9 @@ function zoekStoringen(){
 
 /* ================= kritieke storing: iedereen krijgt een melding, en hij staat bovenaan het overzicht ================= */
 const KRIT_ICO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>';
-const kritiekOpen = () => items.filter(x => x.kritiek && !x.afgesloten);
+// actieve kritieke storing: aangevinkt, niet afgehandeld en nog niet opgelost (Storing opgelost leeg of in de toekomst)
+const kritiekActief = x => !!x.kritiek && !x.afgesloten && !(x.opgelost && +x.opgelost <= Date.now());
+const kritiekOpen = () => items.filter(kritiekActief);
 const kort = (t, n = 180) => { t = String(t || '').replace(/\s+/g, ' ').trim(); return t.length > n ? t.slice(0, n - 1).trimEnd() + '…' : t; };
 /* samen: wat jij in SubmIT doet, zien je collega's in Team (en een pop-up als het hen raakt) */
 let nietStoren = !!opslag.get('mict-nietstoren');
