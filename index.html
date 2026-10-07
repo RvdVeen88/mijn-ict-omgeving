@@ -168,6 +168,9 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .tdlijst span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tdlijst svg{width:17px;height:17px;flex:none;color:var(--grijs)}
 .tdlijst[data-lijst="belangrijk"] svg{color:#F5B400}
+.tdscheid{border:0;border-top:1px solid var(--lijn);margin:6px 12px}
+.tdlijst .tdgedeeld{display:inline-flex;color:var(--grijs)}.tdlijst .tdgedeeld svg{width:14px;height:14px}
+.tdlijst[data-lijst="mij"] svg{color:#2E8B57}
 .tdlijst b{font-size:11.5px;font-weight:600;background:var(--lijn);color:var(--grijs);border-radius:999px;padding:0 8px;line-height:19px}
 .tdlijst:hover{background:var(--vlak)}
 .tdhernoem{width:100%;font:inherit;font-size:14px;border:1.5px solid var(--blauw-2);border-radius:8px;padding:2px 8px;background:var(--vlak);color:var(--inkt)}
@@ -179,8 +182,7 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .tdlijst[aria-pressed="true"]{background:var(--blauw);color:var(--opaccent);font-weight:600}
 .tdlijst[aria-pressed="true"] svg{color:inherit}
 .tdlijst[aria-pressed="true"] b{background:rgba(255,255,255,.22);color:inherit}
-.tdlijst[data-lijst="alle"]{margin-bottom:0}.tdlijst[data-lijst="belangrijk"]{margin-bottom:8px;position:relative}
-.tdlijst[data-lijst="belangrijk"]::after{content:'';position:absolute;left:12px;right:12px;bottom:-5px;border-bottom:1px solid var(--lijn)}
+
 .lijstnieuw{display:block;padding:8px 12px;font-size:13.5px;color:var(--grijs);margin-top:4px}
 .lijstnieuw input{border:0;outline:0;background:transparent;width:100%;font-size:13.5px;color:var(--inkt)}
 .lijstnieuw input::placeholder{color:var(--blauw-2)}
@@ -567,6 +569,8 @@ input:is([type=date],[type=datetime-local]):is([value=""],:not([value])):not(:fo
 select.afdkeuze.gewijzigd{color:var(--grijs)}
 .kaart2 select.afdkeuze.voorstel,.kaart2 input.datumkeuze.voorstel{color:var(--grijs)}
 dialog.vraagdlg{width:min(440px, calc(100vw - 32px))}
+dialog.vraagdlg.breed{width:min(580px,calc(100vw - 32px))}
+dialog.vraagdlg.breed .vraag-knoppen{flex-wrap:wrap}
 dialog.vraagdlg .dlg-in{gap:10px;padding:24px 26px 20px}
 dialog.vraagdlg h2{font-size:18px;color:var(--blauw)}
 dialog.vraagdlg p{margin:0;color:var(--grijs);line-height:1.5;white-space:pre-line;overflow-wrap:anywhere;user-select:text}
@@ -1226,7 +1230,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.2', VERSIE_DATUM = '06-10-2026';
+const VERSIE = 'v7.5', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1540,6 +1544,9 @@ function zetIU(x, r){
   if(ja(r.Workflow_afgerond) || iuV(r, 'Einddatum')) x.afgesloten = true;
   x.ictStatus = String(iuV(r, 'Status ICT indienst', 'Status ICT uitdienst', 'Status ICT') || '').trim() || 'Open';
   x.iuFout = /fout|mislukt|error/i.test(x.ictStatus); x.iuOpen = norm(x.ictStatus) === 'open';
+  // afgehandeld = workflow afgehandeld óf door ICT afgerond; alleen die staan onder de toggle Afgehandeld
+  if(/afgerond|gereed|klaar|verwerkt/i.test(x.ictStatus) && !x.iuFout) x.afgesloten = true;
+  if(x.afgesloten && x.iuOpen){ x.iuOpen = false; x.ictStatus = 'Afgehandeld'; }
   x.extern = '';   // Extern_ticket bevat hier de medewerker
   if(!norm(x.zoek).includes(norm(x.medewerker))) x.zoek = norm(x.zoek + ' ' + x.medewerker + ' ' + x.medNr);
 }
@@ -1568,7 +1575,7 @@ const IU_KOLOMMEN = [
   {k:'iu-wie', bw:'140px', t:'Toegewezen aan', w:x => norm(x.verantw), html:x => esc(x.verantw || ''), cls:'zacht'},
   {k:'iu-indienst', bw:'104px', t:'In dienst', w:x => +x.inDienst || 0, html:x => x.inDienst ? fmtDatum(x.inDienst) : '', cls:''},
   {k:'iu-uitdienst', bw:'104px', t:'Uit dienst', w:x => +x.uitDienst || 0, html:x => x.uitDienst ? fmtDatum(x.uitDienst) : '', cls:''},
-  {k:'iu-ict', bw:'176px', t:'Status ICT', w:x => (x.iuFout ? 0 : x.iuOpen ? 1 : 2) + norm(x.ictStatus), html:x => `<span class="cn-badge ${x.iuFout ? 'rood' : x.iuOpen ? 'oranje' : /afgerond|klaar|gereed/i.test(x.ictStatus) ? 'groen' : ''}">${esc(x.iuOpen ? 'Open · op te pakken' : x.ictStatus)}</span>`, cls:''},
+  {k:'iu-ict', bw:'176px', t:'Status ICT', w:x => (x.iuFout ? 0 : x.iuOpen ? 1 : 2) + norm(x.ictStatus), html:x => `<span class="cn-badge ${x.iuFout ? 'rood' : x.iuOpen ? 'oranje' : /afgerond|klaar|gereed|afgehandeld/i.test(x.ictStatus) ? 'groen' : ''}">${esc(x.iuOpen ? 'Open · op te pakken' : x.ictStatus)}</span>`, cls:''},
   {k:'iu-status', bw:'104px', t:'Taak bij', w:x => norm(x.status), html:x => esc(toonStatus(x.status) || ''), cls:'zacht'}
 ];
 // in het venster: de velden zoals in AFAS (alleen wat gevuld is)
@@ -2501,6 +2508,7 @@ async function toonReacties(x){
     const l = await (vers(reactieVoor, x.nr) || haalReacties(x)); reactieVoor.delete(String(x.nr)); if(!huidig || huidig.x !== x) return;
     { const voor = ontbreekt(x).includes('reactie'); zetIctReactie(x, ictReageerde(x, l));
       if(voor && !ontbreekt(x).includes('reactie')){ x._sg = signalen(x); const c = $('#d-check'); if(c) c.innerHTML = checklist(x); const t = $('#tekst'); if(t && t.classList.contains('mist')){ t.classList.remove('mist'); t.placeholder = 'Schrijf een reactie aan de melder…'; } } }
+    huidig.reacties = l;
     const nr = String(x.nr), wacht = (wachtReactie.get(nr) || []).filter(w => Date.now() - w.t < 10 * 60e3 && !l.some(r => benIk(r.wie) && norm(r.tekst) === norm(w.tekst)));
     wachtReactie.set(nr, wacht);
     const mails = mailsVoor(x);
@@ -2540,6 +2548,34 @@ function statusKeuzes(wf, x){
 }
 const soortActie = a => /toewijzen aan mij/i.test(a.naam) ? 'mij' : /toewijzen aan collega|doorzetten naar collega|collega/i.test(a.naam) ? 'collega' : /inplannen|plannen/i.test(a.naam) ? 'plannen' : 'status';
 // Afhandelen/oppakken al aanklikbaar terwijl de workflow nog laadt: even wachten en dan dezelfde route als de echte knop
+// Afhandelen: heeft de verantwoordelijke de afgelopen 15 minuten gereageerd? Zo niet: eerst vragen (met meteen een reactieveld)
+async function afhandelen(knop){
+  const x = huidig.x, t = $('#tekst'), notitie = !!($('#notitie') && $('#notitie').checked);
+  if(!(t && t.value.trim() && !notitie)){
+    const grens = Date.now() - 15 * 60e3, nr = String(x.nr), wie = r => benIk(r.wie) || (x.verantw && norm(r.wie) === norm(x.verantw));
+    const recent = (huidig.reacties || []).some(r => r.t && +r.t >= grens && !r.intern && wie(r)) || (wachtReactie.get(nr) || []).some(w => +w.t >= grens && !w.intern);
+    if(!recent){
+      const keuze = await vraagAfhandelReactie(x); if(keuze === null) return;
+      if(keuze && t){ t.value = keuze; if($('#notitie')) $('#notitie').checked = false; t.dispatchEvent(new Event('input', {bubbles: true})); }
+    }
+  }
+  knop.dataset.snel = 'sluit'; laatsteKnop = knop; snelActie(knop);
+}
+function vraagAfhandelReactie(x){
+  return new Promise(klaar => {
+    const d = $('#vraag');
+    d.innerHTML = `<div class="dlg-in"><h2>Geen reactie geplaatst</h2><p>In de afgelopen 15 minuten is er in melding ${esc(x.nr)} geen reactie aan de melder geplaatst${x.melder ? ' (' + esc(x.melder) + ')' : ''}. Wil je er een meesturen bij het afhandelen?</p>
+      <textarea id="afh-tekst" class="toelinvoer" rows="4" spellcheck="true" style="background:var(--achtergrond);border-radius:12px;padding:10px 12px"></textarea>
+      <div class="vraag-knoppen"><button type="button" class="knop" data-v="annuleer">Annuleren</button><button type="button" class="knop" data-v="zonder" style="white-space:nowrap">Zonder reactie</button><button type="button" class="knop vol" data-v="ja" disabled style="white-space:nowrap">Met reactie afhandelen</button></div></div>`;
+    const ta = d.querySelector('#afh-tekst'), ja = d.querySelector('[data-v="ja"]');
+    ta.oninput = () => ja.disabled = !ta.value.trim();
+    d.classList.add('breed');
+    const af = w => { d.onclick = null; d.oncancel = null; d.classList.remove('breed'); d.close(); klaar(w); };
+    d.onclick = e => { const b = e.target.closest('[data-v]'); if(!b || b.disabled) return; af(b.dataset.v === 'ja' ? ta.value.trim() : b.dataset.v === 'zonder' ? '' : null); };
+    d.oncancel = e => { e.preventDefault(); af(null); };
+    d.showModal(); ta.focus();
+  });
+}
 async function snelActie(knop){
   const x = huidig.x, soort = knop.dataset.snel; knop.disabled = true; const oud = knop.textContent; knop.innerHTML = '<span class="spin" style="display:inline-block;vertical-align:-3px;margin-right:6px;width:12px;height:12px"></span>' + esc(oud);
   try{ await huidig.wfKlaar; }catch(e){}
@@ -2752,9 +2788,9 @@ function openDetail(nr){
         <span class="hint" id="notitie-uitleg"></span></div>
     </div>
     <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>
-    <div class="onderbalk"><div class="actiebalk" id="actiebalk"><button class="knop" data-snel="${st === 0 ? 'oppak' : 'sluit'}" title="Kan meteen: wacht zo nodig even op de workflow uit AFAS">${st === 0 ? 'Toewijzen aan mij' : 'Afhandelen'}</button></div>
+    <div class="onderbalk"><div class="actiebalk" id="actiebalk">${st === 0 ? '<button class="knop" data-snel="oppak" title="Kan meteen: wacht zo nodig even op de workflow uit AFAS">Toewijzen aan mij</button>' : ''}</div>
       <span class="mailvooraf" id="mailvooraf" hidden></span>
-      <span class="opslaanknoppen"><button type="button" class="knop vol" id="k-opslaan" title="Alles doorvoeren; de melding blijft open (Ctrl+Enter). Naar de vorige of volgende melding ga je met de pijltjes."><span class="opslaanmail" hidden>✉ </span>Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
+      <span class="opslaanknoppen"><button type="button" class="knop" id="k-afhandel" data-afhandel title="Status op Afgehandeld; je reactie (als je die schreef) gaat mee naar de melder">Afhandelen</button><button type="button" class="knop vol" id="k-opslaan" title="Alles doorvoeren; de melding blijft open (Ctrl+Enter). Naar de vorige of volgende melding ga je met de pijltjes."><span class="opslaanmail" hidden>✉ </span>Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
     <p class="fout" id="d-fout"></p>`}`;
   if(x.iu){   // in- en uitdienst: alleen wat bij dit type hoort, zoals in AFAS
     ['#d-inst', '#d-tel', '#d-loc', '#d-afd', '#d-gepland', '#d-cc', '#d-kritiek', '#d-opgelost'].forEach(sel => { const el = $(sel); const b = el && el.closest('b'); if(b){ const sp = b.previousElementSibling; if(sp && sp.tagName === 'SPAN') sp.remove(); b.remove(); } });
@@ -3065,7 +3101,7 @@ function zetKnoppen(){
   const tekst = !!($('#tekst') && $('#tekst').value.trim()), bijl = !!(huidig.klaar && (huidig.klaar.ticket.length || huidig.klaar.reactie.length));
   const k = $('#k-opslaan'); if(k && !k.classList.contains('opgeslagen')){ k.disabled = !(iets || tekst || bijl); k.title = k.disabled ? 'Er is nog niets om op te slaan' : 'Alles doorvoeren; de melding blijft open (Ctrl+Enter)'; }
   const acties = huidig.wf ? huidig.wf.acties : [];
-  document.querySelectorAll('#actiebalk [data-snel="sluit"], #actiebalk [data-actie]').forEach(b => {
+  document.querySelectorAll('#actiebalk [data-actie]').forEach(b => {
     const a = b.dataset.actie != null ? acties[+b.dataset.actie] : null; if(b.dataset.actie != null && !(a && sluitActie(a))) return;
     if(b.classList.contains('opgeslagen') || b.querySelector('.spin')) return;
     b.disabled = !tekst; b.title = tekst ? 'Melding afhandelen; je reactie gaat mee naar de melder' : 'Schrijf eerst een reactie aan de melder'; });
@@ -3141,7 +3177,7 @@ async function laadWorkflow(x){
     const bijMij = wf.bij.some(benIk);
     ($('#d-taak') || {}).textContent = wf.taak ? wf.taak + (bijMij ? ' · bij jou' : '') : 'geen open taak';
     const st = stapVan(x);
-    const hoofd = st === 0 ? wf.acties.find(isOppakActie) : wf.acties.find(sluitActie);
+    const hoofd = st === 0 ? wf.acties.find(isOppakActie) : null;   // afhandelen: vaste knop naast Opslaan
     const statusActies = viaWf ? wf.acties.filter(a => !sluitActie(a) && a !== hoofd && !isReactieActie(a) && !isNotitieActie(a) && soortActie(a) === 'status') : [];
     const rest = wf.acties.filter(a => a !== hoofd && !isReactieActie(a) && !isNotitieActie(a) && !(sluitActie(a) && st === 1) && !statusActies.includes(a));
     const ss = $('#d-status');
@@ -3741,7 +3777,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
       const e = $(leeg[0][1]); if(e){ e.focus(); e.scrollIntoView({block:'center', behavior:'smooth'}); } return; } }
   if(act && /reactie plaatsen/i.test(act.naam) && !tekst){ $('#d-fout').textContent = `Voor de status "${toonStatus(statusNa(act))}" schrijft AFAS een reactie aan de melder: vul eerst een reactie in.`; return; }
   if(act && soortActie(act) === 'plannen' && !(nieuwGepland && nieuwGepland.datum) && !x.gepland){ $('#d-fout').textContent = 'Kies eerst bij Gepland de datum van de werkzaamheden.'; return; }
-  if(sluitActie(act) && !(await vraag(`Melding ${x.nr} afhandelen?`, 'Het melding wordt afgesloten' + (tekst ? ' en je reactie gaat mee naar de melder.' : '.'), 'Afhandelen', 'Annuleren'))) return;
+  if(sluitActie(act) && !(laatsteKnop && laatsteKnop.dataset.afhandel !== undefined) && !(await vraag(`Melding ${x.nr} afhandelen?`, 'De melding wordt afgesloten' + (tekst ? ' en je reactie gaat mee naar de melder.' : '.'), 'Afhandelen', 'Annuleren'))) return;
   if(notitie && tekst){ await zoekZichtVeld(); if(!zichtVeld){ $('#d-fout').textContent = `Interne notitie kan niet worden geplaatst: de pagina weet niet hoe AFAS "intern" wil hebben (${zichtDiag}).`; return; } }
   huidig.bezig = true; document.querySelectorAll('#detail button:not(.navpijl), #detail select, #detail input').forEach(b => b.disabled = true); $('#d-fout').textContent = '';
   const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect:$('#detail').getBoundingClientRect()};
@@ -4297,6 +4333,7 @@ document.addEventListener('click', e => {
   const w = e.target.closest('[data-weergave]'); if(w){ tab = w.dataset.weergave; filt.zoek = ''; $('#f-zoek').value = ''; teken(); scrollTo(0, 0); return; }
   if(e.target.closest('[data-sluit]')){ sluitDialoog($('#detail')); return; }
   const a = e.target.closest('[data-actie]'); if(a){ laatsteKnop = a; opslaanAlles(+a.dataset.actie); return; }
+  const ah = e.target.closest('[data-afhandel]'); if(ah && huidig){ afhandelen(ah); return; }
   const sn = e.target.closest('[data-snel]'); if(sn && huidig){ laatsteKnop = sn; snelActie(sn); return; }   // bv. Afhandelen: neemt afdeling en reactie mee
   if(e.target.closest('#k-actie')){ const v = $('#actie-keuze').value; if(v !== '') voerUit(+v); return; }
   if(e.target.closest('#k-reageer')){ voerUit(null); return; }
@@ -4511,7 +4548,7 @@ setInterval(async () => { if(!$('#app').hidden && !$('#detail').open){ await laa
 /* ================= To-do en notities: rechtstreeks in Microsoft To Do (Microsoft Graph) ================= */
 // SubmIT ís je Microsoft To Do: lijsten, taken, ster (= belangrijk), deadline (= vervaldatum) en notitie zijn dezelfde als in de To Do-app,
 // Outlook en op je telefoon. Inloggen gaat met je eigen Microsoft-account (OAuth met PKCE, in de browser; geen geheim, geen server).
-const TD = {status:'laden', data:null, lijst:'alle', open:null, bewerk:false};
+const TD = {status:'laden', data:null, lijst:'taken', open:null, bewerk:false, planner:null};
 const TD_LEEG = () => ({versie:1, lijsten:[{id:'mijn', naam:'Mijn taken'}], taken:[]});
 const tdId = () => 'tmp-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const tdIso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -4553,12 +4590,18 @@ async function msGeldig(){
 }
 async function graph(pad, opties = {}){
   const at = await msGeldig();
-  const r = await fetch(pad.startsWith('https:') ? pad : 'https://graph.microsoft.com/v1.0' + pad, {...opties, headers: {'Authorization': 'Bearer ' + at, ...(opties.body ? {'Content-Type': 'application/json'} : {}), ...(opties.headers || {})}});
+  let r;
+  for(let poging = 0; ; poging++){   // Microsoft remt af bij te veel verzoeken (429): netjes wachten en opnieuw
+    r = await fetch(pad.startsWith('https:') ? pad : 'https://graph.microsoft.com/v1.0' + pad, {...opties, headers: {'Authorization': 'Bearer ' + at, ...(opties.body ? {'Content-Type': 'application/json'} : {}), ...(opties.headers || {})}});
+    if(![429, 503, 504].includes(r.status) || poging >= 4) break;
+    const wacht = (+r.headers.get('Retry-After') || 2 ** (poging + 1)) * 1000; await new Promise(z => setTimeout(z, Math.min(wacht, 30000)));
+  }
   if(r.status === 204) return null;
   const j = await r.json().catch(() => ({}));
   if(!r.ok) throw new Error((j.error && j.error.message) || 'Microsoft Graph: HTTP ' + r.status);
   return j;
 }
+async function pool(lijst, n, f){ const uit = []; let i = 0; await Promise.all(Array.from({length: Math.min(n, lijst.length)}, async () => { while(i < lijst.length){ const k = i++; uit[k] = await f(lijst[k]); } })); return uit; }
 async function graphAlles(pad){ let uit = [], url = pad; while(url){ const j = await graph(url); uit = uit.concat(j.value || []); url = j['@odata.nextLink'] || ''; } return uit; }
 /* ---- vertalen tussen To Do en SubmIT ---- */
 const LINK = 'https://rvdveen88.github.io/mijn-ict-omgeving/';
@@ -4579,15 +4622,27 @@ async function tdLees(){
     const lijsten = (await graphAlles('/me/todo/lists')).filter(l => l.wellknownListName !== 'flaggedEmails')
       .sort((a, b) => (b.wellknownListName === 'defaultList') - (a.wellknownListName === 'defaultList'));
     const sinds = new Date(Date.now() - 30 * DAG).toISOString().slice(0, 19) + 'Z';
-    const taken = (await Promise.all(lijsten.map(async l => {
+    const taken = (await pool(lijsten, 2, async l => {
       const open = await graphAlles(`/me/todo/lists/${l.id}/tasks?$expand=linkedResources&$top=100&$filter=status ne 'completed'`);
       const af = await graphAlles(`/me/todo/lists/${l.id}/tasks?$expand=linkedResources&$top=100&$filter=status eq 'completed' and lastModifiedDateTime ge ${sinds}`).catch(() => []);
-      return [...open, ...af].map(t => naarTaak(t, l.id)); }))).flat();
-    TD.data = {versie: 2, lijsten: lijsten.map(l => ({id: l.id, naam: l.displayName, vast: l.wellknownListName === 'defaultList'})), taken};
+      return [...open, ...af].map(t => naarTaak(t, l.id)); })).flat();
+    TD.data = {versie: 2, lijsten: lijsten.map(l => ({id: l.id, naam: l.displayName, vast: l.wellknownListName === 'defaultList', gedeeld: !!l.isShared})), taken};
     tdSnap = kloon(TD.data); TD.status = 'ok'; TD.gelezen = Date.now();
-    if(TD.lijst !== 'alle' && TD.lijst !== 'belangrijk' && !TD.data.lijsten.some(l => l.id === TD.lijst)) TD.lijst = 'alle';
-  }catch(e){ TD.status = e.soort || 'fout'; TD.fout = e.message; }
+    const vast = (TD.data.lijsten.find(l => l.vast) || TD.data.lijsten[0] || {}).id;
+    if(!['belangrijk', 'mij'].includes(TD.lijst) && !TD.data.lijsten.some(l => l.id === TD.lijst)) TD.lijst = vast;
+    tdPlanner();   // Toegewezen aan mij (Planner), los erachteraan
+  }catch(e){
+    if(TD.data && TD.status === 'ok'){ if(!TD.stilFout || Date.now() - TD.stilFout > 10 * 60e3){ TD.stilFout = Date.now(); toast('Microsoft To Do is even druk; SubmIT probeert het zo opnieuw. Je ziet de laatst opgehaalde stand.'); } }   // laatste stand laten staan
+    else { TD.status = e.soort || 'fout'; TD.fout = e.message; } }
   tdTeken();
+}
+async function tdPlanner(){
+  try{ const l = (await graphAlles('/me/planner/tasks')).filter(t => (t.percentComplete || 0) < 100);
+    const plannen = [...new Set(l.map(t => t.planId))], namen = {};
+    await pool(plannen, 2, async id => { try{ namen[id] = (await graph('/planner/plans/' + id)).title; }catch(e){} });
+    TD.planner = l.map(t => ({id: t.id, titel: t.title || '', plan: namen[t.planId] || '', deadline: t.dueDateTime ? tdIso(new Date(t.dueDateTime)) : '', etag: t['@odata.etag'], belangrijk: t.priority != null && t.priority <= 3}));
+  }catch(e){ TD.planner = TD.planner || []; TD.plannerFout = e.message; }
+  if(tab === 'todo') tdTeken();
 }
 async function tdStart(){
   if(DEMO){ TD.data = opslag.get('mict-demo-todo') || {...TD_LEEG(), taken:[{id:'a1', titel:'Licentie scansoftware verlengen, offerte opvragen', lijst:'mijn', belangrijk:true, klaar:false, deadline: tdIso(new Date(Date.now() + 2 * DAG)), gemaakt:new Date().toISOString()}, {id:'a2', titel:'Bellen met leverancier faxkoppeling', lijst:'mijn', klaar:false, notitie:'Contactpersoon: Peter, 06-…', gemaakt:new Date().toISOString()}]};
@@ -4636,7 +4691,7 @@ async function tdSync(){
   tdSnap = kloon(d); tdTeken();
 }
 // wijzigingen uit de To Do-app of van een andere pc oppikken: als je terugkomt in het venster en elke 2 minuten in To-do
-const tdVers = async () => { if(TD.status !== 'ok' || TD.bewerk || tdBezig || DEMO || Date.now() - (TD.gelezen || 0) < 20e3) return; const bezig = TD.open; await tdLees(); TD.open = bezig; tdTeken(); };
+const tdVers = async () => { if(TD.status !== 'ok' || TD.bewerk || tdBezig || DEMO || Date.now() - (TD.gelezen || 0) < 60e3) return; const bezig = TD.open; await tdLees(); TD.open = bezig; tdTeken(); };
 document.addEventListener('visibilitychange', () => { if(!document.hidden) tdVers(); });
 setInterval(() => { if(tab === 'todo' && !document.hidden) tdVers(); }, 120e3);
 async function tdKoppel(){
@@ -4649,7 +4704,7 @@ const TD_VINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const TD_STER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>';
 function tdRij(t){
   const vandaag = tdIso(new Date()), laat = t.deadline && !t.klaar && t.deadline < vandaag;
-  const sub = [TD.lijst === 'alle' && esc(tdLijstNaam(t.lijst)), t.deadline && `<span class="${laat ? 'laat' : ''}">${laat ? 'te laat · ' : ''}${fmtDatum(new Date(t.deadline + 'T00:00:00'))}</span>`, t.notitie && 'notitie', t.melding && `melding ${esc(t.melding)}`, t.ticket && `<a data-tdticket="${esc(t.ticket)}" title="Melding openen">melding ${esc(t.ticket)}</a>`].filter(Boolean);
+  const sub = [['alle', 'belangrijk'].includes(TD.lijst) && esc(tdLijstNaam(t.lijst)), t.deadline && `<span class="${laat ? 'laat' : ''}">${laat ? 'te laat · ' : ''}${fmtDatum(new Date(t.deadline + 'T00:00:00'))}</span>`, t.notitie && 'notitie', t.melding && `melding ${esc(t.melding)}`, t.ticket && `<a data-tdticket="${esc(t.ticket)}" title="Melding openen">melding ${esc(t.ticket)}</a>`].filter(Boolean);
   const detail = TD.open === t.id ? `<div class="taakdetail"><div class="kaart2">
       <span>Titel</span><b><input class="datumkeuze" data-veld="titel" value="${esc(t.titel)}"></b>
       <span>Deadline</span><b><input type="date" class="datumkeuze" data-veld="deadline" value="${esc(t.deadline || '')}"></b>
@@ -4664,6 +4719,8 @@ function tdRij(t){
     ${detail}</div>`;
 }
 const TD_ALLE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>';
+const TD_MIJ = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>';
+const TD_GEDEELD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/></svg>';
 const TD_LIJST = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
 // taken slepen naar een andere lijst (of naar Belangrijk) in de zijbalk
 let tdSleep = null;
@@ -4671,8 +4728,8 @@ document.addEventListener('dragstart', e => { const r = e.target.closest && e.ta
   tdSleep = r.dataset.taak; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', tdSleep); r.classList.add('sleept'); document.body.classList.add('td-sleep'); });
 document.addEventListener('dragend', () => { tdSleep = null; document.querySelectorAll('.taak.sleept').forEach(r => r.classList.remove('sleept')); document.querySelectorAll('.tdlijst.doel').forEach(b => b.classList.remove('doel')); document.body.classList.remove('td-sleep'); });
 document.addEventListener('dragover', e => { if(!tdSleep) return; const b = e.target.closest('.tdlijst[data-lijst]'); document.querySelectorAll('.tdlijst.doel').forEach(x => x !== b && x.classList.remove('doel'));
-  if(!b || b.dataset.lijst === 'alle') return; e.preventDefault(); e.dataTransfer.dropEffect = 'move'; b.classList.add('doel'); });
-document.addEventListener('drop', e => { if(!tdSleep) return; const b = e.target.closest('.tdlijst[data-lijst]'); if(!b || b.dataset.lijst === 'alle') return; e.preventDefault();
+  if(!b || ['alle', 'mij'].includes(b.dataset.lijst)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move'; b.classList.add('doel'); });
+document.addEventListener('drop', e => { if(!tdSleep) return; const b = e.target.closest('.tdlijst[data-lijst]'); if(!b || ['alle', 'mij'].includes(b.dataset.lijst)) return; e.preventDefault();
   const t = tdTaak(tdSleep); if(!t) return; const doel = b.dataset.lijst;
   if(doel === 'belangrijk'){ if(t.belangrijk) return; t.belangrijk = true; toast(`"${t.titel}" staat nu bij Belangrijk`); }
   else { if(t.lijst === doel) return; t.lijst = doel; toast(`"${t.titel}" verplaatst naar ${tdLijstNaam(doel)}`); }
@@ -4701,7 +4758,7 @@ async function tdVerwijderLijst(id){
   taken.forEach(t => t.lijst = rest[0].id); TD.data.lijsten = rest; if(TD.lijst === id) TD.lijst = 'alle';
   tdBewaar(); toast(`Lijst "${l.naam}" verwijderd`);
 }
-const tdVast = id => ['alle', 'belangrijk'].includes(id) || !!(TD.data && (TD.data.lijsten.find(l => l.id === id) || {}).vast);
+const tdVast = id => ['alle', 'belangrijk', 'mij'].includes(id) || !!(TD.data && (TD.data.lijsten.find(l => l.id === id) || {}).vast);
 document.addEventListener('contextmenu', e => { const b = e.target.closest('.tdlijst[data-lijst]'); if(!b || tdVast(b.dataset.lijst)) return; e.preventDefault(); tdLijstMenu(b, e.clientX, e.clientY); });
 document.addEventListener('dblclick', e => { const b = e.target.closest('.tdlijst[data-lijst]'); if(b && !tdVast(b.dataset.lijst)) tdHernoem(b.dataset.lijst); });
 document.addEventListener('click', e => { const m = $('#tdmenu'); if(!m || m.hidden) return; const k = e.target.closest('[data-tdm]'); m.hidden = true;
@@ -4731,13 +4788,20 @@ function tdTeken(){
   }
   v.hidden = true; paneel.hidden = false;
   bestand.innerHTML = `Microsoft To Do${DEMO ? ' (demo)' : ' · <button type="button" data-td="opnieuw" title="Nu ophalen uit Microsoft To Do">verversen</button> · <button type="button" data-td="ontkoppel" title="Koppeling met Microsoft To Do verwijderen (je taken blijven in To Do)">ontkoppelen</button>'}`;
+  if(!['belangrijk', 'mij'].includes(TD.lijst) && !TD.data.lijsten.some(l => l.id === TD.lijst)) TD.lijst = ((TD.data.lijsten.find(l => l.vast) || TD.data.lijsten[0]) || {}).id;
+  if(DEMO && TD.planner === null) TD.planner = [{id: 'p1', titel: 'Werkplekken Haarlem inventariseren', plan: 'Vernieuwde werkplekken', deadline: tdIso(new Date(Date.now() + 5 * DAG))}];
   const lnaam = TD.lijst === 'alle' ? 'Alle taken' : TD.lijst === 'belangrijk' ? 'Belangrijk' : tdLijstNaam(TD.lijst);
   const q = tab === 'todo' ? norm(filt.zoek || '') : '', past = t => !q || norm([t.titel, t.notitie, t.melding].join(' ')).includes(q);
   const d = TD.data, inLijst = t => past(t) && (TD.lijst === 'alle' || (TD.lijst === 'belangrijk' ? t.belangrijk : t.lijst === TD.lijst));
   const tel = f => d.taken.filter(t => !t.klaar && f(t)).length;
-  $('#todo-lijsten').innerHTML = [['alle', 'Alle', tel(() => true)], ['belangrijk', 'Belangrijk', tel(t => t.belangrijk)], ...d.lijsten.map(l => [l.id, l.naam, tel(t => t.lijst === l.id)])]
-    .map(([id, naam, n]) => `<button type="button" class="tdlijst" data-lijst="${esc(id)}" aria-pressed="${TD.lijst === id}"${tdVast(id) ? "" : " title=\"Rechtermuisknop: hernoemen of verwijderen. Sleep taken hierheen om ze te verplaatsen.\""}>${id === 'belangrijk' ? TD_STER : id === 'alle' ? TD_ALLE : TD_LIJST}<span>${esc(naam)}</span>${n ? `<b>${n}</b>` : ''}</button>`).join('') +
+  const vastL = d.lijsten.find(l => l.vast), knop = (id, naam, n, ico, l) => `<button type="button" class="tdlijst${id === 'mij' ? ' tdmij' : ''}" data-lijst="${esc(id)}" aria-pressed="${TD.lijst === id}"${tdVast(id) ? '' : ' title="Rechtermuisknop: hernoemen of verwijderen. Sleep taken hierheen om ze te verplaatsen."'}>${ico}<span>${esc(naam)}</span>${l && l.gedeeld ? `<i class="tdgedeeld" title="Gedeelde lijst">${TD_GEDEELD}</i>` : ''}${n ? `<b>${n}</b>` : ''}</button>`;
+  $('#todo-lijsten').innerHTML = knop('belangrijk', 'Belangrijk', tel(t => t.belangrijk), TD_STER) + knop('mij', 'Toegewezen aan mij', (TD.planner || []).length, TD_MIJ)
+    + (vastL ? knop(vastL.id, 'Taken', tel(t => t.lijst === vastL.id), TD_ALLE) : '') + '<hr class="tdscheid">'
+    + d.lijsten.filter(l => !l.vast).map(l => knop(l.id, l.naam, tel(t => t.lijst === l.id), TD_LIJST, l)).join('') +
     `<span class="lijstnieuw"><input id="todo-nieuwe-lijst" placeholder="+ Nieuwe lijst"></span>`;
+  if(TD.lijst === 'mij'){ const pl = (TD.planner || []).filter(t => !q || norm(t.titel + ' ' + t.plan).includes(q));
+    $('#todo-open').innerHTML = TD.planner === null ? '<p class="todo-leeg">Taken uit Planner ophalen…</p>' : pl.length ? pl.map(t => `<div class="taak"><button type="button" class="tdvink" data-pvink="${esc(t.id)}" aria-label="Afvinken in Planner">${TD_VINK}</button><span class="titel"><a href="https://tasks.office.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${esc(t.titel)}</a><small>${[t.plan && esc(t.plan), t.deadline && fmtDatum(new Date(t.deadline + 'T00:00:00'))].filter(Boolean).join(' · ')}</small></span><span></span><span></span></div>`).join('') : `<p class="todo-leeg">${TD.plannerFout ? 'Planner ophalen lukte niet: ' + esc(TD.plannerFout) : 'Geen taken aan jou toegewezen.'}</p>`;
+    $('#todo-klaar').hidden = true; return; }
   const open = d.taken.filter(t => !t.klaar && inLijst(t)).sort(tdSorteer), klaar = d.taken.filter(t => t.klaar && inLijst(t)).sort((a, b) => (b.klaarOp || '').localeCompare(a.klaarOp || ''));
   $('#todo-open').innerHTML = open.length ? open.map(tdRij).join('') : `<p class="todo-leeg">${q ? `Geen to-do’s gevonden voor “${esc(filt.zoek)}”.` : 'Geen open to-do’s.'}</p>`;
   $('#todo-klaar').hidden = !klaar.length; $('#todo-klaar summary b').textContent = klaar.length;
@@ -4746,6 +4810,9 @@ function tdTeken(){
 }
 const tdTaak = id => TD.data.taken.find(t => t.id === id);
 $('#v-todo').addEventListener('click', async e => {
+  const pv = e.target.closest('[data-pvink]'); if(pv){ const t = (TD.planner || []).find(x => x.id === pv.dataset.pvink); if(!t) return;
+    try{ await graph('/planner/tasks/' + t.id, {method: 'PATCH', headers: {'If-Match': t.etag}, body: JSON.stringify({percentComplete: 100})}); TD.planner = TD.planner.filter(x => x !== t); tdTeken(); toast('Afgevinkt in Planner'); }
+    catch(err){ toast('Afvinken in Planner lukte niet: ' + err.message, true); } return; }
   const k = e.target.closest('[data-td]');
   if(k){ const w = k.dataset.td;
     if(w === 'koppel') tdKoppel(); else if(w === 'opnieuw'){ TD.status = 'laden'; tdTeken(); await tdLees(); }
@@ -4773,7 +4840,7 @@ $('#v-todo').addEventListener('focusout', () => { TD.bewerk = false; });
 $('#v-todo').addEventListener('keydown', e => {
   if(e.key !== 'Enter') return;
   if(e.target.id === 'todo-invoer'){ const titel = e.target.value.trim(); if(!titel) return;
-    const lijst = ['alle', 'belangrijk'].includes(TD.lijst) ? (TD.data.lijsten[0] || {}).id : TD.lijst;
+    const lijst = ['alle', 'belangrijk', 'mij'].includes(TD.lijst) ? ((TD.data.lijsten.find(l => l.vast) || TD.data.lijsten[0]) || {}).id : TD.lijst;
     TD.data.taken.push({id: tdId(), titel, lijst, belangrijk: TD.lijst === 'belangrijk', klaar: false, gemaakt: new Date().toISOString()}); e.target.value = ''; tdBewaar(); setTimeout(() => $('#todo-invoer').focus(), 0); }
   else if(e.target.id === 'todo-nieuwe-lijst'){ const naam = e.target.value.trim(); if(!naam) return;
     const id = tdId(); TD.data.lijsten.push({id, naam}); TD.lijst = id; tdBewaar(); }
@@ -5664,6 +5731,8 @@ function demoAfas(pad, opties){
     return {rows: [
       {Instuurdatum: d(-30), Omschrijving: 'ICT In- en uitdienst', Onderwerp: 'Medewerker uit dienst', Gebruiker: 'Joyce Peeters', Verantwoordelijke: '', Nummer: 1642, Workflow_afgerond: false, Status: 'ICT', Extern_ticket: 'Yvonne Meekel - van Tilburg', Kostendrager: '572916', Dossieritem: 501642, Uitdienst_datum: d(24), Gegevensbewaring: 'Niets bewaren', Mailbox_overdragen_aan: '', Afgerond: ''},
       {Instuurdatum: d(-5), Omschrijving: 'ICT In- en uitdienst', Onderwerp: 'Medewerker in dienst', Gebruiker: 'Joyce Peeters', Verantwoordelijke: 'Glenn Brons', Nummer: 1701, Workflow_afgerond: false, Status: 'ICT', Extern_ticket: 'Sanne de Wit', Kostendrager: '573100', Dossieritem: 501701, Datum_in_dienst: d(12), Functie: 'Doktersassistent', Status_ICT_indienst: 'Foutieve verwerking', Werkgever: 'DC Klinieken', Locatie: 'Almere', Kostenplaats: 'Dermatologie', E_mail_werk: 'sdewit@dcklinieken.nl', Gebruikersnaam: 'sdewit', Wachtwoord: 'Welkom2026!', Office_licentie: 'M365 F3', 'AGB-code': '', 'BVO-gecertificeerd': false},
+      {Instuurdatum: d(-40), Omschrijving: 'ICT In- en uitdienst', Onderwerp: 'Nieuwe medewerker - Inloggegevens', Gebruiker: 'Michel de Winter', Verantwoordelijke: '', Nummer: 1600, Workflow_afgerond: false, Status: 'ICT', Extern_ticket: 'Dilara Turan', Kostendrager: '573053', Dossieritem: 501600, Datum_in_dienst: d(-10), Status_ICT_indienst: 'Afgerond'},
+      {Instuurdatum: d(-60), Omschrijving: 'ICT In- en uitdienst', Onderwerp: 'Medewerker uit dienst', Gebruiker: 'Joyce Peeters', Verantwoordelijke: '', Nummer: 1550, Workflow_afgerond: false, Status: 'Afgehandeld', Einddatum: d(-20), Extern_ticket: 'Büsra Kandemir', Kostendrager: '573034', Dossieritem: 501550, Uitdienst_datum: d(-25)},
       {Instuurdatum: d(-2), Omschrijving: 'ICT In- en uitdienst', Onderwerp: 'Medewerker uit dienst', Gebruiker: 'Joyce Peeters', Verantwoordelijke: 'Kelly Groen', Nummer: 1712, Workflow_afgerond: false, Status: 'ICT', Extern_ticket: 'Twan Suijdendorp', Kostendrager: '571200', Dossieritem: 501712, Uitdienst_datum: d(-9), Gegevensbewaring: 'Mailbox 3 maanden bewaren', Mailbox_overdragen_aan: 'Leidinggevende', Overdragen_aan_naam: 'Marleen Jonker', Afgerond: ''}]}; }
   if(pad.startsWith(`/connectors/${INST.connBerichten}`)){   // zoals de echte connector: geen dossieritem; AFAS 'verstuurt' elke gelogde mail een minuut later
     const lok = t => new Date(t - new Date(t).getTimezoneOffset() * 6e4).toISOString().slice(0, 19), log = opslag.get(MAILLOG) || {};
