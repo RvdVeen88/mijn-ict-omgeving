@@ -1225,7 +1225,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.0', VERSIE_DATUM = '06-10-2026';
+const VERSIE = 'v7.1', VERSIE_DATUM = '06-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1536,7 +1536,9 @@ function zetIU(x, r){
   x.inDienst = datum(iuV(r, 'Datum in dienst')); x.uitDienst = datum(iuV(r, 'Uitdienst datum', 'Datum uit dienst'));
   x.richting = x.uitDienst || /uit\s*dienst/i.test(x.onderwerp) ? 'uit' : 'in';
   x.iuDatum = x.richting === 'uit' ? x.uitDienst : x.inDienst;
-  if(ja(r.Workflow_afgerond)) x.afgesloten = true;
+  if(ja(r.Workflow_afgerond) || iuV(r, 'Einddatum')) x.afgesloten = true;
+  x.ictStatus = String(iuV(r, 'Status ICT indienst', 'Status ICT uitdienst', 'Status ICT') || '').trim() || 'Open';
+  x.iuFout = /fout|mislukt|error/i.test(x.ictStatus); x.iuOpen = norm(x.ictStatus) === 'open';
   x.extern = '';   // Extern_ticket bevat hier de medewerker
   if(!norm(x.zoek).includes(norm(x.medewerker))) x.zoek = norm(x.zoek + ' ' + x.medewerker + ' ' + x.medNr);
 }
@@ -1552,13 +1554,14 @@ function pasInUitToe(){
   if(nieuw.length) items = [...nieuw, ...items];
 }
 const IU_KOLOMMEN = [
-  {k:'iu-in', bw:'110px', t:'Ingestuurd', w:x => +x.aangemaakt || 0, html:x => x.aangemaakt ? fmtDatum(x.aangemaakt) : '', cls:'zacht'},
-  {k:'iu-ond', bw:'170px', t:'Onderwerp', w:x => norm(x.onderwerp), html:x => esc(x.onderwerp), cls:'ond'},
-  {k:'iu-med', t:'Medewerker', w:x => norm(x.medewerker), html:x => esc(x.medewerker || '') + (x.medNr ? ` <small class="hint">${esc(x.medNr)}</small>` : ''), cls:''},
-  {k:'iu-wie', bw:'160px', t:'Toegewezen aan', w:x => norm(x.verantw), html:x => esc(x.verantw || ''), cls:'zacht'},
-  {k:'iu-indienst', bw:'120px', t:'Datum in dienst', w:x => +x.inDienst || 0, html:x => x.inDienst ? fmtDatum(x.inDienst) : '', cls:''},
-  {k:'iu-uitdienst', bw:'120px', t:'Datum uit dienst', w:x => +x.uitDienst || 0, html:x => x.uitDienst ? fmtDatum(x.uitDienst) : '', cls:''},
-  {k:'iu-status', bw:'120px', t:'Status', w:x => norm(x.status), html:x => esc(toonStatus(x.status) || ''), cls:'zacht'}
+  {k:'iu-in', bw:'86px', t:'Ingestuurd', w:x => +x.aangemaakt || 0, html:x => x.aangemaakt ? fmtDatum(x.aangemaakt) : '', cls:'zacht'},
+  {k:'iu-ond', t:'Onderwerp', w:x => norm(x.onderwerp), html:x => esc(x.onderwerp), cls:'ond'},
+  {k:'iu-med', bw:'200px', t:'Medewerker', w:x => norm(x.medewerker), html:x => esc(x.medewerker || '') + (x.medNr ? ` <small class="hint">${esc(x.medNr)}</small>` : ''), cls:''},
+  {k:'iu-wie', bw:'140px', t:'Toegewezen aan', w:x => norm(x.verantw), html:x => esc(x.verantw || ''), cls:'zacht'},
+  {k:'iu-indienst', bw:'104px', t:'In dienst', w:x => +x.inDienst || 0, html:x => x.inDienst ? fmtDatum(x.inDienst) : '', cls:''},
+  {k:'iu-uitdienst', bw:'104px', t:'Uit dienst', w:x => +x.uitDienst || 0, html:x => x.uitDienst ? fmtDatum(x.uitDienst) : '', cls:''},
+  {k:'iu-ict', bw:'176px', t:'Status ICT', w:x => (x.iuFout ? 0 : x.iuOpen ? 1 : 2) + norm(x.ictStatus), html:x => `<span class="cn-badge ${x.iuFout ? 'rood' : x.iuOpen ? 'oranje' : /afgerond|klaar|gereed/i.test(x.ictStatus) ? 'groen' : ''}">${esc(x.iuOpen ? 'Open · op te pakken' : x.ictStatus)}</span>`, cls:''},
+  {k:'iu-status', bw:'104px', t:'Taak bij', w:x => norm(x.status), html:x => esc(toonStatus(x.status) || ''), cls:'zacht'}
 ];
 // in het venster: de velden zoals in AFAS (alleen wat gevuld is)
 function iuKaarten(x){
@@ -1566,10 +1569,10 @@ function iuKaarten(x){
   const ww = iuV(r, 'Wachtwoord');
   const med = rij('Medewerker', x.medewerker) + rij('Personeelsnummer', x.medNr || iuV(r, 'Personeelsnummer')) + rij('Functie', iuV(r, 'Functie')) + rij('Werkgever', iuV(r, 'Werkgever')) + rij('Locatie', iuV(r, 'Locatie')) + rij('Kostenplaats', iuV(r, 'Kostenplaats')) + rij('Formatieplaats', iuV(r, 'Formatieplaats')) + rij('E-mail werk', iuV(r, 'E mail werk'));
   const uit = rij('Uitdienst datum', x.uitDienst ? fmtDatum(x.uitDienst) : '') + rij('Gegevensbewaring', iuV(r, 'Gegevensbewaring')) + rij('Mailbox overdragen aan', [iuV(r, 'Mailbox overdragen aan'), iuV(r, 'Overdragen aan naam')].filter(Boolean).join(' · '));
-  const ind = rij('Datum in dienst', x.inDienst ? fmtDatum(x.inDienst) : '') + rij('Status ICT indienst', iuV(r, 'Status ICT indienst')) + rij('Gebruikersnaam', iuV(r, 'Gebruikersnaam'))
+  const ind = rij('Datum in dienst', x.inDienst ? fmtDatum(x.inDienst) : '') + rij('Gebruikersnaam', iuV(r, 'Gebruikersnaam'))
     + (ww ? `<span>Wachtwoord</span><b><span class="ww" data-ww="${esc(ww)}">••••••••</span> <button type="button" class="linkknop" data-wwtoon>tonen</button></b>` : '')
     + rij('Office-licentie', iuV(r, 'Office licentie')) + rij('Tag/pas', iuV(r, 'Tag pas')) + rij('AGB-code', iuV(r, 'AGB code')) + rij('BVO-gecertificeerd', jn(iuV(r, 'BVO gecertificeerd'))) + rij('Uzipas-nummer', iuV(r, 'Uzipas nummer'));
-  const af = rij('Afgerond', jn(iuV(r, 'Afgerond')));
+  const af = `<span>Status ICT</span><b><span class="cn-badge ${x.iuFout ? 'rood' : x.iuOpen ? 'oranje' : 'groen'}">${esc(x.iuOpen ? 'Open · op te pakken' : x.ictStatus)}</span></b>` + rij('Afgerond', jn(iuV(r, 'Afgerond')));
   const kaart = (t, h) => h ? `<div class="kaart2"><h3>${t}</h3>${h}</div>` : '';
   return `<div class="kaarten">${kaart('Medewerker', med)}${x.richting === 'uit' ? kaart('Uit dienst', uit + af) : kaart('In dienst', ind + af)}${x.richting === 'uit' && ind.replace(/<[^>]+>/g, '').trim() && iuV(r, 'Gebruikersnaam') ? kaart('Accounts', ind) : ''}</div>`;
 }
@@ -1905,7 +1908,7 @@ let filterRij = false, kfOpen = null;   // filterrij staat altijd aan (rustig to
 const kolKnop_ = (proj = false) => kolKnopAlleen(proj);
 const sortering = {};   // per tabel-id: {k, op}
 const kolFilter = {};   // per tabel-id: {kolom: zoektekst}
-const KEUZE = new Set(['iu-ond','iu-wie','iu-status','h-status','afd','melder','wie','status','type','loc','p-rol','p-leider','p-fase','p-voort','p-prio']);   // kolommen met een keuzelijst in het filterveld
+const KEUZE = new Set(['iu-ict','iu-ond','iu-wie','iu-status','h-status','afd','melder','wie','status','type','loc','p-rol','p-leider','p-fase','p-voort','p-prio']);   // kolommen met een keuzelijst in het filterveld
 const keuzeOpties = {};   // per tabel en kolom: de waarden voor de filterlijst
 const LEEG = '(Leeg)';
 const keuzeWaarde = (c, x) => { const v = kolTekst(c, x).trim(); return v && v !== '–' ? v : LEEG; };
@@ -1946,6 +1949,7 @@ const CH_ICO = '<path d="M4 7h12l-3-3M20 17H8l3 3"/>';
 const CHANGES = [{id:'ch:mijn', t:'Mijn changes', ico:CH_ICO, f:() => open().filter(isChange).filter(isMijn)}];
 const ONDER = [
   {id:'inuit', t:'In- en uitdienst', ico:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>', f:() => open().filter(x => x.inuit)},
+  {id:'inuit-fout', t:'In-/uitdienst met fout', rood:true, ico:'<path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/>', f:() => items.filter(x => x.inuit && x.iuFout && !x.afgesloten)},
 ];
 // "Emma [Changes]" hoort in het menu bij "Emma" (wisselen kan met het schuifje Meldingen / Changes)
 const navAfd = a => String(a || '').replace(/\s*\[(changes?|rfc)\]\s*$/i, '').trim();
@@ -1969,6 +1973,7 @@ function dichtVan(t){
   if(t === 'alle') return d;
   if(t === 'ch:mijn') return d.filter(x => isChange(x) && isMijn(x));
   if(t === 'inuit') return d.filter(x => x.inuit);
+  if(t === 'inuit-fout') return d.filter(x => x.inuit && x.iuFout);
   if(t.startsWith('afd:')){ const a = t.slice(4); return d.filter(x => !isChange(x) && !x.inuit && norm(navAfd(x.afdeling)) === norm(a)); }
   return null;   // geen schakelaar (Nieuwe meldingen, Aandacht, cijfers, zoeken)
 }
@@ -2116,8 +2121,8 @@ function tekenLijst(){
   if(alleenChanges()) l = l.filter(isChange);
   const lid = 'lijst:' + tab + (dicht ? ':dicht' : '');
   const isDicht = tab === 'dicht' || tab === 'dichtalle' || dicht;
-  if(tab !== 'norm' && !(lid in sortering)) sortering[lid] = isDicht ? undefined : tab === 'inuit' ? undefined : {k:'in', op:-1};
-  l = [...l].sort(tab === 'inuit' && !isDicht ? (a, b) => (+a.iuDatum || 9e15) - (+b.iuDatum || 9e15) : tab === 'norm' ? sorteer : isDicht ? (a, b) => (b.statusDatum || 0) - (a.statusDatum || 0) : (a, b) => (b.aangemaakt || 0) - (a.aangemaakt || 0));
+  if(tab !== 'norm' && !(lid in sortering)) sortering[lid] = isDicht ? undefined : tab.startsWith('inuit') ? undefined : {k:'in', op:-1};
+  l = [...l].sort(tab.startsWith('inuit') && !isDicht ? (a, b) => (b.iuFout - a.iuFout) || (b.iuOpen - a.iuOpen) || (+a.iuDatum || 9e15) - (+b.iuDatum || 9e15) : tab === 'norm' ? sorteer : isDicht ? (a, b) => (b.statusDatum || 0) - (a.statusDatum || 0) : (a, b) => (b.aangemaakt || 0) - (a.aangemaakt || 0));
   if(tabsMijn){ $('#lijst-titel').innerHTML = `<span class="lijsttabs"><button type="button" data-chtab="alle" aria-pressed="${!alleenChanges()}">Alle meldingen <i>${nAlle}</i></button><button type="button" data-chtab="changes" aria-pressed="${alleenChanges()}">Changes <i>${nCh}</i></button></span>`; $('#lijst-n').hidden = true; }
   else { $('#lijst-titel').textContent = v.titel; $('#lijst-n').hidden = false; }
   $('#lijst-n').textContent = l.length;
@@ -2126,10 +2131,10 @@ function tekenLijst(){
   if(tab === 'dicht' && !alleGeladen) $('#lijst-sub').textContent = 'Gesloten meldingen worden nog opgehaald…';
   if((dicht || tab === 'zoek') && !alleDichtGeladen) $('#lijst-sub').textContent = 'Oudere gesloten meldingen worden opgehaald…';
   const tlAan = alleenChanges() && chWeergave === 'tijdlijn' && !dicht;
-  $('#lijst-kol').innerHTML = kopKnoppen({od: kanDicht, dicht, samen: alleenChanges(), tl: alleenChanges() ? tlAan : undefined, plusCh: tab === 'toegewezen' ? MCH.aan : undefined, leeg: !l.length && !(tab === 'toegewezen' && MCH.aan), geenKol: tab === 'inuit'});
+  $('#lijst-kol').innerHTML = kopKnoppen({od: kanDicht, dicht, samen: alleenChanges(), tl: alleenChanges() ? tlAan : undefined, plusCh: tab === 'toegewezen' ? MCH.aan : undefined, leeg: !l.length && !(tab === 'toegewezen' && MCH.aan), geenKol: tab.startsWith('inuit')});
   const extra = alleenChanges() && TL.samen ? zoekProj(dicht ? PRJ.lijst.filter(p => p.afgesloten) : projOpen()) : null;
   if(tlAan){ $('#lijst-sub').textContent = ''; $('#lijst').innerHTML = samenTijdlijn(l, extra || []); $('#titel').textContent = ''; $('#subtitel').textContent = ''; return; }
-  $('#lijst').innerHTML = (l.length && tab === 'inuit' ? tabel(lid, l, {set: IU_KOLOMMEN, klik: true}) : l.length ? tabel(lid, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(isDicht ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])], changes: alleenChanges() || soortVan(tab) === 'changes'}) : `<p class="leeg">${tab === 'zoek' && !w ? 'Typ bovenin wat je zoekt.' : dicht ? 'Geen afgehandelde meldingen.' : tab === 'zoek' ? 'Geen meldingen gevonden.' : 'Geen open meldingen.'}</p>`)
+  $('#lijst').innerHTML = (l.length && tab.startsWith('inuit') ? tabel(lid, l, {set: IU_KOLOMMEN, klik: true}) : l.length ? tabel(lid, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(isDicht ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])], changes: alleenChanges() || soortVan(tab) === 'changes'}) : `<p class="leeg">${tab === 'zoek' && !w ? 'Typ bovenin wat je zoekt.' : dicht ? 'Geen afgehandelde meldingen.' : tab === 'zoek' ? 'Geen meldingen gevonden.' : 'Geen open meldingen.'}</p>`)
     + (extra ? projSectie(extra, dicht) : '') + (tab === 'toegewezen' && MCH.aan ? chSectie(dicht, w, isDicht) : '');
   $('#titel').textContent = ''; $('#subtitel').textContent = '';   // de naam staat al in het menu en boven de lijst
 }
@@ -5652,7 +5657,7 @@ function demoAfas(pad, opties){
   if(pad.startsWith(`/connectors/${INST.connInUit}`)){ const d = n => new Date(Date.now() + n * DAG - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10) + 'T00:00:00Z';
     return {rows: [
       {Instuurdatum: d(-30), Omschrijving: 'ICT In- en uitdienst', Onderwerp: 'Medewerker uit dienst', Gebruiker: 'Joyce Peeters', Verantwoordelijke: '', Nummer: 1642, Workflow_afgerond: false, Status: 'ICT', Extern_ticket: 'Yvonne Meekel - van Tilburg', Kostendrager: '572916', Dossieritem: 501642, Uitdienst_datum: d(24), Gegevensbewaring: 'Niets bewaren', Mailbox_overdragen_aan: '', Afgerond: ''},
-      {Instuurdatum: d(-5), Omschrijving: 'ICT In- en uitdienst', Onderwerp: 'Medewerker in dienst', Gebruiker: 'Joyce Peeters', Verantwoordelijke: 'Glenn Brons', Nummer: 1701, Workflow_afgerond: false, Status: 'ICT', Extern_ticket: 'Sanne de Wit', Kostendrager: '573100', Dossieritem: 501701, Datum_in_dienst: d(12), Functie: 'Doktersassistent', Werkgever: 'DC Klinieken', Locatie: 'Almere', Kostenplaats: 'Dermatologie', E_mail_werk: 'sdewit@dcklinieken.nl', Gebruikersnaam: 'sdewit', Wachtwoord: 'Welkom2026!', Office_licentie: 'M365 F3', Status_ICT_indienst: 'Account aangemaakt', 'AGB-code': '', 'BVO-gecertificeerd': false},
+      {Instuurdatum: d(-5), Omschrijving: 'ICT In- en uitdienst', Onderwerp: 'Medewerker in dienst', Gebruiker: 'Joyce Peeters', Verantwoordelijke: 'Glenn Brons', Nummer: 1701, Workflow_afgerond: false, Status: 'ICT', Extern_ticket: 'Sanne de Wit', Kostendrager: '573100', Dossieritem: 501701, Datum_in_dienst: d(12), Functie: 'Doktersassistent', Status_ICT_indienst: 'Foutieve verwerking', Werkgever: 'DC Klinieken', Locatie: 'Almere', Kostenplaats: 'Dermatologie', E_mail_werk: 'sdewit@dcklinieken.nl', Gebruikersnaam: 'sdewit', Wachtwoord: 'Welkom2026!', Office_licentie: 'M365 F3', 'AGB-code': '', 'BVO-gecertificeerd': false},
       {Instuurdatum: d(-2), Omschrijving: 'ICT In- en uitdienst', Onderwerp: 'Medewerker uit dienst', Gebruiker: 'Joyce Peeters', Verantwoordelijke: 'Kelly Groen', Nummer: 1712, Workflow_afgerond: false, Status: 'ICT', Extern_ticket: 'Twan Suijdendorp', Kostendrager: '571200', Dossieritem: 501712, Uitdienst_datum: d(-9), Gegevensbewaring: 'Mailbox 3 maanden bewaren', Mailbox_overdragen_aan: 'Leidinggevende', Overdragen_aan_naam: 'Marleen Jonker', Afgerond: ''}]}; }
   if(pad.startsWith(`/connectors/${INST.connBerichten}`)){   // zoals de echte connector: geen dossieritem; AFAS 'verstuurt' elke gelogde mail een minuut later
     const lok = t => new Date(t - new Date(t).getTimezoneOffset() * 6e4).toISOString().slice(0, 19), log = opslag.get(MAILLOG) || {};
