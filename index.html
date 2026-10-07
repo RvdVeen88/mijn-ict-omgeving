@@ -1312,7 +1312,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.14.1', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.14.2', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -4736,7 +4736,7 @@ function vraag(titel, tekst, ja = 'OK', nee = 'Annuleren', gevaar = false){
 async function naastLade(d, x, y){
   await sluitDialoog(d); if(d.open) return;
   requestAnimationFrame(() => { const el = document.elementFromPoint(x, y); if(!el || el.closest('dialog')) return;
-    const rij = el.closest('[data-nr], [data-proj]'); if(rij) document.querySelectorAll('dialog.lade').forEach(l => { l.classList.add('snel'); setTimeout(() => l.classList.remove('snel'), 600); });
+    const rij = el.closest('[data-nr], [data-proj]'); if(rij) document.querySelectorAll('dialog.lade').forEach(l => { l.classList.add('snel'); setTimeout(() => { if(l.open) l.addEventListener('close', () => l.classList.remove('snel'), {once: true}); else l.classList.remove('snel'); }, 300); });   // wisselen zonder animatie; pas na sluiten weer inschuiven (eerder: na 600 ms, dan speelde de animatie opnieuw = knipperen)
     el.click(); });
 }
 async function sluitDialoog(d){
