@@ -782,7 +782,29 @@ tr.flits td{animation:flits 2.4s ease-out}
 .ikmenu .nietstoren{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:14px}
 .ikmenu .nietstoren > span:first-child{display:flex;flex-direction:column;gap:1px}
 .ikmenu small{display:block}
-.ikmenu{min-width:250px}
+.ikmenu{min-width:280px}
+.ikkop{display:flex;align-items:center;gap:12px;padding:8px 8px 10px 8px}
+.ikmenu .ikav{position:relative;padding:0;border-radius:50%;flex:none;display:block}
+.ikmenu .ikav:hover{background:transparent}
+.ikav > i{width:48px;height:48px;border-radius:50%;background:var(--blauw);color:var(--opaccent);display:grid;place-items:center;font-style:normal;font-size:17px;font-weight:700;box-shadow:0 0 0 2px var(--vlak),0 0 0 4px var(--blauw-2)}
+.ikpen{position:absolute;right:-3px;bottom:-3px;width:22px;height:22px;border-radius:50%;background:var(--blauw-2);color:#fff;display:grid;place-items:center;box-shadow:0 0 0 2px var(--vlak);transition:transform .15s}
+.ikpen svg{width:12px;height:12px}.ikav:hover .ikpen{transform:scale(1.12)}
+.iknaam{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}.iknaam b{font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.iknaam small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ikmenu .ikthema{flex:none;width:34px;height:34px;padding:0;border-radius:50%;display:grid;place-items:center;color:var(--grijs);background:var(--achtergrond)}
+.ikmenu .ikthema svg{width:17px;height:17px}.ikmenu .ikthema:hover{color:var(--blauw)}
+.ikmenu .nietstoren{padding:7px 12px}
+.ikmenu .ikrij{flex-direction:row;align-items:center;gap:11px;padding:8px 12px}.ikmenu .ikrij svg{width:17px;height:17px;color:var(--grijs);flex:none}
+.ikvoet{display:flex;align-items:center}.ikvoet .ikrij{flex:1}.ikvoet .ikversie{margin:0 12px 0 0!important}
+.fotodlg{border:0;border-radius:20px;padding:0;background:var(--vlak);color:var(--inkt);box-shadow:var(--schaduw);width:min(360px,calc(100vw - 32px))}
+.fotodlg::backdrop{background:rgba(5,15,40,.45)}
+.fotodlg .dlg-in{padding:18px 20px;display:flex;flex-direction:column;gap:12px;align-items:stretch}.fotodlg h2{margin:0;font-size:17px;color:var(--blauw)}
+.fkader{position:relative;width:240px;height:240px;margin:4px auto 0;border-radius:50%;overflow:hidden;background:var(--achtergrond);cursor:grab;touch-action:none;box-shadow:0 0 0 3px var(--lichtblauw-2)}
+.fkader.sleept{cursor:grabbing}
+.fkader img{position:absolute;left:50%;top:50%;max-width:none;user-select:none;pointer-events:none}
+.fleeg{position:absolute;inset:0;display:grid;place-items:center;color:var(--grijs);font-size:13px;cursor:default}
+.fzoom{display:flex;align-items:center;gap:8px;color:var(--grijs)}.fzoom svg{width:16px;height:16px;flex:none}.fzoom input{flex:1;accent-color:var(--blauw-2)}
+.fotodlg .hint{margin:0;text-align:center;font-size:12px}
+.fklinks{display:flex;justify-content:center;gap:18px}.fklinks [hidden]{display:none}.fotodlg .fkknoppen{display:flex;justify-content:flex-end;gap:8px}.linkknop.gevaar{color:var(--rood)}
 .aanwezig{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--blauw);background:var(--lichtblauw-2);border-radius:999px;padding:4px 12px 4px 9px;white-space:nowrap}
 .aanwezig[hidden]{display:none}
 .aanwezig svg{width:16px;height:16px}
@@ -1289,7 +1311,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.13.1', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.14', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2594,16 +2616,41 @@ function avVersies(l){ if(!Array.isArray(l)) return; const bekend = new Set(l.ma
   AV.ophalen = l.some(a => AV.cache['t:' + norm(a.code)] !== a.t); }
 function zetIkAvatar(){ const i = $('#ik i'); if(!i || !profiel) return; const s = avBron(profiel.naam, AANW.ik); i.classList.toggle('foto', !!s); i.style.backgroundImage = s ? `url('${s}')` : '';
   i.textContent = s ? '' : profiel.naam.split(' ').map(w => w[0]).filter(c => c && c === c.toUpperCase()).slice(0, 2).join(''); }
-// foto kiezen: vierkant uitsnijden (midden) en verkleinen naar 160×160 JPEG (± 10 kB)
-async function kiesAvatar(f){
-  if(!f || !/^image\//.test(f.type)){ toast('Kies een afbeelding (jpg, png of webp).', true); return; }
-  const img = await createImageBitmap(f).catch(() => null); if(!img){ toast('Deze afbeelding kan niet worden gelezen.', true); return; }
-  const z = Math.min(img.width, img.height), c = document.createElement('canvas'); c.width = c.height = 160;
-  c.getContext('2d').drawImage(img, (img.width - z) / 2, (img.height - z) / 2, z, z, 0, 0, 160, 160);
-  let d = c.toDataURL('image/jpeg', .85); if(d.length > 38000) d = c.toDataURL('image/jpeg', .6);
-  AV.sturen = d; avBewaar([{code: AANW.ik || 'ik', naam: profiel.naam, d, t: Date.now()}]); toast('Profielfoto ingesteld: je collega’s zien hem bij het volgende seintje');
-  tekenTeam(); tekenOnline(); seinAanwezig(); }
-function wisAvatar(){ AV.sturen = ''; avBewaar([{code: AANW.ik || 'ik', naam: profiel.naam, d: ''}]); toast('Profielfoto verwijderd'); tekenTeam(); tekenOnline(); seinAanwezig(); }
+// profielfoto: kiezen, inzoomen en verschuiven binnen het rondje; opgeslagen als 160×160 JPEG (± 10 kB)
+function bewaarAvatar(d){ AV.sturen = d; avBewaar([{code: AANW.ik || 'ik', naam: profiel.naam, d, t: Date.now()}]); tekenTeam(); tekenOnline(); seinAanwezig(); }
+function fotoBewerken(){
+  let d = $('#fotodlg');
+  if(!d){ document.body.insertAdjacentHTML('beforeend', `<dialog id="fotodlg" class="fotodlg" aria-label="Profielfoto"><div class="dlg-in"><h2>Profielfoto</h2>
+    <div class="fkader" id="fk"><img id="fk-img" alt="" draggable="false"><div class="fleeg" id="fk-leeg">Kies een foto</div></div>
+    <label class="fzoom" title="In- en uitzoomen (of scrollen op de foto)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4M8.5 11h5"/></svg><input type="range" id="fk-zoom" min="1" max="4" step="0.01" value="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4M8.5 11h5M11 8.5v5"/></svg></label>
+    <p class="hint" id="fk-tip">Sleep de foto om te kiezen wat er in het rondje komt.</p>
+    <div class="fklinks"><button type="button" class="linkknop" data-fk="kies">Andere foto kiezen</button><button type="button" class="linkknop gevaar" data-fk="weg">Verwijderen</button></div><div class="vraag-knoppen fkknoppen"><button type="button" class="knop" data-fk="annuleer">Annuleren</button><button type="button" class="knop vol" data-fk="ok">Opslaan</button></div>
+    <input type="file" id="fk-bestand" accept="image/*" hidden></div></dialog>`); d = $('#fotodlg');
+    const F = d._f = {img: null, w: 0, h: 0, z: 1, x: 0, y: 0, V: 240}, im = $('#fk-img'), k = $('#fk'), zoom = $('#fk-zoom');
+    const basis = () => F.V / Math.min(F.w, F.h), klem = () => { const s = basis() * F.z, mx = Math.max(0, (F.w * s - F.V) / 2), my = Math.max(0, (F.h * s - F.V) / 2); F.x = Math.max(-mx, Math.min(mx, F.x)); F.y = Math.max(-my, Math.min(my, F.y)); };
+    F.teken = () => { const heeft = !!F.img; im.hidden = !heeft; $('#fk-leeg').hidden = heeft; d.querySelector('[data-fk="ok"]').disabled = !heeft; zoom.disabled = !heeft; if(!heeft) return;
+      klem(); const s = basis() * F.z; im.style.width = F.w * s + 'px'; im.style.height = F.h * s + 'px'; im.style.transform = `translate(${F.x - F.w * s / 2}px, ${F.y - F.h * s / 2}px)`; zoom.value = F.z; };
+    F.laad = src => new Promise(ok => { const i = new Image(); i.onload = () => { F.img = i; F.w = i.naturalWidth; F.h = i.naturalHeight; F.z = 1; F.x = F.y = 0; im.src = src; F.teken(); ok(); }; i.onerror = () => { toast('Deze afbeelding kan niet worden gelezen.', true); ok(); }; i.src = src; });
+    zoom.oninput = () => { F.z = +zoom.value; F.teken(); };
+    k.addEventListener('wheel', e => { if(!F.img) return; e.preventDefault(); F.z = Math.max(1, Math.min(4, F.z * (e.deltaY < 0 ? 1.08 : 1 / 1.08))); F.teken(); }, {passive: false});
+    k.addEventListener('pointerdown', e => { if(!F.img){ $('#fk-bestand').click(); return; } k.setPointerCapture(e.pointerId); const sx = e.clientX - F.x, sy = e.clientY - F.y; k.classList.add('sleept');
+      const mv = ev => { F.x = ev.clientX - sx; F.y = ev.clientY - sy; F.teken(); }, op = () => { k.classList.remove('sleept'); k.removeEventListener('pointermove', mv); k.removeEventListener('pointerup', op); k.removeEventListener('pointercancel', op); };
+      k.addEventListener('pointermove', mv); k.addEventListener('pointerup', op); k.addEventListener('pointercancel', op); });
+    $('#fk-bestand').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if(!f) return; if(!/^image\//.test(f.type)){ toast('Kies een afbeelding (jpg, png of webp).', true); return; } const r = new FileReader(); r.onload = () => F.laad(r.result); r.readAsDataURL(f); };
+    d.addEventListener('click', e => { const b = e.target.closest('[data-fk]'); if(!b){ if(e.target === d) d.close(); return; } const w = b.dataset.fk;
+      if(w === 'kies'){ $('#fk-bestand').click(); return; }
+      if(w === 'annuleer'){ d.close(); return; }
+      if(w === 'weg'){ d.close(); wisAvatar(); return; }
+      if(w === 'ok' && F.img){ const c = document.createElement('canvas'); c.width = c.height = 160; const g = c.getContext('2d'), s = basis() * F.z * 160 / F.V;
+        g.fillStyle = '#fff'; g.fillRect(0, 0, 160, 160); g.drawImage(F.img, 80 + (F.x * 160 / F.V) - F.w * s / 2, 80 + (F.y * 160 / F.V) - F.h * s / 2, F.w * s, F.h * s);
+        let u = c.toDataURL('image/jpeg', .85); if(u.length > 38000) u = c.toDataURL('image/jpeg', .6);
+        d.close(); bewaarAvatar(u); toast('Profielfoto opgeslagen'); } }); }
+  const F = d._f, huidigeFoto = avBron(profiel.naam, AANW.ik);
+  d.querySelector('[data-fk="weg"]').hidden = !huidigeFoto; F.img = null; F.teken();
+  d.showModal();
+  if(huidigeFoto) F.laad(huidigeFoto); else $('#fk-bestand').click();
+}
+function wisAvatar(){ bewaarAvatar(''); toast('Profielfoto verwijderd'); }
 const initialen = n => String(n || '?').split(/\s+/).filter(w => w && w[0] === w[0].toUpperCase()).map(w => w[0]).slice(0, 2).join('') || '?';
 /* mailcontrole: welke mails heeft AFAS echt verstuurd? (GetConnector op de gegevensverzameling Berichten) */
 const berichtCache = new Map(); let berichtKol = null, berichtUit = false, berichtDiag = '';
@@ -4496,14 +4543,18 @@ function plaatsTour(){
 function ikMenu(){
   let m = $('#ikmenu');
   if(!m){ $('#ik').insertAdjacentHTML('afterend', '<div class="ikmenu" id="ikmenu" hidden role="menu"></div>'); m = $('#ikmenu'); }
-  if(m.hidden) m.innerHTML = `<button type="button" role="menuitem" class="nietstoren" data-ikm="stil"><span>Niet storen<small>alleen kritiek</small></span><span class="schuif"><input type="checkbox" tabindex="-1" ${nietStoren ? 'checked' : ''}><i></i></span></button>
-    <button type="button" role="menuitem" class="nietstoren" data-ikm="win"><span>${/Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Pushmelding' : 'Windows-melding'}<small>bij kritieke storing</small></span><span class="schuif"><input type="checkbox" tabindex="-1" ${windowsAan() ? 'checked' : ''}><i></i></span></button><hr>
-    <button type="button" role="menuitem" data-ikm="foto">Profielfoto ${avBron(profiel.naam, AANW.ik) ? 'wijzigen' : 'kiezen'}<small>zien je collega’s overal in SubmIT</small></button>${avBron(profiel.naam, AANW.ik) ? '<button type="button" role="menuitem" data-ikm="fotoweg">Profielfoto verwijderen</button>' : ''}
-    <button type="button" role="menuitem" data-ikm="thema">${isDonker() ? 'Lichte weergave' : 'Donkere weergave'}</button>
-    <button type="button" role="menuitem" data-ikm="feedback">Feedback of fout melden<small>met schermafdruk</small></button>
-    <button type="button" role="menuitem" data-ikm="tour">Rondleiding</button>
-    <button type="button" role="menuitem" data-ikm="conn">Connectoren &amp; velden<small>beheer</small></button><hr>
-    <button type="button" role="menuitem" data-ikm="uit">Uitloggen</button><p class="ikversie">Versie ${VERSIE.slice(1)} · ${VERSIE_DATUM}</p>`;
+  const SV = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+  const schuif = (k, t, uit, aan) => `<button type="button" role="menuitemcheckbox" aria-checked="${aan}" class="nietstoren" data-ikm="${k}" title="${esc(uit)}"><span>${t}</span><span class="schuif"><input type="checkbox" tabindex="-1" ${aan ? 'checked' : ''}><i></i></span></button>`;
+  const rij = (k, ico, t) => `<button type="button" role="menuitem" class="ikrij" data-ikm="${k}">${SV(ico)}<span>${t}</span></button>`;
+  if(m.hidden) m.innerHTML = `<div class="ikkop"><button type="button" class="ikav" data-ikm="foto" title="Profielfoto aanpassen" aria-label="Profielfoto aanpassen">${avatar(profiel.naam, '', AANW.ik)}<span class="ikpen">${SV('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>')}</span></button>
+      <div class="iknaam"><b>${esc(profiel.naam)}</b><small>${esc(profiel.functie || (profiel.rol === 'servicedesk' ? 'Servicedesk' : 'ICT'))}</small></div>
+      <button type="button" class="ikthema" data-ikm="thema" title="${isDonker() ? 'Lichte weergave' : 'Donkere weergave'}" aria-label="${isDonker() ? 'Lichte weergave' : 'Donkere weergave'}">${isDonker() ? SV('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>') : SV('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>')}</button></div>
+    ${schuif('stil', 'Niet storen', 'Alleen kritieke storingen melden; de rest zie je in Team', nietStoren)}
+    ${schuif('win', /Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Pushmelding bij kritiek' : 'Windows-melding bij kritiek', 'Ook een melding als SubmIT op de achtergrond staat', windowsAan())}<hr>
+    ${rij('feedback', '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v4M12 14h.01"/>', 'Feedback of fout melden')}
+    ${rij('tour', '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>', 'Rondleiding')}
+    ${rij('conn', '<path d="M8 3v4M16 3v4M6 7h12v4a6 6 0 0 1-12 0zM12 17v4"/>', 'Connectoren &amp; velden')}<hr>
+    <div class="ikvoet">${rij('uit', '<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11"/>', 'Uitloggen')}<span class="ikversie">v${VERSIE.slice(1)}</span></div>`;
   m.hidden = !m.hidden;
 }
 document.addEventListener('click', e => {
@@ -4512,8 +4563,7 @@ document.addEventListener('click', e => {
     if(k === 'win'){ wisselWindows(); return; }
     if(k === 'stil'){ nietStoren = !nietStoren; opslag.set('mict-nietstoren', nietStoren); toast(nietStoren ? 'Niet storen staat aan: wat er gebeurt zie je in Team' : 'Niet storen staat uit'); return; }
     if(k === 'feedback'){ feedback(); return; }
-    if(k === 'foto'){ let f = $('#f-avatar'); if(!f){ document.body.insertAdjacentHTML('beforeend', '<input type="file" id="f-avatar" accept="image/*" hidden>'); f = $('#f-avatar'); f.onchange = () => { kiesAvatar(f.files[0]); f.value = ''; }; } f.click(); return; }
-    if(k === 'fotoweg'){ wisAvatar(); return; }
+    if(k === 'foto'){ fotoBewerken(); return; }
     if(k === 'tour') startTour(); else if(k === 'thema') wisselThema(); else if(k === 'uit') uitloggen();
     else if(k === 'import'){ if(tab !== 'todo'){ tab = 'todo'; teken(); } if(TD.status === 'ok'){ $('#td-import-bestand').value = ''; $('#td-import-bestand').click(); } else toast('Kies eerst je to-do-bestand; daarna kun je importeren'); }
     else { tab = 'connectoren'; teken(); } return; }
