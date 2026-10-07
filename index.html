@@ -63,6 +63,13 @@ button{cursor:default}
 .logo rect{fill:var(--rail-act)}.logo g{fill:var(--rail-act-ink)}
 .rail .r{width:44px;height:44px;border-radius:12px;border:0;background:transparent;display:grid;place-items:center;color:var(--rail-ico);position:relative}
 .rail .r svg{width:21px;height:21px}
+/* railiconen: neutraal lijnwerk met één detail in de eigen kleur (To-Do blijft zijn eigen logo) */
+#meld-knop{--acc:#2F6FEB}#kb-knop{--acc:#F59E0B}
+.rail #kb-knop .acc{stroke-width:2}#team-knop{--acc:#14B87A}#nieuw-knop{--acc:#053787}
+.rail .r .acc{stroke:var(--acc);stroke-width:2.6}
+.rail .r[aria-pressed="true"] .acc{stroke:currentColor}
+:root[data-thema="donker"] #nieuw-knop{--acc:#7FA6FF}:root[data-thema="donker"] #meld-knop{--acc:#6E9BFF}
+@media (prefers-color-scheme: dark){:root:not([data-thema="licht"]) #nieuw-knop{--acc:#7FA6FF}:root:not([data-thema="licht"]) #meld-knop{--acc:#6E9BFF}}
 .rail .r .todo-logo{width:22px;height:22px;object-fit:contain}
 .rail .r:hover{background:var(--rail-hover);color:var(--rail-act)}
 .rail .r.plus{margin-top:6px}
@@ -104,6 +111,7 @@ button{cursor:default}
 .ik > span,.ik > svg{display:none}.ik i{width:30px!important;height:30px!important}
 .ik:hover{border-color:var(--lichtblauw);box-shadow:var(--schaduw)}
 .ik.nieuw::after{content:'';position:absolute;top:-1px;right:-1px;width:9px;height:9px;border-radius:50%;background:var(--rood);box-shadow:0 0 0 2px var(--achtergrond)}
+.ik i.foto,i.foto{background-size:cover!important;background-position:center!important;color:transparent!important}
 .ik i{width:26px;height:26px;border-radius:50%;background:var(--blauw);color:var(--opaccent);display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700}
 .nieuwknop{display:inline-flex;align-items:center;gap:6px;padding:6px 16px 6px 12px}
 .nieuwknop svg{width:15px;height:15px}
@@ -1153,11 +1161,11 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
 <div class="app" id="app" hidden>
   <nav class="rail" aria-label="Onderdelen">
     <svg class="logo" viewBox="0 0 64 64" role="button" tabindex="0" data-weergave="mij" aria-label="Overzicht"><title>SubmIT · overzicht</title><rect width="64" height="64" rx="16"/><svg x="9" y="10" width="46" height="44" viewBox="105 110 505 435"><g><path d="M518 257L517 258L512 259L509 261L507 261L506 262L489 267L486 269L472 273L469 275L446 282L443 284L441 284L440 285L438 285L437 286L402 297L432 312L437 316L414 341L414 342L403 353L403 354L376 384L342 345L342 344L331 332L331 331L325 325L320 318L313 311L295 331L295 332L278 350L278 351L271 358L271 359L261 369L261 370L221 414L221 415L212 424L212 425L205 432L205 433L181 459L181 460L166 476L166 477L118 531L164 496L168 494L184 482L188 478L204 466L208 464L235 443L243 438L255 428L259 426L260 427L258 431L256 433L247 451L245 453L242 460L240 462L227 488L318 396L319 396L326 403L326 404L372 454L469 347L471 348L471 349L475 353L475 354L479 358L479 359L483 363L495 379L496 379L496 375L497 374L497 370L498 369L498 364L499 363L499 359L500 358L500 353L501 352L501 347L502 346L502 342L503 341L503 337L504 336L504 332L505 331L506 320L507 319L507 315L508 314L508 309L509 308L509 304L510 303L510 298L511 297L511 293L512 292L512 287L513 286L514 276L515 275L515 270L516 269L516 264L517 263L517 259Z"/><path d="M505 121L505 124L504 125L502 136L500 140L500 143L498 147L498 150L497 151L495 161L484 165L481 165L480 166L465 169L461 171L454 172L456 172L460 174L463 174L464 175L467 175L468 176L471 176L472 177L475 177L479 179L486 180L490 182L493 182L496 186L496 189L498 193L500 204L502 208L505 223L506 218L508 214L508 211L510 207L510 204L511 203L513 192L515 188L515 185L517 182L520 182L521 181L524 181L525 180L528 180L536 177L539 177L547 174L557 172L554 172L553 171L546 170L542 168L535 167L531 165L524 164L520 162L517 162L515 160L513 149L511 145L511 142L510 141L510 138L509 137L509 134L508 133L508 130L507 129L506 122Z"/><path d="M452 195L446 217L444 219L442 219L441 220L438 220L434 222L423 224L427 226L430 226L431 227L434 227L435 228L438 228L439 229L444 230L446 232L447 237L448 238L448 241L449 242L449 245L450 246L450 249L451 250L451 253L452 254L452 251L455 243L457 232L459 230L461 230L462 229L465 229L473 226L480 225L480 224L477 224L476 223L473 223L472 222L469 222L465 220L459 219L457 217L457 214L454 206Z"/><path d="M567 228L565 233L564 240L562 244L562 247L559 250L539 255L549 257L550 258L553 258L557 260L560 260L563 266L563 269L564 270L564 273L565 274L565 277L566 278L567 283L567 280L569 276L569 273L572 265L572 262L574 260L577 260L581 258L584 258L585 257L588 257L589 256L594 255L573 249L569 238Z"/><path d="M576 177L572 191L569 193L566 193L565 194L557 196L560 196L561 197L571 199L573 202L574 209L576 213L577 207L580 199L594 196L589 194L582 193L579 191L579 188L577 184Z"/></g></svg></svg>
-    <button type="button" class="r" id="meld-knop" title="Meldingen (terug naar waar je was)" aria-label="Meldingen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></button>
+    <button type="button" class="r" id="meld-knop" title="Meldingen (terug naar waar je was)" aria-label="Meldingen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16"/><path class="acc" d="M4 18h10"/></svg></button>
     <button type="button" class="r" id="todo-knop" data-weergave="todo" title="To-do en notities" aria-label="To-do en notities"><img class="todo-logo" src="todo.png" alt="" hidden onload="this.hidden=false;this.nextElementSibling.style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span class="tel" id="todo-aantal"></span></button>
-    <button type="button" class="r" id="kb-knop" title="Kennisbank: instructies zoeken, openen en meesturen" aria-label="Kennisbank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H19M9 7h6M9 11h4"/></svg></button>
-    <button type="button" class="r" id="team-knop" title="Team: wie is er online en wat gebeurt er" aria-label="Team" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 20a6.5 6.5 0 0 0-2.6-5.2"/></svg><span class="tel online" id="team-aantal"></span><span class="stip" id="team-stip" hidden></span></button>
-    <button type="button" class="r plus" id="nieuw-knop" title="Nieuwe melding" aria-label="Nieuwe melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button type="button" class="r" id="kb-knop" title="Kennisbank: instructies zoeken, openen en meesturen" aria-label="Kennisbank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 4.9 6.6 4.4 3 5v13c3.6-.6 7 0 9 1.6"/><path d="M12 6.5c2-1.6 5.4-2.1 9-1.5v13c-3.6-.6-7 0-9 1.6z"/><path d="M12 6.5v13.1"/><path class="acc" d="M5.8 9c1.6-.2 3 .1 4 .6M5.8 12.2c1.6-.2 3 .1 4 .6M14.2 9.6c1-.5 2.4-.8 4-.6M14.2 12.8c1-.5 2.4-.8 4-.6"/></svg></button>
+    <button type="button" class="r" id="team-knop" title="Team: wie is er online en wat gebeurt er" aria-label="Team" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path class="acc" d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 20a6.5 6.5 0 0 0-2.6-5.2"/></svg><span class="tel online" id="team-aantal"></span><span class="stip" id="team-stip" hidden></span></button>
+    <button type="button" class="r plus" id="nieuw-knop" title="Nieuwe melding" aria-label="Nieuwe melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/><path class="acc" d="M12 5v14"/></svg></button>
   </nav>
   <aside class="nav" id="nav"></aside><aside class="nav tdnav" id="tdnav" aria-label="To-do-lijsten" hidden></aside><div class="navscherm" id="navscherm"></div>
   <div class="werk">
@@ -1281,7 +1289,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.12', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.13', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2412,7 +2420,7 @@ function teken(){
   $('#mijalles-top').hidden = true;   // vervangen door de schakelbare koppen in het menu
   if(takenKlaar && items.length && !opslag.get(bekendSleutel())) opslag.set(bekendSleutel(), items.filter(isMijn).map(x => String(x.nr)));   // eerste keer (na het laden van je taken): wat er nu staat is al bekend
   zoekStoringen(); items.forEach(x => x._sg = signalen(x));
-  $('#ik span').textContent = profiel.naam; $('#ik').title = profiel.naam + ' · menu'; $('#ik i').textContent = profiel.naam.split(' ').map(w => w[0]).filter(c => c && c === c.toUpperCase()).slice(0, 2).join('');
+  $('#ik span').textContent = profiel.naam; $('#ik').title = profiel.naam + ' · menu'; zetIkAvatar();
   tekenNav();
   if(tab === 'trajecten' || tab === 'ch:alle') tab = 'ch:mijn';
   if(tab === 'dichtalle') tab = 'mij';   // gesloten meldingen vind je via zoeken   // Alle changes vervallen: die staan al per afdeling
@@ -2572,6 +2580,30 @@ async function controleerIctReacties(){
   }catch(e){ console.warn('ICT-reacties nagaan mislukt', e); }
   finally{ ictBezig = false; }
 }
+/* avatars: eigen foto per gebruiker (ict-aanwezig bewaart ze voor het hele team), anders initialen */
+const AV = {cache: opslag.get('mict-avatars') || {}, ophalen: false, sturen: undefined};
+const avSleutel = n => norm(String(n || '').trim());
+const avBron = (naam, code) => { const c = AV.cache; return (code && c['c:' + norm(code)]) || c['n:' + avSleutel(naam)] || ''; };
+const avatar = (naam, cls = '', code = '') => { const s = avBron(naam, code); return `<i class="${cls}${s ? ' foto' : ''}"${s ? ` style="background-image:url('${s}')"` : ''}>${s ? '' : esc(initialen(naam))}</i>`; };
+function avBewaar(l){ l.forEach(a => { if(!a.d){ delete AV.cache['c:' + norm(a.code)]; delete AV.cache['n:' + avSleutel(a.naam)]; return; } AV.cache['c:' + norm(a.code)] = a.d; AV.cache['n:' + avSleutel(a.naam)] = a.d; AV.cache['t:' + norm(a.code)] = a.t; });
+  opslag.set('mict-avatars', AV.cache); zetIkAvatar(); }
+// van de server: alleen versies; wijkt er iets af, dan bij het volgende seintje de foto's zelf ophalen
+function avVersies(l){ if(!Array.isArray(l)) return; const bekend = new Set(l.map(a => norm(a.code)));
+  const weg = Object.keys(AV.cache).filter(k => k.startsWith('t:') && !bekend.has(k.slice(2)));
+  if(weg.length){ weg.forEach(k => { const c = k.slice(2); delete AV.cache[k]; delete AV.cache['c:' + c]; }); opslag.set('mict-avatars', AV.cache); }
+  AV.ophalen = l.some(a => AV.cache['t:' + norm(a.code)] !== a.t); }
+function zetIkAvatar(){ const i = $('#ik i'); if(!i || !profiel) return; const s = avBron(profiel.naam, AANW.ik); i.classList.toggle('foto', !!s); i.style.backgroundImage = s ? `url('${s}')` : '';
+  i.textContent = s ? '' : profiel.naam.split(' ').map(w => w[0]).filter(c => c && c === c.toUpperCase()).slice(0, 2).join(''); }
+// foto kiezen: vierkant uitsnijden (midden) en verkleinen naar 160×160 JPEG (± 10 kB)
+async function kiesAvatar(f){
+  if(!f || !/^image\//.test(f.type)){ toast('Kies een afbeelding (jpg, png of webp).', true); return; }
+  const img = await createImageBitmap(f).catch(() => null); if(!img){ toast('Deze afbeelding kan niet worden gelezen.', true); return; }
+  const z = Math.min(img.width, img.height), c = document.createElement('canvas'); c.width = c.height = 160;
+  c.getContext('2d').drawImage(img, (img.width - z) / 2, (img.height - z) / 2, z, z, 0, 0, 160, 160);
+  let d = c.toDataURL('image/jpeg', .85); if(d.length > 38000) d = c.toDataURL('image/jpeg', .6);
+  AV.sturen = d; avBewaar([{code: AANW.ik || 'ik', naam: profiel.naam, d, t: Date.now()}]); toast('Profielfoto ingesteld: je collega’s zien hem bij het volgende seintje');
+  tekenTeam(); tekenOnline(); seinAanwezig(); }
+function wisAvatar(){ AV.sturen = ''; avBewaar([{code: AANW.ik || 'ik', naam: profiel.naam, d: ''}]); toast('Profielfoto verwijderd'); tekenTeam(); tekenOnline(); seinAanwezig(); }
 const initialen = n => String(n || '?').split(/\s+/).filter(w => w && w[0] === w[0].toUpperCase()).map(w => w[0]).slice(0, 2).join('') || '?';
 /* mailcontrole: welke mails heeft AFAS echt verstuurd? (GetConnector op de gegevensverzameling Berichten) */
 const berichtCache = new Map(); let berichtKol = null, berichtUit = false, berichtDiag = '';
@@ -2670,7 +2702,7 @@ async function toonReacties(x){
     wachtReactie.set(nr, wacht);
     const mails = mailsVoor(x);
     const alles = [...l, ...wacht, ...mails].sort((a, b) => (a.t || 0) - (b.t || 0));
-    el.innerHTML = `<h3>Reacties (${l.length + wacht.length})${mails.length ? ` · ✉ ${mails.length} mail${mails.length === 1 ? '' : 's'}` : ''} <small class="hint">nieuwste bovenaan</small></h3>` + (alles.length ? bundelMails([...alles].reverse()).map(r => r.groep ? mailGroep(r.groep) : r.mail ? mailRegel(r) : `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''} ${r.intern ? 'intern' : ''} ${r.wacht ? 'wacht' : ''}"${r.rid ? ` data-rid="${esc(r.rid)}"` : ''}><i>${esc(initialen(r.wie))}</i>
+    el.innerHTML = `<h3>Reacties (${l.length + wacht.length})${mails.length ? ` · ✉ ${mails.length} mail${mails.length === 1 ? '' : 's'}` : ''} <small class="hint">nieuwste bovenaan</small></h3>` + (alles.length ? bundelMails([...alles].reverse()).map(r => r.groep ? mailGroep(r.groep) : r.mail ? mailRegel(r) : `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''} ${r.intern ? 'intern' : ''} ${r.wacht ? 'wacht' : ''}"${r.rid ? ` data-rid="${esc(r.rid)}"` : ''}>${avatar(r.wie)}
       <div class="wolk"><div class="kopje"><b>${esc(r.wie || 'Onbekend')}</b><span>${r.t ? fmtDatum(r.t) + ' ' + fmtTijd(r.t) : ''}</span>${r.wacht ? '<span class="hint">wordt verwerkt…</span>' : ''}${r.intern ? '<span class="internlabel">Intern</span>' : ''}</div><div class="tekst">${metLinks(r.tekst)}</div></div></div>`).join('') : `<p class="hint">Nog geen reacties.</p>${DEMO ? '' : `<p class="hint" style="font-size:11.5px;opacity:.7">${esc(reactieDiag)}</p>`}`);
     if(!DEMO && reactieKol && !reactieKol.zicht) el.insertAdjacentHTML('beforeend', `<p class="hint" style="font-size:11.5px">Of een reactie intern is, staat niet in ${esc(INST.connReacties)}; alleen jouw eigen interne notities zijn herkend. Laat het veld "Reactie zichtbaar" aan die GetConnector toevoegen.</p>`);
     el.scrollTop = 0;   // nieuwste reactie bovenaan, ouder = naar beneden scrollen
@@ -2944,7 +2976,7 @@ function openDetail(nr){
     <div class="composer">
       <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
       <div class="klaarzet" id="klaar-reactie"></div>
-      <div class="onder"><button type="button" class="linkknop paperclip" id="k-clip" title="Bestand meesturen met deze reactie. Je kunt ook een bestand op het reactievak slepen of een schermafbeelding plakken met Ctrl+V.">${CLIP}Bijlage</button><input type="file" id="f-reactie" multiple hidden><button type="button" class="linkknop paperclip" id="k-kb" title="Instructie uit de kennisbank meesturen: als link in je reactie of als bijlage. Je kunt een instructie ook op het reactievak slepen."><svg class="kbico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H19M9 7h6M9 11h4"/></svg>Kennisbank</button><label class="vink notitie" data-uitleg="Alleen zichtbaar voor de afdeling ICT. De melder ziet deze notitie niet en krijgt geen mail."><input type="checkbox" id="notitie"> Interne notitie</label>
+      <div class="onder"><button type="button" class="linkknop paperclip" id="k-clip" title="Bestand meesturen met deze reactie. Je kunt ook een bestand op het reactievak slepen of een schermafbeelding plakken met Ctrl+V.">${CLIP}Bijlage</button><input type="file" id="f-reactie" multiple hidden><button type="button" class="linkknop paperclip" id="k-kb" title="Instructie uit de kennisbank meesturen: als link in je reactie of als bijlage. Je kunt een instructie ook op het reactievak slepen."><svg class="kbico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 4.9 6.6 4.4 3 5v13c3.6-.6 7 0 9 1.6"/><path d="M12 6.5c2-1.6 5.4-2.1 9-1.5v13c-3.6-.6-7 0-9 1.6z"/><path d="M12 6.5v13.1"/><path d="M5.8 9c1.6-.2 3 .1 4 .6M5.8 12.2c1.6-.2 3 .1 4 .6M14.2 9.6c1-.5 2.4-.8 4-.6M14.2 12.8c1-.5 2.4-.8 4-.6"/></svg>Kennisbank</button><label class="vink notitie" data-uitleg="Alleen zichtbaar voor de afdeling ICT. De melder ziet deze notitie niet en krijgt geen mail."><input type="checkbox" id="notitie"> Interne notitie</label>
         <select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select>
         <span class="hint" id="notitie-uitleg"></span></div>
     </div>
@@ -4466,6 +4498,7 @@ function ikMenu(){
   if(!m){ $('#ik').insertAdjacentHTML('afterend', '<div class="ikmenu" id="ikmenu" hidden role="menu"></div>'); m = $('#ikmenu'); }
   if(m.hidden) m.innerHTML = `<button type="button" role="menuitem" class="nietstoren" data-ikm="stil"><span>Niet storen<small>alleen kritiek</small></span><span class="schuif"><input type="checkbox" tabindex="-1" ${nietStoren ? 'checked' : ''}><i></i></span></button>
     <button type="button" role="menuitem" class="nietstoren" data-ikm="win"><span>${/Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Pushmelding' : 'Windows-melding'}<small>bij kritieke storing</small></span><span class="schuif"><input type="checkbox" tabindex="-1" ${windowsAan() ? 'checked' : ''}><i></i></span></button><hr>
+    <button type="button" role="menuitem" data-ikm="foto">Profielfoto ${avBron(profiel.naam, AANW.ik) ? 'wijzigen' : 'kiezen'}<small>zien je collega’s overal in SubmIT</small></button>${avBron(profiel.naam, AANW.ik) ? '<button type="button" role="menuitem" data-ikm="fotoweg">Profielfoto verwijderen</button>' : ''}
     <button type="button" role="menuitem" data-ikm="thema">${isDonker() ? 'Lichte weergave' : 'Donkere weergave'}</button>
     <button type="button" role="menuitem" data-ikm="feedback">Feedback of fout melden<small>met schermafdruk</small></button>
     <button type="button" role="menuitem" data-ikm="tour">Rondleiding</button>
@@ -4479,6 +4512,8 @@ document.addEventListener('click', e => {
     if(k === 'win'){ wisselWindows(); return; }
     if(k === 'stil'){ nietStoren = !nietStoren; opslag.set('mict-nietstoren', nietStoren); toast(nietStoren ? 'Niet storen staat aan: wat er gebeurt zie je in Team' : 'Niet storen staat uit'); return; }
     if(k === 'feedback'){ feedback(); return; }
+    if(k === 'foto'){ let f = $('#f-avatar'); if(!f){ document.body.insertAdjacentHTML('beforeend', '<input type="file" id="f-avatar" accept="image/*" hidden>'); f = $('#f-avatar'); f.onchange = () => { kiesAvatar(f.files[0]); f.value = ''; }; } f.click(); return; }
+    if(k === 'fotoweg'){ wisAvatar(); return; }
     if(k === 'tour') startTour(); else if(k === 'thema') wisselThema(); else if(k === 'uit') uitloggen();
     else if(k === 'import'){ if(tab !== 'todo'){ tab = 'todo'; teken(); } if(TD.status === 'ok'){ $('#td-import-bestand').value = ''; $('#td-import-bestand').click(); } else toast('Kies eerst je to-do-bestand; daarna kun je importeren'); }
     else { tab = 'connectoren'; teken(); } return; }
@@ -5406,7 +5441,7 @@ async function toonProjUpdates(p){
   const el = $('#p-tijdlijn'); if(!el) return;
   try{
     const l = await haalProjUpdates(p); if(!$('#projdlg').open || el !== $('#p-tijdlijn')) return;
-    el.innerHTML = `<h3>Reacties (${l.length}) <small class="hint">nieuwste bovenaan</small></h3>` + (l.length ? [...l].reverse().map(r => `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''}"><i>${esc(initialen(r.wie))}</i>
+    el.innerHTML = `<h3>Reacties (${l.length}) <small class="hint">nieuwste bovenaan</small></h3>` + (l.length ? [...l].reverse().map(r => `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''}">${avatar(r.wie)}
       <div class="wolk"><div class="kopje"><b>${esc(r.wie || 'Onbekend')}</b><span>${r.t ? fmtDatum(r.t) + ' ' + fmtTijd(r.t) : ''}</span></div><div class="tekst">${metLinks(r.tekst)}</div></div></div>`).join('') : '<p class="hint">Nog geen reacties.</p>');
   }catch(e){ el.innerHTML = `<h3>Reacties</h3>${p.laatste ? `<div class="bericht"><i>?</i><div class="wolk"><div class="kopje"><b>Laatste update</b><span>${p.laatsteOp ? fmtDatum(p.laatsteOp) : ''}</span></div><div class="tekst">${esc(p.laatste)}</div></div></div>` : ''}<p class="hint" style="font-size:11.5px">Eerdere updates ophalen lukte niet: ${esc(e.message)} Laat GetConnector ${esc(INST.connProjUpdates)} maken en aan de app connector koppelen (zie Connectoren &amp; velden).</p>`; }
 }
@@ -5575,9 +5610,10 @@ async function seinAanwezig(){
     if(DEMO){ AANW.ik = 'ik'; AANW.lijst = [{nr:'12601', code:'kg', naam:'Kelly Groen', bezig:false, zicht:true}, {nr:'12604', code:'gb', naam:'Glenn Brons', bezig:true, typt:true, zicht:true}, {nr:'', code:'mc', naam:'Mehmet Ceylan', zicht:true}, {nr:'', code:'el', naam:'Eleandro', zicht:false}];
       if(!AANW.geb){ const m = n => Date.now() - n * 60e3; AANW.geb = [{id:'d1', soort:'opgepakt', nr:'12606', onderwerp:'Emma loopt vast bij opslaan decursus', door:'Glenn Brons', code:'gb', t:m(95)}, {id:'d2', soort:'gesloten', nr:'12598', onderwerp:'Wachtwoord resetten', door:'Kelly Groen', code:'kg', t:m(52)},
         {id:'d3', soort:'doorgezet', nr:'12603', onderwerp:'Nieuwe laptop voor locatiemanager', naar:'Robert van der Veen', door:'Mehmet Ceylan', code:'mc', t:m(18)}, {id:'d4', soort:'reactie', nr:'12610', onderwerp:'Storing faxkoppeling huisartsen', door:'Eleandro', code:'el', t:m(6)}]; } }
-    else { const r = await fetch(aanwezigUrl(), {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + await geldigToken()}, body: JSON.stringify({nr, naam: profiel.naam, bezig, typt, zicht: !document.hidden})});
+    else { const r = await fetch(aanwezigUrl(), {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + await geldigToken()}, body: JSON.stringify({nr, naam: profiel.naam, bezig, typt, zicht: !document.hidden, ...(AV.sturen !== undefined ? {avatar: AV.sturen} : {}), ...(AV.ophalen ? {avatars: true} : {})})});
       if(!r.ok) throw new Error('HTTP ' + r.status);
-      const j = await r.json(); AANW.ik = j.ik || ''; AANW.lijst = j.lijst || []; AANW.geb = j.gebeurtenissen || []; AANW.fouten = 0; AANW.status = 'ok'; }
+      const j = await r.json(); AANW.ik = j.ik || ''; AANW.lijst = j.lijst || []; AANW.geb = j.gebeurtenissen || []; AANW.fouten = 0; AANW.status = 'ok';
+      if(j.avatarOk) AV.sturen = undefined; if(Array.isArray(j.avatars)){ avBewaar(j.avatars); AV.ophalen = false; tekenTeam(); } else avVersies(j.av); }
   }catch(e){ AANW.status = e.message; if(++AANW.fouten >= 3){ AANW.uit = true; console.info('Aanwezigheid (oogje) staat uit: ' + e.message); } }
   finally{ AANW.bezig = false; }
   meldInUit(); checkKritiek(); toonActiviteit();
@@ -5618,7 +5654,7 @@ function tekenAanwezig(){
     let o = td.querySelector('.live');
     if(!a.length){ if(o) o.remove(); return; }
     if(!o){ o = document.createElement('span'); o.className = 'live'; td.prepend(o); }
-    o.innerHTML = a.slice(0, 2).map(x => `<i>${esc(initialen(x.naam))}</i>`).join('') + (a.some(x => x.typt) ? '<span class="typt"><b></b><b></b><b></b></span>' : '');
+    o.innerHTML = a.slice(0, 2).map(x => `${avatar(x.naam, '', x.code)}`).join('') + (a.some(x => x.typt) ? '<span class="typt"><b></b><b></b><b></b></span>' : '');
     o.classList.toggle('bezig', a.some(x => x.bezig || x.typt)); o.dataset.uitleg = a.map(x => `${x.naam} ${x.typt ? 'typt een reactie op deze melding' : x.bezig ? 'is deze melding aan het bewerken' : 'heeft deze melding open'}`).join('\n'); });
   // in het open ticket: wie kijkt er mee
   const el = $('#d-aanwezig'); if(!el || !huidig) return;
@@ -5640,7 +5676,7 @@ function tekenOnline(){
   if(AANW.uit && !DEMO){ el.innerHTML = '<p class="onl-leeg">Wie er online is, is nu niet op te halen.</p>'; return; }
   const ander = AANW.lijst.filter(a => a.code !== AANW.ik && !benIk(a.naam)).sort((a, b) => (b.zicht !== false) - (a.zicht !== false) || String(a.naam).localeCompare(b.naam, 'nl'));
   const wat = a => a.nr ? `${a.bezig ? 'bewerkt' : 'bekijkt'} melding ${esc(a.nr)}` : a.zicht === false ? 'op een ander tabblad' : 'in SubmIT';
-  el.innerHTML = `<h5>Nu online <b>${ander.length + 1}</b></h5>` + (ander.length ? ander.map(a => `<button type="button" role="menuitem" class="onl${a.zicht === false ? ' weg' : ''}" ${a.nr ? `data-onlnr="${esc(a.nr)}" title="Melding ${esc(a.nr)} openen"` : 'tabindex="-1"'}><i>${esc(initialen(a.naam))}</i><span>${esc(a.naam)}<small>${wat(a)}</small></span></button>`).join('') : '<p class="onl-leeg">Alleen jij bent nu online.</p>');
+  el.innerHTML = `<h5>Nu online <b>${ander.length + 1}</b></h5>` + (ander.length ? ander.map(a => `<button type="button" role="menuitem" class="onl${a.zicht === false ? ' weg' : ''}" ${a.nr ? `data-onlnr="${esc(a.nr)}" title="Melding ${esc(a.nr)} openen"` : 'tabindex="-1"'}>${avatar(a.naam, '', a.code)}<span>${esc(a.naam)}<small>${wat(a)}</small></span></button>`).join('') : '<p class="onl-leeg">Alleen jij bent nu online.</p>');
 }
 
 /* ================= samen slimmer: context, storing herkennen ================= */
@@ -5767,7 +5803,7 @@ function vermeldKeuze(t){
   if(!namen.length){ if(lijst) lijst.remove(); return; }
   let el = lijst; if(!el){ document.body.insertAdjacentHTML('beforeend', '<div class="vermeldlijst" id="vermeldlijst" role="listbox"></div>'); el = $('#vermeldlijst'); }
   vmSel = Math.min(vmSel, namen.length - 1);
-  el.innerHTML = namen.map((n, i) => `<button type="button" role="option" data-vmnaam="${esc(n)}" aria-selected="${i === vmSel}"><i>${esc(initialen(n))}</i>${esc(n)}</button>`).join('');
+  el.innerHTML = namen.map((n, i) => `<button type="button" role="option" data-vmnaam="${esc(n)}" aria-selected="${i === vmSel}">${avatar(n)}${esc(n)}</button>`).join('');
   el._van = t.selectionStart - m[2].length - 1; el._tot = t.selectionStart;
   const r = t.getBoundingClientRect(); el.style.left = (r.left + 12) + 'px'; el.style.top = Math.min(innerHeight - el.offsetHeight - 10, r.top + 38) + 'px';
   if($('#detail').open && el.parentNode !== $('#detail')) $('#detail').appendChild(el);
@@ -5822,7 +5858,7 @@ function tekenTeam(){
   if($('#team-stip')) $('#team-stip').hidden = !ongezien;
   const p = $('#teampaneel'); if(!p || p.hidden) return;
   const alle = [...STROOM.values()].sort((a, b) => b.t - a.t), lijst = p._alles ? alle : alle.slice(0, 10), meer = alle.length - lijst.length;
-  p.innerHTML = `<div id="ik-online"></div><hr><h5>Vandaag in het team</h5>` + (lijst.length ? lijst.map(e => `<button type="button" class="act${!doorMij(e) && e.t > (p._gezien || 0) ? ' nieuw' : ''}" ${e.nr ? `data-onlnr="${esc(e.nr)}" title="Melding ${esc(e.nr)} openen"` : 'tabindex="-1"'}><i class="${e.soort === 'kritiek' ? 'k' : e.soort === 'gesloten' ? 'g' : ''}">${esc(initialen(e.door))}</i><span><span><b>${esc(doorMij(e) ? 'Jij' : String(e.door || '').split(' ')[0])}</b> ${STROOM_ZIN[e.soort] ? STROOM_ZIN[e.soort](e) : esc(e.soort)}</span><small>${geleden(e.t)}${e.onderwerp ? ' · ' + esc(e.onderwerp) : ''}</small></span></button>`).join('') : '<p class="onl-leeg">Nog niets gebeurd vandaag.</p>') + (meer > 0 ? `<button type="button" class="linkknop teammeer" data-teammeer>Alle activiteiten (${alle.length})</button>` : '');
+  p.innerHTML = `<div id="ik-online"></div><hr><h5>Vandaag in het team</h5>` + (lijst.length ? lijst.map(e => `<button type="button" class="act${!doorMij(e) && e.t > (p._gezien || 0) ? ' nieuw' : ''}" ${e.nr ? `data-onlnr="${esc(e.nr)}" title="Melding ${esc(e.nr)} openen"` : 'tabindex="-1"'}>${avatar(e.door, e.soort === 'kritiek' ? 'k' : e.soort === 'gesloten' ? 'g' : '', e.code)}<span><span><b>${esc(doorMij(e) ? 'Jij' : String(e.door || '').split(' ')[0])}</b> ${STROOM_ZIN[e.soort] ? STROOM_ZIN[e.soort](e) : esc(e.soort)}</span><small>${geleden(e.t)}${e.onderwerp ? ' · ' + esc(e.onderwerp) : ''}</small></span></button>`).join('') : '<p class="onl-leeg">Nog niets gebeurd vandaag.</p>') + (meer > 0 ? `<button type="button" class="linkknop teammeer" data-teammeer>Alle activiteiten (${alle.length})</button>` : '');
   tekenOnline();
 }
 function wisselTeam(){
