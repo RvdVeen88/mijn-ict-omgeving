@@ -1230,7 +1230,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.5', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.5.1', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1489,6 +1489,7 @@ function extraVelden(r){ const k = Object.keys(r), pak = re => { const c = k.fin
   const o = {}; const tel = pak(/^(bereikbaarheid|telefoon(nr|nummer)?|telefoonnr)/i); if(tel !== undefined) o.tel = String(tel ?? '').trim();
   const cc = pak(/^cc(_?naam)?$/i); if(cc !== undefined) o.cc = String(cc ?? '').trim();
   const dl = pak(/^datalek$/i); if(dl !== undefined) o.datalek = ja(dl);
+  const op = pak(/^storing.?opgelost/i); if(op !== undefined) o.opgelost = datum(op);   // staat in Helpdesk_PowerBI, niet in de lijst-connector
   return Object.keys(o).length ? o : null; }
 const sollCache = new Map();
 // naam van de sollicitant: Sollicitant_3 (naam); andere Sollicitant-velden kunnen ja/nee of een nummer zijn
@@ -1511,7 +1512,10 @@ async function sbIdsVoor(veld, waarden){
         const gk = Object.keys(r).find(k => /^gebruiker$/i.test(k)); if(gk) instCache.set(String(r.Nummer), String(r[gk] ?? '').trim());
         const sn = sollNaam(r); if(sn !== null) sollCache.set(String(r.Nummer), sn);
         const pd = projDatums(r); if(pd) projCache.set(String(r.Nummer), pd);
-        const ev = extraVelden(r); if(ev) extraCache.set(String(r.Nummer), ev); }); }catch(e){}
+        const ev = extraVelden(r); if(ev){ extraCache.set(String(r.Nummer), ev);
+          const it = items.find(y => String(y.nr) === String(r.Nummer)); if(it && ev.opgelost !== undefined && !(lokaalNieuw.get(String(it.nr)) || {velden: {}}).velden.opgelost) it.opgelost = ev.opgelost;
+          const inp = huidig && String(huidig.x.nr) === String(r.Nummer) && $('#d-opgelost');   // venster al open: alsnog vullen
+          if(inp && !inp.value && inp.value === inp.dataset.oud && ev.opgelost){ const v = isoDT(ev.opgelost); inp.value = v; inp.dataset.oud = v; inp.setAttribute('value', v); document.querySelectorAll('#detail .oprij').forEach(el => el.hidden = false); } } }); }catch(e){}
   }
   return uit;
 }
@@ -1629,7 +1633,7 @@ async function verrijkMelders(){
     let veranderd = false;
     items.forEach(x => { const s = sollCache.get(String(x.nr)); if(!x.sbid && sbCache.has(String(x.nr))) x.sbid = sbCache.get(String(x.nr));
       const pd = projCache.get(String(x.nr)); if(pd && (+pd.start !== +x.projStart || +pd.eind !== +x.projEind)){ x.projStart = pd.start; x.projEind = pd.eind; veranderd = true; }
-      const ev = extraCache.get(String(x.nr)); if(ev && (ev.datalek !== x.datalek || ev.tel !== x.tel || ev.cc !== x.cc)){ Object.assign(x, ev); veranderd = true; }
+      const ev = extraCache.get(String(x.nr)); if(ev && (ev.datalek !== x.datalek || ev.tel !== x.tel || ev.cc !== x.cc || +ev.opgelost !== +x.opgelost)){ Object.assign(x, ev); veranderd = true; }
       if(s && norm(s) !== norm(x.melder)){ x.melder = s; x.zoek = norm([x.nr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.module, x.emma, ...(x.taakBij || [])].join(' ')); veranderd = true; } });
     if(veranderd && !$('#detail').open) teken();
   }catch(e){ console.warn('Melders ophalen mislukt', e); }
@@ -3827,7 +3831,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
         w[veldCode(m.cc)] = code; lok.cc = ccNaam(nieuwCc); gedaan.push(nieuwCc ? 'CC: ' + ccNaam(nieuwCc) : 'CC gewist'); }
       if(nieuwOpgelost !== null){ w[veldCode(m.opgelost)] = nieuwOpgelost ? nieuwOpgelost + ':00' : null; lok.opgelost = nieuwOpgelost ? new Date(nieuwOpgelost) : null; gedaan.push(nieuwOpgelost ? 'storing opgelost op ' + fmtDatum(lok.opgelost) + ' ' + fmtTijd(lok.opgelost) : 'tijdstip opgelost gewist'); }
       if(nieuwTel !== null){ w[veldCode(m.tel)] = nieuwTel || null; lok.tel = nieuwTel; gedaan.push(nieuwTel ? 'bereikbaar op ' + nieuwTel : 'bereikbaarheid gewist'); }
-      await zetVelden(x, w); const ev = extraCache.get(String(x.nr)) || {}; ['datalek', 'cc', 'tel'].forEach(k => { if(k in lok) ev[k] = lok[k]; }); extraCache.set(String(x.nr), ev); }
+      await zetVelden(x, w); const ev = extraCache.get(String(x.nr)) || {}; ['datalek', 'cc', 'tel', 'opgelost'].forEach(k => { if(k in lok) ev[k] = lok[k]; }); extraCache.set(String(x.nr), ev); }
     // 4a. change: startdatum project en deadline (velden)
     if(nieuwProj){ stap = 'startdatum/deadline'; const m = await laadSubjMeta();
       if((nieuwProj.startGew && !m.projStart) || (nieuwProj.eindGew && !m.projEind)) throw new Error('Het veld ' + (nieuwProj.startGew && !m.projStart ? 'Begindatum project' : 'Einddatum project') + ' is niet gevonden in AFAS.');
