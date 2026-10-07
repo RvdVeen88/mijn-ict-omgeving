@@ -168,6 +168,10 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .tdlijst span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tdlijst svg{width:17px;height:17px;flex:none;color:var(--grijs)}
 .tdlijst[data-lijst="belangrijk"] svg{color:#F5B400}
+.it.potstoring svg{color:var(--oranje)}.it.kritstoring svg{color:var(--rood);animation:knipper 1.4s ease-in-out infinite}.it.kritstoring span{color:var(--rood);font-weight:600}
+.it.kritstoring[aria-pressed="true"] span{color:inherit}.it.kritstoring[aria-pressed="true"] svg{color:#FFB4AB}.it.potstoring[aria-pressed="true"] svg{color:#FFD08A}
+.ondinvoer{width:100%;font:inherit;color:inherit;background:transparent;border:0;border-bottom:1.5px dashed transparent;padding:0;outline:0}
+.ondinvoer:hover{border-bottom-color:var(--lichtblauw)}.ondinvoer:focus{border-bottom:1.5px solid var(--blauw-2)}.ondinvoer.gewijzigd{color:var(--grijs)}
 .tdscheid{border:0;border-top:1px solid var(--lijn);margin:6px 12px}
 .tdlijst .tdgedeeld{display:inline-flex;color:var(--grijs)}.tdlijst .tdgedeeld svg{width:14px;height:14px}
 .tdlijst[data-lijst="mij"] svg{color:#2E8B57}
@@ -1230,7 +1234,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.5.1', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.6.1', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2038,7 +2042,7 @@ let overigeOpen = !!opslag.get('mict-overige-open');   // per gebruiker onthoude
 function tekenNav(){
   const mini = id => `<span class="minischak" role="group" aria-label="Mij of alles">${['mij','alles'].map(v => `<span role="button" tabindex="0" data-mijalles="${id}" data-v="${v}" aria-pressed="${(v === 'mij') === schuifAan(id)}" title="${v === 'mij' ? 'Alleen mijn meldingen en wat bij niemand ligt' : 'Alle meldingen'}">${v === 'mij' ? 'Mij' : 'Alle'}</span>`).join('')}</span>`;
   const it = (id, t, n, o = {}) => { const ong = o.ongelezen ? open().filter(x => (x._sg || []).some(s => s.code === 'ongelezen')).length : 0;
-    return `<button type="button" class="it${o.rood && n ? ' rinkel' : ''}${(o.stuiter && n && profiel && profiel.rol === 'servicedesk') || ong ? ' stuiter' : ''}" data-weergave="${esc(id)}" aria-pressed="${tab === id}" ${ong ? `title="${ong} melding${ong === 1 ? '' : 's'} met iets nieuws voor jou"` : ''}>${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${o.mini || ''}${n == null ? (ong ? '<b class="stip leeg"></b>' : '') : `<b class="${o.rood && n ? 'rood' : ''}${ong ? ' stip' : ''}">${n}</b>`}</button>`; };
+    return `<button type="button" class="it${o.cls ? ' ' + o.cls : ''}${o.rood && n ? ' rinkel' : ''}${(o.stuiter && n && profiel && profiel.rol === 'servicedesk') || ong ? ' stuiter' : ''}" data-weergave="${esc(id)}" aria-pressed="${tab === id}" ${o.titel ? `title="${esc(o.titel)}" ` : ''}${ong ? `title="${ong} melding${ong === 1 ? '' : 's'} met iets nieuws voor jou"` : ''}>${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${o.mini || ''}${n == null ? (ong ? '<b class="stip leeg"></b>' : '') : `<b class="${o.rood && n ? 'rood' : ''}${ong ? ' stip' : ''}">${n}</b>`}</button>`; };
   const fav = favorieten(), isFav = a => fav.some(x => norm(x) === norm(a));
   const afd = afdelingen();
   const rijA = ([a, n]) => `<div class="afdrij"><button type="button" class="favknop ${isFav(a) ? 'aan' : ''}" data-fav="${esc(a)}" title="${isFav(a) ? 'Uit favorieten halen' : 'Als favoriet bovenaan zetten'}">★</button>${it('afd:' + a, a, zichtbaar('afd:' + a, weergave('afd:' + a).lijst).length)}</div>`;
@@ -2052,7 +2056,10 @@ function tekenNav(){
   const keuze = (attr, nu, a, b, ta, tb) => `<span class="minischak" role="group">${[[a.toLowerCase(), a, ta], [b.toLowerCase(), b, tb]].map(([v, t, tt]) => `<span role="button" tabindex="0" ${attr}="${v}" aria-pressed="${nu === v}" title="${tt}">${t}</span>`).join('')}</span>`;
   const aandacht = VAST.find(v => v.id === 'norm'), nieuwM = VAST.find(v => v.id === 'nieuw'), hist = VAST.find(v => v.id === 'historie');
   const TR_ICO = '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7 14h6M7 17h9"/>';
-  $('#nav').innerHTML = `${it(vast[0].id, vast[0].t, null, vast[0])}
+  const kr = kritiekOpen().length, pot = STORINGEN.length;
+  const ovz = kr ? {...vast[0], cls: 'kritstoring', ico: '<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>', titel: `${kr} kritieke storing${kr === 1 ? '' : 'en'}: bekijk het overzicht`}
+    : pot ? {...vast[0], cls: 'potstoring', ico: '<path d="M3 12h4l3-8 4 16 3-8h4"/>', titel: `Mogelijke storing: ${STORINGEN.map(g => g.nrs.length + '× ' + g.woord).join(', ')}`} : vast[0];
+  $('#nav').innerHTML = `${it(vast[0].id, vast[0].t, null, ovz)}
     <h4>Meldingen</h4>
     ${it(mijnM.id, mijnM.t, zichtbaar(mijnM.id, mijnM.f()).length, mijnM)}
     ${it(nieuwM.id, nieuwM.t, zichtbaar(nieuwM.id, nieuwM.f()).length, nieuwM)}
@@ -2767,7 +2774,7 @@ function openDetail(nr){
   const r = (t, w, o = {}) => w || o.altijd ? `<span>${t}</span><b>${o.html ? w : esc(w || '')}</b>` : '';
   const link = INST.ticketUrl && x.sbid ? INST.ticketUrl.replace('{sbid}', encodeURIComponent(x.sbid)).replace('{nr}', encodeURIComponent(x.nr)) : '';
   $('#detail-in').innerHTML = `
-    <div class="dlg-kop"><div><small>Melding ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.afdeling ? ' · ' + esc(x.afdeling) : ''}</small><h2>${esc(x.onderwerp)}</h2></div><span class="aanwezig" id="d-aanwezig" hidden></span><button type="button" class="afasknop" id="d-afas" title="Melding openen in AFAS InSite (nieuw tabblad)" aria-label="Melding openen in AFAS">${ICO_AFAS}</button><button type="button" class="todoknop" data-todovan="${esc(x.nr)}" title="To-do maken bij deze melding" aria-label="To-do maken bij deze melding">${TD_VINK_PLUS}</button><button type="button" class="grootknop" data-groot aria-label="Venster groter of kleiner" title="${$('#detail').classList.contains('groot') ? 'Kleiner venster' : 'Venster vergroten'}">${$('#detail').classList.contains('groot') ? ICO_KLEIN : ICO_GROOT}</button>${fbKnop()}<button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
+    <div class="dlg-kop"><div><small>Melding ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.afdeling ? ' · ' + esc(x.afdeling) : ''}</small><h2><input id="d-ond" class="ondinvoer" value="${esc(x.onderwerp)}" data-oud="${esc(x.onderwerp)}" maxlength="80" spellcheck="true" aria-label="Onderwerp" title="Klik om het onderwerp aan te passen"></h2></div><span class="aanwezig" id="d-aanwezig" hidden></span><button type="button" class="afasknop" id="d-afas" title="Melding openen in AFAS InSite (nieuw tabblad)" aria-label="Melding openen in AFAS">${ICO_AFAS}</button><button type="button" class="todoknop" data-todovan="${esc(x.nr)}" title="To-do maken bij deze melding" aria-label="To-do maken bij deze melding">${TD_VINK_PLUS}</button><button type="button" class="grootknop" data-groot aria-label="Venster groter of kleiner" title="${$('#detail').classList.contains('groot') ? 'Kleiner venster' : 'Venster vergroten'}">${$('#detail').classList.contains('groot') ? ICO_KLEIN : ICO_GROOT}</button>${fbKnop()}<button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
     ${(() => { const sg = x._sg.filter(s => s.code !== 'onvolledig'); return sg.length ? `<div class="stappen"><span class="chips">${sg.map(c => SJABLOON_SIG[c.code] && !x.afgesloten ? `<button type="button" class="chipknop" data-sjabloon="sig:${c.code}" title="Klik voor een voorsteltekst aan de melder">${chip(c)}</button>` : chip(c)).join('')}</span></div>` : ''; })()}
     ${!x.afgesloten && isNieuw(x) ? `<div class="checklist" id="d-check">${checklist(x)}</div>` : ''}
     <div class="kaarten">
@@ -2777,7 +2784,7 @@ function openDetail(nr){
           <span>Markeren</span><b class="vinkjes"><label class="vink"><input type="checkbox" id="d-kritiek" ${x.kritiek ? 'checked' : ''} data-oud="${x.kritiek ? 1 : 0}"> Kritieke storing</label><label class="vink"><input type="checkbox" id="d-datalek" ${x.datalek ? 'checked' : ''} data-oud="${x.datalek ? 1 : 0}"> Datalek</label></b>${opgelostRij(x)}`}</div>
     </div>
     ${x.iu ? iuKaarten(x) : ''}
-    <div class="toelblok"><h3>Toelichting</h3>${x.afgesloten ? `<div class="lang" id="d-toel">${x.toelichting ? esc(x.toelichting) : '<span class="hint">Toelichting ophalen…</span>'}</div>` : `<textarea class="lang toelinvoer" id="d-toel" rows="2" spellcheck="true" placeholder="${x.toelichting != null ? 'Geen toelichting ingevuld' : 'Toelichting ophalen…'}" ${x.toelichting != null ? `data-oud="${esc(String(x.toelichting).trim())}"` : 'disabled'}>${esc(String(x.toelichting || '').trim())}</textarea>`}</div>
+    <div class="toelblok"><h3>Toelichting</h3>${`<textarea class="lang toelinvoer" id="d-toel" rows="2" spellcheck="true" placeholder="${x.toelichting != null ? '' : 'Toelichting ophalen…'}" ${x.toelichting != null ? `data-oud="${esc(String(x.toelichting).trim())}"` : 'disabled'}>${esc(String(x.toelichting || '').trim())}</textarea>`}</div>
     <div class="contextblok${opslag.get('mict-context-open') ? ' open' : ''}" id="d-context"></div>
     <div class="bijlbalk" id="d-bijl"${x.afgesloten ? '' : ' title="Sleep bestanden op de melding om ze als bijlage toe te voegen, of plak een schermafbeelding met Ctrl+V"'}><span class="bijltitel">${CLIP}<b id="bijl-titel">Bijlagen</b></span>
       <span id="bijl-lijst" class="bijlrij"><span class="hint">ophalen…</span></span><span class="klaarzet" id="klaar-ticket"></span>
@@ -2868,7 +2875,7 @@ async function toonToelichting(x){
       x.toelichting = rows[0] ? kaal(rows[0][b.veld]) : ''; }
     if(!$('#d-toel') || !huidig || huidig.x !== x) return;
     const t = $('#d-toel');
-    if(t.tagName === 'TEXTAREA'){ t.value = String(x.toelichting || '').trim(); t.dataset.oud = t.value; t.disabled = false; t.placeholder = 'Geen toelichting ingevuld'; pasToelHoogte(t); }
+    if(t.tagName === 'TEXTAREA'){ t.value = String(x.toelichting || '').trim(); t.dataset.oud = t.value; t.disabled = false; t.placeholder = ''; pasToelHoogte(t); }
     else t.innerHTML = x.toelichting ? esc(x.toelichting) : '<span class="hint">Geen toelichting ingevuld.</span>';
   }catch(e){ if(el.tagName === 'TEXTAREA'){ el.placeholder = 'Toelichting ophalen lukte niet: ' + e.message; } else el.innerHTML = `<span class="hint">Toelichting ophalen lukte niet: ${esc(e.message)}</span>`; }
 }
@@ -3093,7 +3100,7 @@ function veldGewijzigd(el){
   if(el.tagName === 'SELECT' && !el.value) return false;
   return el.dataset.oud !== undefined && String(el.value).trim() !== String(el.dataset.oud);
 }
-const WIJZIG_VELDEN = ['#d-opgelost', '#d-toel', '#d-afd', '#d-verantw', '#d-status', '#d-loc', '#d-gepland', '#d-cc', '#d-tel', '#d-pstart', '#d-peind', '#d-kritiek', '#d-datalek'];
+const WIJZIG_VELDEN = ['#d-ond', '#d-opgelost', '#d-toel', '#d-afd', '#d-verantw', '#d-status', '#d-loc', '#d-gepland', '#d-cc', '#d-tel', '#d-pstart', '#d-peind', '#d-kritiek', '#d-datalek'];
 function zetKnoppen(){
   const d = $('#detail'); if(!d || !d.open || !huidig || huidig.bezig || huidig.x.afgesloten) return;
   let iets = false;
@@ -3136,7 +3143,7 @@ async function vulVerantwKeuze(x){
     sel.onchange = () => sel.classList.toggle('gewijzigd', !!sel.value && sel.value !== sel.dataset.oud);
     if(collegaDiag) sel.title += ' · ' + collegaDiag;
   }catch(e){ sel.disabled = true; sel.title = e.message; }
-  ['#d-gepland', '#d-pstart', '#d-peind', '#d-cc', '#d-tel', '#d-opgelost'].forEach(sel => { const gp = $(sel); if(gp) gp.oninput = () => gp.classList.toggle('gewijzigd', gp.value !== gp.dataset.oud); });
+  ['#d-ond', '#d-gepland', '#d-pstart', '#d-peind', '#d-cc', '#d-tel', '#d-opgelost'].forEach(sel => { const gp = $(sel); if(gp) gp.oninput = () => gp.classList.toggle('gewijzigd', gp.value !== gp.dataset.oud); });
   if($('#d-cc')) koppelCc($('#d-cc'));
   const mij = $('#d-aanmij');
   if(mij) mij.onclick = () => { const s2 = $('#d-verantw'), code = (profiel.alias || [])[0]; if(!s2 || !code) return;
@@ -3213,9 +3220,11 @@ async function laadSubjMeta(){
 }
 // bij een afgehandelde melding is er geen Opslaan-knop: Bereikbaar wordt dan direct opgeslagen (Enter of klik ernaast)
 ['input', 'change'].forEach(ev => document.addEventListener(ev, e => { const t = e.target; if(t.type === 'date' || t.type === 'datetime-local') t.setAttribute('value', t.value); }, true));
-document.addEventListener('change', async e => { const t = e.target; if(!['d-tel', 'd-opgelost'].includes(t.id) || !huidig || !huidig.x.afgesloten) return;
+document.addEventListener('change', async e => { const t = e.target; if(!['d-tel', 'd-opgelost', 'd-ond', 'd-toel'].includes(t.id) || !huidig || !huidig.x.afgesloten) return;
   const x = huidig.x, v = t.value.trim(); if(v === t.dataset.oud) return;
   try{ const m = await laadSubjMeta();
+    if(t.id === 'd-ond'){ if(!v) return; await zetVelden(x, {Ds: v}); x.onderwerp = v; t.dataset.oud = v; t.classList.remove('gewijzigd'); toast('Onderwerp opgeslagen'); return; }
+    if(t.id === 'd-toel'){ await zetVelden(x, {[m.toel ? veldCode(m.toel) : 'SbTx']: v}); x.toelichting = v; toelCache.set(String(x.nr), v); t.dataset.oud = v; t.classList.remove('nieuw', 'gewijzigd'); toast('Toelichting opgeslagen'); return; }
     if(t.id === 'd-opgelost'){ if(!m.opgelost) throw new Error('veld Storing opgelost niet gevonden in AFAS'); await zetVelden(x, {[veldCode(m.opgelost)]: v ? v + ':00' : null}); x.opgelost = v ? new Date(v) : null; t.dataset.oud = v; t.classList.remove('gewijzigd'); toast(v ? 'Storing opgelost: ' + fmtDatum(x.opgelost) + ' ' + fmtTijd(x.opgelost) + ' opgeslagen' : 'Tijdstip opgelost gewist'); return; }
     if(!m.tel) throw new Error('veld Bereikbaarheid niet gevonden in AFAS'); await zetVelden(x, {[veldCode(m.tel)]: v || null});
     x.tel = v; t.dataset.oud = v; t.classList.remove('gewijzigd'); toast(v ? 'Bereikbaar op ' + v + ' opgeslagen' : 'Bereikbaarheid gewist'); }
@@ -3763,11 +3772,12 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
   const nieuwKritiek = dk && (dk.checked ? '1' : '0') !== dk.dataset.oud ? dk.checked : null, nieuwDatalek = dd && (dd.checked ? '1' : '0') !== dd.dataset.oud ? dd.checked : null;
   const nieuwCc = dc && dc.value.trim() !== dc.dataset.oud ? dc.value.trim() : null;
   const dt = $('#d-tel'), nieuwTel = dt && dt.value.trim() !== dt.dataset.oud ? dt.value.trim() : null;
+  const don = $('#d-ond'), nieuwOnd = don && don.value.trim() && don.value.trim() !== don.dataset.oud ? don.value.trim() : null;
   const dop = $('#d-opgelost'), nieuwOpgelost = dop && dop.value !== dop.dataset.oud ? dop.value : null;
   const tl = $('#d-toel'), nieuweToel = tl && tl.tagName === 'TEXTAREA' && tl.dataset.oud !== undefined && tl.value.trim() !== tl.dataset.oud.trim() ? tl.value.trim() : null;
   const ps = $('#d-pstart'), pe = $('#d-peind'), nieuwProj = (ps && ps.value !== ps.dataset.oud) || (pe && pe.value !== pe.dataset.oud) ? {start: ps ? ps.value : '', eind: pe ? pe.value : '', startGew: !!ps && ps.value !== ps.dataset.oud, eindGew: !!pe && pe.value !== pe.dataset.oud} : null;
   const vs = $('#d-verantw'), nieuweVerantw = vs && vs.value && vs.value !== vs.dataset.oud ? {code: vs.value, naam: vs.options[vs.selectedIndex].textContent} : null;
-  if(!nieuweAfd && !nieuweStatus && !nieuweVerantw && !nieuwGepland && !nieuwProj && nieuwKritiek === null && nieuwOpgelost === null && nieuwDatalek === null && nieuwCc === null && nieuwTel === null && nieuweToel === null && !nieuweLoc && actieIdx == null && !tekst && !bijlT.length){ if(sluiten === 'volgende'){ if(volgNr) openDetail(volgNr); else $('#detail').close(); return; } $('#d-fout').textContent = 'Er is niets gewijzigd: pas een veld aan, schrijf een reactie of voeg een bijlage toe.'; return; }
+  if(!nieuweAfd && !nieuweStatus && !nieuweVerantw && !nieuwGepland && !nieuwProj && nieuwKritiek === null && nieuwOpgelost === null && nieuwOnd === null && nieuwDatalek === null && nieuwCc === null && nieuwTel === null && nieuweToel === null && !nieuweLoc && actieIdx == null && !tekst && !bijlT.length){ if(sluiten === 'volgende'){ if(volgNr) openDetail(volgNr); else $('#detail').close(); return; } $('#d-fout').textContent = 'Er is niets gewijzigd: pas een veld aan, schrijf een reactie of voeg een bijlage toe.'; return; }
   const act = actieIdx != null && huidig.wf ? huidig.wf.acties[actieIdx] : null;
   { const plek = tekst.match(/\[(vul aan|stand van zaken|datum)\]/); if(plek){ $('#d-fout').textContent = `Vul in de reactie eerst "${plek[0]}" aan.`; const t = $('#tekst'); if(t){ t.focus(); const i = t.value.indexOf(plek[0]); if(i >= 0) t.setSelectionRange(i, i + plek[0].length); } return; } }
   // verplicht bij opslaan: afdeling, locatie en status
@@ -3793,6 +3803,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
     // 1. afdeling (veld)
     if(nieuweAfd){ stap = 'afdeling'; lok.afdeling = await zetAfdelingVeld(x, nieuweAfd); gedaan.push('→ ' + lok.afdeling); }
     // 0. toelichting (veld SbTx op het dossieritem)
+    if(nieuwOnd !== null){ stap = 'onderwerp'; await zetVelden(x, {Ds: nieuwOnd}); lok.onderwerp = nieuwOnd; gedaan.push('onderwerp aangepast'); }
     if(nieuweToel !== null){ stap = 'toelichting'; const m = await laadSubjMeta(); await zetVelden(x, {[m.toel ? veldCode(m.toel) : 'SbTx']: nieuweToel}); x.toelichting = nieuweToel; toelCache.set(String(x.nr), nieuweToel); gedaan.push('toelichting aangepast'); }
     // 1b. locatie (veld)
     if(nieuweLoc){ stap = 'locatie'; const m = await laadSubjMeta(); await zetVelden(x, {[veldCode(m.locatie)]: m.locatie.dataType === 'int' && !isNaN(+nieuweLoc.code) ? +nieuweLoc.code : nieuweLoc.code}); lok.locatie = nieuweLoc.naam; gedaan.push('locatie ' + nieuweLoc.naam); }
@@ -5393,9 +5404,9 @@ const kort = (t, n = 180) => { t = String(t || '').replace(/\s+/g, ' ').trim(); 
 /* samen: wat jij in SubmIT doet, zien je collega's in Team (en een pop-up als het hen raakt) */
 let nietStoren = !!opslag.get('mict-nietstoren');
 /* wijzigingen meteen bij collega's: de nieuwe waarden gaan mee met de teamgebeurtenis en worden daar direct toegepast (niet wachten op AFAS) */
-const DEEL_VELDEN = ['opgelost', 'status', 'verantw', 'afdeling', 'gepland', 'locatie', 'afgesloten', 'reactieDatum', 'reactieDoor', 'cc', 'tel', 'kritiek', 'datalek', 'projStart', 'projEind'];
+const DEEL_VELDEN = ['onderwerp', 'opgelost', 'status', 'verantw', 'afdeling', 'gepland', 'locatie', 'afgesloten', 'reactieDatum', 'reactieDoor', 'cc', 'tel', 'kritiek', 'datalek', 'projStart', 'projEind'];
 const DEEL_DATUM = new Set(['opgelost', 'gepland', 'reactieDatum', 'projStart', 'projEind']);
-const DEEL_LABEL = {status: 'status', verantw: 'verantwoordelijke', afdeling: 'afdeling', gepland: 'planning', locatie: 'locatie', cc: 'CC', tel: 'bereikbaarheid', kritiek: 'kritieke storing', opgelost: 'storing opgelost', datalek: 'datalek', projStart: 'startdatum', projEind: 'deadline'};
+const DEEL_LABEL = {onderwerp: 'onderwerp', status: 'status', verantw: 'verantwoordelijke', afdeling: 'afdeling', gepland: 'planning', locatie: 'locatie', cc: 'CC', tel: 'bereikbaarheid', kritiek: 'kritieke storing', opgelost: 'storing opgelost', datalek: 'datalek', projStart: 'startdatum', projEind: 'deadline'};
 function deelVelden(v){ const w = {}; DEEL_VELDEN.forEach(k => { if(k in v) w[k] = v[k] instanceof Date ? +v[k] : v[k] ?? null; }); return Object.keys(w).length ? JSON.stringify(w).slice(0, 1500) : ''; }
 let tekenNaSluiten = false;
 function neemOver(e){
