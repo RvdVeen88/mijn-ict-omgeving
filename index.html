@@ -163,6 +163,12 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .todo-indeling{display:grid;grid-template-columns:230px minmax(0,1fr);gap:22px;align-items:start}
 @media (max-width:800px){.todo-indeling{grid-template-columns:minmax(0,1fr)}.todo-kop{position:static}}
 .todo-kop{display:flex;flex-direction:column;gap:14px;position:sticky;top:12px}
+.todo-indeling:not(:has(> .todo-kop)){grid-template-columns:minmax(0,1fr)}
+.tdnav .todo-kop{position:static;gap:10px}
+#v-todo:not(:has(.todo-kop)) .todo-rechts{margin-top:14px}
+.tdnav .tdlijst{gap:9px;padding:7px 12px}.tdnav .tdlijst svg{width:16px;height:16px}
+.tdnav .tdlijst b{font-size:12px;min-width:24px;text-align:center}
+.tdnav .tdscheid{margin:8px 12px}
 .todo-lijsten{display:flex;flex-direction:column;gap:2px}
 .tdlijst{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;color:var(--inkt);border-radius:0 999px 999px 0;padding:8px 12px;font-size:14px;cursor:default;text-align:left}
 .tdlijst span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1118,7 +1124,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
     <button type="button" class="r" id="team-knop" title="Team: wie is er online en wat gebeurt er" aria-label="Team" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 20a6.5 6.5 0 0 0-2.6-5.2"/></svg><span class="tel online" id="team-aantal"></span><span class="stip" id="team-stip" hidden></span></button>
     <button type="button" class="r plus" id="nieuw-knop" title="Nieuwe melding" aria-label="Nieuwe melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
   </nav>
-  <aside class="nav" id="nav"></aside><div class="navscherm" id="navscherm"></div>
+  <aside class="nav" id="nav"></aside><aside class="nav tdnav" id="tdnav" aria-label="To-do-lijsten" hidden></aside><div class="navscherm" id="navscherm"></div>
   <div class="werk">
     <div class="bovenbalk">
       <button type="button" class="menuknop" id="menu-knop" aria-label="Menu" aria-controls="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
@@ -1239,7 +1245,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.8', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.9', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1439,7 +1445,7 @@ function laadAlleGesloten(){
       alleDichtGeladen = true;
     }catch(e){ toast('Alle gesloten meldingen ophalen mislukt: ' + e.message, true); }
     alleDichtBezig = null;
-    if((tab === 'dichtalle' || tab === 'zoek' || toonDicht()) && !$('#detail').open) teken();
+    if((tab === 'dichtalle' || tab === 'zoek' || toonDicht() || alleAlles()) && !$('#detail').open) teken();
   })();
 }
 let alleGeladen = false, mijnTaken = [], achterBezig = null, openFilter = opslag.get('mict-openfilter') || null;
@@ -1974,7 +1980,7 @@ const VAST = [
   {id:'norm', t:'Aandacht nodig', ico:'<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>', f:() => meld().filter(actie), rood:true},
   {id:'nieuw', t:'Nieuwe meldingen', ico:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>', f:() => meld().filter(x => x.emmer === 'nieuw' && !x.inuit), stuiter:true}   // in- en uitdienst heeft een eigen overzicht
 ];
-const ALLE = {id:'alle', t:'Alle meldingen', ico:'<path d="M4 6h16M4 12h16M4 18h10"/>', f:() => open()};   // incl. changes en RfC's
+const ALLE = {id:'alle', t:'Alle meldingen', ico:'<path d="M4 6h16M4 12h16M4 18h10"/>', f:() => open().filter(x => !x.inuit)};   // incl. changes en RfC's, zonder in- en uitdienst
 // Changes (RfC + Change) hebben een eigen kopje; Projecten ook
 const CH_ICO = '<path d="M4 7h12l-3-3M20 17H8l3 3"/>';
 const CHANGES = [{id:'ch:mijn', t:'Mijn changes', ico:CH_ICO, f:() => open().filter(isChange).filter(isMijn)}];
@@ -1997,10 +2003,11 @@ function weergave(id){
 /* Open | Afgehandeld per lijst: de gesloten meldingen van precies deze lijst (archief wordt dan opgehaald) */
 let dichtTab = null;
 const toonDicht = () => dichtTab === tab;
+// Alle meldingen: schakelaar Alle | Open (standaard Alle = open én afgehandeld, zonder in- en uitdienst)
+const alleAlles = () => tab === 'alle' && !opslag.get('mict-alle-open');
 function dichtVan(t){
   const d = items.filter(x => x.afgesloten);
   if(t === 'toegewezen') return d.filter(x => !isChange(x) && isMijn(x));
-  if(t === 'alle') return d;
   if(t === 'ch:mijn') return d.filter(x => isChange(x) && isMijn(x));
   if(t === 'inuit') return d.filter(x => x.inuit);
   if(t.startsWith('afd:')){ const a = t.slice(4); return d.filter(x => !isChange(x) && !x.inuit && norm(navAfd(x.afdeling)) === norm(a)); }
@@ -2047,6 +2054,15 @@ function vliegRij(van, doelEl, echteRij, wacht){
   anim.onfinish = () => { kloon.remove(); doelEl.style.visibility = ''; doelEl.classList.add('aankomst'); setTimeout(() => doelEl.classList.remove('aankomst'), 1200); };
 }
 let overigeOpen = !!opslag.get('mict-overige-open');   // per gebruiker onthouden
+// To-do: de lijsten staan in dezelfde zijbalk als het meldingenmenu (zelfde breedte, uitlijning en knoppen); op smalle schermen boven de taken
+const SMAL = matchMedia('(max-width:1000px)');
+function plaatsTdMenu(){
+  const kop = document.querySelector('.todo-kop'), zij = $('#tdnav'), naarZij = tab === 'todo' && !SMAL.matches;
+  zij.hidden = !naarZij; if(!kop) return;
+  if(naarZij && kop.parentElement !== zij) zij.appendChild(kop);
+  if(!naarZij && kop.parentElement === zij) document.querySelector('.todo-indeling').prepend(kop);
+}
+SMAL.addEventListener('change', () => plaatsTdMenu());
 function tekenNav(){
   const mini = id => `<span class="minischak" role="group" aria-label="Mij of alles">${['mij','alles'].map(v => `<span role="button" tabindex="0" data-mijalles="${id}" data-v="${v}" aria-pressed="${(v === 'mij') === schuifAan(id)}" title="${v === 'mij' ? 'Alleen mijn meldingen en wat bij niemand ligt' : 'Alle meldingen'}">${v === 'mij' ? 'Mij' : 'Alle'}</span>`).join('')}</span>`;
   const it = (id, t, n, o = {}) => { const ong = o.ongelezen ? open().filter(x => (x._sg || []).some(s => s.code === 'ongelezen')).length : 0;
@@ -2142,8 +2158,9 @@ function tekenLijst(){
   if(tab === 'historie') return tekenHistorie();
   if(tab === 'projecten') return tekenProjLijst();
   const v = weergave(tab), w = norm(filt.zoek), kanDicht = dichtVan(tab) !== null, dicht = kanDicht && toonDicht();
-  let l = dicht ? dichtVan(tab) : v.lijst;
-  if((dicht || tab === 'zoek') && !alleDichtGeladen) laadAlleGesloten();
+  const alles = alleAlles();
+  let l = alles ? items.filter(x => !x.inuit) : dicht ? dichtVan(tab) : v.lijst;
+  if((dicht || alles || tab === 'zoek') && !alleDichtGeladen) laadAlleGesloten();
   $('#f-mijn').hidden = true; $('#f-mijalles').hidden = true;
   ['#f-changes', '#f-weergave', '#f-zoom'].forEach(sel => $(sel).hidden = true);   // vervangen door tabs in de kop van de lijst
   $('#f-soort').hidden = true; $('#f-soort').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === soortVan(tab)));
@@ -2161,9 +2178,9 @@ function tekenLijst(){
   { const wbk = document.querySelector('#v-lijst .werkbalk'); if(wbk) wbk.hidden = ![...wbk.children].some(c => !c.hidden); }
   $('#lijst-sub').textContent = l.length > 400 ? 'eerste 400 getoond; zoek of sorteer om te verfijnen' : '';
   if(tab === 'dicht' && !alleGeladen) $('#lijst-sub').textContent = 'Gesloten meldingen worden nog opgehaald…';
-  if((dicht || tab === 'zoek') && !alleDichtGeladen) $('#lijst-sub').textContent = 'Oudere gesloten meldingen worden opgehaald…';
+  if((dicht || alles || tab === 'zoek') && !alleDichtGeladen) $('#lijst-sub').textContent = 'Oudere gesloten meldingen worden opgehaald…';
   const tlAan = alleenChanges() && chWeergave === 'tijdlijn' && !dicht;
-  $('#lijst-kol').innerHTML = kopKnoppen({od: kanDicht, dicht, samen: alleenChanges(), tl: alleenChanges() ? tlAan : undefined, plusCh: tab === 'toegewezen' ? MCH.aan : undefined, leeg: !l.length && !(tab === 'toegewezen' && MCH.aan), geenKol: tab.startsWith('inuit')});
+  $('#lijst-kol').innerHTML = kopKnoppen({od: kanDicht, dicht, alleOpen: tab === 'alle' ? !alles : undefined, samen: alleenChanges(), tl: alleenChanges() ? tlAan : undefined, plusCh: tab === 'toegewezen' ? MCH.aan : undefined, leeg: !l.length && !(tab === 'toegewezen' && MCH.aan), geenKol: tab.startsWith('inuit')});
   const extra = alleenChanges() && TL.samen ? zoekProj(dicht ? PRJ.lijst.filter(p => p.afgesloten) : projOpen()) : null;
   if(tlAan){ $('#lijst-sub').textContent = ''; $('#lijst').innerHTML = samenTijdlijn(l, extra || []); $('#titel').textContent = ''; $('#subtitel').textContent = ''; return; }
   $('#lijst').innerHTML = (l.length && tab === 'inuit' ? iuSecties(lid, l, dicht) : l.length ? tabel(lid, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(isDicht ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])], changes: alleenChanges() || soortVan(tab) === 'changes'}) : `<p class="leeg">${tab === 'zoek' && !w ? 'Typ bovenin wat je zoekt.' : dicht ? 'Geen afgehandelde meldingen.' : tab === 'zoek' ? 'Geen meldingen gevonden.' : 'Geen open meldingen.'}</p>`)
@@ -2174,14 +2191,16 @@ function tekenLijst(){
 const TL = (() => { const s = opslag.get('mict-samen'); return {samen: s == null ? opslag.get('mict-tlsoort') === 'beide' : !!s}; })();
 const PERIODES = [['maand', '6 weken'], ['kwartaal', 'Kwartaal'], ['halfjaar', 'Halfjaar']];
 const MCH = {aan: !!opslag.get('mict-meldch')};   // Mijn meldingen: je changes eronder tonen
-function kopKnoppen({od, dicht, samen, tl, proj = false, plusCh, leeg = false, geenKol = false}){
+function kopKnoppen({od, dicht, alleOpen, samen, tl, proj = false, plusCh, leeg = false, geenKol = false}){
   const odK = od ? `<span class="wkeuze tlsoort" role="group" aria-label="Open of afgehandeld"><button type="button" data-opendicht="0" aria-pressed="${!dicht}">Open</button><button type="button" data-opendicht="1" aria-pressed="${dicht}">${proj ? 'Afgerond' : 'Afgehandeld'}</button></span>` : '';
+  const aK = alleOpen === undefined ? '' : `<span class="wkeuze tlsoort" role="group" aria-label="Alle of open"><button type="button" data-alleopen="0" aria-pressed="${!alleOpen}">Alle</button><button type="button" data-alleopen="1" aria-pressed="${alleOpen}">Open</button></span>`;
   const sK = samen ? `<span class="wkeuze tlsoort"><button type="button" data-samen aria-pressed="${TL.samen}" title="${proj ? 'Jouw changes' : 'Jouw projecten'} meenemen in lijst en tijdlijn">+ ${proj ? 'Changes' : 'Projecten'}</button></span>` : '';
   const midden = tl ? `<span class="wkeuze tlsoort" role="group" aria-label="Periode">${PERIODES.map(([k, t]) => `<button type="button" data-projz="${k}" aria-pressed="${k === chZoom}">${t}</button>`).join('')}</span>` : leeg || geenKol ? '' : kolKnop_(proj);
   const wK = tl === undefined ? '' : `<span class="wkeuze"><button type="button" data-chw="lijst" aria-pressed="${!tl}" aria-label="Lijst" title="Lijst"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button><button type="button" data-chw="tijdlijn" aria-pressed="${tl}" aria-label="Tijdlijn" title="Tijdlijn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h9M7 12h11M5 18h8"/></svg></button></span>`;
   const cK = plusCh === undefined ? '' : `<span class="wkeuze tlsoort"><button type="button" data-plusch aria-pressed="${plusCh}" title="Jouw changes onder je meldingen tonen">+ Changes</button></span>`;
-  return odK + sK + cK + midden + wK;
+  return odK + aK + sK + cK + midden + wK;
 }
+document.addEventListener('click', e => { const b = e.target.closest('[data-alleopen]'); if(!b) return; opslag.set('mict-alle-open', b.dataset.alleopen === '1'); teken(); });
 document.addEventListener('click', e => { if(!e.target.closest('[data-plusch]')) return; MCH.aan = !MCH.aan; opslag.set('mict-meldch', MCH.aan); teken(); });
 document.addEventListener('click', e => { if(!e.target.closest('[data-samen]')) return; TL.samen = !TL.samen; opslag.set('mict-samen', TL.samen); teken(); });
 const zoekProj = l => { const w = norm(filt.zoek); return w ? l.filter(p => norm([p.code, p.onderwerp, p.leider, p.status, p.rol].join(' ')).includes(w)) : l; };
@@ -2307,7 +2326,7 @@ function teken(){
   $('#v-mij').hidden = tab !== 'mij' && tab !== 'connectoren'; $('#v-lijst').hidden = tab === 'mij' || tab === 'todo' || tab === 'connectoren'; $('#v-todo').hidden = tab !== 'todo';
   $('#todo-knop').setAttribute('aria-pressed', tab === 'todo'); $('#meld-knop').setAttribute('aria-pressed', isLijstTab(tab));
   if(isLijstTab(tab) && meldPlek.tab !== tab){ meldPlek.tab = tab; meldPlek.scroll = 0; }   // onthouden in welke lijst je was (nooit het overzicht) 
-  $('#nav').hidden = tab === 'todo'; $('#menu-knop').hidden = tab === 'todo';   // bij To-do hoort het meldingmenu er niet bij
+  $('#nav').hidden = tab === 'todo'; $('#menu-knop').hidden = tab === 'todo'; plaatsTdMenu();   // bij To-do hoort het meldingmenu er niet bij
   if(tab === 'mij'){ $('#titel').textContent = ''; tekenMij(); } else if(tab === 'connectoren') tekenConnectoren(); else if(tab === 'todo') tdTeken(); else tekenLijst();
   pasTabelBreedtes(); if(typeof tekenAanwezig === 'function') tekenAanwezig();
 }
@@ -2725,7 +2744,7 @@ async function gaNaar(r){
   let k = i + r; while(i >= 0 && k >= 0 && k < navLijst.length && !items.some(y => String(y.nr) === navLijst[k])) k += r;
   const doel = navLijst[k]; if(i < 0 || !doel){ toast('Geen ' + (r < 0 ? 'vorige' : 'volgende') + ' melding in deze lijst.'); return; }
   const d = $('#detail');
-  if(d.dataset.gewijzigd === '1' && !(await vraag('Wijzigingen niet opgeslagen', 'Je hebt iets ingevuld of gewijzigd dat nog niet is opgeslagen. Toch naar de ' + (r < 0 ? 'vorige' : 'volgende') + ' melding?', 'Doorgaan zonder opslaan', 'Terug', true))) return;
+  if(onopgeslagen(d) && !(await vraag('Wijzigingen niet opgeslagen', 'Je hebt iets ingevuld of gewijzigd dat nog niet is opgeslagen. Toch naar de ' + (r < 0 ? 'vorige' : 'volgende') + ' melding?', 'Doorgaan zonder opslaan', 'Terug', true))) return;
   try{ comboSluit(); }catch(e){}
   try{ openDetail(doel); }catch(e){ console.error(e); toast('Openen van melding ' + doel + ' mislukt: ' + e.message, true); }
 }
@@ -2751,7 +2770,7 @@ async function checkVersie(){
   }catch(e){}
 }
 $('#k-update').onclick = async () => {
-  if($('#detail').open && $('#detail').dataset.gewijzigd === '1' && !(await vraag('Nu bijwerken?', 'Je hebt een melding open met wijzigingen die nog niet zijn opgeslagen. Die gaan verloren als je nu bijwerkt.', 'Toch bijwerken', 'Later', true))) return;
+  if($('#detail').open && onopgeslagen($('#detail')) && !(await vraag('Nu bijwerken?', 'Je hebt een melding open met wijzigingen die nog niet zijn opgeslagen. Die gaan verloren als je nu bijwerkt.', 'Toch bijwerken', 'Later', true))) return;
   location.reload();
 };
 setTimeout(checkVersie, 8000); setInterval(checkVersie, 15 * 60e3);
@@ -3107,6 +3126,14 @@ async function vulLocKeuze(x){
 }
 // voorspelling: welke mails gaan er uit als je nu op Opslaan klikt
 /* wat is er gewijzigd of voorgesteld (nog niet opgeslagen)? Markeren, en Opslaan / Afhandelen alleen actief als het zin heeft */
+// echt iets onopgeslagen? Bij een melding: hetzelfde als wat de Opslaan-knop aanzet (velden die afwijken van AFAS, reactietekst, bijlagen).
+// Iets typen en weer terugzetten telt dus niet; een automatisch voorstel van de app ook niet.
+function onopgeslagen(d){
+  if(d.id !== 'detail') return d.dataset.gewijzigd === '1';
+  if(!huidig || d.dataset.gewijzigd !== '1') return false;
+  const veld = WIJZIG_VELDEN.some(sel => { const el = $(sel); return el && !el.disabled && !el.classList.contains('voorstel') && veldGewijzigd(el); });
+  return veld || !!($('#tekst') && $('#tekst').value.trim()) || !!(huidig.klaar && (huidig.klaar.ticket.length || huidig.klaar.reactie.length));
+}
 function veldGewijzigd(el){
   if(!el || !huidig) return false;
   if(el.id === 'd-afd') return !!el.value && norm(el.value) !== norm(huidig.x.afdeling) && !/^–/.test(el.value);
@@ -4512,7 +4539,7 @@ async function naastLade(d, x, y){
 }
 async function sluitDialoog(d){
   if(!d.open) return;
-  if(d.dataset.gewijzigd === '1' && !(await vraag('Wijzigingen niet opgeslagen', 'Je hebt iets ingevuld of gewijzigd dat nog niet is opgeslagen. Weet je zeker dat je het venster wilt sluiten?', 'Sluiten zonder opslaan', 'Terug', true))) return;
+  if(onopgeslagen(d) && !(await vraag('Wijzigingen niet opgeslagen', 'Je hebt iets ingevuld of gewijzigd dat nog niet is opgeslagen. Weet je zeker dat je het venster wilt sluiten?', 'Sluiten zonder opslaan', 'Terug', true))) return;
   comboSluit(); d.close(); if(d.id === 'detail') teken();
 }
 ['detail', 'nieuw', 'projdlg'].forEach(id => { const d = $('#' + id);
@@ -5287,7 +5314,7 @@ const aanwezigUrl = () => INST.aanwezigUrl || String(INST.tokenFunctie || '').re
 const anderenOp = nr => AANW.lijst.filter(a => String(a.nr) === String(nr) && a.code !== AANW.ik && !benIk(a.naam));
 async function seinAanwezig(){
   if(AANW.uit || AANW.bezig || !profiel) return; AANW.bezig = true;
-  const nr = huidig && $('#detail').open ? String(huidig.x.nr) : null, bezig = !!(nr && $('#detail').dataset.gewijzigd === '1');
+  const nr = huidig && $('#detail').open ? String(huidig.x.nr) : null, bezig = !!(nr && onopgeslagen($('#detail')));
   const tk = $('#tekst'), typt = !!(nr && tk && tk.value.trim() && Date.now() - laatstGetypt < 8000);
   try{
     if(DEMO){ AANW.ik = 'ik'; AANW.lijst = [{nr:'12601', code:'kg', naam:'Kelly Groen', bezig:false, zicht:true}, {nr:'12604', code:'gb', naam:'Glenn Brons', bezig:true, typt:true, zicht:true}, {nr:'', code:'mc', naam:'Mehmet Ceylan', zicht:true}, {nr:'', code:'el', naam:'Eleandro', zicht:false}];
