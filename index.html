@@ -317,6 +317,7 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .leeg{padding:6px 26px 18px;color:var(--grijs)}
 .subkop{display:flex;align-items:baseline;gap:10px;margin:8px 0 0;padding:16px 26px 10px;border-top:1px solid var(--lijn);font-size:16px;color:var(--blauw)}
 .subkop b{font-size:13px;background:var(--lichtblauw-2);color:var(--blauw);border-radius:999px;padding:1px 9px}
+.subkop.rood{color:var(--rood)}.subkop.rood b{background:var(--rood-licht);color:var(--rood)}
 
 .rij{display:grid;grid-template-columns:6px 72px minmax(0,1fr) auto;gap:14px;align-items:center;padding:10px 26px 10px 0;border-top:1px solid var(--lijn);cursor:default;width:100%;border-left:0;border-right:0;border-bottom:0;background:transparent;text-align:left}
 .rij:hover{background:var(--achtergrond)}
@@ -1225,7 +1226,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.1', VERSIE_DATUM = '06-10-2026';
+const VERSIE = 'v7.2', VERSIE_DATUM = '06-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1247,7 +1248,7 @@ const datum = x => { if(!x || typeof x === 'boolean') return null; if(x instance
   const d = new Date(+m[1], m[2]-1, +m[3], +(m[4]||0), +(m[5]||0), +(m[6]||0)); return isNaN(d) || d.getFullYear() < 1990 ? null : d; };
 const ja = x => x === true || x === 1 || /^(true|ja|j|yes|y|1)$/i.test(String(x ?? ''));
 const beginDag = d => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
-const fmtDatum = d => d ? d.toLocaleDateString('nl-NL', {day:'numeric', month:'short', year: d.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined}).replace('.', '') : '–';
+const fmtDatum = d => d && !isNaN(d) ? `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}` : '–';   // overal dd-mm-jjjj
 const fmtTijd = d => d.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'});
 const dagenGeleden = d => d ? Math.floor((Date.now() - d) / DAG) : null;
 const opslag = { get(k){ try{ return JSON.parse(localStorage.getItem(k) || 'null'); }catch(e){ return null; } }, set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} try{ syncMerk(k); }catch(e){} }, weg(k){ try{ localStorage.removeItem(k); }catch(e){} try{ syncMerk(k); }catch(e){} } };
@@ -1553,8 +1554,15 @@ function pasInUitToe(){
     x.synth = true; zetIU(x, r); return x; });
   if(nieuw.length) items = [...nieuw, ...items];
 }
+// In- en uitdienst: bovenaan wat foutief verwerkt is, daaronder de rest (zelfde opbouw als Mijn meldingen + Mijn changes)
+function iuSecties(lid, l, dicht){
+  const fout = dicht ? [] : l.filter(x => x.iuFout), rest = dicht ? l : l.filter(x => !x.iuFout);
+  if(!fout.length) return tabel(lid, rest, {set: IU_KOLOMMEN, klik: true});
+  return `<h3 class="subkop rood">Foutieve verwerking <b>${fout.length}</b></h3>` + tabel(lid + ':fout', fout, {set: IU_KOLOMMEN, klik: true})
+    + `<h3 class="subkop">Op te pakken en lopend <b>${rest.length}</b></h3>` + (rest.length ? tabel(lid, rest, {set: IU_KOLOMMEN, klik: true}) : '<p class="leeg">Geen open in- of uitdiensten.</p>');
+}
 const IU_KOLOMMEN = [
-  {k:'iu-in', bw:'86px', t:'Ingestuurd', w:x => +x.aangemaakt || 0, html:x => x.aangemaakt ? fmtDatum(x.aangemaakt) : '', cls:'zacht'},
+  {k:'iu-in', bw:'104px', t:'Ingestuurd', w:x => +x.aangemaakt || 0, html:x => x.aangemaakt ? fmtDatum(x.aangemaakt) : '', cls:'zacht'},
   {k:'iu-ond', t:'Onderwerp', w:x => norm(x.onderwerp), html:x => esc(x.onderwerp), cls:'ond'},
   {k:'iu-med', bw:'200px', t:'Medewerker', w:x => norm(x.medewerker), html:x => esc(x.medewerker || '') + (x.medNr ? ` <small class="hint">${esc(x.medNr)}</small>` : ''), cls:''},
   {k:'iu-wie', bw:'140px', t:'Toegewezen aan', w:x => norm(x.verantw), html:x => esc(x.verantw || ''), cls:'zacht'},
@@ -1770,17 +1778,17 @@ const korteNaam = n => String(n || '').trim();
 const KOLOMMEN = [
   {k:'nr', bw:'64px', t:'Nr.', w:x => +x.nr || 0, html:x => esc(x.nr), cls:'nr'},
   {k:'afd', bw:'118px', t:'Afdeling', w:x => norm(x.afdeling), html:x => esc(x.afdeling || ''), cls:'zacht k-afd'},
-  {k:'in', bw:'98px', t:'Ingestuurd', w:x => +x.aangemaakt || 0, html:x => kortDatum(x.aangemaakt), cls:'zacht k-in'},
+  {k:'in', bw:'104px', t:'Ingestuurd', w:x => +x.aangemaakt || 0, html:x => kortDatum(x.aangemaakt), cls:'zacht k-in'},
   {k:'melder', bw:'150px', t:'Melder', w:x => norm(x.melder), html:x => esc(x.melder || ''), cls:'k-melder'},
   {k:'ond', t:'Onderwerp', w:x => norm(x.onderwerp), html:x => esc(x.onderwerp), cls:'ond'},
   {k:'wie', bw:'150px', t:'Verantwoordelijke', w:x => norm(x.verantw), html:x => esc(x.verantw || ''), cls:'zacht k-wie'},
-  {k:'reactie', bw:'96px', t:'Laatste reactie', w:x => +x.reactieDatum || 0, html:x => x.reactieDatum ? kortDatum(x.reactieDatum) : '', cls:'zacht k-reactie'},
+  {k:'reactie', bw:'108px', t:'Laatste reactie', w:x => +x.reactieDatum || 0, html:x => x.reactieDatum ? kortDatum(x.reactieDatum) : '', cls:'zacht k-reactie'},
   {k:'type', bw:'100px', t:'Type', w:x => norm(x.type), html:x => esc(x.type || ''), cls:'zacht k-type'},
   {k:'status', bw:'150px', t:'Status', w:x => norm(x.status), html:x => esc(toonStatus(x.status) || ''), cls:''},
   {k:'loc', bw:'110px', t:'Locatie', w:x => norm(x.locatie || locCache.get(String(x.nr)) || ''), html:x => esc(x.locatie || locCache.get(String(x.nr)) || ''), cls:'zacht k-loc'},
-  {k:'pstart', bw:'96px', t:'Startdatum', ch:true, w:x => +x.projStart || 0, html:x => x.projStart ? kortDatum(x.projStart) : '', cls:'zacht k-pstart'},
-  {k:'peind', bw:'96px', t:'Deadline', ch:true, w:x => +x.projEind || 0, html:x => x.projEind ? `<span${!x.afgesloten && +x.projEind < +beginDag(new Date()) ? ' style="color:var(--rood);font-weight:600"' : ''}>${kortDatum(x.projEind)}</span>` : '', cls:'k-peind'},
-  {k:'gepland', bw:'86px', t:'Gepland', w:x => +x.gepland || 0, html:x => x.gepland ? kortDatum(x.gepland) : '', cls:'zacht k-gepland'},
+  {k:'pstart', bw:'104px', t:'Startdatum', ch:true, w:x => +x.projStart || 0, html:x => x.projStart ? kortDatum(x.projStart) : '', cls:'zacht k-pstart'},
+  {k:'peind', bw:'104px', t:'Deadline', ch:true, w:x => +x.projEind || 0, html:x => x.projEind ? `<span${!x.afgesloten && +x.projEind < +beginDag(new Date()) ? ' style="color:var(--rood);font-weight:600"' : ''}>${kortDatum(x.projEind)}</span>` : '', cls:'k-peind'},
+  {k:'gepland', bw:'104px', t:'Gepland', w:x => +x.gepland || 0, html:x => x.gepland ? kortDatum(x.gepland) : '', cls:'zacht k-gepland'},
   {k:'sig', bw:'196px', t:'Signaal', w:x => sigGewicht(x), html:x => (x._sg || []).filter(s => s.ernst >= 1).slice(0, 2).map(chip).join(' '), cls:'sig'}
 ];
 // Mijn projecten: zelfde tabel (sorteren, breedte, Filter, Kolommen) met eigen kolommen
@@ -1793,12 +1801,12 @@ const PROJ_KOLOMMEN = [
   {k:'p-fase', bw:'110px', t:'Fase', w:x => norm(x.status), html:x => esc(x.status || ''), cls:''},
   {k:'p-voort', bw:'110px', t:'Voortgang', w:x => norm(x.voortgang), html:x => projChip(x.voortgang, voortKleur(x.voortgang)), cls:''},
   {k:'p-prio', bw:'86px', t:'Prioriteit', w:x => norm(x.prioriteit), html:x => esc(x.prioriteit || ''), cls:'zacht'},
-  {k:'p-start', bw:'86px', t:'Start', w:x => +x.projStart || 0, html:x => x.projStart ? kortDatum(x.projStart) : '', cls:'zacht'},
-  {k:'p-eind', bw:'86px', t:'Einde', w:x => +x.projEind || 0, html:x => x.projEind ? `<span${!x.afgesloten && +x.projEind < +beginDag(new Date()) ? ' style="color:var(--rood);font-weight:600"' : ''}>${kortDatum(x.projEind)}</span>` : '', cls:''}
+  {k:'p-start', bw:'104px', t:'Start', w:x => +x.projStart || 0, html:x => x.projStart ? kortDatum(x.projStart) : '', cls:'zacht'},
+  {k:'p-eind', bw:'104px', t:'Einde', w:x => +x.projEind || 0, html:x => x.projEind ? `<span${!x.afgesloten && +x.projEind < +beginDag(new Date()) ? ' style="color:var(--rood);font-weight:600"' : ''}>${kortDatum(x.projEind)}</span>` : '', cls:''}
 ];
-const histTijd = t => { const d = new Date(t), vandaag = d.toDateString() === new Date().toDateString(); return (vandaag ? 'vandaag' : fmtDatum(d)) + ' ' + fmtTijd(d); };
+const histTijd = t => { const d = new Date(t), vandaag = d.toDateString() === new Date().toDateString(); return fmtDatum(d) + ' ' + fmtTijd(d); };
 const HIST_KOLOMMEN = [
-  {k:'h-wanneer', bw:'130px', t:'Wanneer', w:x => x._t, html:x => histTijd(x._t), cls:'zacht'},
+  {k:'h-wanneer', bw:'150px', t:'Wanneer', w:x => x._t, html:x => histTijd(x._t), cls:'zacht'},
   {k:'h-nr', bw:'70px', t:'Nr.', w:x => +x.nr || 0, html:x => esc(x.nr || ''), cls:'nr'},
   {k:'h-ond', t:'Onderwerp', w:x => norm(x.onderwerp), html:x => esc(x.onderwerp || ''), cls:'ond'},
   {k:'h-wat', bw:'34%', t:'Wat je deed', w:x => norm(x._wat), html:x => esc(x._wat) + (x._meer ? ` <small class="hint">+${x._meer} eerder</small>` : ''), cls:''},
@@ -1949,7 +1957,6 @@ const CH_ICO = '<path d="M4 7h12l-3-3M20 17H8l3 3"/>';
 const CHANGES = [{id:'ch:mijn', t:'Mijn changes', ico:CH_ICO, f:() => open().filter(isChange).filter(isMijn)}];
 const ONDER = [
   {id:'inuit', t:'In- en uitdienst', ico:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>', f:() => open().filter(x => x.inuit)},
-  {id:'inuit-fout', t:'In-/uitdienst met fout', rood:true, ico:'<path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/>', f:() => items.filter(x => x.inuit && x.iuFout && !x.afgesloten)},
 ];
 // "Emma [Changes]" hoort in het menu bij "Emma" (wisselen kan met het schuifje Meldingen / Changes)
 const navAfd = a => String(a || '').replace(/\s*\[(changes?|rfc)\]\s*$/i, '').trim();
@@ -1973,7 +1980,6 @@ function dichtVan(t){
   if(t === 'alle') return d;
   if(t === 'ch:mijn') return d.filter(x => isChange(x) && isMijn(x));
   if(t === 'inuit') return d.filter(x => x.inuit);
-  if(t === 'inuit-fout') return d.filter(x => x.inuit && x.iuFout);
   if(t.startsWith('afd:')){ const a = t.slice(4); return d.filter(x => !isChange(x) && !x.inuit && norm(navAfd(x.afdeling)) === norm(a)); }
   return null;   // geen schakelaar (Nieuwe meldingen, Aandacht, cijfers, zoeken)
 }
@@ -2134,7 +2140,7 @@ function tekenLijst(){
   $('#lijst-kol').innerHTML = kopKnoppen({od: kanDicht, dicht, samen: alleenChanges(), tl: alleenChanges() ? tlAan : undefined, plusCh: tab === 'toegewezen' ? MCH.aan : undefined, leeg: !l.length && !(tab === 'toegewezen' && MCH.aan), geenKol: tab.startsWith('inuit')});
   const extra = alleenChanges() && TL.samen ? zoekProj(dicht ? PRJ.lijst.filter(p => p.afgesloten) : projOpen()) : null;
   if(tlAan){ $('#lijst-sub').textContent = ''; $('#lijst').innerHTML = samenTijdlijn(l, extra || []); $('#titel').textContent = ''; $('#subtitel').textContent = ''; return; }
-  $('#lijst').innerHTML = (l.length && tab.startsWith('inuit') ? tabel(lid, l, {set: IU_KOLOMMEN, klik: true}) : l.length ? tabel(lid, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(isDicht ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])], changes: alleenChanges() || soortVan(tab) === 'changes'}) : `<p class="leeg">${tab === 'zoek' && !w ? 'Typ bovenin wat je zoekt.' : dicht ? 'Geen afgehandelde meldingen.' : tab === 'zoek' ? 'Geen meldingen gevonden.' : 'Geen open meldingen.'}</p>`)
+  $('#lijst').innerHTML = (l.length && tab === 'inuit' ? iuSecties(lid, l, dicht) : l.length ? tabel(lid, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(isDicht ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])], changes: alleenChanges() || soortVan(tab) === 'changes'}) : `<p class="leeg">${tab === 'zoek' && !w ? 'Typ bovenin wat je zoekt.' : dicht ? 'Geen afgehandelde meldingen.' : tab === 'zoek' ? 'Geen meldingen gevonden.' : 'Geen open meldingen.'}</p>`)
     + (extra ? projSectie(extra, dicht) : '') + (tab === 'toegewezen' && MCH.aan ? chSectie(dicht, w, isDicht) : '');
   $('#titel').textContent = ''; $('#subtitel').textContent = '';   // de naam staat al in het menu en boven de lijst
 }
@@ -2198,7 +2204,7 @@ function tekenTijdlijn(lijst, opt = {}){
   const raster = `background-size:${100 / weken}% 100%`;
   const startVan = x => x.projStart || null, eindVan = x => x.projEind || x.gepland || null;
   const wd = ms => Math.max(0, Math.round(ms / werkdagMs()));
-  const kort = d => d.toLocaleDateString('nl-NL', {day:'numeric', month:'short'});
+  const kort = d => fmtDatum(d);
   const wacht = x => x.emmer === 'leverancier' ? 'wacht op leverancier' : x.emmer === 'melder' ? 'wacht op melder' : /akkoord/i.test(toonStatus(x.status)) ? 'wacht op akkoord' : '';
   const fase = x => { const b = startVan(x), e = eindVan(x); if(!b && !e) return 'zonder';
     if(e && +e < +nu) return 'laat'; if(b && +b > nuMs) return 'komt'; return 'loopt'; };
