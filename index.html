@@ -730,6 +730,7 @@ tr.flits td{animation:flits 2.4s ease-out}
 .rail .r .stip{position:absolute;bottom:7px;right:7px;width:9px;height:9px;border-radius:50%;background:var(--goud);box-shadow:0 0 0 2px var(--rail-bg)}
 .rail .r .stip[hidden]{display:none}
 .teampaneel{position:fixed;left:92px;top:90px;right:auto;width:min(380px,calc(100vw - 110px));max-height:calc(100vh - 110px);overflow:auto;padding:8px}
+.teampaneel .teammeer{display:block;margin:4px 12px 6px;font-size:13px}
 .teampaneel h4{font-size:15px;color:var(--blauw);margin:6px 12px 2px}
 .teampaneel .act{cursor:default;flex-direction:row;align-items:flex-start;gap:10px;padding:7px 12px;text-align:left}
 .teampaneel .act > i{flex:none;width:28px;height:28px;border-radius:50%;background:var(--lichtblauw-2);color:var(--blauw);font-style:normal;font-size:11px;font-weight:700;display:grid;place-items:center}
@@ -1093,6 +1094,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
   .todo-indeling{gap:10px}
   .todo-lijsten{flex-direction:row!important;overflow-x:auto;gap:6px;scrollbar-width:none}.todo-lijsten::-webkit-scrollbar{display:none}
   .tdlijst{width:auto!important;flex:none;border-radius:999px!important;border:1.5px solid var(--lijn)!important;padding:6px 12px!important}
+  .todo-lijsten .tdscheid{display:none}.lijstnieuw{flex:none;margin:0;padding:6px 12px;border:1.5px dashed var(--lijn);border-radius:999px}.lijstnieuw input{width:110px}
 }
 
 /* ================= brede schermen (QHD, ultrawide, 4K) ================= */
@@ -1245,7 +1247,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.9', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.9.3', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -4872,7 +4874,9 @@ function tdTeken(){
   $('#titel').textContent = ''; $('#subtitel').textContent = '';   // de gekozen lijst en het aantal staan al in de knoppen
 }
 const tdTaak = id => TD.data.taken.find(t => t.id === id);
-$('#v-todo').addEventListener('click', async e => {
+// de lijsten staan op brede schermen in de zijbalk (#tdnav), buiten #v-todo: daar dezelfde klik- en toetsafhandeling
+const tdOp = (t, f) => ['#v-todo', '#tdnav'].forEach(s => $(s).addEventListener(t, f));
+tdOp('click', async e => {
   const pv = e.target.closest('[data-pvink]'); if(pv){ const t = (TD.planner || []).find(x => x.id === pv.dataset.pvink); if(!t) return;
     try{ await graph('/planner/tasks/' + t.id, {method: 'PATCH', headers: {'If-Match': t.etag}, body: JSON.stringify({percentComplete: 100})}); TD.planner = TD.planner.filter(x => x !== t); tdTeken(); toast('Afgevinkt in Planner'); }
     catch(err){ toast('Afvinken in Planner lukte niet: ' + err.message, true); } return; }
@@ -4893,14 +4897,14 @@ $('#v-todo').addEventListener('click', async e => {
   else if(w === 'naarafas') todoNaarMelding(t);
   else if(w === 'ticket'){ const x = items.find(y => String(y.nr) === String(t.melding)); if(x){ navLijst = []; openDetail(x.nr); } else toast('Melding ' + t.melding + ' staat (nog) niet in de lijst.', true); }
 });
-$('#v-todo').addEventListener('change', e => {
+tdOp('change', e => {
   const veld = e.target.dataset.veld, rij = e.target.closest('[data-taak]'); if(!veld || !rij) return;
   const t = tdTaak(rij.dataset.taak); if(!t) return;
   t[veld] = veld === 'titel' ? (e.target.value.trim() || t.titel) : e.target.value; tdBewaar();
 });
-$('#v-todo').addEventListener('focusin', e => { if(e.target.closest('.taakdetail, .todo-nieuw')) TD.bewerk = true; });
-$('#v-todo').addEventListener('focusout', () => { TD.bewerk = false; });
-$('#v-todo').addEventListener('keydown', e => {
+tdOp('focusin', e => { if(e.target.closest('.taakdetail, .todo-nieuw')) TD.bewerk = true; });
+tdOp('focusout', () => { TD.bewerk = false; });
+tdOp('keydown', e => {
   if(e.key !== 'Enter') return;
   if(e.target.id === 'todo-invoer'){ const titel = e.target.value.trim(); if(!titel) return;
     const lijst = ['alle', 'belangrijk', 'mij'].includes(TD.lijst) ? ((TD.data.lijsten.find(l => l.vast) || TD.data.lijsten[0]) || {}).id : TD.lijst;
@@ -5562,11 +5566,12 @@ function toonActiviteit(){
 function tekenTeam(){
   const ander = AANW.lijst.filter(a => a.code !== AANW.ik && !benIk(a.naam)).sort((a, b) => (b.zicht !== false) - (a.zicht !== false) || String(a.naam).localeCompare(b.naam, 'nl'));
   { const n = $('#team-aantal'); if(n){ n.textContent = ander.length || ''; $('#team-knop').title = ander.length ? `Team: ${ander.length} collega${ander.length === 1 ? '' : '’s'} online · laatste activiteit` : 'Team: wie is er online en wat gebeurt er'; } }
+  { const dag = +vandaagBegin(); STROOM.forEach((e, id) => { if(e.t < dag) STROOM.delete(id); }); }   // alleen vandaag: na middernacht valt gisteren eruit
   const gezien = +opslag.get('mict-team-gezien') || 0, ongezien = [...STROOM.values()].some(e => !doorMij(e) && e.t > gezien);
   if($('#team-stip')) $('#team-stip').hidden = !ongezien;
   const p = $('#teampaneel'); if(!p || p.hidden) return;
-  const lijst = [...STROOM.values()].sort((a, b) => b.t - a.t).slice(0, 80);
-  p.innerHTML = `<div id="ik-online"></div><hr><h5>Vandaag in het team</h5>` + (lijst.length ? lijst.map(e => `<button type="button" class="act${!doorMij(e) && e.t > (p._gezien || 0) ? ' nieuw' : ''}" ${e.nr ? `data-onlnr="${esc(e.nr)}" title="Melding ${esc(e.nr)} openen"` : 'tabindex="-1"'}><i class="${e.soort === 'kritiek' ? 'k' : e.soort === 'gesloten' ? 'g' : ''}">${esc(initialen(e.door))}</i><span><span><b>${esc(doorMij(e) ? 'Jij' : String(e.door || '').split(' ')[0])}</b> ${STROOM_ZIN[e.soort] ? STROOM_ZIN[e.soort](e) : esc(e.soort)}</span><small>${geleden(e.t)}${e.onderwerp ? ' · ' + esc(e.onderwerp) : ''}</small></span></button>`).join('') : '<p class="onl-leeg">Nog niets gebeurd vandaag.</p>');
+  const alle = [...STROOM.values()].sort((a, b) => b.t - a.t), lijst = p._alles ? alle : alle.slice(0, 10), meer = alle.length - lijst.length;
+  p.innerHTML = `<div id="ik-online"></div><hr><h5>Vandaag in het team</h5>` + (lijst.length ? lijst.map(e => `<button type="button" class="act${!doorMij(e) && e.t > (p._gezien || 0) ? ' nieuw' : ''}" ${e.nr ? `data-onlnr="${esc(e.nr)}" title="Melding ${esc(e.nr)} openen"` : 'tabindex="-1"'}><i class="${e.soort === 'kritiek' ? 'k' : e.soort === 'gesloten' ? 'g' : ''}">${esc(initialen(e.door))}</i><span><span><b>${esc(doorMij(e) ? 'Jij' : String(e.door || '').split(' ')[0])}</b> ${STROOM_ZIN[e.soort] ? STROOM_ZIN[e.soort](e) : esc(e.soort)}</span><small>${geleden(e.t)}${e.onderwerp ? ' · ' + esc(e.onderwerp) : ''}</small></span></button>`).join('') : '<p class="onl-leeg">Nog niets gebeurd vandaag.</p>') + (meer > 0 ? `<button type="button" class="linkknop teammeer" data-teammeer>Alle activiteiten (${alle.length})</button>` : '');
   tekenOnline();
 }
 function wisselTeam(){
@@ -5574,7 +5579,7 @@ function wisselTeam(){
   if(!p){ document.body.insertAdjacentHTML('beforeend', '<div class="ikmenu teampaneel" id="teampaneel" role="dialog" aria-label="Team" hidden></div>'); p = $('#teampaneel'); }
   p.hidden = !p.hidden; $('#team-knop').setAttribute('aria-pressed', !p.hidden);
   if(!p.hidden){ const r = $('#team-knop').getBoundingClientRect(); p.style.top = Math.max(16, Math.min(r.top, innerHeight - 420)) + 'px'; p.style.left = (r.right + 14) + 'px';
-    p._gezien = +opslag.get('mict-team-gezien') || 0; opslag.set('mict-team-gezien', Date.now()); tekenTeam(); seinAanwezig(); }
+    p._alles = false; p._gezien = +opslag.get('mict-team-gezien') || 0; opslag.set('mict-team-gezien', Date.now()); tekenTeam(); seinAanwezig(); }
 }
 // telefoon/tablet: het menu schuift van links in; na een keuze gaat het weer dicht
 document.addEventListener('click', e => {
@@ -5588,6 +5593,7 @@ document.addEventListener('click', e => {
   if(e.target.closest('#team-knop')){ wisselTeam(); return; }
   const p = $('#teampaneel'); if(p && !p.hidden && !e.target.closest('#teampaneel')){ p.hidden = true; $('#team-knop').setAttribute('aria-pressed', false); }
 });
+document.addEventListener('click', e => { if(!e.target.closest('[data-teammeer]')) return; const p = $('#teampaneel'); p._alles = true; tekenTeam(); });
 document.addEventListener('keydown', e => { const p = $('#teampaneel'); if(e.key === 'Escape' && p && !p.hidden){ p.hidden = true; $('#team-knop').setAttribute('aria-pressed', false); $('#team-knop').focus(); } });
 // mogelijke storing -> nieuwe melding 'Kritieke storing' met de vergelijkbare meldingen in onderwerp en toelichting
 async function kritiekVanStoring(g){
