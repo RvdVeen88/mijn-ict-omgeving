@@ -790,8 +790,9 @@ tr.flits td{animation:flits 2.4s ease-out}
 .ikpen{position:absolute;right:-3px;bottom:-3px;width:22px;height:22px;border-radius:50%;background:var(--blauw-2);color:#fff;display:grid;place-items:center;box-shadow:0 0 0 2px var(--vlak);transition:transform .15s}
 .ikpen svg{width:12px;height:12px}.ikav:hover .ikpen{transform:scale(1.12)}
 .iknaam{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}.iknaam b{font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.iknaam small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ikmenu .ikthema{flex:none;width:34px;height:34px;padding:0;border-radius:50%;display:grid;place-items:center;color:var(--grijs);background:var(--achtergrond)}
-.ikmenu .ikthema svg{width:17px;height:17px}.ikmenu .ikthema:hover{color:var(--blauw)}
+.ikregel{display:flex;align-items:center;gap:8px}.ikregel b{flex:1;min-width:0}
+.ikmenu .ikthema{flex:none;width:28px;height:28px;padding:0;border-radius:50%;display:grid;place-items:center;color:var(--grijs);background:var(--achtergrond)}
+.ikmenu .ikthema svg{width:15px;height:15px;display:block}.ikmenu .ikthema:hover{color:var(--blauw)}
 .ikmenu .nietstoren{padding:7px 12px}
 .ikmenu .ikrij{flex-direction:row;align-items:center;gap:11px;padding:8px 12px}.ikmenu .ikrij svg{width:17px;height:17px;color:var(--grijs);flex:none}
 .ikvoet{display:flex;align-items:center}.ikvoet .ikrij{flex:1}.ikvoet .ikversie{margin:0 12px 0 0!important}
@@ -1311,7 +1312,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.14', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.14.1', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -4547,8 +4548,7 @@ function ikMenu(){
   const schuif = (k, t, uit, aan) => `<button type="button" role="menuitemcheckbox" aria-checked="${aan}" class="nietstoren" data-ikm="${k}" title="${esc(uit)}"><span>${t}</span><span class="schuif"><input type="checkbox" tabindex="-1" ${aan ? 'checked' : ''}><i></i></span></button>`;
   const rij = (k, ico, t) => `<button type="button" role="menuitem" class="ikrij" data-ikm="${k}">${SV(ico)}<span>${t}</span></button>`;
   if(m.hidden) m.innerHTML = `<div class="ikkop"><button type="button" class="ikav" data-ikm="foto" title="Profielfoto aanpassen" aria-label="Profielfoto aanpassen">${avatar(profiel.naam, '', AANW.ik)}<span class="ikpen">${SV('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>')}</span></button>
-      <div class="iknaam"><b>${esc(profiel.naam)}</b><small>${esc(profiel.functie || (profiel.rol === 'servicedesk' ? 'Servicedesk' : 'ICT'))}</small></div>
-      <button type="button" class="ikthema" data-ikm="thema" title="${isDonker() ? 'Lichte weergave' : 'Donkere weergave'}" aria-label="${isDonker() ? 'Lichte weergave' : 'Donkere weergave'}">${isDonker() ? SV('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>') : SV('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>')}</button></div>
+      <div class="iknaam"><div class="ikregel"><b>${esc(profiel.naam)}</b><button type="button" class="ikthema" data-ikm="thema" title="${isDonker() ? 'Lichte weergave' : 'Donkere weergave'}" aria-label="${isDonker() ? 'Lichte weergave' : 'Donkere weergave'}">${isDonker() ? SV('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>') : SV('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>')}</button></div><small>${esc(profiel.functie || (profiel.rol === 'servicedesk' ? 'Servicedesk' : 'ICT'))}</small></div></div>
     ${schuif('stil', 'Niet storen', 'Alleen kritieke storingen melden; de rest zie je in Team', nietStoren)}
     ${schuif('win', /Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Pushmelding bij kritiek' : 'Windows-melding bij kritiek', 'Ook een melding als SubmIT op de achtergrond staat', windowsAan())}<hr>
     ${rij('feedback', '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v4M12 14h.01"/>', 'Feedback of fout melden')}
