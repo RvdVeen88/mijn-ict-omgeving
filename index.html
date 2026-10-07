@@ -173,6 +173,9 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .ondinvoer{width:100%;font:inherit;color:inherit;background:transparent;border:0;border-bottom:1.5px dashed var(--lichtblauw);padding:0 0 2px;outline:0;cursor:text}
 .ondinvoer:hover{border-bottom-color:var(--blauw-2)}
 #detail .dlg-kop > div:first-child{flex:1;min-width:0;margin-right:12px}.ondinvoer:focus{border-bottom:1.5px solid var(--blauw-2)}.ondinvoer.gewijzigd{color:var(--grijs)}
+.chip.kritiekwas{background:var(--vlak);color:var(--rood);box-shadow:inset 0 0 0 1.5px var(--rood);font-weight:600}
+.chip.kritiekwas::before{content:'';display:inline-block;width:11px;height:11px;margin-right:5px;vertical-align:-1px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'/%3E%3C/svg%3E") center/contain no-repeat}
+.tabel td .kritwas{display:inline-block;width:10px;height:10px;margin-left:5px;vertical-align:0;background:var(--rood);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'/%3E%3C/svg%3E") center/contain no-repeat}
 .tdscheid{border:0;border-top:1px solid var(--lijn);margin:6px 12px}
 .tdlijst .tdgedeeld{display:inline-flex;color:var(--grijs)}.tdlijst .tdgedeeld svg{width:14px;height:14px}
 .tdlijst[data-lijst="mij"] svg{color:#2E8B57}
@@ -1235,7 +1238,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.7.1', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.7.2', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1721,8 +1724,10 @@ function ongelezen(x){
 }
 const wanneer = d => d ? `${fmtDatum(d)} ${fmtTijd(d)}` : 'onbekend';
 const laatsteActiviteit = x => x.reactieDatum ? `laatste reactie ${wanneer(x.reactieDatum)}${x.reactieDoor ? ' door ' + x.reactieDoor : ''}` : x.statusDatum ? `laatste statuswijziging ${wanneer(x.statusDatum)}` : `ingestuurd ${wanneer(x.aangemaakt)}`;
+// was een kritieke storing (opgelost of afgehandeld): blijft zichtbaar, maar rustiger dan een actieve
+const kritiekWasChip = x => ({ernst:1, code:'kritiekwas', tekst: 'Kritieke storing' + (x.opgelost ? ' · opgelost ' + fmtDatum(x.opgelost) + ' ' + fmtTijd(x.opgelost) : ' · afgehandeld'), uitleg: `Deze melding is als kritieke storing gemarkeerd${x.opgelost ? ` en opgelost op ${fmtDatum(x.opgelost)} ${fmtTijd(x.opgelost)}` : ''}. Hij telt niet meer als actieve storing.`});
 function signalen(x){
-  const s = [], nu = Date.now(); if(x.afgesloten) return s;
+  const s = [], nu = Date.now(); if(x.afgesloten) return x.kritiek ? [kritiekWasChip(x)] : s;
   { const g = STORING_NR.get(String(x.nr)); if(g) s.push({ernst:2, code:'storing', tekst:`Mogelijke storing · ${g.nrs.length}`, uitleg:`${g.nrs.length} meldingen over “${g.woord}” binnen ${STORING_UREN} uur${g.loc ? ' (' + g.loc + ')' : ''}: ${g.nrs.join(', ')}. Zet er één op kritiek als het een storing is.`}); }
   const sla = x.sla && !isChange(x);   // Changes en Requests for Change: geen reactietermijnen
   const wd = ms => Math.floor(ms / werkdagMs());
@@ -1746,7 +1751,7 @@ function signalen(x){
   if(!x.afdeling && !x.inuit) s.push({ernst:3, code:'afdeling', tekst:'Geen afdeling', uitleg:'Er is geen afdeling aan deze melding toegewezen, waardoor deze bij niemand in beeld komt. Zet deze door naar de juiste afdeling.'});
   if(isNieuw(x)){ const mist = ontbreekt(x); if(mist.length) s.push({ernst:2, code:'onvolledig', tekst:'Mist: ' + mist.join(' · '), uitleg:`Een nieuwe melding is pas compleet als afdeling, ${heeftLocKolom ? 'locatie ' : ''}en een reactie aan de melder zijn ingevuld. Nog nodig: ${mist.join(', ')}.`}); }
   if(kritiekActief(x)) s.unshift({ernst:3, code:'kritiek', tekst:'Kritieke storing', uitleg:'In AFAS als kritieke storing gemarkeerd: direct oppakken.'});
-  else if(x.kritiek && x.opgelost && !x.afgesloten) s.push({ernst:1, code:'kritiekopgelost', tekst:'Storing opgelost', uitleg:`Kritieke storing, opgelost op ${fmtDatum(x.opgelost)} ${fmtTijd(x.opgelost)}. De melding zelf staat nog open.`});
+  else if(x.kritiek) s.push(kritiekWasChip(x));
   if(x.datalek) s.unshift({ernst:3, code:'datalek', tekst:'Datalek', uitleg:'Gemarkeerd als (mogelijk) datalek: volg de datalekprocedure en betrek Kwaliteit & Veiligheid / de FG.'});
   return s;
 }
@@ -1783,7 +1788,7 @@ const actie = x => ernst(x) >= 2 && !isChange(x);
 
 /* ================= tekenen ================= */
 const KLEUR = {3:'rood', 2:'oranje', 1:'blauw', 0:''};
-const chipKleur = s => s.ernst >= 3 ? 'rood' : s.ernst === 2 || s.code === 'onvolledig' ? 'oranje' : s.code === 'ongelezen' ? 'ongelezen' : 'info';
+const chipKleur = s => s.code === 'kritiekwas' ? 'kritiekwas' : s.ernst >= 3 ? 'rood' : s.ernst === 2 || s.code === 'onvolledig' ? 'oranje' : s.code === 'ongelezen' ? 'ongelezen' : 'info';
 const chip = s => `<span class="chip ${chipKleur(s)}"${s.uitleg ? ` data-uitleg="${esc(s.uitleg)}"` : ''}>${esc(s.tekst)}</span>`;
 const blokOpen = new Set();
 const sorteer = (a, b) => ernst(b) - ernst(a) || (a.gepland || a.aangemaakt || 0) - (b.gepland || b.aangemaakt || 0);
@@ -1793,7 +1798,7 @@ const korteNaam = n => String(n || '').trim();
 
 /* ---- tabel met sorteerbare kolommen (zoals in AFAS, maar slimmer) ---- */
 const KOLOMMEN = [
-  {k:'nr', bw:'64px', t:'Nr.', w:x => +x.nr || 0, html:x => esc(x.nr), cls:'nr'},
+  {k:'nr', bw:'78px', t:'Nr.', w:x => +x.nr || 0, html:x => esc(x.nr) + (x.kritiek && !kritiekActief(x) ? '<i class="kritwas" title="Was een kritieke storing"></i>' : ''), cls:'nr'},
   {k:'afd', bw:'118px', t:'Afdeling', w:x => norm(x.afdeling), html:x => esc(x.afdeling || ''), cls:'zacht k-afd'},
   {k:'in', bw:'104px', t:'Ingestuurd', w:x => +x.aangemaakt || 0, html:x => kortDatum(x.aangemaakt), cls:'zacht k-in'},
   {k:'melder', bw:'150px', t:'Melder', w:x => norm(x.melder), html:x => esc(x.melder || ''), cls:'k-melder'},
