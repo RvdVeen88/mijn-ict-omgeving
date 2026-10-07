@@ -1203,6 +1203,7 @@ const INST = Object.assign({
   ticketUrl: 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}',   // leeg = geen link
   connReacties: 'Helpdesk_Reacties',
   feedbackNaar: 'Robert van der Veen',                        // feedback uit de app komt als melding bij deze verantwoordelijke
+  connInUit: 'PowerBI_ICT_InUitdienst',                         // dossieritems ICT In- en uitdienst met hun eigen velden
   connBerichten: 'PowerBI_ICT_Berichten',                          // mailcontrole: GetConnector op gegevensverzameling Berichten (welke mails AFAS echt verstuurde)
   connProjecten: 'PowerBI_PBI_Team',
   msClientId: 'c7ab5576-02c4-439c-89a6-f70e613d0b71',          // Entra-app SubmIT (openbaar id, geen geheim): To-do via Microsoft To Do
@@ -1224,7 +1225,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v6.8', VERSIE_DATUM = '06-10-2026';
+const VERSIE = 'v7.0', VERSIE_DATUM = '06-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1517,9 +1518,65 @@ async function zorgSbId(x){
 /* gegevens verversen. stil = op de achtergrond (na opslaan, elke paar minuten): zonder laadbalk.
    Loopt er al een verversing, dan wachten we die af in plaats van een tweede te starten. */
 let laadBezig = null;
+/* ================= In- en uitdienst: eigen soort dossieritem met eigen velden (GetConnector PowerBI_ICT_InUitdienst) ================= */
+const inUit = {rows: null, t: 0, bezig: false, fout: ''};
+const iuV = (r, ...namen) => { for(const n of namen){ const k = Object.keys(r).find(k => norm(k.replace(/[_-]+/g, ' ')) === norm(n)); if(k && r[k] != null && String(r[k]).trim() !== '') return r[k]; } return ''; };
+async function haalInUit(forceer){
+  if(!INST.connInUit || inUit.bezig || (!forceer && Date.now() - inUit.t < 2 * 60e3)) return;
+  inUit.bezig = true;
+  try{ const d = await afas(`/connectors/${encodeURIComponent(INST.connInUit)}?skip=0&take=3000${DEMO ? '' : '&orderbyfieldids=-Instuurdatum'}`);
+    inUit.rows = d.rows || []; inUit.t = Date.now(); inUit.fout = ''; pasInUitToe(); if(!$('#detail').open) teken(); }
+  catch(e){ inUit.fout = e.message; inUit.t = Date.now(); console.warn('In- en uitdienst', e); }
+  finally{ inUit.bezig = false; }
+}
+function zetIU(x, r){
+  x.iu = r; x.inuit = true;
+  x.medewerker = String(iuV(r, 'Extern ticket', 'Medewerker', 'Bestemming') || '').trim();
+  x.medNr = String(iuV(r, 'Kostendrager', 'Personeelsnummer', 'Mdw') || '').trim();
+  x.inDienst = datum(iuV(r, 'Datum in dienst')); x.uitDienst = datum(iuV(r, 'Uitdienst datum', 'Datum uit dienst'));
+  x.richting = x.uitDienst || /uit\s*dienst/i.test(x.onderwerp) ? 'uit' : 'in';
+  x.iuDatum = x.richting === 'uit' ? x.uitDienst : x.inDienst;
+  if(ja(r.Workflow_afgerond)) x.afgesloten = true;
+  x.extern = '';   // Extern_ticket bevat hier de medewerker
+  if(!norm(x.zoek).includes(norm(x.medewerker))) x.zoek = norm(x.zoek + ' ' + x.medewerker + ' ' + x.medNr);
+}
+function pasInUitToe(){
+  if(!inUit.rows) return;
+  const perSb = new Map(), perNr = new Map(), gebruikt = new Set();
+  inUit.rows.forEach(r => { if(r.Dossieritem != null) perSb.set(String(r.Dossieritem), r); perNr.set(String(r.Nummer), r); });
+  items.forEach(x => { const r = (x.sbid != null && perSb.get(String(x.sbid))) || ((x.inuit || x.iu) && perNr.get(String(x.nr)));
+    if(r){ zetIU(x, r); gebruikt.add(r); } else if(x.inuit && !x.synth){ x.inuit = false; delete x.iu; } });   // alleen wat écht dit type is
+  const nieuw = inUit.rows.filter(r => !gebruikt.has(r)).map(r => {
+    const x = maakItem({...r, Omschrijving_4: wieNaam(String(r.Verantwoordelijke ?? '')), Omschrijving_2: wieNaam(String(r.Gebruiker ?? '')), [INST.soortVeld]: r.Omschrijving || 'ICT In- en uitdienst'}, {sbid: r.Dossieritem ?? null});
+    x.synth = true; zetIU(x, r); return x; });
+  if(nieuw.length) items = [...nieuw, ...items];
+}
+const IU_KOLOMMEN = [
+  {k:'iu-in', bw:'110px', t:'Ingestuurd', w:x => +x.aangemaakt || 0, html:x => x.aangemaakt ? fmtDatum(x.aangemaakt) : '', cls:'zacht'},
+  {k:'iu-ond', bw:'170px', t:'Onderwerp', w:x => norm(x.onderwerp), html:x => esc(x.onderwerp), cls:'ond'},
+  {k:'iu-med', t:'Medewerker', w:x => norm(x.medewerker), html:x => esc(x.medewerker || '') + (x.medNr ? ` <small class="hint">${esc(x.medNr)}</small>` : ''), cls:''},
+  {k:'iu-wie', bw:'160px', t:'Toegewezen aan', w:x => norm(x.verantw), html:x => esc(x.verantw || ''), cls:'zacht'},
+  {k:'iu-indienst', bw:'120px', t:'Datum in dienst', w:x => +x.inDienst || 0, html:x => x.inDienst ? fmtDatum(x.inDienst) : '', cls:''},
+  {k:'iu-uitdienst', bw:'120px', t:'Datum uit dienst', w:x => +x.uitDienst || 0, html:x => x.uitDienst ? fmtDatum(x.uitDienst) : '', cls:''},
+  {k:'iu-status', bw:'120px', t:'Status', w:x => norm(x.status), html:x => esc(toonStatus(x.status) || ''), cls:'zacht'}
+];
+// in het venster: de velden zoals in AFAS (alleen wat gevuld is)
+function iuKaarten(x){
+  const r = x.iu, rij = (t, w) => w ? `<span>${t}</span><b>${esc(w)}</b>` : '', d = v => { const dt = datum(v); return dt ? fmtDatum(dt) : (v ? String(v) : ''); }, jn = v => v === '' ? '' : ja(v) ? 'Ja' : (/^(false|nee|n|0)$/i.test(String(v)) ? 'Nee' : String(v));
+  const ww = iuV(r, 'Wachtwoord');
+  const med = rij('Medewerker', x.medewerker) + rij('Personeelsnummer', x.medNr || iuV(r, 'Personeelsnummer')) + rij('Functie', iuV(r, 'Functie')) + rij('Werkgever', iuV(r, 'Werkgever')) + rij('Locatie', iuV(r, 'Locatie')) + rij('Kostenplaats', iuV(r, 'Kostenplaats')) + rij('Formatieplaats', iuV(r, 'Formatieplaats')) + rij('E-mail werk', iuV(r, 'E mail werk'));
+  const uit = rij('Uitdienst datum', x.uitDienst ? fmtDatum(x.uitDienst) : '') + rij('Gegevensbewaring', iuV(r, 'Gegevensbewaring')) + rij('Mailbox overdragen aan', [iuV(r, 'Mailbox overdragen aan'), iuV(r, 'Overdragen aan naam')].filter(Boolean).join(' · '));
+  const ind = rij('Datum in dienst', x.inDienst ? fmtDatum(x.inDienst) : '') + rij('Status ICT indienst', iuV(r, 'Status ICT indienst')) + rij('Gebruikersnaam', iuV(r, 'Gebruikersnaam'))
+    + (ww ? `<span>Wachtwoord</span><b><span class="ww" data-ww="${esc(ww)}">••••••••</span> <button type="button" class="linkknop" data-wwtoon>tonen</button></b>` : '')
+    + rij('Office-licentie', iuV(r, 'Office licentie')) + rij('Tag/pas', iuV(r, 'Tag pas')) + rij('AGB-code', iuV(r, 'AGB code')) + rij('BVO-gecertificeerd', jn(iuV(r, 'BVO gecertificeerd'))) + rij('Uzipas-nummer', iuV(r, 'Uzipas nummer'));
+  const af = rij('Afgerond', jn(iuV(r, 'Afgerond')));
+  const kaart = (t, h) => h ? `<div class="kaart2"><h3>${t}</h3>${h}</div>` : '';
+  return `<div class="kaarten">${kaart('Medewerker', med)}${x.richting === 'uit' ? kaart('Uit dienst', uit + af) : kaart('In dienst', ind + af)}${x.richting === 'uit' && ind.replace(/<[^>]+>/g, '').trim() && iuV(r, 'Gebruikersnaam') ? kaart('Accounts', ind) : ''}</div>`;
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-wwtoon]'); if(!b) return; const w = b.previousElementSibling; const zie = w.textContent.startsWith('•'); w.textContent = zie ? w.dataset.ww : '••••••••'; b.textContent = zie ? 'verbergen' : 'tonen'; });
 function laadGegevens(fase = 'open', stil = false){
   if(laadBezig){ if(!stil) $('#topbalk').classList.add('aan'); return laadBezig; }
-  return laadBezig = laadGegevensEcht(fase, stil).finally(() => { laadBezig = null; });
+  return laadBezig = laadGegevensEcht(fase, stil).then(r => { pasInUitToe(); haalInUit(); return r; }).finally(() => { laadBezig = null; });
 }
 async function laadGegevensEcht(fase, stil){
   if(!stil){ $('#live').classList.add('uit'); $('#bijgewerkt').textContent = 'Bezig met verversen…'; }
@@ -1744,8 +1801,8 @@ const HIST_KOLOMMEN = [
   {k:'h-wat', bw:'34%', t:'Wat je deed', w:x => norm(x._wat), html:x => esc(x._wat) + (x._meer ? ` <small class="hint">+${x._meer} eerder</small>` : ''), cls:''},
   {k:'h-status', bw:'150px', t:'Status nu', w:x => norm(x._status), html:x => esc(x._status), cls:'zacht'}
 ];
-[...KOLOMMEN, ...PROJ_KOLOMMEN, ...HIST_KOLOMMEN].forEach(c => { if(!c.cls.split(' ').includes('k-' + c.k)) c.cls = (c.cls + ' k-' + c.k).trim(); });
-const kolSet = proj => proj ? PROJ_KOLOMMEN : KOLOMMEN, elkeKol = k => KOLOMMEN.find(c => c.k === k) || PROJ_KOLOMMEN.find(c => c.k === k) || HIST_KOLOMMEN.find(c => c.k === k);
+[...KOLOMMEN, ...PROJ_KOLOMMEN, ...HIST_KOLOMMEN, ...IU_KOLOMMEN].forEach(c => { if(!c.cls.split(' ').includes('k-' + c.k)) c.cls = (c.cls + ' k-' + c.k).trim(); });
+const kolSet = proj => proj ? PROJ_KOLOMMEN : KOLOMMEN, elkeKol = k => KOLOMMEN.find(c => c.k === k) || PROJ_KOLOMMEN.find(c => c.k === k) || HIST_KOLOMMEN.find(c => c.k === k) || IU_KOLOMMEN.find(c => c.k === k);
 /* kolommen kiezen: per gebruiker te verbergen (Nr. en Onderwerp blijven altijd staan) */
 const VAST_KOL = new Set(['nr', 'ond', 'wie', 'p-nr', 'p-naam']);
 let verborgenKol = new Set(opslag.get('mict-kolommen-uit') || []);
@@ -1848,7 +1905,7 @@ let filterRij = false, kfOpen = null;   // filterrij staat altijd aan (rustig to
 const kolKnop_ = (proj = false) => kolKnopAlleen(proj);
 const sortering = {};   // per tabel-id: {k, op}
 const kolFilter = {};   // per tabel-id: {kolom: zoektekst}
-const KEUZE = new Set(['h-status','afd','melder','wie','status','type','loc','p-rol','p-leider','p-fase','p-voort','p-prio']);   // kolommen met een keuzelijst in het filterveld
+const KEUZE = new Set(['iu-ond','iu-wie','iu-status','h-status','afd','melder','wie','status','type','loc','p-rol','p-leider','p-fase','p-voort','p-prio']);   // kolommen met een keuzelijst in het filterveld
 const keuzeOpties = {};   // per tabel en kolom: de waarden voor de filterlijst
 const LEEG = '(Leeg)';
 const keuzeWaarde = (c, x) => { const v = kolTekst(c, x).trim(); return v && v !== '–' ? v : LEEG; };
@@ -1869,7 +1926,7 @@ function tabel(id, l, opties = {}){
   tabelVolgorde[id] = l.map(x => String(x.nr));   // voor vorige/volgende in het ticket: de hele lijst in deze volgorde, ook wat (nog) niet getoond wordt
   return `<div class="tw"><table class="tabel" data-tabel="${id}"><thead><tr>${kol.map(c => `<th data-sort="${c.k}" ${breedteVan(c) ? `style="width:${breedteVan(c)}"` : ''} class="${c.cls.replace(/(^|\s)(nr|ond|sig|zacht)(?=\s|$)/g, '$1').trim()}" ${s && s.k === c.k ? `aria-sort="${s.op > 0 ? 'ascending' : 'descending'}"` : ''}>${c.t}${s && s.k === c.k ? `<span class="pijl">${s.op > 0 ? '▲' : '▼'}</span>` : ''}<span class="kolgreep" data-greep="${c.k}" title="Sleep om de breedte aan te passen · dubbelklik = passend"></span></th>`).join('')}</tr>
     <tr class="kolfilter${kfOpen && kfOpen.id === id ? ' open' : ''}">${kol.map(c => `<th class="${c.cls.replace(/(^|\s)(nr|ond|sig|zacht)(?=\s|$)/g, '$1').trim()}">${KEUZE.has(c.k) ? `<button type="button" class="kfknop${kfActief(kf[c.k]) ? ' aan' : ''}" data-kf="${c.k}" data-keuze aria-haspopup="true" aria-label="Filter op ${c.t}">${esc(kfLabel(kf[c.k], opties_[c.k] || []))}</button>` : `<input size="3" data-kf="${c.k}" value="${esc(typeof kf[c.k] === 'string' ? kf[c.k] : '')}" placeholder="Filter…" aria-label="Filter op ${c.t}" class="${kfActief(kf[c.k]) ? 'aan' : ''}">`}</th>`).join('')}</tr></thead>
-    <tbody>${!zicht.length ? `<tr class="geenrij"><td colspan="${kol.length}">Geen ${opties.proj ? 'projecten' : 'meldingen'} met deze filters. <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></td></tr>` : ''}${zicht.map(x => opties.set ? `<tr class="${x._dicht ? 'dicht' : ''}"${x.nr && x._x ? ` data-nr="${esc(x.nr)}"` : ''}>${kol.map(c => `<td class="${c.cls}" title="${esc(kolTekst(c, x))}">${c.html(x)}</td>`).join('')}</tr>` : opties.proj ? `<tr class="${x.afgesloten ? 'dicht' : ''}" data-proj="${esc(x.code)}" tabindex="0">${kol.map(c => `<td class="${c.cls}" title="${esc(kolTekst(c, x))}">${c.html(x)}</td>`).join('')}</tr>` : `<tr draggable="${x.afgesloten ? 'false' : 'true'}" class="${KLEUR[ernst(x)]}${x.kritiek && !x.afgesloten ? ' kritiekrij' : ''}${x.afgesloten ? ' dicht' : ''}${(x._sg || []).some(s => s.code === 'ongelezen') ? ' ongelezen' : ''}" data-nr="${esc(x.nr)}">${kol.map(c => `<td class="${c.cls}"${c.k === 'sig' ? '' : ` title="${esc(kolTekst(c, x))}"`}>${c.html(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    <tbody>${!zicht.length ? `<tr class="geenrij"><td colspan="${kol.length}">Geen ${opties.proj ? 'projecten' : 'meldingen'} met deze filters. <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></td></tr>` : ''}${zicht.map(x => opties.set ? `<tr class="${x._dicht || (opties.klik && x.afgesloten) ? 'dicht' : ''}"${x.nr && (x._x || opties.klik) ? ` data-nr="${esc(x.nr)}"` : ''}>${kol.map(c => `<td class="${c.cls}" title="${esc(kolTekst(c, x))}">${c.html(x)}</td>`).join('')}</tr>` : opties.proj ? `<tr class="${x.afgesloten ? 'dicht' : ''}" data-proj="${esc(x.code)}" tabindex="0">${kol.map(c => `<td class="${c.cls}" title="${esc(kolTekst(c, x))}">${c.html(x)}</td>`).join('')}</tr>` : `<tr draggable="${x.afgesloten ? 'false' : 'true'}" class="${KLEUR[ernst(x)]}${x.kritiek && !x.afgesloten ? ' kritiekrij' : ''}${x.afgesloten ? ' dicht' : ''}${(x._sg || []).some(s => s.code === 'ongelezen') ? ' ongelezen' : ''}" data-nr="${esc(x.nr)}">${kol.map(c => `<td class="${c.cls}"${c.k === 'sig' ? '' : ` title="${esc(kolTekst(c, x))}"`}>${c.html(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
     ${actief.length ? `<p class="filterinfo">${l.length} van ${totaal} na filteren · <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></p>` : ''}
     ${l.length > max ? `<button type="button" class="meer" data-blok="${id}">${blokOpen.has(id) ? 'Minder tonen' : `Alle ${l.length} tonen`}</button>` : ''}`;
 }
@@ -1955,7 +2012,7 @@ function vliegRij(van, doelEl, echteRij, wacht){
     {duration: Math.min(900, 380 + Math.abs(dy) * .9), delay: wacht, easing:'cubic-bezier(.45,.05,.25,1)', fill:'forwards'});
   anim.onfinish = () => { kloon.remove(); doelEl.style.visibility = ''; doelEl.classList.add('aankomst'); setTimeout(() => doelEl.classList.remove('aankomst'), 1200); };
 }
-let overigeOpen = false;   // bij openen altijd dichtgeklapt
+let overigeOpen = !!opslag.get('mict-overige-open');   // per gebruiker onthouden
 function tekenNav(){
   const mini = id => `<span class="minischak" role="group" aria-label="Mij of alles">${['mij','alles'].map(v => `<span role="button" tabindex="0" data-mijalles="${id}" data-v="${v}" aria-pressed="${(v === 'mij') === schuifAan(id)}" title="${v === 'mij' ? 'Alleen mijn meldingen en wat bij niemand ligt' : 'Alle meldingen'}">${v === 'mij' ? 'Mij' : 'Alle'}</span>`).join('')}</span>`;
   const it = (id, t, n, o = {}) => { const ong = o.ongelezen ? open().filter(x => (x._sg || []).some(s => s.code === 'ongelezen')).length : 0;
@@ -2059,8 +2116,8 @@ function tekenLijst(){
   if(alleenChanges()) l = l.filter(isChange);
   const lid = 'lijst:' + tab + (dicht ? ':dicht' : '');
   const isDicht = tab === 'dicht' || tab === 'dichtalle' || dicht;
-  if(tab !== 'norm' && !(lid in sortering)) sortering[lid] = isDicht ? undefined : {k:'in', op:-1};
-  l = [...l].sort(tab === 'norm' ? sorteer : isDicht ? (a, b) => (b.statusDatum || 0) - (a.statusDatum || 0) : (a, b) => (b.aangemaakt || 0) - (a.aangemaakt || 0));
+  if(tab !== 'norm' && !(lid in sortering)) sortering[lid] = isDicht ? undefined : tab === 'inuit' ? undefined : {k:'in', op:-1};
+  l = [...l].sort(tab === 'inuit' && !isDicht ? (a, b) => (+a.iuDatum || 9e15) - (+b.iuDatum || 9e15) : tab === 'norm' ? sorteer : isDicht ? (a, b) => (b.statusDatum || 0) - (a.statusDatum || 0) : (a, b) => (b.aangemaakt || 0) - (a.aangemaakt || 0));
   if(tabsMijn){ $('#lijst-titel').innerHTML = `<span class="lijsttabs"><button type="button" data-chtab="alle" aria-pressed="${!alleenChanges()}">Alle meldingen <i>${nAlle}</i></button><button type="button" data-chtab="changes" aria-pressed="${alleenChanges()}">Changes <i>${nCh}</i></button></span>`; $('#lijst-n').hidden = true; }
   else { $('#lijst-titel').textContent = v.titel; $('#lijst-n').hidden = false; }
   $('#lijst-n').textContent = l.length;
@@ -2069,10 +2126,10 @@ function tekenLijst(){
   if(tab === 'dicht' && !alleGeladen) $('#lijst-sub').textContent = 'Gesloten meldingen worden nog opgehaald…';
   if((dicht || tab === 'zoek') && !alleDichtGeladen) $('#lijst-sub').textContent = 'Oudere gesloten meldingen worden opgehaald…';
   const tlAan = alleenChanges() && chWeergave === 'tijdlijn' && !dicht;
-  $('#lijst-kol').innerHTML = kopKnoppen({od: kanDicht, dicht, samen: alleenChanges(), tl: alleenChanges() ? tlAan : undefined, plusCh: tab === 'toegewezen' ? MCH.aan : undefined, leeg: !l.length && !(tab === 'toegewezen' && MCH.aan)});
+  $('#lijst-kol').innerHTML = kopKnoppen({od: kanDicht, dicht, samen: alleenChanges(), tl: alleenChanges() ? tlAan : undefined, plusCh: tab === 'toegewezen' ? MCH.aan : undefined, leeg: !l.length && !(tab === 'toegewezen' && MCH.aan), geenKol: tab === 'inuit'});
   const extra = alleenChanges() && TL.samen ? zoekProj(dicht ? PRJ.lijst.filter(p => p.afgesloten) : projOpen()) : null;
   if(tlAan){ $('#lijst-sub').textContent = ''; $('#lijst').innerHTML = samenTijdlijn(l, extra || []); $('#titel').textContent = ''; $('#subtitel').textContent = ''; return; }
-  $('#lijst').innerHTML = (l.length ? tabel(lid, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(isDicht ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])], changes: alleenChanges() || soortVan(tab) === 'changes'}) : `<p class="leeg">${tab === 'zoek' && !w ? 'Typ bovenin wat je zoekt.' : dicht ? 'Geen afgehandelde meldingen.' : tab === 'zoek' ? 'Geen meldingen gevonden.' : 'Geen open meldingen.'}</p>`)
+  $('#lijst').innerHTML = (l.length && tab === 'inuit' ? tabel(lid, l, {set: IU_KOLOMMEN, klik: true}) : l.length ? tabel(lid, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(isDicht ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])], changes: alleenChanges() || soortVan(tab) === 'changes'}) : `<p class="leeg">${tab === 'zoek' && !w ? 'Typ bovenin wat je zoekt.' : dicht ? 'Geen afgehandelde meldingen.' : tab === 'zoek' ? 'Geen meldingen gevonden.' : 'Geen open meldingen.'}</p>`)
     + (extra ? projSectie(extra, dicht) : '') + (tab === 'toegewezen' && MCH.aan ? chSectie(dicht, w, isDicht) : '');
   $('#titel').textContent = ''; $('#subtitel').textContent = '';   // de naam staat al in het menu en boven de lijst
 }
@@ -2080,10 +2137,10 @@ function tekenLijst(){
 const TL = (() => { const s = opslag.get('mict-samen'); return {samen: s == null ? opslag.get('mict-tlsoort') === 'beide' : !!s}; })();
 const PERIODES = [['maand', '6 weken'], ['kwartaal', 'Kwartaal'], ['halfjaar', 'Halfjaar']];
 const MCH = {aan: !!opslag.get('mict-meldch')};   // Mijn meldingen: je changes eronder tonen
-function kopKnoppen({od, dicht, samen, tl, proj = false, plusCh, leeg = false}){
+function kopKnoppen({od, dicht, samen, tl, proj = false, plusCh, leeg = false, geenKol = false}){
   const odK = od ? `<span class="wkeuze tlsoort" role="group" aria-label="Open of afgehandeld"><button type="button" data-opendicht="0" aria-pressed="${!dicht}">Open</button><button type="button" data-opendicht="1" aria-pressed="${dicht}">${proj ? 'Afgerond' : 'Afgehandeld'}</button></span>` : '';
   const sK = samen ? `<span class="wkeuze tlsoort"><button type="button" data-samen aria-pressed="${TL.samen}" title="${proj ? 'Jouw changes' : 'Jouw projecten'} meenemen in lijst en tijdlijn">+ ${proj ? 'Changes' : 'Projecten'}</button></span>` : '';
-  const midden = tl ? `<span class="wkeuze tlsoort" role="group" aria-label="Periode">${PERIODES.map(([k, t]) => `<button type="button" data-projz="${k}" aria-pressed="${k === chZoom}">${t}</button>`).join('')}</span>` : leeg ? '' : kolKnop_(proj);
+  const midden = tl ? `<span class="wkeuze tlsoort" role="group" aria-label="Periode">${PERIODES.map(([k, t]) => `<button type="button" data-projz="${k}" aria-pressed="${k === chZoom}">${t}</button>`).join('')}</span>` : leeg || geenKol ? '' : kolKnop_(proj);
   const wK = tl === undefined ? '' : `<span class="wkeuze"><button type="button" data-chw="lijst" aria-pressed="${!tl}" aria-label="Lijst" title="Lijst"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button><button type="button" data-chw="tijdlijn" aria-pressed="${tl}" aria-label="Tijdlijn" title="Tijdlijn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h9M7 12h11M5 18h8"/></svg></button></span>`;
   const cK = plusCh === undefined ? '' : `<span class="wkeuze tlsoort"><button type="button" data-plusch aria-pressed="${plusCh}" title="Jouw changes onder je meldingen tonen">+ Changes</button></span>`;
   return odK + sK + cK + midden + wK;
@@ -2285,7 +2342,15 @@ function logMail(x, aan, wat, actie){ const l = opslag.get(MAILLOG) || {}, k = S
   opslag.set(MAILLOG, l); }
 const NOTITIES = 'mict-interne-notities', notitieSleutel = (sbid, t) => String(sbid) + '|' + norm(t).slice(0, 80);
 // gebruikerscode (88406.rvanderveen) als naam tonen waar we die kennen
+// AFAS-gebruikerscode (88406.gbrons) -> naam: uit de keuzelijst Verantwoordelijke, anders via het mailadres van de medewerker (gbrons@…)
+const codeNaam = new Map();
+async function vulCodeNamen(){
+  if(codeNaam.size) return;
+  try{ (await laadMedewerkers()).forEach(w => { const l = String(w.mail || '').split('@')[0]; if(l && w.vol) codeNaam.set('mail:' + norm(l), w.vol); }); }catch(e){}
+  try{ const m = await laadSubjMeta(); (m.verantw ? waardenVan(m.verantw.values) : []).forEach(v => { if(v.code && v.naam && !/^\d+\.\S+$/.test(v.naam)) codeNaam.set(norm(v.code), v.naam.includes(',') ? v.naam.split(',').map(t => t.trim()).reverse().join(' ') : v.naam); }); }catch(e){}
+}
 const wieNaam = w => { if(!w || !/^\d+\.\S+$/.test(w)) return w; if(profiel && (profiel.alias || []).some(a => norm(a) === norm(w))) return profiel.naam;
+  { const n = codeNaam.get(norm(w)) || codeNaam.get('mail:' + norm(w.split('.').slice(1).join('.'))); if(n) return n; }
   for(const [naam, code] of gebruikerCode) if(code && norm(code) === norm(w)) return items.map(x => x.verantw).find(v => norm(v) === naam) || naam.replace(/\b\w/g, c => c.toUpperCase());
   return w; };
 const RE_KOL = {sbid:/^dossieritem$/, tekst:/^(reactie|tekst reactie|reactietekst|tekst)$/, datum:/^(instuurdatum|datum reactie|datum|aangemaakt op|reactiedatum|tijdstip)/, wie:/^(instuurder|naam instuurder|gebruiker|aangemaakt door|medewerker|gebruiker reactie|naam)/, zicht:/zichtbaar|zichtbaarheid|intern|extern|vertrouwelijk/, rid:/^(reactie ?-?id|id reactie|reactienummer|nummer reactie|volgnummer( reactie)?|reaction.?id|reactie ?code)$/};
@@ -2319,7 +2384,7 @@ const rijNaarReactie = (r, sbid) => { const k = reactieKol, tekst = kaal(r[k.tek
 const ictReageerde = (x, l) => l.some(r => r.tekst && !r.intern && (norm(r.wie) !== norm(x.melder) || ictPersoon(x, r.wie)));
 async function haalReacties(x){
   if(!x.sbid) throw new Error('Het interne nummer (Dossieritem) van deze melding is niet gevonden in ' + INST.connTickets + '.');
-  const k = await zorgReactieKol(), d = await afas(`/connectors/${encodeURIComponent(INST.connReacties)}?skip=0&take=500${filterOp(k.sbid, x.sbid)}`);
+  const k = await zorgReactieKol(), [d] = await Promise.all([afas(`/connectors/${encodeURIComponent(INST.connReacties)}?skip=0&take=500${filterOp(k.sbid, x.sbid)}`), vulCodeNamen()]);
   if(!(d.rows || []).length) reactieDiag = `0 regels in ${INST.connReacties} voor ${k.sbid} = ${x.sbid}`;
   return (d.rows || []).map(r => rijNaarReactie(r, x.sbid)).filter(r => r.tekst).sort((a, b) => (a.t || 0) - (b.t || 0));
 }
@@ -2358,9 +2423,10 @@ async function zorgBerichtKol(){
 }
 // AFAS legt in Berichten niet vast bij welke melding een mail hoort. Daarom: per mail die SubmIT liet versturen
 // kijken of AFAS rond dat tijdstip een mail stuurde aan dezelfde persoon. Heeft de connector wel een dossieritem, dan koppelen we daarop.
+const retroCache = new Map();   // mails rond eerdere momenten van een melding: 15 min bewaren
 const naamSleutel = v => String(v || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\(.*?\)/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean).sort().join(' ');
 const lokaalIso = t => new Date(+t - new Date(+t).getTimezoneOffset() * 6e4).toISOString().slice(0, 19);
-async function haalBerichten(x){
+async function haalBerichten(x, reacties = []){
   const nr = String(x.nr), ruw = (opslag.get(MAILLOG) || {})[nr] || [], log = ruw.filter(m => m.aan && m.aan !== 'GEEN mail');
   try{
     const k = await zorgBerichtKol();
@@ -2381,6 +2447,18 @@ async function haalBerichten(x){
           .sort((a, b) => Math.abs(a.t - m.t) - Math.abs(b.t - m.t));
         if(kand[0]) l.push({...kand[0], logT: m.t});
       }
+      // terugwerkend: mails aan de melder, verantwoordelijke, CC of wie reageerde, binnen 10 min na een moment van deze melding
+      const wie = new Set([x.melder, x.verantw, x.cc, ...(x.taakBij || []), ...reacties.map(r => r.wie)].filter(Boolean).map(naamSleutel));
+      const momenten = [x.aangemaakt, x.statusDatum, ...reacties.map(r => r.t)].filter(t => t && !isNaN(t)).map(Number)
+        .filter((t, i, a) => a.findIndex(u => Math.abs(u - t) < 5 * 6e4) === i).slice(-25);
+      const gezien = new Set(l.map(a => +a.t + '|' + naamSleutel(a.naam))), rk = momenten.join(','), rc = retroCache.get(nr);
+      if(rc && rc.k === rk && Date.now() - rc.t < 15 * 60e3) rc.l.forEach(a => { const s = +a.t + '|' + naamSleutel(a.naam); if(!gezien.has(s)){ gezien.add(s); l.push(a); } });
+      else { const nieuw = [];
+      for(const t of momenten){
+        const rows = DEMO ? ((await afas(`/connectors/${INST.connBerichten}`)).rows || []).filter(r => { const d = datum(r.Datum_tijd_verzending); return d && +d >= t - 6e4 && +d <= t + 10 * 6e4; }) : (await afas(basis + '100' + `&filterfieldids=${encodeURIComponent(k.datum)},${encodeURIComponent(k.datum)}&filtervalues=${encodeURIComponent(lokaalIso(t - 6e4))},${encodeURIComponent(lokaalIso(t + 10 * 6e4))}&operatortypes=2,3`)).rows || [];
+        rows.map(rij).filter(a => !isNaN(a.t) && wie.has(naamSleutel(a.naam))).forEach(a => { nieuw.push(a); const s = +a.t + '|' + naamSleutel(a.naam); if(!gezien.has(s)){ gezien.add(s); l.push(a); } });
+      }
+      retroCache.set(nr, {k: rk, t: Date.now(), l: nieuw}); }
     }
     l = l.filter(a => !isNaN(a.t));
     if((((opslag.get(MAILLOG) || {})[nr] || [])[0] || {}).t !== ((ruw[0] || {}).t)) return l;   // intussen een nieuwe mail gelogd: niet bewaren, volgende keer opnieuw
@@ -2403,7 +2481,7 @@ function mailsVoor(x){
 }
 const mailOnderweg = new Set();   // mails die 'verzenden…' toonden: krijgen een animatie als het vinkje komt
 const mailRegel = r => r.alleenAfas
-  ? `<div class="mailregel"><span class="mailicoon">✉</span><span>Mail naar <b>${esc(r.afas.naar || 'onbekend')}</b>${r.afas.sjabloon ? ' · ' + esc(r.afas.sjabloon) : ''}</span><small>${fmtDatum(r.t)} ${fmtTijd(r.t)}</small>${mailVink(r.afas)}</div>`
+  ? `<div class="mailregel" title="${esc(r.afas.naar)}"><span class="mailicoon">✉</span><span>Mail naar <b>${esc(r.afas.naam || r.afas.naar || 'onbekend')}</b>${r.afas.sjabloon ? ' · ' + esc(r.afas.sjabloon.replace(/^tickets ict\s*-\s*/i, '').toLowerCase()) : ''}</span><small>${fmtDatum(r.t)} ${fmtTijd(r.t)}</small>${mailVink(r.afas)}</div>`
   : `<div class="mailregel${r.aan === 'GEEN mail' ? ' geen' : ''}" title="Verstuurd door AFAS (noreply@dcklinieken.nl) via de actie '${esc(r.actie)}', uitgevoerd door ${esc(r.door || '')} vanuit SubmIT"><span class="mailicoon">${r.aan === 'GEEN mail' ? '!' : '✉'}</span><span>${r.aan === 'GEEN mail' ? '<b>Geen mail verstuurd</b>' : `Mail ${/^volgens/.test(r.aan) ? esc(r.aan) : `naar <b>${esc(r.aan)}</b>`}`} · ${esc(r.wat)}</span><small>${fmtDatum(r.t)} ${fmtTijd(r.t)} · actie ${esc(r.actie)}</small>${r.afas ? mailVink(r.afas).replace('class="mailcheck', `class="mailcheck${mailOnderweg.delete(+r.t) ? ' pop' : ''}`) : r.onderweg && mailOnderweg.add(+r.t) ? '<span class="mailcheck wacht" title="AFAS verstuurt de mail via de wachtrij; dit ververst vanzelf">verzenden…</span>' : r.nietGevonden ? '<span class="mailcheck mis" title="AFAS heeft rond dit tijdstip geen mail voor deze melding verstuurd">✗ niet gevonden in AFAS</span>' : ''}</div>`;
 const wachtReactie = new Map(); let volgReacties = null;   // eigen reacties die AFAS nog niet teruggeeft
 async function toonReacties(x){
@@ -2425,7 +2503,7 @@ async function toonReacties(x){
     clearTimeout(volgReacties);
     if(wacht.length || (!berichtUit && mails.some(m => m.onderweg || (!m.afas && !m.nietGevonden && m.aan !== 'GEEN mail' && Date.now() - m.t < 15 * 6e4))))
       volgReacties = setTimeout(() => { if(huidig && huidig.x === x && $('#detail').open){ reactieVoor.delete(nr); berichtCache.delete(nr); toonReacties(x); } }, 8000);
-    if(INST.connBerichten && !berichtUit && !((berichtCache.get(String(x.nr)) || {}).t > Date.now() - 2 * 6e4)) haalBerichten(x).then(() => { if(huidig && huidig.x === x) toonReacties(x); }).catch(e => { console.warn('Mailcontrole', e); if(huidig && huidig.x === x) toonReacties(x); });
+    if(INST.connBerichten && !berichtUit && !((berichtCache.get(String(x.nr)) || {}).t > Date.now() - 2 * 6e4)) haalBerichten(x, l).then(() => { if(huidig && huidig.x === x) toonReacties(x); }).catch(e => { console.warn('Mailcontrole', e); if(huidig && huidig.x === x) toonReacties(x); });
   }catch(e){ el.innerHTML = `<h3>Reacties</h3><p class="hint">Reacties ophalen lukte niet: ${esc(e.message)} Laat GetConnector ${esc(INST.connReacties)} koppelen aan de app connector van Mijn ICT-Omgeving.</p>`; }
 }
 let huidig = null;
@@ -2647,6 +2725,7 @@ function openDetail(nr){
         ${x.afgesloten ? r('Gepland', x.gepland ? fmtDatum(x.gepland) : '') : `<span>Gepland</span><b><input type="date" id="d-gepland" class="datumkeuze" value="${x.gepland ? isoD(x.gepland) : ''}" data-oud="${x.gepland ? isoD(x.gepland) : ''}" title="Datum waarop het werk gepland staat"></b>`}${isChange(x) ? (x.afgesloten ? r('Startdatum project', x.projStart ? fmtDatum(x.projStart) : '') + r('Deadline', x.projEind ? fmtDatum(x.projEind) : '') : `<span>Startdatum project</span><b><input type="date" id="d-pstart" class="datumkeuze" value="${x.projStart ? isoD(x.projStart) : ''}" data-oud="${x.projStart ? isoD(x.projStart) : ''}" title="Begindatum project van deze change"></b><span>Deadline</span><b><input type="date" id="d-peind" class="datumkeuze" value="${x.projEind ? isoD(x.projEind) : ''}" data-oud="${x.projEind ? isoD(x.projEind) : ''}" title="Einddatum project (deadline) van deze change"></b>`) : ''}${r('Extern ticket', x.extern)}${x.afgesloten ? (x.kritiek ? r('Kritieke storing', 'Ja') + opgelostRij(x) : '') + (x.datalek ? r('Datalek', 'Ja') : '') + r('CC', x.cc) : `<span>CC</span><b><input id="d-cc" class="datumkeuze cckeuze metpijl" value="${esc(x.cc || '')}" data-oud="${esc(x.cc || '')}" placeholder="" title="Medewerker die een kopie van de mails krijgt" autocomplete="off" spellcheck="false"></b>
           <span>Markeren</span><b class="vinkjes"><label class="vink"><input type="checkbox" id="d-kritiek" ${x.kritiek ? 'checked' : ''} data-oud="${x.kritiek ? 1 : 0}"> Kritieke storing</label><label class="vink"><input type="checkbox" id="d-datalek" ${x.datalek ? 'checked' : ''} data-oud="${x.datalek ? 1 : 0}"> Datalek</label></b>${opgelostRij(x)}`}</div>
     </div>
+    ${x.iu ? iuKaarten(x) : ''}
     <div class="toelblok"><h3>Toelichting</h3>${x.afgesloten ? `<div class="lang" id="d-toel">${x.toelichting ? esc(x.toelichting) : '<span class="hint">Toelichting ophalen…</span>'}</div>` : `<textarea class="lang toelinvoer" id="d-toel" rows="2" spellcheck="true" placeholder="${x.toelichting != null ? 'Geen toelichting ingevuld' : 'Toelichting ophalen…'}" ${x.toelichting != null ? `data-oud="${esc(String(x.toelichting).trim())}"` : 'disabled'}>${esc(String(x.toelichting || '').trim())}</textarea>`}</div>
     <div class="contextblok${opslag.get('mict-context-open') ? ' open' : ''}" id="d-context"></div>
     <div class="bijlbalk" id="d-bijl"${x.afgesloten ? '' : ' title="Sleep bestanden op de melding om ze als bijlage toe te voegen, of plak een schermafbeelding met Ctrl+V"'}><span class="bijltitel">${CLIP}<b id="bijl-titel">Bijlagen</b></span>
@@ -2666,6 +2745,10 @@ function openDetail(nr){
       <span class="mailvooraf" id="mailvooraf" hidden></span>
       <span class="opslaanknoppen"><button type="button" class="knop vol" id="k-opslaan" title="Alles doorvoeren; de melding blijft open (Ctrl+Enter). Naar de vorige of volgende melding ga je met de pijltjes."><span class="opslaanmail" hidden>✉ </span>Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
     <p class="fout" id="d-fout"></p>`}`;
+  if(x.iu){   // in- en uitdienst: alleen wat bij dit type hoort, zoals in AFAS
+    ['#d-inst', '#d-tel', '#d-loc', '#d-afd', '#d-gepland', '#d-cc', '#d-kritiek', '#d-opgelost'].forEach(sel => { const el = $(sel); const b = el && el.closest('b'); if(b){ const sp = b.previousElementSibling; if(sp && sp.tagName === 'SPAN') sp.remove(); b.remove(); } });
+    const lbl = [...document.querySelectorAll('#detail .kaart2 > span')].find(sp => sp.textContent.trim() === 'Melder'); if(lbl) lbl.textContent = 'Instuurder';
+    const mi = $('#d-melderinfo'); if(mi) mi.remove(); }
   $('#detail').dataset.gewijzigd = ''; if(!$('#detail').open) $('#detail').showModal();
   $('#detail-in').scrollTop = 0; zetNavPijlen(x); setTimeout(() => { tekenAanwezig(); seinAanwezig(); }, 50);
   $('#detail').oninput = e => { if(e.target.id === 'tekst') pasHoogteAan(e.target); if(e.target.id === 'tekst' && huidig && huidig.autoTekst != null && e.target.value !== huidig.autoTekst){ huidig.autoTekst = null; e.target.classList.remove('voorstel'); } mailVooraf(); };
@@ -3979,6 +4062,9 @@ const CONN_KAART = () => [
   {conn: INST.connProjUpdates, sleutel: 'connProjUpdates', soort: 'GET', nodig: 'opt', doel: 'Projectvenster: eerdere updates (dossieritems van type Update projectvoortgang) per project, net als de reacties bij een melding. Filter in AFAS op type dossieritem 77.', velden: [
     v(/^(project|projectcode|projectnummer)$/i, 'Projectcode (koppelt met PtProject)', 'ja', 'Project'), v(/^(toelichting|tekst|inhoud|bericht|update)$/i, 'Tekst van de update', 'ja', 'Toelichting'),
     v(/^(datum|instuurdatum|aangemaakt op|datum aanmaak)/i, 'Datum', 'opt', 'Datum'), v(/^(aangemaakt door|medewerker|instuurder|gebruiker|naam)/i, 'Wie schreef de update', 'opt', 'Aangemaakt door'), v(/^(onderwerp|omschrijving)$/i, 'Onderwerp', 'opt', 'Onderwerp')]},
+  {conn: INST.connInUit, sleutel: 'connInUit', soort: 'GET', nodig: 'opt', doel: 'In- en uitdienst: het overzicht en de velden zoals in AFAS (medewerker, datums, gegevensbewaring, mailbox, accounts).', velden: [
+    v(/^nummer$/i, 'Nummer', 'ja', 'Nummer'), v(/^dossieritem$/i, 'Dossieritem (koppelt aan de melding)', 'ja', 'Dossieritem'), v(/datum.?in.?dienst/i, 'Datum in dienst', 'opt', 'Datum in dienst'), v(/uitdienst.?datum|datum.?uit.?dienst/i, 'Uitdienst datum', 'opt', 'Uitdienst datum'),
+    v(/gegevensbewaring/i, 'Gegevensbewaring', 'opt', 'Gegevensbewaring'), v(/mailbox/i, 'Mailbox overdragen aan', 'opt', 'Mailbox overdragen aan'), v(/workflow.?afgerond/i, 'Workflow afgerond', 'opt', 'Workflow afgerond')]},
   {conn: INST.connBerichten, sleutel: 'connBerichten', soort: 'GET', nodig: 'opt', doel: 'Mailcontrole: bij elke mail die SubmIT liet versturen een ✓ als AFAS hem echt verstuurde (of ✗ bij een fout). Gekoppeld op ontvanger en tijdstip. GetConnector op de gegevensverzameling Berichten.', velden: [
     v(/verzend/i, 'Datum/tijd verzending', 'ja', 'Datum/tijd verzending'), v(/^naam$/i, 'Naam ontvanger (koppelt aan de melder of collega)', 'ja', 'Naam'), v(/status/i, 'Status e-mail', 'opt', 'Status e-mail (omschrijving)'),
     v(/bestemming/i, 'Bestemming (e-mailadres)', 'opt', 'Bestemming'), v(/sjabloon/i, 'Berichtsjabloon', 'opt', 'Berichtsjabloon')]},
@@ -4185,7 +4271,7 @@ document.addEventListener('click', e => {
     else { afdOns = !afdOns; opslag.set('mict-afd-ons', afdOns); }
     teken(); return; }
   const fv = e.target.closest('[data-fav]'); if(fv){ wisselFavoriet(fv.dataset.fav); return; }
-  if(e.target.closest('#k-overige')){ overigeOpen = !overigeOpen; tekenNav(); return; }
+  if(e.target.closest('#k-overige')){ overigeOpen = !overigeOpen; opslag.set('mict-overige-open', overigeOpen); tekenNav(); return; }
   const wf = e.target.closest('[data-wisfilter]'); if(wf){ delete kolFilter[wf.dataset.wisfilter]; teken(); return; }
   if(e.target.closest('.kolfilter')) return;
   if(e.target.closest('.kolgreep') || (window._negeerKlik && Date.now() - window._negeerKlik < 300)) return;
@@ -5563,6 +5649,11 @@ function laadKaart(naam){
 
 /* ================= demodata (alleen met ?demo in de adresbalk) ================= */
 function demoAfas(pad, opties){
+  if(pad.startsWith(`/connectors/${INST.connInUit}`)){ const d = n => new Date(Date.now() + n * DAG - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10) + 'T00:00:00Z';
+    return {rows: [
+      {Instuurdatum: d(-30), Omschrijving: 'ICT In- en uitdienst', Onderwerp: 'Medewerker uit dienst', Gebruiker: 'Joyce Peeters', Verantwoordelijke: '', Nummer: 1642, Workflow_afgerond: false, Status: 'ICT', Extern_ticket: 'Yvonne Meekel - van Tilburg', Kostendrager: '572916', Dossieritem: 501642, Uitdienst_datum: d(24), Gegevensbewaring: 'Niets bewaren', Mailbox_overdragen_aan: '', Afgerond: ''},
+      {Instuurdatum: d(-5), Omschrijving: 'ICT In- en uitdienst', Onderwerp: 'Medewerker in dienst', Gebruiker: 'Joyce Peeters', Verantwoordelijke: 'Glenn Brons', Nummer: 1701, Workflow_afgerond: false, Status: 'ICT', Extern_ticket: 'Sanne de Wit', Kostendrager: '573100', Dossieritem: 501701, Datum_in_dienst: d(12), Functie: 'Doktersassistent', Werkgever: 'DC Klinieken', Locatie: 'Almere', Kostenplaats: 'Dermatologie', E_mail_werk: 'sdewit@dcklinieken.nl', Gebruikersnaam: 'sdewit', Wachtwoord: 'Welkom2026!', Office_licentie: 'M365 F3', Status_ICT_indienst: 'Account aangemaakt', 'AGB-code': '', 'BVO-gecertificeerd': false},
+      {Instuurdatum: d(-2), Omschrijving: 'ICT In- en uitdienst', Onderwerp: 'Medewerker uit dienst', Gebruiker: 'Joyce Peeters', Verantwoordelijke: 'Kelly Groen', Nummer: 1712, Workflow_afgerond: false, Status: 'ICT', Extern_ticket: 'Twan Suijdendorp', Kostendrager: '571200', Dossieritem: 501712, Uitdienst_datum: d(-9), Gegevensbewaring: 'Mailbox 3 maanden bewaren', Mailbox_overdragen_aan: 'Leidinggevende', Overdragen_aan_naam: 'Marleen Jonker', Afgerond: ''}]}; }
   if(pad.startsWith(`/connectors/${INST.connBerichten}`)){   // zoals de echte connector: geen dossieritem; AFAS 'verstuurt' elke gelogde mail een minuut later
     const lok = t => new Date(t - new Date(t).getTimezoneOffset() * 6e4).toISOString().slice(0, 19), log = opslag.get(MAILLOG) || {};
     return {rows: Object.values(log).flat().filter(m => m.aan && m.aan !== 'GEEN mail' && !/^volgens/.test(m.aan) && m.t + 6e4 <= Date.now()).map(m => ({Naam: m.aan, Mail_werk: '', Datum_tijd_toegevoegd: lok(m.t + 6e4) + 'Z', Berichtstatus: 'Verzonden', Berichtsjabloon: 'Tickets ICT - Reactie geplaatst', Bestemming: '', Datum_tijd_verzending: lok(m.t + 6e4) + 'Z', Onderwerp_e_mail: ''}))}; }
