@@ -760,6 +760,7 @@ dialog#detail .navpijl[hidden]{display:none}
 .tabel.hist td{white-space:normal}
 
 .stappen{display:flex;align-items:center;gap:0;margin:2px 0 4px}
+.stappen .chips{max-width:none;justify-content:flex-start;flex-wrap:wrap}
 .stico{width:16px;height:16px;flex:none;vertical-align:-3px;margin-right:6px;overflow:visible}
 .stico path{fill:none;stroke-linecap:round;stroke-linejoin:round}
 .stico .rs{stroke:var(--lichtblauw-2);stroke-width:7}.stico .s1{stroke:var(--lichtblauw);stroke-width:8}.stico .s2{stroke:var(--blauw-2);stroke-width:9}.stico .s3{stroke:var(--blauw);stroke-width:10}.stico .vk{stroke:var(--blauw);stroke-width:10}
@@ -1238,7 +1239,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.7.2', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.8', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2271,9 +2272,10 @@ let tab = 'mij';
 /* wat je zelf wijzigt staat meteen in beeld; de GetConnector van AFAS loopt vaak 5-10 seconden achter.
    Tot AFAS de wijziging teruggeeft (max. 3 minuten) houdt de pagina de eigen waarde vast. */
 const lokaalNieuw = new Map();
+// altijd een nieuw object in lokaalNieuw: anders slaat pasLokaalToe een tweede wijziging aan dezelfde melding over
 function onthoudLokaal(x, v, duur = 3 * 60e3){ meldActiviteitVan(x, v);
   if((v.verantw && !benIk(v.verantw)) || v.afgesloten){ x.taakBij = (x.taakBij || []).filter(n => !benIk(n)); mijnTaken = mijnTaken.filter(t => String(t.SubjectId) !== String(x.sbid)); }   // doorgezet of afgehandeld: jouw taak is weg
-  const k = String(x.nr), o = lokaalNieuw.get(k) || {velden:{}}; Object.assign(o.velden, v); o.tot = Math.max(o.tot || 0, Date.now() + duur); lokaalNieuw.set(k, o); pasLokaalToe(); }
+  const k = String(x.nr), oud = lokaalNieuw.get(k) || {velden:{}}, o = {velden: {...oud.velden, ...v}, tot: oud.tot}; o.tot = Math.max(o.tot || 0, Date.now() + duur); lokaalNieuw.set(k, o); pasLokaalToe(); }
 const zelfde = (k, a, b) => (!a && !b) ? true : k === 'afgesloten' ? !!a === !!b : (k === 'gepland' || k === 'projStart' || k === 'projEind' || k === 'reactieDatum') ? (!!a && !!b && Math.abs(+a - +b) < (k === 'reactieDatum' ? 10 * 60e3 : DAG)) : norm(a) === norm(b);
 function pasLokaalToe(){
   lokaalNieuw.forEach((o, nr) => {
@@ -2349,6 +2351,7 @@ document.addEventListener('mouseover', e => { const r = e.target.closest && e.ta
   clearTimeout(voorTimer); voorTimer = setTimeout(() => voorLaden(items.find(y => String(y.nr) === r.dataset.nr)), 120); });
 // alle workflowacties in één keer (in plaats van per taak een aparte aanroep)
 async function workflow(x){
+  if(DEMO && x.afgesloten) return {taak:'Akkoord melder', bij:[], acties:['Heropenen','Akkoord'].map((n, i) => ({naam:n, wf:'d', tk:'a', ac:'h' + i}))};
   if(DEMO) return {taak:'Behandelen ICT', bij:[profiel.naam], acties:['Afhandelen','Reactie plaatsen','Vraag aan melder','Toewijzen aan mij','Toewijzen aan collega','Wachten op leverancier','Inplannen','Accorderen RFC','Interne release','Externe release','Interne notitie'].map((n, i) => ({naam:n, afhandelen: i === 0 || i === 5, wf:'d', tk:'d', ac:'d' + i}))};
   const taken = (await afas(`/connectors/${INST.connTaken}?skip=0&take=20${filterOp('SubjectId', x.sbid)}`)).rows || [];
   if(!taken.length) return {taak:'', bij:[], acties:[]};
@@ -2547,6 +2550,7 @@ let huidig = null;
 const STAPPEN = ['Open', 'Actief', 'Afgehandeld'];
 const stapVan = x => x.afgesloten ? 2 : (x.emmer === 'nieuw' || (!x.verantw && !x.emmer)) ? 0 : 1;
 // statusicoon = het logo als voortgangsring: open (1 segment) › actief (2) › afgehandeld (hele ring + vinkje)
+const isHeropenActie = a => /heropen/i.test(a.naam);
 const isReactieActie = a => /reactie plaatsen|^reageren/i.test(a.naam), isNotitieActie = a => /interne notitie/i.test(a.naam);
 const isOppakActie = a => !sluitActie(a) && /toewijzen aan mij|in behandeling|oppakken|behandel/i.test(a.naam);
 // wat een actie in deze pagina doet: verantwoordelijke zetten, datum plannen of (via de workflow) de status wijzigen
@@ -2782,7 +2786,7 @@ function openDetail(nr){
   const link = INST.ticketUrl && x.sbid ? INST.ticketUrl.replace('{sbid}', encodeURIComponent(x.sbid)).replace('{nr}', encodeURIComponent(x.nr)) : '';
   $('#detail-in').innerHTML = `
     <div class="dlg-kop"><div><small>Melding ${esc(x.nr)}${x.type ? ' · ' + esc(x.type) : ''}${x.afdeling ? ' · ' + esc(x.afdeling) : ''}</small><h2><input id="d-ond" class="ondinvoer" value="${esc(x.onderwerp)}" data-oud="${esc(x.onderwerp)}" maxlength="80" spellcheck="true" aria-label="Onderwerp" title="Klik om het onderwerp aan te passen"></h2></div><span class="aanwezig" id="d-aanwezig" hidden></span><button type="button" class="afasknop" id="d-afas" title="Melding openen in AFAS InSite (nieuw tabblad)" aria-label="Melding openen in AFAS">${ICO_AFAS}</button><button type="button" class="todoknop" data-todovan="${esc(x.nr)}" title="To-do maken bij deze melding" aria-label="To-do maken bij deze melding">${TD_VINK_PLUS}</button><button type="button" class="grootknop" data-groot aria-label="Venster groter of kleiner" title="${$('#detail').classList.contains('groot') ? 'Kleiner venster' : 'Venster vergroten'}">${$('#detail').classList.contains('groot') ? ICO_KLEIN : ICO_GROOT}</button>${fbKnop()}<button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
-    ${(() => { const sg = x._sg.filter(s => s.code !== 'onvolledig'); return sg.length ? `<div class="stappen"><span class="chips">${sg.map(c => SJABLOON_SIG[c.code] && !x.afgesloten ? `<button type="button" class="chipknop" data-sjabloon="sig:${c.code}" title="Klik voor een voorsteltekst aan de melder">${chip(c)}</button>` : chip(c)).join('')}</span></div>` : ''; })()}
+    ${(() => { const sg = x._sg.filter(s => s.code !== 'onvolledig').sort((a, b) => (b.code === 'kritiekwas') - (a.code === 'kritiekwas')); return sg.length ? `<div class="stappen"><span class="chips">${sg.map(c => SJABLOON_SIG[c.code] && !x.afgesloten ? `<button type="button" class="chipknop" data-sjabloon="sig:${c.code}" title="Klik voor een voorsteltekst aan de melder">${chip(c)}</button>` : chip(c)).join('')}</span></div>` : ''; })()}
     ${!x.afgesloten && isNieuw(x) ? `<div class="checklist" id="d-check">${checklist(x)}</div>` : ''}
     <div class="kaarten">
       <div class="kaart2"><h3>Melding</h3><span>Instuurder</span><b id="d-inst" title="Wie de melding heeft aangemaakt (niet aan te passen)">${esc(instCache.get(String(x.nr)) || '…')}</b><span>Melder</span><b class="meldercel"><span id="d-melder">${esc(x.melder || '')}</span>${x.melder ? `<button type="button" class="melderinfo" id="d-melderinfo" aria-label="Gegevens van de melder" data-uitleg="Gegevens ophalen…"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 7.5h.01"></path></svg></button>` : ''}</b>${`<span>Bereikbaar</span><b class="telcel"><input id="d-tel" class="datumkeuze telkeuze" inputmode="tel" value="${esc(x.tel || '')}" data-oud="${esc(x.tel || '')}" placeholder="" title="Waar de melder nu bereikbaar is; wijzigt per keer" autocomplete="off">${x.tel && /\d{3}/.test(x.tel) ? belLink(x.tel).replace(/<\/svg>[^<]*<\/a>$/, '</svg></a>') : ''}</b>`}${r('Type melding', x.type)}${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}<span>Locatie${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.locatie || '') : `<select id="d-loc" class="afdkeuze" title="Klik om de locatie te wijzigen"><option value="">${esc(x.locatie || '')}</option></select>`}</b></div>
@@ -2797,7 +2801,10 @@ function openDetail(nr){
       <span id="bijl-lijst" class="bijlrij"><span class="hint">ophalen…</span></span><span class="klaarzet" id="klaar-ticket"></span>
       ${x.afgesloten ? '' : '<input type="file" id="f-ticket" multiple hidden>'}</div>
     
-    ${x.afgesloten ? '<div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3></div><p class="hint">Deze melding is afgehandeld.</p>' : `
+    ${x.afgesloten ? `<div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3></div>
+    <div class="onderbalk"><div class="actiebalk" id="actiebalk"><span class="hint">Deze melding is afgehandeld.</span></div>
+      <span class="opslaanknoppen"><button type="button" class="knop" id="k-heropen" disabled title="Workflow ophalen…">Heropenen</button><button type="button" class="knop vol" id="k-opslaan" disabled title="Er is nog niets om op te slaan">Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
+    <p class="fout" id="d-fout"></p>` : `
     <div class="composer">
       <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
       <div class="klaarzet" id="klaar-reactie"></div>
@@ -2825,6 +2832,7 @@ function openDetail(nr){
   toonContext(x);
   if(x.melder) toonMelderInfo(x);
   toonInstuurder(x);
+  if(x.afgesloten) huidig.wfKlaar = laadHeropen(x);
   if(!x.afgesloten){ huidig.wfKlaar = laadWorkflow(x); $('#notitie').onchange = e => { $('#tekst').classList.toggle('intern', e.target.checked); $('#tekst').placeholder = e.target.checked ? 'Interne notitie voor collega’s…' : 'Schrijf een reactie aan de melder…'; }; }
   else ($('#d-taak') || {}).textContent = '–';
 }
@@ -3109,7 +3117,7 @@ function veldGewijzigd(el){
 }
 const WIJZIG_VELDEN = ['#d-extern', '#d-ond', '#d-opgelost', '#d-toel', '#d-afd', '#d-verantw', '#d-status', '#d-loc', '#d-gepland', '#d-cc', '#d-tel', '#d-pstart', '#d-peind', '#d-kritiek', '#d-datalek'];
 function zetKnoppen(){
-  const d = $('#detail'); if(!d || !d.open || !huidig || huidig.bezig || huidig.x.afgesloten) return;
+  const d = $('#detail'); if(!d || !d.open || !huidig || huidig.bezig) return;
   let iets = false;
   WIJZIG_VELDEN.forEach(sel => { const el = $(sel); if(!el) return; const g = veldGewijzigd(el); iets = iets || g;
     const doel = el.type === 'checkbox' ? el.closest('label') : el; if(doel) doel.classList.toggle('nieuw', g);
@@ -3184,6 +3192,15 @@ async function vulAfdKeuze(x){
     };
   }catch(e){ sel.disabled = true; sel.title = e.message; }
 }
+async function laadHeropen(x){
+  const k = $('#k-heropen'); if(!k) return;
+  const zet = (aan, titel) => { if(huidig && huidig.x === x && k.isConnected){ k.disabled = !aan; k.title = titel; } };
+  try{ if(!DEMO) await zorgSbId(x); if(!x.sbid && !DEMO) return zet(false, 'Het interne nummer van deze melding is onbekend.');
+    const wf = await workflow(x); if(!huidig || huidig.x !== x) return; huidig.wf = wf;
+    const a = wf.acties.find(isHeropenActie);
+    zet(!!a, a ? `Zet de melding terug op In behandeling ICT (AFAS-actie "${a.naam}")` : 'Heropenen kan niet meer: de workflow van deze melding is in AFAS volledig afgerond.');
+  }catch(e){ zet(false, 'Workflow ophalen lukte niet: ' + e.message); }
+}
 async function laadWorkflow(x){
   const el = $('#actiebalk');
   if(!DEMO) await zorgSbId(x).catch(() => null);
@@ -3225,18 +3242,7 @@ async function laadSubjMeta(){
     datalek: zoek(/^datalek$/), kritiek: zoek(/^kritieke storing$/), extern: zoek(/^extern(e)? ticket/), opgelost: zoek(/storing opgelost|opgelost op|storing verholpen/), cc: zoek(/^cc$/), tel: zoek(/^(bereikbaarheid|bereikbaar|telefoon(nr|nummer)?)/), toel: zoek(/^toelichting$/),
     projStart: zoek(/(begin|start)\s*datum\s*project|project\s*(begin|start)/, f => /date/i.test(f.dataType || 'date')), projEind: zoek(/eind\s*datum\s*project|project\s*eind|^deadline/, f => /date/i.test(f.dataType || 'date')), alle});
 }
-// bij een afgehandelde melding is er geen Opslaan-knop: Bereikbaar wordt dan direct opgeslagen (Enter of klik ernaast)
 ['input', 'change'].forEach(ev => document.addEventListener(ev, e => { const t = e.target; if(t.type === 'date' || t.type === 'datetime-local') t.setAttribute('value', t.value); }, true));
-document.addEventListener('change', async e => { const t = e.target; if(!['d-tel', 'd-opgelost', 'd-ond', 'd-toel', 'd-extern'].includes(t.id) || !huidig || !huidig.x.afgesloten) return;
-  const x = huidig.x, v = t.value.trim(); if(v === t.dataset.oud) return;
-  try{ const m = await laadSubjMeta();
-    if(t.id === 'd-extern'){ if(!m.extern) throw new Error('veld Extern ticket niet gevonden in AFAS'); await zetVelden(x, {[veldCode(m.extern)]: v || null}); x.extern = v; t.dataset.oud = v; t.classList.remove('gewijzigd'); toast(v ? 'Extern ticket opgeslagen' : 'Extern ticket gewist'); return; }
-    if(t.id === 'd-ond'){ if(!v) return; await zetVelden(x, {Ds: v}); x.onderwerp = v; t.dataset.oud = v; t.classList.remove('gewijzigd'); toast('Onderwerp opgeslagen'); return; }
-    if(t.id === 'd-toel'){ await zetVelden(x, {[m.toel ? veldCode(m.toel) : 'SbTx']: v}); x.toelichting = v; toelCache.set(String(x.nr), v); t.dataset.oud = v; t.classList.remove('nieuw', 'gewijzigd'); toast('Toelichting opgeslagen'); return; }
-    if(t.id === 'd-opgelost'){ if(!m.opgelost) throw new Error('veld Storing opgelost niet gevonden in AFAS'); await zetVelden(x, {[veldCode(m.opgelost)]: v ? v + ':00' : null}); x.opgelost = v ? new Date(v) : null; t.dataset.oud = v; t.classList.remove('gewijzigd'); toast(v ? 'Storing opgelost: ' + fmtDatum(x.opgelost) + ' ' + fmtTijd(x.opgelost) + ' opgeslagen' : 'Tijdstip opgelost gewist'); return; }
-    if(!m.tel) throw new Error('veld Bereikbaarheid niet gevonden in AFAS'); await zetVelden(x, {[veldCode(m.tel)]: v || null});
-    x.tel = v; t.dataset.oud = v; t.classList.remove('gewijzigd'); toast(v ? 'Bereikbaar op ' + v + ' opgeslagen' : 'Bereikbaarheid gewist'); }
-  catch(err){ toast('Opslaan lukte niet: ' + err.message, true); } });
 async function zetVelden(x, w){
   const top = {}, obj = {};
   Object.entries(w).forEach(([c, v]) => { const i = c.indexOf('/'); if(i > 0) (obj[c.slice(0, i)] = obj[c.slice(0, i)] || {})[c.slice(i + 1)] = v; else top[c] = v; });
@@ -3793,7 +3799,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
   const act = actieIdx != null && huidig.wf ? huidig.wf.acties[actieIdx] : null;
   { const plek = tekst.match(/\[(vul aan|stand van zaken|datum)\]/); if(plek){ $('#d-fout').textContent = `Vul in de reactie eerst "${plek[0]}" aan.`; const t = $('#tekst'); if(t){ t.focus(); const i = t.value.indexOf(plek[0]); if(i >= 0) t.setSelectionRange(i, i + plek[0].length); } return; } }
   // verplicht bij opslaan: afdeling, locatie en status
-  { const leeg = [];
+  if(!x.afgesloten){ const leeg = [];
     if(!nieuweAfd && !String(x.afdeling || '').trim()) leeg.push(['Afdeling', '#d-afd']);
     const locBekend = heeftLocKolom || locCache.has(String(x.nr)), locNu = String(x.locatie || locCache.get(String(x.nr)) || '').trim();
     if(!nieuweLoc && locBekend && !locNu) leeg.push(['Locatie', '#d-loc']);
@@ -3878,7 +3884,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
       if(tekst && !notitie) logMail(x, x.melder || 'melder', 'reactie bij "' + n + '"', n);
       else logMail(x, 'volgens AFAS-sjabloon', 'stap "' + n + '"', n);
       if(sluitActie(act)) lok.afgesloten = true;
-      else { gok = true; lok.status = statusNa(act) || act.naam; } }
+      else { if(isHeropenActie(act)) lok.afgesloten = false; gok = true; lok.status = statusNa(act) || act.naam; } }
     // 6. alleen een reactie: via 'Reactie plaatsen' / 'Interne notitie'
     if(tekst && !reactieGedaan) await plaatsReactie();
     if(tekst){ lok.reactieDatum = new Date(); lok.reactieDoor = profiel.naam; if(notitie) opslag.set(NOTITIES, [notitieSleutel(x.sbid, tekst), ...(opslag.get(NOTITIES) || [])].slice(0, 500)); }
@@ -4365,6 +4371,8 @@ document.addEventListener('click', e => {
   const sn = e.target.closest('[data-snel]'); if(sn && huidig){ laatsteKnop = sn; snelActie(sn); return; }   // bv. Afhandelen: neemt afdeling en reactie mee
   if(e.target.closest('#k-actie')){ const v = $('#actie-keuze').value; if(v !== '') voerUit(+v); return; }
   if(e.target.closest('#k-reageer')){ voerUit(null); return; }
+  if(e.target.closest('#k-heropen') && huidig){ const k = $('#k-heropen'), wf = huidig.wf, i = wf ? wf.acties.findIndex(isHeropenActie) : -1; if(i < 0) return;
+    vraag(`Melding ${huidig.x.nr} heropenen?`, 'De melding gaat terug naar In behandeling ICT en komt weer in je open meldingen. Gewijzigde velden worden meteen mee opgeslagen.', 'Heropenen', 'Annuleren').then(ja => { if(ja){ laatsteKnop = k; opslaanAlles(i, false); } }); return; }
   if(e.target.closest('#k-opslaan')){ laatsteKnop = $('#k-opslaan'); opslaanAlles(null, false); return; }
   const ctb = e.target.closest('[data-chtab]'); if(ctb){ soortKeuze.toegewezen = ctb.dataset.chtab; opslag.set('mict-soort', soortKeuze); teken(); return; }
   const chw = e.target.closest('[data-chw]'); if(chw){ chWeergave = chw.dataset.chw; opslag.set('mict-chweergave', chWeergave); teken(); return; }
