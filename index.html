@@ -1319,7 +1319,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.15.2', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.15.3', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2829,7 +2829,7 @@ function vraagAfhandelReactie(x){
 }
 async function snelActie(knop){
   const x = huidig.x, soort = knop.dataset.snel; knop.disabled = true; const oud = knop.textContent; knop.innerHTML = '<span class="spin" style="display:inline-block;vertical-align:-3px;margin-right:6px;width:12px;height:12px"></span>' + esc(oud);
-  try{ await huidig.wfKlaar; }catch(e){}
+  try{ await (huidig.wfP || huidig.wfKlaar); if(!huidig.wfP) await huidig.wfKlaar; }catch(e){}
   if(!huidig || huidig.x !== x) return;
   const l = huidig.wf ? huidig.wf.acties : [], a = soort === 'oppak' ? l.find(isOppakActie) : l.find(sluitActie);
   if(!a){ knop.disabled = false; knop.textContent = oud; $('#d-fout').textContent = `De actie "${oud}" is bij deze melding (nu) niet beschikbaar in AFAS.`; return; }
@@ -3444,7 +3444,8 @@ async function laadWorkflow(x){
   if(!DEMO) await zorgSbId(x).catch(() => null);
   if(!x.sbid && !DEMO){ el.innerHTML = '<span class="fout">Het interne nummer (Dossieritem) van deze melding is niet gevonden in Helpdesk_PowerBI; bijwerken kan niet.</span>'; ($('#d-taak') || {}).textContent = '–'; return; }
   try{
-    const [wf, sm] = await Promise.all([vers(wfVoor, x.nr) || workflow(x), laadSubjMeta().catch(() => ({})), zoekZichtVeld()]); if(!huidig || huidig.x !== x) return; huidig.wf = wf;
+    const wfP = vers(wfVoor, x.nr) || workflow(x); if(huidig && huidig.x === x) huidig.wfP = wfP.then(w => { if(huidig && huidig.x === x && !huidig.wf){ huidig.wf = w; huidig.wfT = Date.now(); } return w; });   // Afhandelen/Toewijzen hoeven alleen hierop te wachten
+    const [wf, sm] = await Promise.all([wfP, laadSubjMeta().catch(() => ({})), zoekZichtVeld()]); if(!huidig || huidig.x !== x) return; huidig.wf = wf; huidig.wfT = Date.now();
     // de status van een Aanvraag ICT is geen veld maar wordt door de workflow gezet: statusacties horen dan in de statuskeuze
     const viaWf = !sm.status; huidig.statusViaWf = viaWf;
     const bijMij = wf.bij.some(benIk);
@@ -3980,12 +3981,14 @@ async function toewijsActie(x, ikZelf, wie){
   }
   return a.naam;
 }
-async function wfActie(x, kies, extra = {}, objecten = null){
-  // altijd de actuele taak ophalen: na een vorige actie kan de workflow al een stap verder zijn
-  const wf = await workflow(x), a = typeof kies === 'function' ? wf.acties.find(kies) : wf.acties.find(a => kies.test(a.naam));
-  if(!a) return null;
-  await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body: JSON.stringify({KnWorkflow:{Element:{Fields:{SbId: isNaN(+x.sbid) ? x.sbid : +x.sbid, WfNm:a.wf, TkNm:a.tk, AcNm:a.ac, ...extra}, ...(objecten ? {Objects: objecten} : {})}}})});
-  return a.naam;
+async function wfActie(x, kies, extra = {}, objecten = null, cache = null){
+  // snel: de workflow die bij het openen al geladen is (cache); lukt de stap daarmee niet, dan de actuele taak ophalen en opnieuw
+  const zoek = wf => typeof kies === 'function' ? wf.acties.find(kies) : wf.acties.find(a => kies.test(a.naam));
+  const stuur = a => afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body: JSON.stringify({KnWorkflow:{Element:{Fields:{SbId: isNaN(+x.sbid) ? x.sbid : +x.sbid, WfNm:a.wf, TkNm:a.tk, AcNm:a.ac, ...extra}, ...(objecten ? {Objects: objecten} : {})}}})});
+  const c = cache && zoek(cache);
+  if(c){ try{ await stuur(c); return c.naam; }catch(e){ if(/verplicht|required|mandatory/i.test(e.message)) throw e; } }
+  const a = zoek(await workflow(x)); if(!a) return null;
+  await stuur(a); return a.naam;
 }
 // reactie via de actie 'Reactie plaatsen' of 'Interne notitie' (met mail); bestaat die actie niet, dan een losse reactie (zonder mail)
 async function reactieMetMail(x, tekst, notitie = false, objecten = null){
@@ -4048,9 +4051,13 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
   if(act && soortActie(act) === 'plannen' && !(nieuwGepland && nieuwGepland.datum) && !x.gepland){ $('#d-fout').textContent = 'Kies eerst bij Gepland de datum van de werkzaamheden.'; return; }
   if(sluitActie(act) && !(laatsteKnop && laatsteKnop.dataset.afhandel !== undefined) && !(await vraag(`Melding ${x.nr} afhandelen?`, 'De melding wordt afgesloten' + (tekst ? ' en je reactie gaat mee naar de melder.' : '.'), 'Afhandelen', 'Annuleren'))) return;
   if(notitie && tekst){ await zoekZichtVeld(); if(!zichtVeld){ $('#d-fout').textContent = `Interne notitie kan niet worden geplaatst: de pagina weet niet hoe AFAS "intern" wil hebben (${zichtDiag}).`; return; } }
+  const achter = sluiten === true && !volgNr && !!act && sluitActie(act) && !bijlT.length;   // afhandelen: niet wachten op AFAS
+  const h0 = huidig, wfCache = huidig.wfT && Date.now() - huidig.wfT < 5 * 6e4 ? huidig.wf : null;
   huidig.bezig = true; document.querySelectorAll('#detail button:not(.navpijl), #detail select, #detail input').forEach(b => b.disabled = true); $('#d-fout').textContent = '';
   const voor = {afd:x.afdeling, wie:x.verantw, dicht:x.afgesloten, mijn:isMijn(x), nr:x.nr, ond:x.onderwerp, rect:$('#detail').getBoundingClientRect()};
   const lok = {}, gedaan = [], viaActie = [], zonderMail = []; let toewijsFout = '';
+  if(achter){ $('#detail').dataset.gewijzigd = ''; $('#detail').close(); onthoudLokaal(x, {afgesloten: true}, 60e3); tekenMetTelling(); toonVerplaatsing(voor);
+    toast(`Melding ${x.nr} wordt afgehandeld…`); }
   let gok = false, stap = '';
   try{
     if(!DEMO) await zorgSbId(x); if(!x.sbid) throw new Error('Het interne nummer van deze melding is onbekend.');
@@ -4119,7 +4126,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
       const ZONDER = 'Afgehandeld zonder reactie aan de melder.', eistReactie = () => (opslag.get('mict-wf-reactie-verplicht') || []).includes(norm(act.naam));
       const zonderOk = !tekst && sluitActie(act) && zichtVeld;
       let n;
-      try{ n = await wfActie(x, a => norm(a.naam) === norm(act.naam), tekst ? {Tx: tekst, ...zichtVelden(notitie)} : zonderOk && eistReactie() ? {Tx: ZONDER, ...zichtVelden(true)} : {}, tekst ? reactieObj : null); }
+      try{ n = await wfActie(x, a => norm(a.naam) === norm(act.naam), tekst ? {Tx: tekst, ...zichtVelden(notitie)} : zonderOk && eistReactie() ? {Tx: ZONDER, ...zichtVelden(true)} : {}, tekst ? reactieObj : null, !viaActie.length ? wfCache : null); }
       catch(e){
         if(!(zonderOk && !eistReactie() && /reactie|tekst|\btx\b|text/i.test(e.message) && /verplicht|required|mandatory|leeg|empty|invullen|ontbreekt/i.test(e.message))) throw e;
         opslag.set('mict-wf-reactie-verplicht', [...new Set([...(opslag.get('mict-wf-reactie-verplicht') || []), norm(act.naam)])]);
@@ -4137,7 +4144,8 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
     if(tekst){ const k = String(x.nr); wachtReactie.set(k, [...(wachtReactie.get(k) || []), {wie: profiel.naam, t: new Date(), tekst, intern: !!notitie, wacht: true}]); }
     reactieVoor.delete(String(x.nr)); berichtCache.delete(String(x.nr));
     $('#detail').dataset.gewijzigd = '';
-    if(sluiten && !volgNr){ const k = laatsteKnop && laatsteKnop.isConnected ? laatsteKnop : null; if(k){ bevestigOpslaan(k, bevestigTekst(k)); await wacht(matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : 800); } $('#detail').close(); }
+    if(achter) toast(`Melding ${x.nr} is afgehandeld ✓`);
+    else if(sluiten && !volgNr){ const k = laatsteKnop && laatsteKnop.isConnected ? laatsteKnop : null; if(k){ bevestigOpslaan(k, bevestigTekst(k)); await wacht(matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : 800); } $('#detail').close(); }
     logHistorie(x, gedaan.join(' · '));
     if(nieuwKritiek === true) meldKritiekAanAllen(x);
     const mail = viaActie.length ? ` · ✉ via AFAS-actie: ${[...new Set(viaActie)].join(', ')}` : '';
@@ -4145,10 +4153,12 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
     if(waarsch) toast(`Melding ${x.nr}: ${gedaan.join(' · ')}${mail}${waarsch}`, !toewijsFout);   // gewoon gelukt: het groene vinkje op de knop is genoeg
     if(toewijsFout) await vraag('Toewijzen: alleen het veld is aangepast', `Verantwoordelijke staat nu op ${lok.verantw}, maar de AFAS-workflowactie voor toewijzen gaf een fout. ${lok.verantw} krijgt daardoor geen taak en geen mail vanuit AFAS.\n\nAFAS-melding: ${toewijsFout}\n\nMaak een screenshot van dit venster voor de beheerder.`, 'OK', '');
     onthoudLokaal(x, lok, gok ? 20e3 : undefined); tekenMetTelling();
-    if(volgNr) openDetail(volgNr); else if(sluiten) toonVerplaatsing(voor); else { openDetail(x.nr); bevestigOpslaan(); }   // Opslaan: melding opnieuw tonen met de nieuwe stand
+    if(volgNr) openDetail(volgNr); else if(sluiten){ if(!achter) toonVerplaatsing(voor); } else { openDetail(x.nr); bevestigOpslaan(); }   // Opslaan: melding opnieuw tonen met de nieuwe stand
     naAchtergrond();
   }catch(e){
     const al = gedaan.length ? `Al doorgevoerd: ${gedaan.join(', ')}. ` : '';
+    if(achter){ onthoudLokaal(x, {...lok, afgesloten: false}); tekenMetTelling(); h0.bezig = false;
+      toast(`Afhandelen van melding ${x.nr} lukte niet: ${al}${e.message}`, true); return; }
     $('#d-fout').textContent = `${al}Mislukt bij ${stap}: ${e.message}`;
     if(gedaan.length) onthoudLokaal(x, lok);
     huidig.bezig = false; document.querySelectorAll('#detail button, #detail select, #detail input').forEach(b => b.disabled = false);
