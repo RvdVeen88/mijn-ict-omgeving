@@ -562,7 +562,12 @@ textarea.mist{border-color:var(--oranje)}
 .mailregel b{font-weight:600}
 .kbpaneel{position:fixed;z-index:90;left:92px;top:16px;bottom:16px;width:min(440px,calc(100vw - 110px));display:flex;flex-direction:column;gap:8px;padding:14px 14px 10px;background:var(--vlak);border-radius:18px;box-shadow:0 14px 40px rgba(3,31,77,.22)}
 .kbpaneel[hidden]{display:none}
-.kbpaneel.inmelding{position:absolute;left:0;right:0;top:auto;bottom:calc(100% + 8px);width:auto;max-height:min(460px,60vh);z-index:30}
+.kbpaneel.naastlade{position:fixed;top:16px;bottom:16px;z-index:40;animation:kbIn .18s ease-out}
+@keyframes kbIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
+dialog.lade:has(> .kbpaneel.naastlade:not([hidden])){overflow:visible}
+.kbkeuze{position:fixed;z-index:60;background:var(--vlak);border-radius:14px;box-shadow:0 12px 34px rgba(3,31,77,.28);padding:6px;display:flex;flex-direction:column;min-width:220px}
+.kbkeuze small{font-size:11.5px;color:var(--grijs);padding:4px 10px 6px;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kbkeuze button{border:0;background:transparent;font:inherit;font-size:13.5px;text-align:left;padding:8px 10px;border-radius:9px;color:var(--inkt);cursor:default}.kbkeuze button:hover,.kbkeuze button:focus{background:var(--lichtblauw-2);outline:0}
 .kbkop{display:flex;align-items:center;justify-content:space-between}.kbkop h4{margin:0;font-size:15px;color:var(--blauw)}
 .kbkop .sluit{border:0;background:transparent;font-size:20px;color:var(--grijs);line-height:1;padding:2px 6px}
 .kbzoek{display:flex;align-items:center;gap:8px;background:var(--achtergrond);border-radius:999px;padding:7px 12px}.kbzoek svg{width:15px;height:15px;color:var(--grijs);flex:none}
@@ -1312,7 +1317,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.14.2', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.15', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2186,6 +2191,7 @@ function plaatsTdMenu(){
   if(!naarZij && kop.parentElement === zij) document.querySelector('.todo-indeling').prepend(kop);
 }
 SMAL.addEventListener('change', () => plaatsTdMenu());
+$('#detail').addEventListener('close', () => { const p = $('#kbpaneel'); if(p && p.parentElement === $('#detail') && !p.hidden) kbDicht(); });
 function tekenNav(){
   const mini = id => `<span class="minischak" role="group" aria-label="Mij of alles">${['mij','alles'].map(v => `<span role="button" tabindex="0" data-mijalles="${id}" data-v="${v}" aria-pressed="${(v === 'mij') === schuifAan(id)}" title="${v === 'mij' ? 'Alleen mijn meldingen en wat bij niemand ligt' : 'Alle meldingen'}">${v === 'mij' ? 'Mij' : 'Alle'}</span>`).join('')}</span>`;
   const it = (id, t, n, o = {}) => { const ong = o.ongelezen ? open().filter(x => (x._sg || []).some(s => s.code === 'ongelezen')).length : 0;
@@ -2994,6 +3000,7 @@ const isoDT = d => d ? lokaalIso(d).slice(0, 16) : '';
 const opgelostRij = x => `<span class="oprij"${x.kritiek || x.opgelost ? '' : ' hidden'}>Storing opgelost</span><b class="oprij"${x.kritiek || x.opgelost ? '' : ' hidden'}><input type="datetime-local" id="d-opgelost" class="datumkeuze" value="${isoDT(x.opgelost)}" data-oud="${isoDT(x.opgelost)}" title="Datum en tijd waarop de kritieke storing exact is verholpen (rapportage)"></b>`;
 document.addEventListener('change', e => { if(e.target.id !== 'd-kritiek') return; document.querySelectorAll('#detail .oprij').forEach(el => el.hidden = !e.target.checked && !$('#d-opgelost').value); });
 function openDetail(nr){
+  setTimeout(() => { const p = $('#kbpaneel'); if(p && !p.hidden && p.classList.contains('naastlade')){ KB.inMelding = true; kbSuggesties(); kbTeken(); } }, 0);
   navNu = String(nr); document.querySelectorAll('#detail .navpijl').forEach(b => b.disabled = false);
   const x = items.find(y => String(y.nr) === String(nr)); if(!x) return; huidig = {x, wf:null};
   x._sg = signalen(x); markeerGelezen(x);
@@ -3024,7 +3031,7 @@ function openDetail(nr){
     <div class="composer">
       <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
       <div class="klaarzet" id="klaar-reactie"></div>
-      <div class="onder"><button type="button" class="linkknop paperclip" id="k-clip" title="Bestand meesturen met deze reactie. Je kunt ook een bestand op het reactievak slepen of een schermafbeelding plakken met Ctrl+V.">${CLIP}Bijlage</button><input type="file" id="f-reactie" multiple hidden><button type="button" class="linkknop paperclip" id="k-kb" title="Instructie uit de kennisbank meesturen: als link in je reactie of als bijlage. Je kunt een instructie ook op het reactievak slepen."><svg class="kbico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 4.9 6.6 4.4 3 5v13c3.6-.6 7 0 9 1.6"/><path d="M12 6.5c2-1.6 5.4-2.1 9-1.5v13c-3.6-.6-7 0-9 1.6z"/><path d="M12 6.5v13.1"/><path d="M5.8 9c1.6-.2 3 .1 4 .6M5.8 12.2c1.6-.2 3 .1 4 .6M14.2 9.6c1-.5 2.4-.8 4-.6M14.2 12.8c1-.5 2.4-.8 4-.6"/></svg>Kennisbank</button><label class="vink notitie" data-uitleg="Alleen zichtbaar voor de afdeling ICT. De melder ziet deze notitie niet en krijgt geen mail."><input type="checkbox" id="notitie"> Interne notitie</label>
+      <div class="onder"><button type="button" class="linkknop paperclip" id="k-clip" title="Bestand meesturen met deze reactie. Je kunt ook een bestand op het reactievak slepen of een schermafbeelding plakken met Ctrl+V.">${CLIP}Bijlage</button><input type="file" id="f-reactie" multiple hidden><label class="vink notitie" data-uitleg="Alleen zichtbaar voor de afdeling ICT. De melder ziet deze notitie niet en krijgt geen mail."><input type="checkbox" id="notitie"> Interne notitie</label>
         <select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select>
         <span class="hint" id="notitie-uitleg"></span></div>
     </div>
@@ -4752,7 +4759,11 @@ async function sluitDialoog(d){
   let begon = false;
   d.addEventListener('mousedown', e => { begon = e.target === d; });
   d.addEventListener('click', e => { if(!begon || e.target !== d) return; const r = d.getBoundingClientRect();
-    if(e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) naastLade(d, e.clientX, e.clientY); });
+    if(e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom){
+      const kb = $('#kb-knop').getBoundingClientRect();   // Kennisbank in de balk: melding blijft open, kennisbank ernaast
+      if(d.id === 'detail' && e.clientX >= kb.left && e.clientX <= kb.right && e.clientY >= kb.top && e.clientY <= kb.bottom){ const p = $('#kbpaneel'); if(p && !p.hidden && p.parentElement === d) kbDicht(); else kbOpen(true); return; }
+      if(d.id === 'detail' && $('#kbpaneel') && !$('#kbpaneel').hidden && $('#kbpaneel').parentElement === d){ const k = $('#kbpaneel').getBoundingClientRect(); if(e.clientX >= k.left && e.clientX <= k.right && e.clientY >= k.top && e.clientY <= k.bottom) return; }
+      naastLade(d, e.clientX, e.clientY); } });
   d.addEventListener('cancel', e => { e.preventDefault(); sluitDialoog(d); });
 });
 /* ---- zoeken in alle meldingen (kopregel): treffers direct openen; in een lijst filtert het ook die lijst ---- */
@@ -4956,11 +4967,12 @@ function kbOpen(inMelding){
     let t = 0; $('#kb-zoek').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { KB.q = e.target.value.trim(); kbLaad(); }, 300); }); }
   KB.inMelding = !!inMelding;
   if(KB.inMelding && (KB.q || KB.pad.length)){ KB.q = ''; KB.pad = []; KB.l = null; $('#kb-zoek').value = ''; }   // vanuit een melding: schoon beginnen, met suggesties
-  const host = inMelding ? document.querySelector('#detail .composer') : document.body;
+  const host = inMelding && $('#detail').open ? $('#detail') : document.body;
   if(p.parentElement !== host) host.appendChild(p);
-  p.classList.toggle('inmelding', KB.inMelding);
-  p.querySelector('.kbtip').textContent = KB.inMelding ? 'Tip: sleep een instructie op het reactievak om de link mee te sturen.' : 'Open een melding om een instructie als link of bijlage mee te sturen.';
-  p.hidden = false; $('#kb-knop').setAttribute('aria-pressed', !KB.inMelding);
+  p.classList.toggle('naastlade', host !== document.body);
+  if(host !== document.body){ const l = $('#detail').getBoundingClientRect().left, rk = $('#kb-knop').getBoundingClientRect(); p.style.left = (rk.right + 14) + 'px'; p.style.width = Math.max(300, Math.min(460, l - rk.right - 30)) + 'px'; } else { p.style.left = ''; p.style.width = ''; }
+  p.querySelector('.kbtip').textContent = KB.inMelding ? 'Sleep een instructie naar je reactie en kies: als link of als bijlage.' : 'Open een melding om een instructie als link of bijlage mee te sturen.';
+  p.hidden = false; $('#kb-knop').setAttribute('aria-pressed', true);
   if(!KB.l && !KB.bezig) kbLaad(); else kbTeken();
   if(KB.inMelding) kbSuggesties();
   setTimeout(() => $('#kb-zoek').focus(), 30);
@@ -4981,8 +4993,7 @@ async function kbAlsBijlage(d, knop){
 }
 document.addEventListener('click', async e => {
   if(e.target.closest('#kb-knop')){ const p = $('#kbpaneel'); if(p && !p.hidden && !KB.inMelding) kbDicht(); else kbOpen(false); return; }
-  if(e.target.closest('#k-kb')){ const p = $('#kbpaneel'); if(p && !p.hidden && KB.inMelding) kbDicht(); else kbOpen(true); return; }
-  if(!e.target.closest('#kbpaneel')){ const p = $('#kbpaneel'); if(p && !p.hidden && !e.target.closest('#kb-knop, #k-kb, #vraag')) kbDicht(); return; }
+  if(!e.target.closest('#kbpaneel')){ const p = $('#kbpaneel'); if(p && !p.hidden && !p.classList.contains('naastlade') && !e.target.closest('#kb-knop, #k-kb, #vraag')) kbDicht(); return; }
   if(e.target.closest('[data-kbsluit]')){ kbDicht(); return; }
   if(e.target.closest('[data-kbkoppel]')){ try{ await msKoppel('openid offline_access User.Read Tasks.ReadWrite Files.Read.All', KB.sleutel()); KB.root = null; kbLaad(); if(KB.inMelding) kbSuggesties(); }catch(err){ toast('Koppelen lukte niet: ' + err.message, true); } return; }
   const n = e.target.closest('[data-kbnaar]'); if(n){ KB.pad = KB.pad.slice(0, +n.dataset.kbnaar); kbLaad(); return; }
@@ -5001,8 +5012,18 @@ const kbSleep = e => e.dataTransfer && [...(e.dataTransfer.types || [])].include
   document.querySelectorAll('.kberover').forEach(n => n.classList.remove('kberover')); if(!c) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; (e.target.closest('#tekst') || c).classList.add('kberover'); }));
 document.addEventListener('drop', e => { if(!kbSleep(e)) return; const c = e.target.closest && e.target.closest('#detail .composer'); if(!c) return; e.preventDefault();
   document.body.classList.remove('kbsleept'); document.querySelectorAll('.kberover').forEach(n => n.classList.remove('kberover'));
-  const d = kbItems.get(e.dataTransfer.getData('application/x-kb')); if(!d) return;
-  if(e.target.closest('#tekst')){ const t = $('#tekst'); t.focus(); kbLinkErin(d); } else kbAlsBijlage(d); });
+  const d = kbItems.get(e.dataTransfer.getData('application/x-kb')); if(d) kbKeuze(d, e.clientX, e.clientY); });
+// na loslaten: klein keuzemenu op de plek van de muis
+function kbKeuze(d, x, y){
+  let m = $('#kbkeuze'); if(m) m.remove();
+  $('#detail').insertAdjacentHTML('beforeend', `<div class="kbkeuze" id="kbkeuze" role="menu"><small>${esc(kbTitel(d))}</small><button type="button" role="menuitem" data-kbk="link">🔗 Als link in de reactie</button><button type="button" role="menuitem" data-kbk="bijl">📎 Als bijlage meesturen</button></div>`);
+  m = $('#kbkeuze'); m.style.left = Math.min(innerWidth - m.offsetWidth - 12, x) + 'px'; m.style.top = Math.min(innerHeight - m.offsetHeight - 12, y) + 'px';
+  const weg = () => { m.remove(); document.removeEventListener('mousedown', buiten, true); document.removeEventListener('keydown', esc_, true); };
+  const buiten = ev => { if(!ev.target.closest('#kbkeuze')) weg(); }, esc_ = ev => { if(ev.key === 'Escape'){ ev.preventDefault(); ev.stopPropagation(); weg(); } };
+  setTimeout(() => { document.addEventListener('mousedown', buiten, true); document.addEventListener('keydown', esc_, true); }, 0);
+  m.onclick = ev => { const b = ev.target.closest('[data-kbk]'); if(!b) return; weg(); if(b.dataset.kbk === 'link') kbLinkErin(d); else kbAlsBijlage(d); };
+  m.querySelector('button').focus();
+}
 async function graphAlles(pad){ let uit = [], url = pad; while(url){ const j = await graph(url); uit = uit.concat(j.value || []); url = j['@odata.nextLink'] || ''; } return uit; }
 /* ---- vertalen tussen To Do en SubmIT ---- */
 const LINK = 'https://rvdveen88.github.io/mijn-ict-omgeving/';
