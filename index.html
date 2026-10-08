@@ -619,6 +619,8 @@ input.datumkeuze.gewijzigd{color:var(--grijs)}
 input:is([type=date],[type=datetime-local]):is([value=""],:not([value])):not(:focus)::-webkit-datetime-edit{color:transparent}   /* leeg = leeg, geen dd-mm-jjjj */
 input:is([type=date],[type=datetime-local]):is([value=""],:not([value])):not(:focus){color:transparent}
 .onderbalk{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-top:1px solid var(--lijn);padding-top:14px}
+#d-fout:empty{display:none}
+.onderbalk + .fout + .tijdlijn,.onderbalk + .tijdlijn{margin-top:6px}
 .onderbalk .actiebalk{flex:1;border:0;padding:0;margin:0}
 .knop.opgeslagen{background:var(--groen);border-color:var(--groen);color:#fff;opacity:1;animation:opPop .4s cubic-bezier(.3,1.6,.5,1)}
 .knop.opgeslagen svg{width:16px;height:16px;margin-right:6px;vertical-align:-3px;stroke-dasharray:24;stroke-dashoffset:24;animation:opVink .45s ease-out .1s forwards}
@@ -1317,7 +1319,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.15', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.15.2', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1795,8 +1797,13 @@ const bekendSleutel = () => BEKEND_BASIS + (typeof sub !== 'undefined' && sub ? 
 function ongelezen(x){
   if(!profiel || x.afgesloten || !isMijn(x)) return null;
   const bekend = takenKlaar ? opslag.get(bekendSleutel()) : null;
-  if(bekend && !bekend.includes(String(x.nr)) && !gelezen[x.nr]) return {wat:'toegewezen', wie:x.wijzigingDoor || '', t:x.statusDatum || x.aangemaakt};
-  const sinds = gelezen[x.nr] || gelezen._start;
+  // 'Nieuw voor jou' alleen als het écht nieuw is: recent bij jou gekomen (laatste 3 dagen, en ná het begin van het bijhouden),
+  // nog niet geopend, en jij hebt er zelf nog niet op gereageerd of iets aan gewijzigd
+  if(bekend && !bekend.includes(String(x.nr)) && !gelezen[x.nr]){ const t = +(x.statusDatum || x.aangemaakt || 0), start = +(opslag.get(bekendSleutel() + '-start') || 0);
+    const zelf = (x.reactieDoor && benIk(x.reactieDoor)) || (x.wijzigingDoor && benIk(x.wijzigingDoor)) || (x.ictReactie && ictReactieBekend(x.nr) && x.reactieDoor && benIk(x.reactieDoor));
+    if(t && t > start && Date.now() - t < 3 * DAG && !zelf) return {wat:'toegewezen', wie:x.wijzigingDoor || '', t}; }
+  // wat vóór je eigen laatste reactie gebeurde heb je kennelijk gezien
+  const sinds = Math.max(gelezen[x.nr] || gelezen._start, x.reactieDoor && benIk(x.reactieDoor) && x.reactieDatum ? +x.reactieDatum : 0);
   if(x.reactieDatum && +x.reactieDatum > sinds && x.reactieDoor && !benIk(x.reactieDoor)) return {wat:'reactie', wie:x.reactieDoor, t:x.reactieDatum};
   if(x.statusDatum && +x.statusDatum > sinds && x.wijzigingDoor && !benIk(x.wijzigingDoor)) return {wat:'wijziging', wie:x.wijzigingDoor, t:x.statusDatum};
   return null;
@@ -2447,7 +2454,7 @@ function teken(){
   pasLokaalToe();
   { const z = $('#f-zoek'), td = tab === 'todo'; z.placeholder = td ? 'Zoek in je to-do’s…' : 'Zoek op nummer, onderwerp of naam…'; z.setAttribute('aria-label', td ? 'Zoeken in to-do’s' : 'Zoeken in meldingen'); if(td) $('#zoekres').hidden = true; }
   $('#mijalles-top').hidden = true;   // vervangen door de schakelbare koppen in het menu
-  if(takenKlaar && items.length && !opslag.get(bekendSleutel())) opslag.set(bekendSleutel(), items.filter(isMijn).map(x => String(x.nr)));   // eerste keer (na het laden van je taken): wat er nu staat is al bekend
+  if(takenKlaar && items.length && !opslag.get(bekendSleutel())){ opslag.set(bekendSleutel(), items.filter(isMijn).map(x => String(x.nr))); opslag.set(bekendSleutel() + '-start', Date.now()); }   // eerste keer (na het laden van je taken): wat er nu staat is al bekend
   zoekStoringen(); items.forEach(x => x._sg = signalen(x));
   $('#ik span').textContent = profiel.naam; $('#ik').title = profiel.naam + ' · menu'; zetIkAvatar();
   tekenNav();
@@ -3024,10 +3031,10 @@ function openDetail(nr){
       <span id="bijl-lijst" class="bijlrij"><span class="hint">ophalen…</span></span><span class="klaarzet" id="klaar-ticket"></span>
       ${x.afgesloten ? '' : '<input type="file" id="f-ticket" multiple hidden>'}</div>
     
-    ${x.afgesloten ? `<div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3></div>
-    <div class="onderbalk"><div class="actiebalk" id="actiebalk"><span class="hint">Deze melding is afgehandeld.</span></div>
+    ${x.afgesloten ? `<div class="onderbalk"><div class="actiebalk" id="actiebalk"><span class="hint">Deze melding is afgehandeld.</span></div>
       <span class="opslaanknoppen"><button type="button" class="knop" id="k-heropen" disabled title="Workflow ophalen…">Heropenen</button><button type="button" class="knop vol" id="k-opslaan" disabled title="Er is nog niets om op te slaan">Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
-    <p class="fout" id="d-fout"></p>` : `
+    <p class="fout" id="d-fout"></p>
+    <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3></div>` : `
     <div class="composer">
       <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
       <div class="klaarzet" id="klaar-reactie"></div>
@@ -3035,11 +3042,11 @@ function openDetail(nr){
         <select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select>
         <span class="hint" id="notitie-uitleg"></span></div>
     </div>
-    <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>
     <div class="onderbalk"><div class="actiebalk" id="actiebalk">${st === 0 ? '<button class="knop" data-snel="oppak" title="Kan meteen: wacht zo nodig even op de workflow uit AFAS">Toewijzen aan mij</button>' : ''}</div>
       <span class="mailvooraf" id="mailvooraf" hidden></span>
       <span class="opslaanknoppen"><button type="button" class="knop" id="k-afhandel" data-afhandel title="Status op Afgehandeld; je reactie (als je die schreef) gaat mee naar de melder">Afhandelen</button><button type="button" class="knop vol" id="k-opslaan" title="Alles doorvoeren; de melding blijft open (Ctrl+Enter). Naar de vorige of volgende melding ga je met de pijltjes."><span class="opslaanmail" hidden>✉ </span>Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
-    <p class="fout" id="d-fout"></p>`}`;
+    <p class="fout" id="d-fout"></p>
+    <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>`}`;
   if(x.iu){   // in- en uitdienst: alleen wat bij dit type hoort, zoals in AFAS
     ['#d-inst', '#d-extern', '#d-tel', '#d-loc', '#d-afd', '#d-gepland', '#d-cc', '#d-kritiek', '#d-opgelost'].forEach(sel => { const el = $(sel); const b = el && el.closest('b'); if(b){ const sp = b.previousElementSibling; if(sp && sp.tagName === 'SPAN') sp.remove(); b.remove(); } });
     const lbl = [...document.querySelectorAll('#detail .kaart2 > span')].find(sp => sp.textContent.trim() === 'Melder'); if(lbl) lbl.textContent = 'Instuurder';
@@ -3647,7 +3654,7 @@ async function nieuweMelding(){
     <section class="nstap"><h3><i>1</i>Wie meldt het?</h3>
       <div class="drie">
         <label>Melder<input name="melder" id="n-melder" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Zoek op naam of nummer"><input type="hidden" name="melderId"><span class="hint" id="n-melder-hint">Medewerkers ophalen…</span></label>
-        <label><span>Bereikbaar op <i class="verpl" title="Verplicht: altijd uitvragen">*</i></span><input name="tel" id="n-tel" inputmode="tel" autocomplete="off" placeholder="Toestel of 06" title="Vraag altijd waar de melder nu bereikbaar is; dat kan per keer verschillen"></label>
+        <label><span>Bereikbaar op</span><input name="tel" id="n-tel" inputmode="tel" autocomplete="off" placeholder="Toestel of 06" title="Vraag altijd waar de melder nu bereikbaar is; dat kan per keer verschillen"></label>
         ${m.loc ? `<label><span>Locatie <i class="verpl" title="Verplicht">*</i></span>${keuze(m.loc, 'loc', '')}</label>` : '<span></span>'}
       </div></section>
     <section class="nstap"><h3><i>2</i>Wat is er aan de hand?</h3>
@@ -3678,7 +3685,6 @@ async function maakMelding(){
   if(!ond){ fout.textContent = 'Vul een onderwerp in.'; f.ond.focus(); return; }
   const w = {StId: isNaN(+m.stId) ? m.stId : +m.stId, Ds: ond};
   const tel = f.tel ? f.tel.value.trim() : '';
-  if(!tel){ fout.textContent = 'Vul in waar de melder nu bereikbaar is (altijd navragen).'; f.tel.focus(); return; }
   // geen apart veld in AFAS: dan bovenaan de toelichting
   const tx = f.tx.value.trim(); if(tx || (tel && !m.tel)) w.SbTx = (!m.tel && tel ? `Bereikbaar op: ${tel}\n\n` : '') + tx;
   if(m.tel && tel) w[veldCode(m.tel)] = tel;
@@ -4109,7 +4115,16 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
     // 5. gekozen workflowstap (status, afhandelen, oppakken), met de reactie erbij
     if(act && viaActie.some(v => norm(v) === norm(act.naam))){ gedaan.push('status ' + toonStatus(statusNa(act))); lok.status = statusNa(act) || lok.status; gok = true; }   // al uitgevoerd bij toewijzen/inplannen
     else if(act){ stap = act.naam;
-      const n = await wfActie(x, a => norm(a.naam) === norm(act.naam), tekst ? {Tx: tekst, ...zichtVelden(notitie)} : {}, tekst ? reactieObj : null);
+      // zonder reactie, maar AFAS eist bij deze actie een reactie: een korte interne notitie (de melder ziet die niet); onthouden, zodat het de volgende keer meteen goed gaat
+      const ZONDER = 'Afgehandeld zonder reactie aan de melder.', eistReactie = () => (opslag.get('mict-wf-reactie-verplicht') || []).includes(norm(act.naam));
+      const zonderOk = !tekst && sluitActie(act) && zichtVeld;
+      let n;
+      try{ n = await wfActie(x, a => norm(a.naam) === norm(act.naam), tekst ? {Tx: tekst, ...zichtVelden(notitie)} : zonderOk && eistReactie() ? {Tx: ZONDER, ...zichtVelden(true)} : {}, tekst ? reactieObj : null); }
+      catch(e){
+        if(!(zonderOk && !eistReactie() && /reactie|tekst|\btx\b|text/i.test(e.message) && /verplicht|required|mandatory|leeg|empty|invullen|ontbreekt/i.test(e.message))) throw e;
+        opslag.set('mict-wf-reactie-verplicht', [...new Set([...(opslag.get('mict-wf-reactie-verplicht') || []), norm(act.naam)])]);
+        n = await wfActie(x, a => norm(a.naam) === norm(act.naam), {Tx: ZONDER, ...zichtVelden(true)}, null); }
+      if(zonderOk && eistReactie()) gedaan.push('interne notitie (AFAS eist een reactie)');
       if(!n) throw new Error(`De actie "${act.naam}" is niet (meer) beschikbaar bij deze melding.`);
       viaActie.push(n); reactieGedaan = !!tekst; gedaan.push(n); if(tekst && bijlR.length){ klaar.reactie = []; gedaan.push(`${bijlR.length} bijlage${bijlR.length === 1 ? '' : 'n'} bij de reactie`); }
       if(tekst && !notitie) logMail(x, x.melder || 'melder', 'reactie bij "' + n + '"', n);
