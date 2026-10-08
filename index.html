@@ -1319,7 +1319,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.15.3', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.15.4', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2737,11 +2737,11 @@ function mailsVoor(x){
 const mailOnderweg = new Set();   // mails die 'verzenden…' toonden: krijgen een animatie als het vinkje komt
 const mailRegel = r => r.alleenAfas
   ? `<div class="mailregel" title="${esc(r.afas.naar)}"><span class="mailicoon">✉</span><span>Mail naar <b>${esc(r.afas.naam || r.afas.naar || 'onbekend')}</b>${r.afas.sjabloon ? ' · ' + esc(r.afas.sjabloon.replace(/^tickets ict\s*-\s*/i, '').toLowerCase()) : ''}</span><small>${fmtDatum(r.t)} ${fmtTijd(r.t)}</small>${mailVink(r.afas)}</div>`
-  : `<div class="mailregel${r.aan === 'GEEN mail' ? ' geen' : ''}" title="Verstuurd door AFAS (noreply@dcklinieken.nl) via de actie '${esc(r.actie)}', uitgevoerd door ${esc(r.door || '')} vanuit SubmIT"><span class="mailicoon">${r.aan === 'GEEN mail' ? '!' : '✉'}</span><span>${r.aan === 'GEEN mail' ? '<b>Geen mail verstuurd</b>' : `Mail ${/^volgens/.test(r.aan) ? esc(r.aan) : `naar <b>${esc(r.aan)}</b>`}`} · ${esc(r.wat)}</span><small>${fmtDatum(r.t)} ${fmtTijd(r.t)} · actie ${esc(r.actie)}</small>${r.afas ? mailVink(r.afas).replace('class="mailcheck', `class="mailcheck${mailOnderweg.delete(+r.t) ? ' pop' : ''}`) : r.onderweg && mailOnderweg.add(+r.t) ? '<span class="mailcheck wacht" title="AFAS verstuurt de mail via de wachtrij; dit ververst vanzelf">verzenden…</span>' : r.nietGevonden ? '<span class="mailcheck mis" title="AFAS heeft rond dit tijdstip geen mail voor deze melding verstuurd">✗ niet gevonden in AFAS</span>' : ''}</div>`;
+  : `<div class="mailregel${r.aan === 'GEEN mail' ? ' geen' : ''}" title="Verstuurd door AFAS (noreply@dcklinieken.nl) via de actie '${esc(r.actie)}', uitgevoerd door ${esc(r.door || '')} vanuit SubmIT"><span class="mailicoon">${r.aan === 'GEEN mail' ? '!' : '✉'}</span><span>${r.aan === 'GEEN mail' ? '<b>Geen mail verstuurd</b>' : `Mail ${/^volgens/.test(r.aan) ? esc(r.aan) : `naar <b>${esc(r.aan)}</b>`}`} · ${esc(String(r.wat || '').replace(/^reactie bij "(afhandelen|ticket sluiten)"$/i, 'afhandelmail met je reactie erin').replace(/^reactie bij "([^"]+)"$/, 'mail bij "$1" met je reactie erin'))}</span><small>${fmtDatum(r.t)} ${fmtTijd(r.t)} · actie ${esc(r.actie)}</small>${r.afas ? mailVink(r.afas).replace('class="mailcheck', `class="mailcheck${mailOnderweg.delete(+r.t) ? ' pop' : ''}`) : r.onderweg && mailOnderweg.add(+r.t) ? '<span class="mailcheck wacht" title="AFAS verstuurt de mail via de wachtrij; dit ververst vanzelf">verzenden…</span>' : r.nietGevonden ? '<span class="mailcheck mis" title="AFAS heeft rond dit tijdstip geen mail voor deze melding verstuurd">✗ niet gevonden in AFAS</span>' : ''}</div>`;
 // twee of meer mails achter elkaar: één regel die je openklapt (de reacties zijn de hoofdzaak); staat er iets niet goed in, dan open
 const bundelMails = l => { const uit = []; let g = [];
   const sluit = () => { if(g.length > 1) uit.push({groep: g}); else uit.push(...g); g = []; };
-  l.forEach(r => { if(r.mail) g.push(r); else { sluit(); uit.push(r); } }); sluit(); return uit; };
+  l.forEach(r => { if(r.mail){ if(g.length && Math.abs(+g[g.length - 1].t - +r.t) > 10 * 6e4) sluit(); g.push(r); } else { sluit(); uit.push(r); } }); sluit(); return uit; };
 const mailOpen = new Set();
 function mailGroep(g){
   const sleutel = String(+g[g.length - 1].t), namen = [...new Set(g.map(r => r.alleenAfas ? (r.afas.naam || r.afas.naar) : r.aan).filter(n => n && !/^volgens|GEEN mail/.test(n)))];
@@ -2762,7 +2762,9 @@ async function toonReacties(x){
     const nr = String(x.nr), wacht = (wachtReactie.get(nr) || []).filter(w => Date.now() - w.t < 10 * 60e3 && !l.some(r => benIk(r.wie) && norm(r.tekst) === norm(w.tekst)));
     wachtReactie.set(nr, wacht);
     const mails = mailsVoor(x);
-    const alles = [...l, ...wacht, ...mails].sort((a, b) => (a.t || 0) - (b.t || 0));
+    const reactiesT = [...l, ...wacht].filter(r => r.t), bij = m => { const r = reactiesT.filter(r => Math.abs(+r.t - +m.t) < 10 * 6e4).sort((a, b) => Math.abs(+a.t - +m.t) - Math.abs(+b.t - +m.t))[0]; return r ? +r.t - 1 : +m.t || 0; };
+    mails.forEach(m => { m._s = bij(m); });   // een mail staat direct onder de reactie waar hij bij hoort, ook als AFAS hem een paar seconden eerder/later stempelt
+    const alles = [...l, ...wacht, ...mails].sort((a, b) => (a._s ?? (+a.t || 0)) - (b._s ?? (+b.t || 0)));
     el.innerHTML = `<h3>Reacties (${l.length + wacht.length})${mails.length ? ` · ✉ ${mails.length} mail${mails.length === 1 ? '' : 's'}` : ''} <small class="hint">nieuwste bovenaan</small></h3>` + (alles.length ? bundelMails([...alles].reverse()).map(r => r.groep ? mailGroep(r.groep) : r.mail ? mailRegel(r) : `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''} ${r.intern ? 'intern' : ''} ${r.wacht ? 'wacht' : ''}"${r.rid ? ` data-rid="${esc(r.rid)}"` : ''}>${avatar(r.wie)}
       <div class="wolk"><div class="kopje"><b>${esc(r.wie || 'Onbekend')}</b><span>${r.t ? fmtDatum(r.t) + ' ' + fmtTijd(r.t) : ''}</span>${r.wacht ? '<span class="hint">wordt verwerkt…</span>' : ''}${r.intern ? '<span class="internlabel">Intern</span>' : ''}</div><div class="tekst">${metLinks(r.tekst)}</div></div></div>`).join('') : `<p class="hint">Nog geen reacties.</p>${DEMO ? '' : `<p class="hint" style="font-size:11.5px;opacity:.7">${esc(reactieDiag)}</p>`}`);
     if(!DEMO && reactieKol && !reactieKol.zicht) el.insertAdjacentHTML('beforeend', `<p class="hint" style="font-size:11.5px">Of een reactie intern is, staat niet in ${esc(INST.connReacties)}; alleen jouw eigen interne notities zijn herkend. Laat het veld "Reactie zichtbaar" aan die GetConnector toevoegen.</p>`);
@@ -4134,7 +4136,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
       if(zonderOk && eistReactie()) gedaan.push('interne notitie (AFAS eist een reactie)');
       if(!n) throw new Error(`De actie "${act.naam}" is niet (meer) beschikbaar bij deze melding.`);
       viaActie.push(n); reactieGedaan = !!tekst; gedaan.push(n); if(tekst && bijlR.length){ klaar.reactie = []; gedaan.push(`${bijlR.length} bijlage${bijlR.length === 1 ? '' : 'n'} bij de reactie`); }
-      if(tekst && !notitie) logMail(x, x.melder || 'melder', 'reactie bij "' + n + '"', n);
+      if(tekst && !notitie) logMail(x, x.melder || 'melder', (sluitActie(act) ? 'afhandelmail' : `statusmail "${toonStatus(statusNa(act)) || n}"`) + ' met je reactie erin', n);
       else logMail(x, 'volgens AFAS-sjabloon', 'stap "' + n + '"', n);
       if(sluitActie(act)) lok.afgesloten = true;
       else { if(isHeropenActie(act)) lok.afgesloten = false; gok = true; lok.status = statusNa(act) || act.naam; } }
