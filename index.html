@@ -1029,7 +1029,7 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
 dialog#detail.sleept .bijlbalk{min-height:84px;padding:8px 16px;border-color:var(--blauw-2);background:var(--lichtblauw-2);position:relative}
 dialog#detail.sleept .bijlbalk::after{content:'Sleep je bestand hierheen om het aan de melding toe te voegen';position:absolute;left:0;right:0;bottom:8px;text-align:center;color:var(--blauw);font-weight:600;font-size:13px;pointer-events:none}
 dialog#detail.sleept .composer{outline:1.5px dashed var(--lijn);outline-offset:4px;border-radius:12px}
-.onderbalk{position:sticky;bottom:-24px;background:var(--vlak);padding-bottom:4px;z-index:3}
+.onderbalk{position:sticky;top:-24px;background:var(--vlak);padding:10px 0 8px;z-index:3}
 .bijlbalk.erover{border-color:var(--blauw-2);background:var(--lichtblauw-2)}
 .bijlbalk .bijltitel{display:inline-flex;align-items:center;gap:5px;color:var(--blauw)}
 .bijlbalk .bijltitel svg{width:14px;height:14px}
@@ -1316,10 +1316,11 @@ const INST = Object.assign({
   vrijeVelden: 'KnS38',                  // vrije-veldentabel van type Aanvraag ICT (AFAS weigert velden uit andere KnS-tabellen)                       // type dossieritem Aanvraag ICT
   connMedewerkers: 'PowerBI_ICT_Verjaardag',
   hoofdkantoor: 'Planetarium',           // locatievoorstel voor medewerkers van stafafdelingen (organisatorische eenheid zonder "DC Klinieken <vestiging>")
+  connCollegas: 'PowerBI_ICT_Collegas',   // GetConnector: leden van de AFAS-gebruikersgroep met ICT-collega's (Gebruiker + Naam); bepaalt wie in Verantwoordelijke staat
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.15.4', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.17', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1843,6 +1844,12 @@ function signalen(x){
 }
 const ICTR = 'mict-ictreactie';
 // is de schrijver iemand van ICT bij deze melding (verantwoordelijke, taakhouder of jijzelf)? Telt ook als die toevallig zelf de melder is (bv. een testmelding)
+// is deze naam iemand van ICT? jijzelf, de ICT-gebruikersgroep (connector), wie ergens verantwoordelijke is, of wie SubmIT gebruikt (online)
+let ictNamenT = 0, ictNamenSet = new Set();
+function isIctCollega(naam){
+  if(!naam) return false; if(benIk(naam)) return true;
+  if(Date.now() - ictNamenT > 3e4){ ictNamenT = Date.now(); ictNamenSet = new Set([...items.map(x => x.verantw), ...((typeof collegaConn !== 'undefined' && collegaConn) || []).map(c => c.naam), ...((typeof AANW !== 'undefined' && AANW.lijst) || []).map(a => a.naam)].filter(Boolean).map(norm)); }
+  return ictNamenSet.has(norm(naam)); }
 const ictPersoon = (x, wie) => !!wie && (norm(wie) === norm(x.verantw) || benIk(wie) || (x.taakBij || []).some(t => norm(t) === norm(wie)));
 const laatsteVanMelder = x => !!(x.melder && norm(x.reactieDoor) === norm(x.melder) && !ictPersoon(x, x.reactieDoor));
 const ictReactieBekend = nr => !!(opslag.get(ICTR) || {})[nr];
@@ -1851,7 +1858,9 @@ function zetIctReactie(x, ja){ x.ictReactie = ja; if(ja && !ictReactieBekend(x.n
 function ontbreekt(x){
   const m = [];
   if(!x.afdeling) m.push('afdeling');
-  if(heeftLocKolom && !x.locatie) m.push('locatie');
+  if(heeftLocKolom && !x.locatie && !locCache.get(String(x.nr))) m.push('locatie');
+  // reactie aan de melder is alleen nodig als de melder niet zelf van ICT is (een ICT'er die zelf een melding maakt hoeft zichzelf niet te antwoorden)
+  if(isIctCollega(x.melder)) return m;
   // de laatste reactie kan van de melder zijn terwijl ICT eerder wél reageerde: dat weten we pas na het ophalen van de reacties
   if(!x.reactieDatum || (laatsteVanMelder(x) && !(x.ictReactie || ictReactieBekend(x.nr)))) m.push('reactie');
   return m;
@@ -3037,6 +3046,10 @@ function openDetail(nr){
       <span class="opslaanknoppen"><button type="button" class="knop" id="k-heropen" disabled title="Workflow ophalen…">Heropenen</button><button type="button" class="knop vol" id="k-opslaan" disabled title="Er is nog niets om op te slaan">Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
     <p class="fout" id="d-fout"></p>
     <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3></div>` : `
+    <div class="onderbalk"><div class="actiebalk" id="actiebalk">${st === 0 ? '<button class="knop" data-snel="oppak" title="Kan meteen: wacht zo nodig even op de workflow uit AFAS">Toewijzen aan mij</button>' : ''}</div>
+      <span class="mailvooraf" id="mailvooraf" hidden></span>
+      <span class="opslaanknoppen"><button type="button" class="knop" id="k-afhandel" data-afhandel title="Status op Afgehandeld; je reactie (als je die schreef) gaat mee naar de melder">Afhandelen</button><button type="button" class="knop vol" id="k-opslaan" title="Alles doorvoeren; de melding blijft open (Ctrl+Enter). Naar de vorige of volgende melding ga je met de pijltjes."><span class="opslaanmail" hidden>✉ </span>Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
+    <p class="fout" id="d-fout"></p>
     <div class="composer">
       <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
       <div class="klaarzet" id="klaar-reactie"></div>
@@ -3044,10 +3057,6 @@ function openDetail(nr){
         <select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select>
         <span class="hint" id="notitie-uitleg"></span></div>
     </div>
-    <div class="onderbalk"><div class="actiebalk" id="actiebalk">${st === 0 ? '<button class="knop" data-snel="oppak" title="Kan meteen: wacht zo nodig even op de workflow uit AFAS">Toewijzen aan mij</button>' : ''}</div>
-      <span class="mailvooraf" id="mailvooraf" hidden></span>
-      <span class="opslaanknoppen"><button type="button" class="knop" id="k-afhandel" data-afhandel title="Status op Afgehandeld; je reactie (als je die schreef) gaat mee naar de melder">Afhandelen</button><button type="button" class="knop vol" id="k-opslaan" title="Alles doorvoeren; de melding blijft open (Ctrl+Enter). Naar de vorige of volgende melding ga je met de pijltjes."><span class="opslaanmail" hidden>✉ </span>Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
-    <p class="fout" id="d-fout"></p>
     <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>`}`;
   if(x.iu){   // in- en uitdienst: alleen wat bij dit type hoort, zoals in AFAS
     ['#d-inst', '#d-extern', '#d-tel', '#d-loc', '#d-afd', '#d-gepland', '#d-cc', '#d-kritiek', '#d-opgelost'].forEach(sel => { const el = $(sel); const b = el && el.closest('b'); if(b){ const sp = b.previousElementSibling; if(sp && sp.tagName === 'SPAN') sp.remove(); b.remove(); } });
@@ -3393,9 +3402,15 @@ async function vulVerantwKeuze(x){
   try{ const l = await ictCollegas(); if(!huidig || huidig.x !== x || !$('#d-verantw')) return;
     if(!l.length) throw new Error('Geen ICT-collega’s gevonden' + (collegaDiag ? ': ' + collegaDiag : ''));
     const nu = l.find(c => norm(c.naam) === norm(x.verantw));
-    sel.innerHTML = (nu ? '' : `<option value="">${esc(x.verantw || '')}</option>`) + l.map(c => `<option value="${esc(c.code)}" ${c === nu ? 'selected' : ''}>${esc(c.naam)}</option>`).join('');
+    // niet iedereen staat in de ICT-lijst (bv. een andere organisatorische eenheid of nu geen eigen melding): 'Andere collega…' toont de hele AFAS-keuzelijst
+    const m = await laadSubjMeta().catch(() => ({})), alle = m.verantw ? waardenVan(m.verantw.values).filter(w => w.naam && !/^\d+\.\S+$/.test(w.naam)).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')) : [];
+    const meer = alle.length > l.length ? '<option value="__meer">Andere collega…</option>' : '';
+    sel.innerHTML = (nu ? '' : `<option value="">${esc(x.verantw || '')}</option>`) + l.map(c => `<option value="${esc(c.code)}" ${c === nu ? 'selected' : ''}>${esc(c.naam)}</option>`).join('') + meer;
     sel.dataset.oud = nu ? nu.code : '';
-    sel.onchange = () => sel.classList.toggle('gewijzigd', !!sel.value && sel.value !== sel.dataset.oud);
+    sel.onchange = () => {
+      if(sel.value === '__meer'){ const nuCode = sel.dataset.oud; sel.innerHTML = `<option value="">${esc(x.verantw || '— kies —')}</option>` + alle.map(c => `<option value="${esc(c.code)}">${esc(c.naam)}</option>`).join('');
+        sel.value = nuCode && alle.some(c => c.code === nuCode) ? nuCode : ''; if(!sel.value && nu){ sel.querySelector('option').textContent = nu.naam; } sel.focus(); try{ sel.showPicker(); }catch(e){} return; }
+      sel.classList.toggle('gewijzigd', !!sel.value && sel.value !== sel.dataset.oud); };
     if(collegaDiag) sel.title += ' · ' + collegaDiag;
   }catch(e){ sel.disabled = true; sel.title = e.message; }
   ['#d-extern', '#d-ond', '#d-gepland', '#d-pstart', '#d-peind', '#d-cc', '#d-tel', '#d-opgelost'].forEach(sel => { const gp = $(sel); if(gp) gp.oninput = () => gp.classList.toggle('gewijzigd', gp.value !== gp.dataset.oud); });
@@ -3509,7 +3524,24 @@ async function gebruikersCodes(namen){
   return gebruikerCode;
 }
 let collegaDiag = '';
+// vaste bron: de GetConnector met de leden van de ICT-gebruikersgroep in AFAS (wie er in de groep bij komt, staat automatisch in de lijst)
+let collegaConn = null, collegaConnT = 0, collegaConnFout = '';
+async function collegasUitConnector(){
+  if(!INST.connCollegas || collegaConnFout) return null;
+  if(collegaConn && Date.now() - collegaConnT < 10 * 6e4) return collegaConn.length ? collegaConn : null;   // leeg = nog niet ingericht: terugvallen
+  try{ const rows = (await afas(`/connectors/${encodeURIComponent(INST.connCollegas)}?skip=0&take=1000`)).rows || [];
+    const veld = (r, re) => { const k = Object.keys(r).find(k => re.test(k)); return k ? String(r[k] ?? '').trim() : ''; };
+    const l = rows.map(r => { const code = veld(r, /^(gebruiker(scode)?|user(id)?|usid|code)$/i) || Object.values(r).map(String).find(v => /^\d+\.\S+$/.test(v)) || '';
+        let naam = veld(r, /^(naam|name|weergavenaam|naam_gebruiker|gebruiker_naam|volledige_naam|medewerker)$/i) || veld(r, /naam|name/i);
+        if(naam.includes(',')) naam = naam.split(',').map(t => t.trim()).reverse().join(' ');
+        return {code, naam}; }).filter(c => c.code && c.naam);
+    collegaConn = [...new Map(l.map(c => [norm(c.code), c])).values()].sort((a, b) => a.naam.localeCompare(b.naam, 'nl')); collegaConnT = Date.now();
+    collegaConn.forEach(c => { gebruikerCode.set(norm(c.naam), c.code); codeNaam.set(norm(c.code), c.naam); });
+    return collegaConn.length ? collegaConn : null;
+  }catch(e){ collegaConnFout = e.message; return null; }   // connector (nog) niet gekoppeld: terugvallen op de oude manier
+}
 async function ictCollegas(){
+  { const c = await collegasUitConnector(); if(c) return c; }
   const m = await laadSubjMeta(), waarden = m.verantw ? waardenVan(m.verantw.values) : [];
   const behandelaars = new Set(items.map(x => norm(x.verantw)).filter(Boolean));
   // ook collega's zonder openstaande melding: iedereen uit de organisatorische eenheid van ICT (medewerkerslijst)
@@ -3610,6 +3642,8 @@ async function voerUit(actieIdx, nieuweAfd = ''){
 /* ================= nieuwe melding aanmaken (UpdateConnector KnSubject) ================= */
 // Alles wat AFAS wil weten (type dossieritem, veld Afdeling, verplichte velden) lezen we uit /metainfo/update/KnSubject
 let nieuwMeta = null;
+// Type = Change: meteen de planningsvelden (Gepland, Startdatum project, Deadline) erbij, net als in de melding zelf
+document.addEventListener('change', e => { if(e.target.name !== 'type' || !e.target.closest('#n-form')) return; const t = e.target, tekst = t.options ? t.options[t.selectedIndex].textContent : t.value; const b = $('#n-change'); if(b) b.hidden = !/change|rfc/i.test(tekst); });
 function velden(m){
   const uit = [];
   (function loop(o, pad, wortel){
@@ -3670,6 +3704,7 @@ async function nieuweMelding(){
         ${m.type ? `<label>Type${keuze(m.type, 'type', 'Incident')}</label>` : '<span></span>'}
         <label>Verantwoordelijke<input name="beh" id="n-beh" class="metpijl" autocomplete="off" spellcheck="false" placeholder=""><input type="hidden" name="behCode"></label>
       </div>
+      <div class="drie" id="n-change" hidden><label>Gepland<input type="date" name="gepland" class="datumkeuze"></label><label>Startdatum project<input type="date" name="pstart" class="datumkeuze"></label><label>Deadline<input type="date" name="peind" class="datumkeuze"></label></div>
       ${m.extra.map((f, i) => `<label>${esc(f.label || f.code)}${keuze(f, 'x' + i, '')}</label>`).join('')}
       <span class="hint" id="n-beh-hint">Geen verantwoordelijke = de melding komt bij Nieuwe meldingen.</span>
       <label><span>CC <small class="hint" style="font-weight:400">krijgt ook alle mails over deze melding</small></span><input name="cc" class="metpijl" autocomplete="off" spellcheck="false" placeholder=""></label>
@@ -3695,6 +3730,8 @@ async function maakMelding(){
   { const leeg = [m.afd && f.afd && !f.afd.value ? 'Afdeling' : '', m.loc && f.loc && !f.loc.value ? 'Locatie' : ''].filter(Boolean);
     if(leeg.length){ fout.textContent = `Vul ${leeg.join(' en ')} in; ${leeg.length === 1 ? 'dit veld is' : 'deze velden zijn'} verplicht.`; (leeg[0] === 'Afdeling' ? f.afd : f.loc).focus(); return; } }
   if(m.afd && f.afd) zet(m.afd, f.afd.value); if(m.loc && f.loc) zet(m.loc, f.loc.value); if(m.type && f.type) zet(m.type, f.type.value);
+  if($('#n-change') && !$('#n-change').hidden){ const sm = await laadSubjMeta().catch(() => ({}));
+    [['gepland', sm.gepland], ['pstart', sm.projStart], ['peind', sm.projEind]].forEach(([n, veld]) => { if(veld && f[n] && f[n].value) w[veldCode(veld)] = f[n].value; }); }
   m.extra.forEach((x, i) => zet(x, f['x' + i].value));
   if(f.cc && f.cc.value.trim()){ const sm = await laadSubjMeta(), cc = f.cc.value.trim();
     if(!sm.cc){ fout.textContent = 'Het veld CC is niet gevonden in AFAS (UpdateConnector KnSubject); laat CC leeg of vraag de beheerder.'; return; }
@@ -3729,6 +3766,10 @@ async function maakMelding(){
     if(sbid && !DEMO){ try{ const m = await sbIdsVoor('Dossieritem', [sbid]); nr = [...m.entries()].find(([, v]) => String(v) === String(sbid))?.[0] || ''; }catch(e){} }
     const x = DEMO ? items.find(y => norm(y.onderwerp) === norm(ond)) : items.find(y => String(y.nr) === String(nr) || String(y.sbid) === String(sbid));
     if(vanTodo) todoGekoppeld((x && x.nr) || nr || sbid, vanTodo);
+    // wat je in het formulier koos meteen bij de melding zetten (de connector loopt soms even achter): anders lijkt Locatie/Afdeling nog leeg
+    if(x){ const lok = {}; if(m.loc && f.loc && f.loc.value){ lok.locatie = f.loc.options[f.loc.selectedIndex].textContent.trim(); locCache.set(String(x.nr), lok.locatie); }
+      if(m.afd && f.afd && f.afd.value && !x.afdeling) lok.afdeling = f.afd.options ? f.afd.options[f.afd.selectedIndex].textContent.trim() : f.afd.value;
+      if(Object.keys(lok).length){ Object.assign(x, lok); onthoudLokaal(x, lok, 5 * 6e4); x._sg = signalen(x); } }
     if(x && f.kritiek && f.kritiek.checked){ x.kritiek = true; meldKritiekAanAllen(x); }
     if(x) logHistorie(x, 'ticket aangemaakt'); else logHistorie({nr: nr || '', onderwerp: ond}, 'ticket aangemaakt');
     if(x){ const doel = document.querySelector(`#nav [data-weergave="${x.emmer === 'nieuw' ? 'nieuw' : 'alle'}"]`);
@@ -4125,15 +4166,23 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
     if(act && viaActie.some(v => norm(v) === norm(act.naam))){ gedaan.push('status ' + toonStatus(statusNa(act))); lok.status = statusNa(act) || lok.status; gok = true; }   // al uitgevoerd bij toewijzen/inplannen
     else if(act){ stap = act.naam;
       // zonder reactie, maar AFAS eist bij deze actie een reactie: een korte interne notitie (de melder ziet die niet); onthouden, zodat het de volgende keer meteen goed gaat
-      const ZONDER = 'Afgehandeld zonder reactie aan de melder.', eistReactie = () => (opslag.get('mict-wf-reactie-verplicht') || []).includes(norm(act.naam));
-      const zonderOk = !tekst && sluitActie(act) && zichtVeld;
+      // AFAS-regel bij sommige acties (o.a. Afhandelen): jij moet de laatste zijn die een reactie gaf, vóórdat de actie mag.
+      // Dan eerst de reactie los plaatsen (zonder actie = zonder mail) en daarna de actie zelf; de mail van de actie is dan de enige mail.
+      // Zonder reactie van jou: een korte interne notitie (de melder ziet die niet). Per actie onthouden, zodat het de volgende keer in één keer goed gaat.
+      const ZONDER = 'Afgehandeld zonder reactie aan de melder.', REGEL = 'mict-wf-reactie-verplicht', kies = a => norm(a.naam) === norm(act.naam);
+      const eistReactie = () => (opslag.get(REGEL) || []).includes(norm(act.naam));
+      const isRegel = m => /laatste persoon|laatste.*reactie/i.test(m) || (/reactie|tekst|\btx\b/i.test(m) && /verplicht|required|mandatory/i.test(m));
+      const losseReactie = async () => {
+        if(!tekst && !zichtVeld) throw new Error(`AFAS wil bij "${act.naam}" eerst een reactie van jou. Schrijf een reactie (of zet Interne notitie aan) en probeer opnieuw.`);
+        await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body: JSON.stringify({KnWorkflow:{Element:{Fields:{SbId: isNaN(+x.sbid) ? x.sbid : +x.sbid, Tx: tekst || ZONDER, ...zichtVelden(tekst ? notitie : true)}, ...(tekst && reactieObj ? {Objects: reactieObj} : {})}}})});
+        if(!tekst) gedaan.push('interne notitie (AFAS eist een reactie van jou)'); };
       let n;
-      try{ n = await wfActie(x, a => norm(a.naam) === norm(act.naam), tekst ? {Tx: tekst, ...zichtVelden(notitie)} : zonderOk && eistReactie() ? {Tx: ZONDER, ...zichtVelden(true)} : {}, tekst ? reactieObj : null, !viaActie.length ? wfCache : null); }
+      if(eistReactie()){ await losseReactie(); n = await wfActie(x, kies, {}, null, !viaActie.length ? wfCache : null); }
+      else try{ n = await wfActie(x, kies, tekst ? {Tx: tekst, ...zichtVelden(notitie)} : {}, tekst ? reactieObj : null, !viaActie.length ? wfCache : null); }
       catch(e){
-        if(!(zonderOk && !eistReactie() && /reactie|tekst|\btx\b|text/i.test(e.message) && /verplicht|required|mandatory|leeg|empty|invullen|ontbreekt/i.test(e.message))) throw e;
-        opslag.set('mict-wf-reactie-verplicht', [...new Set([...(opslag.get('mict-wf-reactie-verplicht') || []), norm(act.naam)])]);
-        n = await wfActie(x, a => norm(a.naam) === norm(act.naam), {Tx: ZONDER, ...zichtVelden(true)}, null); }
-      if(zonderOk && eistReactie()) gedaan.push('interne notitie (AFAS eist een reactie)');
+        if(!isRegel(e.message)) throw e;
+        opslag.set(REGEL, [...new Set([...(opslag.get(REGEL) || []), norm(act.naam)])]);
+        await losseReactie(); n = await wfActie(x, kies, {}, null, !viaActie.length ? wfCache : null); }
       if(!n) throw new Error(`De actie "${act.naam}" is niet (meer) beschikbaar bij deze melding.`);
       viaActie.push(n); reactieGedaan = !!tekst; gedaan.push(n); if(tekst && bijlR.length){ klaar.reactie = []; gedaan.push(`${bijlR.length} bijlage${bijlR.length === 1 ? '' : 'n'} bij de reactie`); }
       if(tekst && !notitie) logMail(x, x.melder || 'melder', (sluitActie(act) ? 'afhandelmail' : `statusmail "${toonStatus(statusNa(act)) || n}"`) + ' met je reactie erin', n);
@@ -4401,6 +4450,7 @@ const CONN_KAART = () => [
   {conn: INST.connProjUpdates, sleutel: 'connProjUpdates', soort: 'GET', nodig: 'opt', doel: 'Projectvenster: eerdere updates (dossieritems van type Update projectvoortgang) per project, net als de reacties bij een melding. Filter in AFAS op type dossieritem 77.', velden: [
     v(/^(project|projectcode|projectnummer)$/i, 'Projectcode (koppelt met PtProject)', 'ja', 'Project'), v(/^(toelichting|tekst|inhoud|bericht|update)$/i, 'Tekst van de update', 'ja', 'Toelichting'),
     v(/^(datum|instuurdatum|aangemaakt op|datum aanmaak)/i, 'Datum', 'opt', 'Datum'), v(/^(aangemaakt door|medewerker|instuurder|gebruiker|naam)/i, 'Wie schreef de update', 'opt', 'Aangemaakt door'), v(/^(onderwerp|omschrijving)$/i, 'Onderwerp', 'opt', 'Onderwerp')]},
+  {conn: INST.connCollegas, sleutel: 'connCollegas', soort: 'GET', nodig: 'opt', doel: 'ICT-collega’s: de leden van de ICT-gebruikersgroep (Gebruiker + Naam). Bepaalt wie je kunt kiezen bij Verantwoordelijke; nieuwe collega’s in de groep staan er vanzelf bij.'},
   {conn: INST.connInUit, sleutel: 'connInUit', soort: 'GET', nodig: 'opt', doel: 'In- en uitdienst: het overzicht en de velden zoals in AFAS (medewerker, datums, gegevensbewaring, mailbox, accounts).', velden: [
     v(/^nummer$/i, 'Nummer', 'ja', 'Nummer'), v(/^dossieritem$/i, 'Dossieritem (koppelt aan de melding)', 'ja', 'Dossieritem'), v(/datum.?in.?dienst/i, 'Datum in dienst', 'opt', 'Datum in dienst'), v(/uitdienst.?datum|datum.?uit.?dienst/i, 'Uitdienst datum', 'opt', 'Uitdienst datum'),
     v(/gegevensbewaring/i, 'Gegevensbewaring', 'opt', 'Gegevensbewaring'), v(/mailbox/i, 'Mailbox overdragen aan', 'opt', 'Mailbox overdragen aan'), v(/workflow.?afgerond/i, 'Workflow afgerond', 'opt', 'Workflow afgerond')]},
