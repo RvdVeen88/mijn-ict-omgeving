@@ -126,6 +126,16 @@ button{cursor:default}
 dialog.smal{width:min(560px, calc(100vw - 32px))}
 dialog.nieuwdlg{width:min(660px, calc(100vw - 32px))}
 .nform{display:grid;gap:12px}
+.nform.nmeld{gap:14px}
+.nform.nmeld .dlg-kop h2 .ondinvoer{font:inherit;color:inherit;border-bottom:1.5px dashed var(--lichtblauw);padding:0 0 2px;width:100%}
+.nform.nmeld .dlg-kop > div:first-child{flex:1;min-width:0;margin-right:12px}
+.nform.nmeld .kaart2 b > .hint{display:block;font-weight:400;font-size:11.5px;margin-top:2px}
+.nform.nmeld .kaart2 [hidden]{display:none}
+.nform.nmeld .kaart2 input#n-melder,.nform.nmeld .kaart2 input#n-beh{width:100%}
+.nform.nmeld .nmarkeer{display:flex;gap:14px;flex-wrap:wrap}
+.nform.nmeld label.nvink{flex-direction:row;align-items:center;gap:6px;font-weight:500;font-size:13.5px;color:var(--inkt)}.nform.nmeld label.nvink input{width:auto}
+.nform.nmeld .toelblok textarea{width:100%;min-height:110px;resize:vertical;border:0;font:inherit;color:var(--inkt);outline:0;box-sizing:border-box}
+.nform.nmeld .bijlbalk{min-height:30px}.nform.nmeld .bijlbalk .linkknop{font-size:12px}
 .nform label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:var(--grijs)}
 .nform input,.nform select{border:0;border-bottom:1.5px dashed var(--lichtblauw);border-radius:0;padding:6px 2px;background-color:transparent;font-weight:500;color:var(--inkt);outline:0}
 .nform input:focus,.nform select:focus{border-bottom:1.5px solid var(--blauw-2)}
@@ -879,7 +889,7 @@ dialog.lade .dlg-in > *{min-width:0;max-width:100%}
 dialog.lade .tijdlijn{max-height:none;overflow:visible}
 dialog#detail.lade{width:min(880px,calc(100vw - 32px))}
 dialog#detail.lade.groot{width:calc(100vw - 96px);height:100vh}
-dialog.lade.nieuwdlg{width:min(700px,calc(100vw - 32px))}
+dialog.lade.nieuwdlg{width:min(880px,calc(100vw - 32px))}
 @media (prefers-reduced-motion:reduce){dialog.lade[open]{animation:none}}
 .kaart2 .lang{grid-column:1/-1;white-space:pre-wrap;font-weight:400;line-height:1.5;max-height:180px;overflow:auto;background:var(--vlak);border-radius:12px;padding:10px 12px}
 .actiebalk{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 0 2px;border-top:1px solid var(--lijn)}
@@ -1171,7 +1181,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
 @media (min-width:1800px){
   #v-mij,#v-todo{width:100%;max-width:1560px;margin:0 auto}
   dialog#detail.lade{width:clamp(880px,44vw,1180px)}
-  dialog.lade.nieuwdlg{width:clamp(700px,34vw,900px)}
+  dialog.lade.nieuwdlg{width:clamp(880px,44vw,1180px)}
   .teampaneel{width:420px}
 }
 @media (min-width:2600px){
@@ -1320,7 +1330,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.17', VERSIE_DATUM = '07-10-2026';
+const VERSIE = 'v7.19', VERSIE_DATUM = '07-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1499,7 +1509,7 @@ function maakItem(r, extra){
   x.zorgadmin = lijst(INST.afdVerbergen).includes(norm(x.afdeling));
   x.inuit = /(^|[\s\/(-])(in|uit)[\s-]*dienst(treding)?(?![a-zà-ÿ])/i.test(x.soort) || /^(in|uit)dienst/i.test(x.soort);
   x.emmer = emmer(x.status);
-  x.afgesloten = x.afgerond || lijst(INST.st_afgesloten).includes(norm(x.status));
+  x.afgesloten = x.afgerond || lijst(INST.st_afgesloten).includes(norm(x.status)) || /^(afgehandeld|gesloten|afgesloten|geannuleerd|vervallen|ingetrokken)\b/.test(norm(x.status));   // ook nieuwe AFAS-statussen met deze betekenis
   x.sla = (!lijst(INST.slaSoorten).length || lijst(INST.slaSoorten).includes(norm(x.soort))) && !x.zorgadmin;
   const t = taakPerSb.get(String(x.sbid)); x.taak = t ? t.taak : ''; x.taakBij = t ? t.bij : [];
   x.zoek = norm([x.nr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.module, x.emma, ...x.taakBij].join(' '));
@@ -1542,7 +1552,7 @@ let afdVeld = '';
 function bepaalAfdVeld(rijen){
   if(INST.afdelingVeld){ afdVeld = INST.afdelingVeld; return; }
   if(afdVeld || !rijen.length) return;
-  const bekend = new Set((INST.afdelingen || []).map(norm)), score = {};
+  const bekend = new Set([...(INST.afdelingen || []), ...(opslag.get('mict-afd-afas') || [])].map(norm)), score = {};
   rijen.forEach(r => Object.entries(r).forEach(([k, v]) => { if(typeof v === 'string' && bekend.has(norm(v))) score[k] = (score[k] || 0) + 1; }));
   const best = Object.entries(score).sort((a, b) => b[1] - a[1])[0];
   afdVeld = best ? best[0] : 'AFAS_Afdeling';
@@ -2133,9 +2143,17 @@ const ONDER = [
 ];
 // "Emma [Changes]" hoort in het menu bij "Emma" (wisselen kan met het schuifje Meldingen / Changes)
 const navAfd = a => String(a || '').replace(/\s*\[(changes?|rfc)\]\s*$/i, '').trim();
-const afdelingen = () => { const basis = (INST.afdelingen || []).filter(a => navAfd(a) === a), t = new Map(basis.map(a => [a, 0]));
+// afdelingen: de keuzelijst van het veld Afdeling in AFAS is leidend (nieuwe afdeling in AFAS = vanzelf in het menu); INST.afdelingen alleen als terugval
+const AFD = {l: opslag.get('mict-afd-afas') || null, gehaald: false};
+function afdBasis(){
+  if(!AFD.gehaald && typeof profiel !== 'undefined' && profiel && !DEMO){ AFD.gehaald = true;
+    afdelingKeuzes().then(({waarden}) => { const l = waarden.map(w => String(w.naam || '').trim()).filter(Boolean);
+      if(l.length && JSON.stringify(l) !== JSON.stringify(AFD.l)){ AFD.l = l; opslag.set('mict-afd-afas', l); try{ tekenNav(); }catch(e){} } }).catch(() => {}); }
+  return AFD.l && AFD.l.length ? AFD.l : (INST.afdelingen || []);
+}
+const afdelingen = () => { const lijst = afdBasis(), basis = lijst.filter(a => navAfd(a) === a), t = new Map(basis.map(a => [a, 0]));
   open().filter(x => !x.inuit && String(x.afdeling || '').trim()).forEach(x => { const b = navAfd(x.afdeling), a = basis.find(n => norm(n) === norm(b)) || b; t.set(a, (t.get(a) || 0) + 1); });   // meldingen zonder afdeling staan bij Nieuwe meldingen / Aandacht nodig
-  const volg = a => { const i = (INST.afdelingen || []).indexOf(a); return i < 0 ? 999 : i; };
+  const volg = a => { const i = lijst.indexOf(a); return i < 0 ? 999 : i; };
   return [...t.entries()].sort((a, b) => volg(a[0]) - volg(b[0]) || a[0].localeCompare(b[0], 'nl')); };
 function weergave(id){
   const kp = KPI.find(k => k.id === id); if(kp) return {titel: kp.t, lijst: kp.f()};
@@ -2806,7 +2824,10 @@ const sluitActie = a => !!a && /^afhandelen$|ticket sluiten|^akkoord$/i.test(Str
 // per status de beste actie uit de huidige taak (bij 'In behandeling' liefst een actie zonder mail aan de melder)
 function statusKeuzes(wf, x){
   const voorkeur = a => /informatie toevoegen/i.test(a.naam) ? 0 : /heropenen/i.test(a.naam) ? 1 : /toewijzen aan mij/i.test(a.naam) ? (!x.verantw || benIk(x.verantw) ? 2 : 9) : /reactie plaatsen/i.test(a.naam) ? 3 : 5;
-  return STATUS_VOLGORDE.map(st => ({st, a: wf.acties.filter(a => statusNa(a) === st && voorkeur(a) < 9).sort((p, q) => voorkeur(p) - voorkeur(q))[0] || null}));
+  const bekend = STATUS_VOLGORDE.map(st => ({st, a: wf.acties.filter(a => statusNa(a) === st && voorkeur(a) < 9).sort((p, q) => voorkeur(p) - voorkeur(q))[0] || null}));
+  // workflowacties die SubmIT (nog) niet kent: toch kiezen, onder hun eigen naam (nieuwe stap in AFAS = vanzelf in de lijst)
+  const onbekend = wf.acties.filter(a => !statusNa(a) && soortActie(a) === 'status' && !sluitActie(a) && !isReactieActie(a) && !isNotitieActie(a) && !isOppakActie(a) && !isHeropenActie(a)).map(a => ({st: a.naam, a, eigen: true}));
+  return [...bekend, ...onbekend];
 }
 const soortActie = a => /toewijzen aan mij/i.test(a.naam) ? 'mij' : /toewijzen aan collega|doorzetten naar collega|collega/i.test(a.naam) ? 'collega' : /inplannen|plannen/i.test(a.naam) ? 'plannen' : 'status';
 // Afhandelen/oppakken al aanklikbaar terwijl de workflow nog laadt: even wachten en dan dezelfde route als de echte knop
@@ -3642,8 +3663,9 @@ async function voerUit(actieIdx, nieuweAfd = ''){
 /* ================= nieuwe melding aanmaken (UpdateConnector KnSubject) ================= */
 // Alles wat AFAS wil weten (type dossieritem, veld Afdeling, verplichte velden) lezen we uit /metainfo/update/KnSubject
 let nieuwMeta = null;
+document.addEventListener('change', e => { if(e.target.name !== 'kritiek' || !e.target.closest('#n-form')) return; document.querySelectorAll('#n-form .nopg').forEach(n => n.hidden = !e.target.checked); });
 // Type = Change: meteen de planningsvelden (Gepland, Startdatum project, Deadline) erbij, net als in de melding zelf
-document.addEventListener('change', e => { if(e.target.name !== 'type' || !e.target.closest('#n-form')) return; const t = e.target, tekst = t.options ? t.options[t.selectedIndex].textContent : t.value; const b = $('#n-change'); if(b) b.hidden = !/change|rfc/i.test(tekst); });
+document.addEventListener('change', e => { if(e.target.name !== 'type' || !e.target.closest('#n-form')) return; const t = e.target, tekst = t.options ? t.options[t.selectedIndex].textContent : t.value; document.querySelectorAll('#n-form .nchg').forEach(n => n.hidden = !/change|rfc/i.test(tekst)); });
 function velden(m){
   const uit = [];
   (function loop(o, pad, wortel){
@@ -3687,33 +3709,36 @@ async function nieuweMelding(){
   try{ m = await laadNieuwMeta(); }
   catch(e){ $('#nieuw-in').innerHTML = kop + `<p class="fout">De velden van een nieuwe melding kunnen niet worden gelezen (${esc(e.message)}). Staat UpdateConnector KnSubject in de app connector?</p>`; return; }
   const stdAfd = tab.startsWith('afd:') ? tab.slice(4) : 'ICT';
-  $('#nieuw-in').innerHTML = kop + `<form class="nform" id="n-form" onsubmit="return false">
-    <section class="nstap"><h3><i>1</i>Wie meldt het?</h3>
-      <div class="drie">
-        <label>Melder<input name="melder" id="n-melder" class="metpijl" autocomplete="off" spellcheck="false" placeholder="Zoek op naam of nummer"><input type="hidden" name="melderId"><span class="hint" id="n-melder-hint">Medewerkers ophalen…</span></label>
-        <label><span>Bereikbaar op</span><input name="tel" id="n-tel" inputmode="tel" autocomplete="off" placeholder="Toestel of 06" title="Vraag altijd waar de melder nu bereikbaar is; dat kan per keer verschillen"></label>
-        ${m.loc ? `<label><span>Locatie <i class="verpl" title="Verplicht">*</i></span>${keuze(m.loc, 'loc', '')}</label>` : '<span></span>'}
-      </div></section>
-    <section class="nstap"><h3><i>2</i>Wat is er aan de hand?</h3>
-      <input name="ond" required maxlength="80" spellcheck="true" aria-label="Onderwerp" placeholder="Onderwerp, kort en duidelijk: bijv. Printer balie geeft papierstoring">
-      <div class="ntoel bijlagen" id="n-bijl"><textarea name="tx" aria-label="Toelichting" placeholder="Sinds wanneer, welke werkplek, wat is al geprobeerd?"></textarea>
-        <div class="bijlkop"><button type="button" class="linkknop paperclip" id="k-nbijl">${CLIP}Bijlage</button><input type="file" id="f-nieuw" multiple hidden><span class="hint">of sleep een bestand / mail hierheen · Ctrl+V plakt een screenshot</span></div><div class="bijlrij" id="n-bijl-lijst"></div></div></section>
-    <section class="nstap"><h3><i>3</i>Indelen</h3>
-      <div class="drie">
-        ${m.afd ? `<label><span>Afdeling <i class="verpl" title="Verplicht">*</i></span>${keuze(m.afd, 'afd', stdAfd)}</label>` : '<span></span>'}
-        ${m.type ? `<label>Type${keuze(m.type, 'type', 'Incident')}</label>` : '<span></span>'}
-        <label>Verantwoordelijke<input name="beh" id="n-beh" class="metpijl" autocomplete="off" spellcheck="false" placeholder=""><input type="hidden" name="behCode"></label>
+  // zelfde opbouw als een bestaande melding: titel bovenin, kaarten Melding | Behandeling, toelichting, bijlagen, knoppen
+  const kz = (f, naam, std) => keuze(f, naam, std).replace('<select ', '<select class="afdkeuze" ').replace('<input ', '<input class="datumkeuze" ');
+  $('#nieuw-in').innerHTML = `<form class="nform nmeld" id="n-form" onsubmit="return false">
+    <div class="dlg-kop"><div><small>Nieuwe melding · Aanvraag ICT</small><h2><input name="ond" class="ondinvoer" required maxlength="80" spellcheck="true" aria-label="Onderwerp" placeholder="Onderwerp, kort en duidelijk"></h2></div><button type="button" class="sluit" data-sluitnieuw aria-label="Sluiten">×</button></div>
+    <div class="kaarten">
+      <div class="kaart2"><h3>Melding</h3>
+        <span>Melder</span><b><input name="melder" id="n-melder" class="datumkeuze metpijl" autocomplete="off" spellcheck="false" placeholder="Zoek op naam of nummer"><input type="hidden" name="melderId"><small class="hint" id="n-melder-hint">Medewerkers ophalen…</small></b>
+        <span>Bereikbaar</span><b><input name="tel" id="n-tel" class="datumkeuze" inputmode="tel" autocomplete="off" placeholder="" title="Vraag waar de melder nu bereikbaar is; dat kan per keer verschillen"></b>
+        ${m.type ? `<span>Type melding</span><b>${kz(m.type, 'type', 'Incident')}</b>` : ''}
+        ${m.loc ? `<span>Locatie<i class="verpl" title="Verplicht">*</i></span><b>${kz(m.loc, 'loc', '')}</b>` : ''}
       </div>
-      <div class="drie" id="n-change" hidden><label>Gepland<input type="date" name="gepland" class="datumkeuze"></label><label>Startdatum project<input type="date" name="pstart" class="datumkeuze"></label><label>Deadline<input type="date" name="peind" class="datumkeuze"></label></div>
-      ${m.extra.map((f, i) => `<label>${esc(f.label || f.code)}${keuze(f, 'x' + i, '')}</label>`).join('')}
-      <span class="hint" id="n-beh-hint">Geen verantwoordelijke = de melding komt bij Nieuwe meldingen.</span>
-      <label><span>CC <small class="hint" style="font-weight:400">krijgt ook alle mails over deze melding</small></span><input name="cc" class="metpijl" autocomplete="off" spellcheck="false" placeholder=""></label>
-      <label class="vink" style="flex-direction:row;align-items:center;gap:8px;font-weight:500;color:var(--inkt)"><input type="checkbox" name="kritiek" style="width:auto"> Kritieke storing <small class="hint" style="font-weight:400">iedereen krijgt direct een melding</small></label>
-      </section>
+      <div class="kaart2"><h3>Behandeling</h3>
+        ${m.afd ? `<span>Afdeling<i class="verpl" title="Verplicht">*</i></span><b>${kz(m.afd, 'afd', stdAfd)}</b>` : ''}
+        <span>Verantwoordelijke</span><b><input name="beh" id="n-beh" class="datumkeuze metpijl" autocomplete="off" spellcheck="false" placeholder=""><input type="hidden" name="behCode"><small class="hint" id="n-beh-hint">Leeg = de melding komt bij Nieuwe meldingen.</small></b>
+        <span>Gepland</span><b><input type="date" name="gepland" class="datumkeuze" title="Datum waarop het werk gepland staat"></b>
+        <span class="nchg" hidden>Startdatum project</span><b class="nchg" hidden><input type="date" name="pstart" class="datumkeuze"></b>
+        <span class="nchg" hidden>Deadline</span><b class="nchg" hidden><input type="date" name="peind" class="datumkeuze"></b>
+        ${m.extra.map((f, i) => `<span>${esc(f.label || f.code)}</span><b>${kz(f, 'x' + i, '')}</b>`).join('')}
+        <span>Extern ticket</span><b><input name="extern" class="datumkeuze" autocomplete="off" title="Ticketnummer bij de leverancier"></b>
+        <span>CC</span><b><input name="cc" class="datumkeuze cckeuze metpijl" autocomplete="off" spellcheck="false" placeholder="" title="Krijgt ook alle mails over deze melding"></b>
+        <span>Markeren</span><b class="nmarkeer"><label class="vink nvink"><input type="checkbox" name="kritiek"> Kritieke storing</label><label class="vink nvink"><input type="checkbox" name="datalek"> Datalek</label></b>
+        <span class="nopg" hidden>Storing opgelost</span><b class="nopg" hidden><input type="datetime-local" name="opgelost" class="datumkeuze" title="Wanneer de storing is opgelost"></b>
+      </div>
+    </div>
+    <div class="toelblok"><h3>Toelichting</h3><textarea name="tx" class="lang toelinvoer" rows="4" aria-label="Toelichting" placeholder="Sinds wanneer, welke werkplek, wat is al geprobeerd?"></textarea></div>
+    <div class="bijlbalk" id="n-bijl" title="Sleep bestanden of een mail hierheen, of plak een schermafbeelding met Ctrl+V"><span class="bijltitel">${CLIP}<b>Bijlagen</b></span><span class="bijlrij" id="n-bijl-lijst"></span><button type="button" class="linkknop" id="k-nbijl">toevoegen</button><input type="file" id="f-nieuw" multiple hidden></div>
     <div class="fout" id="n-fout">${m.stId ? '' : `Het type dossieritem "Aanvraag ICT" is niet gevonden in AFAS (gevonden: ${esc(m.typen.map(t => t.naam).join(', ') || 'geen')}). Zet nieuwStId in mijn-ict-config.js.`}</div>
-    <div style="display:flex;gap:10px;justify-content:flex-end"><button type="button" class="knop" data-sluitnieuw>Annuleren</button><button type="button" class="knop vol" id="n-maak" title="Ctrl+Enter" ${m.stId ? '' : 'disabled'}>Melding aanmaken <kbd>Ctrl+Enter</kbd></button></div>
+    <div class="onderbalk"><span style="flex:1"></span><span class="opslaanknoppen"><button type="button" class="knop" data-sluitnieuw>Annuleren</button><button type="button" class="knop vol" id="n-maak" title="Ctrl+Enter" ${m.stId ? '' : 'disabled'}>Melding aanmaken <kbd>Ctrl+Enter</kbd></button></span></div>
   </form>`;
-  { const mi = $('#n-form').melder; mi.focus(); mi.select(); mi.addEventListener('click', () => { if(mi.dataset.std === '1') mi.select(); }); }   // typen vervangt 'jijzelf' direct
+  { const mi = $('#n-form').melder; mi.addEventListener('click', () => { if(mi.dataset.std === '1') mi.select(); }); $('#n-form').ond.focus(); }   // titel bovenin eerst, net als bij een bestaande melding   // typen vervangt 'jijzelf' direct
   koppelMelder(); koppelBehandelaar();
   koppelCc($('#n-form').cc);
 }
@@ -3730,15 +3755,18 @@ async function maakMelding(){
   { const leeg = [m.afd && f.afd && !f.afd.value ? 'Afdeling' : '', m.loc && f.loc && !f.loc.value ? 'Locatie' : ''].filter(Boolean);
     if(leeg.length){ fout.textContent = `Vul ${leeg.join(' en ')} in; ${leeg.length === 1 ? 'dit veld is' : 'deze velden zijn'} verplicht.`; (leeg[0] === 'Afdeling' ? f.afd : f.loc).focus(); return; } }
   if(m.afd && f.afd) zet(m.afd, f.afd.value); if(m.loc && f.loc) zet(m.loc, f.loc.value); if(m.type && f.type) zet(m.type, f.type.value);
-  if($('#n-change') && !$('#n-change').hidden){ const sm = await laadSubjMeta().catch(() => ({}));
-    [['gepland', sm.gepland], ['pstart', sm.projStart], ['peind', sm.projEind]].forEach(([n, veld]) => { if(veld && f[n] && f[n].value) w[veldCode(veld)] = f[n].value; }); }
+  if((f.gepland && f.gepland.value) || (f.pstart && f.pstart.value) || (f.peind && f.peind.value)){ const sm = await laadSubjMeta().catch(() => ({})), chg = !document.querySelector('#n-form .nchg[hidden]');
+    [['gepland', sm.gepland], ...(chg ? [['pstart', sm.projStart], ['peind', sm.projEind]] : [])].forEach(([n, veld]) => { if(veld && f[n] && f[n].value) w[veldCode(veld)] = f[n].value; }); }
   m.extra.forEach((x, i) => zet(x, f['x' + i].value));
   if(f.cc && f.cc.value.trim()){ const sm = await laadSubjMeta(), cc = f.cc.value.trim();
     if(!sm.cc){ fout.textContent = 'Het veld CC is niet gevonden in AFAS (UpdateConnector KnSubject); laat CC leeg of vraag de beheerder.'; return; }
     const o = waardenVan(sm.cc.values).find(o => norm(o.naam) === norm(cc) || norm(o.naam) === norm(ccNaam(cc)) || (ccId(cc) && o.code === ccId(cc))); let code = o ? o.code : ccId(cc) || null;
     if(!code){ const mw = await zoekMedewerker(cc); if(!mw){ fout.textContent = `CC "${cc}" is geen (eenduidige) medewerker. Kies een naam uit de lijst.`; f.cc.focus(); return; } code = mw.id; }
     w[veldCode(sm.cc)] = code; }
-  if(f.kritiek && f.kritiek.checked){ const sm = await laadSubjMeta(); if(!sm.kritiek){ fout.textContent = 'Het veld Kritieke storing is niet gevonden in AFAS.'; return; } w[veldCode(sm.kritiek)] = true; }
+  if(f.kritiek && f.kritiek.checked){ const sm = await laadSubjMeta(); if(!sm.kritiek){ fout.textContent = 'Het veld Kritieke storing is niet gevonden in AFAS.'; return; } w[veldCode(sm.kritiek)] = true;
+    if(f.opgelost && f.opgelost.value && sm.opgelost) w[veldCode(sm.opgelost)] = f.opgelost.value + ':00'; }
+  if(f.datalek && f.datalek.checked){ const sm = await laadSubjMeta(); if(!sm.datalek){ fout.textContent = 'Het veld Datalek is niet gevonden in AFAS.'; return; } w[veldCode(sm.datalek)] = true; }
+  if(f.extern && f.extern.value.trim()){ const sm = await laadSubjMeta(); if(!sm.extern){ fout.textContent = 'Het veld Extern ticket is niet gevonden in AFAS.'; return; } w[veldCode(sm.extern)] = f.extern.value.trim(); }
   if(f.behCode && f.behCode.value){ const sm = await laadSubjMeta(); if(!sm.verantw){ fout.textContent = 'Het veld Verantwoordelijke is niet gevonden in AFAS; laat Verantwoordelijke leeg.'; return; } w[veldCode(sm.verantw)] = f.behCode.value; }
   // velden met een / horen in een onderliggend object (vrije velden KnS<StId>)
   const top = {}, obj = {};
@@ -3769,6 +3797,7 @@ async function maakMelding(){
     // wat je in het formulier koos meteen bij de melding zetten (de connector loopt soms even achter): anders lijkt Locatie/Afdeling nog leeg
     if(x){ const lok = {}; if(m.loc && f.loc && f.loc.value){ lok.locatie = f.loc.options[f.loc.selectedIndex].textContent.trim(); locCache.set(String(x.nr), lok.locatie); }
       if(m.afd && f.afd && f.afd.value && !x.afdeling) lok.afdeling = f.afd.options ? f.afd.options[f.afd.selectedIndex].textContent.trim() : f.afd.value;
+      if(f.datalek && f.datalek.checked) lok.datalek = true; if(f.extern && f.extern.value.trim()) lok.extern = f.extern.value.trim(); if(f.gepland && f.gepland.value) lok.gepland = new Date(f.gepland.value + 'T00:00:00');
       if(Object.keys(lok).length){ Object.assign(x, lok); onthoudLokaal(x, lok, 5 * 6e4); x._sg = signalen(x); } }
     if(x && f.kritiek && f.kritiek.checked){ x.kritiek = true; meldKritiekAanAllen(x); }
     if(x) logHistorie(x, 'ticket aangemaakt'); else logHistorie({nr: nr || '', onderwerp: ond}, 'ticket aangemaakt');
@@ -5608,10 +5637,10 @@ function openProject(code){
       <div class="kaart2"><h3>Project</h3><span>Projectleider</span><b>${esc(p.leider || '')}</b><span>Start</span><b>${p.projStart ? fmtDatum(p.projStart) : ''}</b><span>Einde</span><b>${p.projEind ? fmtDatum(p.projEind) : ''}</b>${p.team.length ? `<span>Team</span><b>${esc(p.team.join(', '))}</b>` : ''}</div>
       <div class="kaart2"><h3>Voortgang</h3><span>Projectfase</span><b><select name="fase" class="afdkeuze" disabled><option></option></select></b><span>Voortgang</span><b><select name="voort" class="afdkeuze" disabled><option></option></select></b><span>Datum gereed</span><b><input type="date" name="gereed" class="datumkeuze" value="${esc(iso(p.gereedPlanning))}" data-oud="${esc(iso(p.gereedPlanning))}" title="Datum gereed (planning)"></b></div>
     </div>
-    <div class="toelblok"><h3>Update projectvoortgang</h3><textarea name="tekst" class="lang toelinvoer" rows="3" spellcheck="true" placeholder=""></textarea></div>
-    <div class="tijdlijn" id="p-tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>
     <div class="onderbalk"><span style="flex:1"></span><span class="opslaanknoppen"><button type="button" class="knop vol" id="p-opslaan">Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
-    <p class="fout" id="p-fout" role="alert"></p></form>`;
+    <p class="fout" id="p-fout" role="alert"></p>
+    <div class="toelblok"><h3>Update projectvoortgang</h3><textarea name="tekst" class="lang toelinvoer" rows="3" spellcheck="true" placeholder=""></textarea></div>
+    <div class="tijdlijn" id="p-tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div></form>`;   // zelfde volgorde als een melding: knoppen, dan het tekstvak, dan de reacties
   dlg.showModal();
   const f = $('#p-form');
   projMeta().then(m => {
