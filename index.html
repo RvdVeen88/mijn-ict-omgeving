@@ -528,12 +528,8 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .nav .favhint{font-size:12px;color:var(--grijs);padding:2px 12px 6px 28px}
 
 .tw{overflow-x:auto}
-/* scrollbalken: zonder pijltjes en binnen de ronde hoeken (anders worden de pijltjes afgesneden); overal hetzelfde */
-::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-button{display:none;width:0;height:0}
-::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-corner{background:transparent}
-::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--grijs) 45%,transparent);border-radius:999px;border:2px solid transparent;background-clip:padding-box}
-::-webkit-scrollbar-thumb:hover{background-color:color-mix(in srgb,var(--grijs) 70%,transparent)}
-.tw::-webkit-scrollbar-track{margin:0 16px}
+/* kaart met een tabel: ruimte onder de tabel, zodat de scrollbalk (met pijltjes) boven de ronde hoeken valt en niet wordt afgesneden */
+.blok:has(.tw){padding-bottom:22px}
 .voet .achter{display:inline-flex;align-items:center;gap:8px;margin-right:14px}
 .voet .achter i{display:block;width:120px;height:4px;border-radius:2px;background:var(--lijn);overflow:hidden}
 .voet .achter i::before{content:'';display:block;height:100%;width:var(--p,0%);background:var(--blauw-2);transition:width .3s}
@@ -1343,7 +1339,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.21', VERSIE_DATUM = '19-10-2026';
+const VERSIE = 'v7.21.1', VERSIE_DATUM = '19-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
