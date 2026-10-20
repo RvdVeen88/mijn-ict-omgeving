@@ -280,6 +280,15 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .kk-toel{color:var(--grijs)!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .kk-knoppen{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
 .kk-knoppen .knop.vol{background:var(--rood);border-color:var(--rood)}
+/* herinnering bij inloggen: zelfde kaart als een kritieke storing, maar rustiger (oranje) */
+#herinnerbox{position:fixed;bottom:24px;right:24px;z-index:89;width:min(380px,calc(100vw - 32px))}
+.herinnerkaart{border-color:var(--oranje);box-shadow:0 18px 50px rgba(3,31,77,.22)}
+.herinnerkaart .kk-kop{color:var(--oranje)}.herinnerkaart .kk-kop svg{animation:none}
+.herinnerkaart .hk-soort{color:var(--grijs)!important}
+.herinnerkaart .hk-rij{display:flex;gap:8px;align-items:baseline;width:100%;border:0;background:none;padding:4px 0;text-align:left;font-size:13px;color:var(--inkt);cursor:pointer;border-top:1px solid var(--lijn)}
+.herinnerkaart .hk-rij:first-of-type{border-top:0}.herinnerkaart .hk-rij b{min-width:48px;color:var(--oranje)}.herinnerkaart .hk-rij span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.herinnerkaart .hk-lijst{margin-top:8px}
+.herinnerkaart .kk-knoppen .knop.vol{background:var(--blauw);border-color:var(--blauw)}
 @keyframes kkIn{from{opacity:0;transform:translateX(30px) scale(.96)}}
 @keyframes kkSchud{0%,100%{transform:rotate(0)}20%{transform:rotate(-12deg)}40%{transform:rotate(10deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(4deg)}}
 @media (prefers-reduced-motion: reduce){.vb-kritiek,.kk-kop svg,.kritiekkaart{animation:none}}
@@ -1185,6 +1194,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
   .teampaneel{left:8px!important;right:8px;top:auto!important;bottom:calc(var(--onder) + 8px + env(safe-area-inset-bottom));width:auto;max-height:70dvh}
   .teamwolk{display:none}
   #kritiekbox{top:10px;right:10px;left:10px;width:auto}
+  #herinnerbox{bottom:10px;right:10px;left:10px;width:auto}
   #toast{bottom:calc(var(--onder) + 14px + env(safe-area-inset-bottom))!important}
   .ikmenu{position:fixed;right:10px;left:auto;top:62px}
   #kolkeuze{left:10px!important;right:10px;width:auto}
@@ -1353,7 +1363,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.22.1', VERSIE_DATUM = '20-10-2026';
+const VERSIE = 'v7.23', VERSIE_DATUM = '20-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1807,7 +1817,8 @@ async function verrijkMetTaken(){
       x.zoek = norm([x.nr, x.afasNr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.emma, ...x.taakBij].join(' ')); });
     takenKlaar = true;
     if(!$('#detail').open && !$('#app').hidden) teken();
-    if(!CTRL.taken && isBeheerder()) setTimeout(() => haalAlleTaken(), 8000);   // Controle: één keer op de achtergrond, daarna bij openen (max. elke 10 min)
+    if(!CTRL.taken && isBeheerder()) setTimeout(() => haalAlleTaken(), 8000);
+    setTimeout(() => toonHerinnering(), 2500);   // herinnering bij inloggen, als je taken en meldingen compleet zijn   // Controle: één keer op de achtergrond, daarna bij openen (max. elke 10 min)
   }catch(e){ takenKlaar = true; }
 }
 /* achtergrond 2: afgesloten meldingen van de laatste 90 dagen erbij halen, voortgang onderin */
@@ -2268,6 +2279,7 @@ const afdelingen = () => { const lijst = afdBasis(), basis = lijst.filter(a => n
   return [...t.entries()].sort((a, b) => volg(a[0]) - volg(b[0]) || a[0].localeCompare(b[0], 'nl')); };
 function weergave(id){
   const kp = KPI.find(k => k.id === id); if(kp) return {titel: kp.t, lijst: kp.f()};
+  if(id === 'k:over') return {titel: 'Mijn verlopen meldingen', lijst: mijnVerlopen()};   // vanuit de herinnering bij inloggen
   const v = [...VAST, ALLE, ...ONDER, ...CHANGES].find(v => v.id === id); if(v) return {titel:v.t, lijst:v.f ? v.f() : []};
   if(id.startsWith('afd:')){ const a = id.slice(4); return {titel:a, lijst:meld().filter(x => !x.inuit && norm(navAfd(x.afdeling)) === norm(a))}; }
   if(id === 'zoek'){ const q = norm(filt.zoek); return {titel: q ? `Zoeken: “${filt.zoek.trim()}”` : 'Zoeken', lijst: q ? items : []}; }   // filteren gebeurt in tekenLijst
@@ -6384,6 +6396,37 @@ async function wisselWindows(){
     new Notification('SubmIT', {body: 'Windows-meldingen staan aan: bij een kritieke storing zie je dit, ook als je in een ander programma zit.'}); return; }
   const aan = opslag.get('mict-winmelding') === false; opslag.set('mict-winmelding', aan); toast(aan ? 'Windows-meldingen bij kritieke storingen staan aan' : 'Windows-meldingen staan uit');
 }
+/* ================= herinnering bij inloggen: je hebt meldingen over de norm =================
+   Eén keer per keer dat je SubmIT opent (per browsersessie), en niet vaker dan eens per 4 uur. Geen herhaling, geen geluid. */
+const HERINNER_UUR = 4, herinnerSleutel = () => 'mict-herinnering-' + (sub || 'demo');
+// verlopen = over een tijdsnorm (niet: een ontbrekend veld)
+const isVerlopenSig = s => s.ernst >= 2 && (['opvolging', 'melder', 'leverancier'].includes(s.code) || (s.code === 'planning' && /verlopen/i.test(s.tekst)) || (s.code === 'nieuw' && /te laat/i.test(s.tekst)));
+const mijnVerlopen = () => mijnOpen().filter(x => (x._sg || signalen(x)).some(isVerlopenSig));
+const HK_SOORT = {opvolging: 'te lang geen reactie', melder: 'melder te lang stil', leverancier: 'leverancier te lang stil', planning: 'planning verlopen', nieuw: 'te laat opgepakt', kritiek: 'kritieke storing'};
+function toonHerinnering(poging = 0){
+  if(!profiel || sessie.get('mict-herinnerd')) return;
+  if(($('#tour') && $('#tour').open) || $('#detail').open){ if(poging < 40) setTimeout(() => toonHerinnering(poging + 1), 15000); return; }   // eerst de rondleiding of je melding afmaken
+  sessie.set('mict-herinnerd', '1');
+  const vorige = +(opslag.get(herinnerSleutel()) || 0); if(Date.now() - vorige < HERINNER_UUR * 36e5) return;
+  const l = mijnVerlopen().sort((a, b) => ernst(b) - ernst(a) || (+a.aangemaakt || 0) - (+b.aangemaakt || 0)); if(!l.length) return;
+  opslag.set(herinnerSleutel(), Date.now());
+  const soort = new Map(); l.forEach(x => { const sg = (x._sg || signalen(x)).filter(isVerlopenSig).sort((a, b) => b.ernst - a.ernst)[0]; const t = sg ? HK_SOORT[sg.code] : 'over de norm'; soort.set(t, (soort.get(t) || 0) + 1); });
+  let box = $('#herinnerbox'); if(!box){ document.body.insertAdjacentHTML('beforeend', '<div id="herinnerbox" aria-live="polite"></div>'); box = $('#herinnerbox'); }   // rechtsonder: blokkeert de knoppen bovenin niet
+  if(box.querySelector('.herinnerkaart')) return;
+  const voornaam = String(profiel.naam || '').split(' ')[0];
+  box.insertAdjacentHTML('beforeend', `<div class="kritiekkaart herinnerkaart" role="status">
+    <div class="kk-kop">${ico('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5M5 3 2 6M19 3l3 3"/>')}<b>${l.length === 1 ? '1 verlopen melding' : l.length + ' verlopen meldingen'}</b></div>
+    <p class="hk-soort">${esc(voornaam)}, ${l.length === 1 ? 'deze melding van jou is' : 'deze meldingen van jou zijn'} over de norm: ${[...soort].map(([t, n]) => `${n}× ${t}`).join(', ')}.</p>
+    <div class="hk-lijst">${l.slice(0, 3).map(x => `<button type="button" class="hk-rij" data-hknr="${esc(x.nr)}"><b>${esc(nrT(x))}</b><span>${esc(x.onderwerp)}</span></button>`).join('')}${l.length > 3 ? `<p class="hk-soort" style="margin-top:2px">en nog ${l.length - 3}</p>` : ''}</div>
+    <div class="kk-knoppen"><button type="button" class="knop" data-hklater>Later</button><button type="button" class="knop vol" data-hkbekijk>Bekijk meldingen</button></div></div>`);
+}
+document.addEventListener('click', e => {
+  const k = e.target.closest && e.target.closest('.herinnerkaart'); if(!k) return;
+  const weg = () => k.remove();
+  if(e.target.closest('[data-hklater]')){ weg(); return; }
+  if(e.target.closest('[data-hkbekijk]')){ weg(); tab = 'k:over'; teken(); scrollTo(0, 0); return; }
+  const r = e.target.closest('[data-hknr]'); if(r){ weg(); navLijst = mijnVerlopen().map(x => String(x.nr)); openDetail(r.dataset.hknr); }
+});
 function toonKritiek(k){
   let box = $('#kritiekbox'); if(!box){ document.body.insertAdjacentHTML('beforeend', '<div id="kritiekbox" aria-live="assertive"></div>'); box = $('#kritiekbox'); }
   if(box.querySelector(`[data-kritieknr="${CSS.escape(k.nr)}"]`)) return;
