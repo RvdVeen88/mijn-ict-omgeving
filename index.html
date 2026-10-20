@@ -1353,7 +1353,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.22', VERSIE_DATUM = '20-10-2026';
+const VERSIE = 'v7.22.1', VERSIE_DATUM = '20-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2938,9 +2938,11 @@ function statusKeuzes(wf, x){
   const voorkeur = a => /informatie toevoegen/i.test(a.naam) ? 0 : /heropenen/i.test(a.naam) ? 1 : /toewijzen aan mij/i.test(a.naam) ? (!x.verantw || benIk(x.verantw) ? 2 : 9) : /reactie plaatsen/i.test(a.naam) ? 3 : 5;
   const bekend = STATUS_VOLGORDE.map(st => ({st, a: wf.acties.filter(a => statusNa(a) === st && voorkeur(a) < 9).sort((p, q) => voorkeur(p) - voorkeur(q))[0] || null}));
   // workflowacties die SubmIT (nog) niet kent: toch kiezen, onder hun eigen naam (nieuwe stap in AFAS = vanzelf in de lijst)
-  const onbekend = wf.acties.filter(a => !statusNa(a) && soortActie(a) === 'status' && !sluitActie(a) && !isReactieActie(a) && !isNotitieActie(a) && !isOppakActie(a) && !isHeropenActie(a)).map(a => ({st: a.naam, a, eigen: true}));
+  const onbekend = wf.acties.filter(a => !statusNa(a) && soortActie(a) === 'status' && !isRouteActie(a) && !sluitActie(a) && !isReactieActie(a) && !isNotitieActie(a) && !isOppakActie(a) && !isHeropenActie(a)).map(a => ({st: a.naam, a, eigen: true}));
   return [...bekend, ...onbekend];
 }
+// acties die alleen bepalen bij wie de melding ligt (geen status): dat doe je in SubmIT met Verantwoordelijke; in AFAS blijven ze bestaan
+const isRouteActie = a => /bestemming\s*wijzig|overdragen|delegeren|doorsturen naar|terug naar begin/i.test(a.naam || '');
 const soortActie = a => /toewijzen aan mij/i.test(a.naam) ? 'mij' : /toewijzen aan collega|doorzetten naar collega|collega/i.test(a.naam) ? 'collega' : /inplannen|plannen/i.test(a.naam) ? 'plannen' : 'status';
 // Afhandelen/oppakken al aanklikbaar terwijl de workflow nog laadt: even wachten en dan dezelfde route als de echte knop
 // Afhandelen: heeft de verantwoordelijke de afgelopen 15 minuten gereageerd? Zo niet: eerst vragen (met meteen een reactieveld)
