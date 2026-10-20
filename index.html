@@ -352,7 +352,7 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .tegel.nul b{color:var(--grijs)}
 
 
-.blok{background:var(--vlak);border-radius:30px;box-shadow:var(--schaduw);overflow:hidden}
+.blok{background:var(--vlak);border-radius:30px;box-shadow:var(--schaduw);overflow:hidden;overflow:clip}
 .blok > header{display:flex;align-items:baseline;gap:10px;padding:16px 26px 10px}
 .blok > header h2{font-size:16px;color:var(--blauw)}
 .blok > header b{font-size:13px;background:var(--lichtblauw-2);color:var(--blauw);border-radius:999px;padding:1px 9px}
@@ -540,6 +540,10 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .tw{overflow-x:auto}
 /* kaart met een tabel: ruimte onder de tabel, zodat de scrollbalk (met pijltjes) boven de ronde hoeken valt en niet wordt afgesneden */
 .blok:has(.tw){padding-bottom:22px}
+/* tabel breder dan het scherm: een horizontale scrollbalk die onderin beeld blijft staan (niet pas onder de laatste regel) */
+.tw.metbalk{scrollbar-width:none}.tw.metbalk::-webkit-scrollbar{display:none}
+.tw-balk{position:sticky;bottom:0;z-index:4;overflow-x:auto;overflow-y:hidden;height:17px;background:var(--vlak);border-top:1px solid var(--lijn)}
+.tw-balk>div{height:1px}
 .voet .achter{display:inline-flex;align-items:center;gap:8px;margin-right:14px}
 .voet .achter i{display:block;width:120px;height:4px;border-radius:2px;background:var(--lijn);overflow:hidden}
 .voet .achter i::before{content:'';display:block;height:100%;width:var(--p,0%);background:var(--blauw-2);transition:width .3s}
@@ -583,6 +587,8 @@ kbd{font:inherit;font-size:10.5px;font-weight:600;opacity:.7;margin-left:8px;bor
 select.voorstel{color:var(--grijs)}
 #n-loc-hint{display:block;font-size:11.5px;margin-top:3px}
 i.verpl{font-style:normal;color:var(--oranje);margin-left:3px;font-weight:700}
+i.verpl.gevuld{display:none}
+#lijst-n.gefilterd{background:var(--oranje-licht);color:var(--oranje)}
 select.afdkeuze.mist{border-bottom:2px solid var(--oranje);color:var(--oranje)}
 textarea.mist{border-color:var(--oranje)}
 .mailregel{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 0 42px;padding:1px 4px;font-size:11.5px;color:var(--grijs)}
@@ -1367,7 +1373,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.25.1', VERSIE_DATUM = '20-10-2026';
+const VERSIE = 'v7.26', VERSIE_DATUM = '20-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1572,7 +1578,7 @@ function laadAlleGesloten(){
       if(!dicht) dicht = await connectorAlles(INST.connSla, '');
       const nrs = new Set(items.map(x => String(x.nr)));   // sleutel: in-/uitdienst heeft U + nummer
       items = [...items, ...bouwItems(dicht, new Map(sbCache)).filter(x => x.afgesloten && !nrs.has(String(x.nr)))]; pasInUitToe();
-      alleDichtGeladen = true;
+      alleDichtGeladen = true; try{ tekenNav(); }catch(e){}
     }catch(e){ toast('Alle gesloten meldingen ophalen mislukt: ' + e.message, true); }
     alleDichtBezig = null;
     if((tab === 'dichtalle' || tab === 'zoek' || toonDicht() || alleAlles()) && !$('#detail').open) teken();
@@ -1602,7 +1608,8 @@ function bepaalAfdVeld(rijen){
   const best = Object.entries(score).sort((a, b) => b[1] - a[1])[0];
   afdVeld = best ? best[0] : 'AFAS_Afdeling';
 }
-let heeftLocKolom = false;
+let heeftLocKolom = false, locBronTickets = false;   // locatie: in de SLA-connector, of (per melding) in Helpdesk_PowerBI
+const locVan = x => String((x && (x.locatie || locCache.get(String(x.nr)))) || '').trim();
 function bouwItems(sla, sbPerNr){
   bepaalAfdVeld(sla);
   if(sla.length) heeftLocKolom = sla.some(r => Object.keys(r).some(k => /^locatie$/i.test(k)));
@@ -1668,7 +1675,7 @@ async function sbIdsVoor(veld, waarden){
       rows.forEach(r => { const nk = rijIsIu(r) ? iuSleutel(r.Nummer) : String(r.Nummer);   // sleutel per type: nooit een uitdienst aan een gelijknamige ICT-melding hangen
         uit.set(nk, r.Dossieritem); sbCache.set(nk, r.Dossieritem);
         const tk = Object.keys(r).find(k => /^toelichting/i.test(k)); if(tk) toelCache.set(nk, kaal(r[tk]));
-        const lk = Object.keys(r).find(k => /^locatie$/i.test(k)); if(lk) locCache.set(nk, String(r[lk] ?? '').trim());
+        const lk = Object.keys(r).find(k => /^locatie$/i.test(k)); if(lk){ locBronTickets = true; locCache.set(nk, String(r[lk] ?? '').trim()); }
         const gk = Object.keys(r).find(k => /^gebruiker$/i.test(k)); if(gk) instCache.set(nk, String(r[gk] ?? '').trim());
         const sn = sollNaam(r); if(sn !== null) sollCache.set(nk, sn);
         const pd = projDatums(r); if(pd) projCache.set(nk, pd);
@@ -1943,7 +1950,7 @@ function zetIctReactie(x, ja){ x.ictReactie = ja; if(ja && !ictReactieBekend(x.n
 function ontbreekt(x){
   const m = [];
   if(!x.afdeling) m.push('afdeling');
-  if(heeftLocKolom && !x.locatie && !locCache.get(String(x.nr))) m.push('locatie');
+  if((heeftLocKolom || (locBronTickets && locCache.has(String(x.nr)))) && !locVan(x)) m.push('locatie');
   // reactie aan de melder is alleen nodig als de melder niet zelf van ICT is (een ICT'er die zelf een melding maakt hoeft zichzelf niet te antwoorden)
   if(isIctCollega(x.melder)) return m;
   // de laatste reactie kan van de melder zijn terwijl ICT eerder wél reageerde: dat weten we pas na het ophalen van de reacties
@@ -1987,7 +1994,7 @@ const KOLOMMEN = [
   {k:'reactie', bw:'108px', t:'Laatste reactie', w:x => +x.reactieDatum || 0, html:x => x.reactieDatum ? kortDatum(x.reactieDatum) : '', cls:'zacht k-reactie'},
   {k:'type', bw:'100px', t:'Type', w:x => norm(x.type), html:x => esc(x.type || ''), cls:'zacht k-type'},
   {k:'status', bw:'150px', t:'Status', w:x => norm(x.status), html:x => esc(toonStatus(x.status) || ''), cls:''},
-  {k:'loc', bw:'110px', t:'Locatie', w:x => norm(x.locatie || locCache.get(String(x.nr)) || ''), html:x => esc(x.locatie || locCache.get(String(x.nr)) || ''), cls:'zacht k-loc'},
+  {k:'loc', bw:'110px', t:'Locatie', w:x => norm(locVan(x)), html:x => esc(locVan(x)), cls:'zacht k-loc'},
   {k:'pstart', bw:'104px', t:'Startdatum', ch:true, w:x => +x.projStart || 0, html:x => x.projStart ? kortDatum(x.projStart) : '', cls:'zacht k-pstart'},
   {k:'peind', bw:'104px', t:'Deadline', ch:true, w:x => +x.projEind || 0, html:x => x.projEind ? `<span${!x.afgesloten && +x.projEind < +beginDag(new Date()) ? ' style="color:var(--rood);font-weight:600"' : ''}>${kortDatum(x.projEind)}</span>` : '', cls:'k-peind'},
   {k:'gepland', bw:'104px', t:'Gepland', w:x => +x.gepland || 0, html:x => x.gepland ? kortDatum(x.gepland) : '', cls:'zacht k-gepland'},
@@ -2060,8 +2067,41 @@ function houdOnderwerp(t){
     cel.forEach(el => { if(el.offsetParent !== null || el.tagName === 'TH'){ el.style.display = 'none'; el.dataset.kolweg = '1'; } });
   }
 }
+const twLinks = {};   // horizontale scrollpositie per tabel: blijft staan als de lijst ververst
+function zorgScrollbalk(tw){
+  const tid = (tw.querySelector('table[data-tabel]') || {dataset: {}}).dataset.tabel;
+  if(tid && !tw._links){ tw._links = true; tw.addEventListener('scroll', () => { twLinks[tid] = tw.scrollLeft; }, {passive: true}); if(twLinks[tid]) tw.scrollLeft = twLinks[tid]; }
+  let balk = tw.nextElementSibling && tw.nextElementSibling.classList.contains('tw-balk') ? tw.nextElementSibling : null;
+  const nodig = getComputedStyle(tw).overflowX !== 'visible' && tw.scrollWidth > tw.clientWidth + 2;
+  tw.classList.toggle('metbalk', nodig);
+  if(!nodig){ if(balk) balk.remove(); return; }
+  if(!balk){ balk = document.createElement('div'); balk.className = 'tw-balk'; balk.setAttribute('aria-hidden', 'true'); balk.innerHTML = '<div></div>'; tw.after(balk);
+    let bron = null;
+    balk.addEventListener('scroll', () => { if(bron === tw) return; bron = balk; tw.scrollLeft = balk.scrollLeft; requestAnimationFrame(() => bron = null); });
+    tw.addEventListener('scroll', () => { if(bron === balk) return; bron = tw; balk.scrollLeft = tw.scrollLeft; requestAnimationFrame(() => bron = null); }); }
+  balk.firstChild.style.width = tw.scrollWidth + 'px'; balk.scrollLeft = tw.scrollLeft;
+}
+/* verplicht-sterretje alleen tonen zolang het veld leeg is (overal: melding en nieuwe melding) */
+function zetVerplicht(){
+  document.querySelectorAll('i.verpl[data-verpl]').forEach(i => { const el = document.querySelector(i.dataset.verpl); if(!el) return;
+    const v = String(el.value ?? '').trim(), t = el.tagName === 'SELECT' && el.selectedIndex >= 0 ? String(el.options[el.selectedIndex].textContent || '').trim() : v;
+    i.classList.toggle('gevuld', !!t && !/^–/.test(t) && !/kies/i.test(t)); });
+}
+['change', 'input'].forEach(ev => document.addEventListener(ev, () => zetVerplicht(), true));
+{ let wacht = false; new MutationObserver(() => { if(wacht) return; wacht = true; requestAnimationFrame(() => { wacht = false; zetVerplicht(); }); }).observe(document.body, {subtree: true, childList: true}); }
+/* aantal in de kop van de lijst: met een filter aan "37 van 176", zodat je niet naar onderen hoeft */
+const tabelTel = {};
+function telFilterKop(){
+  const kop = $('#lijst-n'); if(!kop || kop.hidden) return;
+  const t = [...document.querySelectorAll('#lijst table[data-tabel]')].map(x => tabelTel[x.dataset.tabel]).filter(Boolean);
+  const n = t.reduce((a, b) => a + b.n, 0), tot = t.reduce((a, b) => a + b.totaal, 0), filter = t.some(x => x.n !== x.totaal);
+  if(filter) kop.textContent = `${n} van ${tot}`; kop.classList.toggle('gefilterd', filter);
+  kop.title = filter ? `${n} van de ${tot} meldingen voldoen aan het filter` : '';
+}
 function pasTabelBreedtes(){
+  telFilterKop();
   document.querySelectorAll('table.tabel[data-tabel]').forEach(houdOnderwerp);
+  requestAnimationFrame(() => document.querySelectorAll('.tw').forEach(zorgScrollbalk));
   document.querySelectorAll('table.tabel[data-tabel]').forEach(t => {
     if(!eigenBreedtes()){ t.style.width = ''; return; }
     const kop = [...t.querySelectorAll('thead tr:first-child th')].filter(th => th.offsetParent !== null);
@@ -2231,6 +2271,7 @@ function tabel(id, l, opties = {}){
   Object.entries(opties_).forEach(([k, v]) => keuzeOpties[id + '|' + k] = v);
   const totaal = l.length;
   if(actief.length) l = l.filter(x => actief.every(([k, v]) => { const c = elkeKol(k); return !c || (Array.isArray(v) ? !v.includes(keuzeWaarde(c, x)) : kfMatch(kolTekst(c, x), v)); }));
+  tabelTel[id] = {n: l.length, totaal};
   const s = sortering[id];
   if(s && elkeKol(s.k)){ const c = elkeKol(s.k); l = [...l].sort((a, b) => { const x = c.w(a), y = c.w(b); return (x < y ? -1 : x > y ? 1 : 0) * s.op || (+b.aangemaakt || 0) - (+a.aangemaakt || 0); }); }
   const max = opties.max && !blokOpen.has(id) ? opties.max : 400, zicht = l.slice(0, max);
@@ -2285,6 +2326,18 @@ function weergave(id){
 let dichtTab = null;
 const toonDicht = () => dichtTab === tab;
 // Alle meldingen: schakelaar Alle | Open (standaard Alle = open én afgehandeld, zonder in- en uitdienst)
+// het getal in het menu = precies wat de lijst toont in de gekozen stand; bij Alle pas als álle afgehandelde meldingen binnen zijn
+const alleStandAlles = () => !opslag.get('mict-alle-open');
+function alleTelling(){
+  if(!alleStandAlles()) return open().filter(x => !x.inuit).length;
+  if(!alleDichtGeladen){ if(!alleDichtBezig && takenKlaar && items.length) laadAlleGesloten(); return null; }   // nog niet compleet: geen (verkeerd) getal tonen
+  return items.filter(x => !x.inuit).length;
+}
+function alleUitleg(){
+  const o = open().filter(x => !x.inuit), ch = o.filter(isChange).length;
+  return alleStandAlles() ? (alleDichtGeladen ? `${items.filter(x => !x.inuit).length} meldingen: ${o.length} open (waarvan ${ch} changes/RfC) en ${items.filter(x => !x.inuit && x.afgesloten).length} afgehandeld · zonder in- en uitdienst` : 'Alle meldingen worden geteld…')
+    : `${o.length} open meldingen (waarvan ${ch} changes/RfC) · zonder in- en uitdienst`;
+}
 const alleAlles = () => tab === 'alle' && !opslag.get('mict-alle-open');
 function dichtVan(t){
   const d = items.filter(x => x.afgesloten);
@@ -2377,7 +2430,7 @@ function tekenNav(){
     ${favL.map(rijA).join('') || '<p class="favhint"><b style="color:var(--inkt);font-weight:500">Geen afdeling geselecteerd</b><br>Zet een ★ bij een afdeling om hem hier te tonen.</p>'}
     <h4><button type="button" id="k-overige" aria-expanded="${restOpen}">${ico('<path d="M6 9l6 6 6-6"/>')}Andere afdelingen (${rest.length})</button></h4>
     ${restOpen ? rest.map(rijA).join('') : ''}
-    <h4>Overig</h4>${[ALLE, ...ONDER].map(v => it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}${it(hist.id, hist.t, null, hist)}${isBeheerder() ? it('controle', 'Controle', CTRL.ict ? controleBevindingen().length : null, {ico: CTRL_ICO, titel: 'Staat elke open melding bij een ICT-collega? (alleen voor de beheerder)'}) : ''}`;
+    <h4>Overig</h4>${[ALLE, ...ONDER].map(v => v.id === 'alle' ? it(v.id, v.t, alleTelling(), {...v, titel: alleUitleg()}) : it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}${it(hist.id, hist.t, null, hist)}${isBeheerder() ? it('controle', 'Controle', CTRL.ict ? controleBevindingen().length : null, {ico: CTRL_ICO, titel: 'Staat elke open melding bij een ICT-collega? (alleen voor de beheerder)'}) : ''}`;
 }
 
 /* ================= Overzicht: rustig voorblad met persoonlijke cijfers (zoals in Mijn changes) ================= */
@@ -2408,7 +2461,7 @@ function tekenMij(){
   const krit = kritiekOpen().sort((a, b) => (b.statusDatum || b.aangemaakt || 0) - (a.statusDatum || a.aangemaakt || 0));
   $('#blokken').innerHTML = `<div class="voorblad">
     ${krit.length ? `<div class="vb-kritiek" role="alert"><h3>${KRIT_ICO}${krit.length === 1 ? 'Kritieke storing' : krit.length + ' kritieke storingen'}<small>zorgproces verstoord: gaat voor alles</small></h3>${krit.map(x => `<button type="button" class="vbk-rij" data-nr="${esc(x.nr)}"><b>${esc(x.nr)}</b><span>${esc(x.onderwerp)}<small>${esc([x.afdeling, x.locatie, x.verantw ? 'bij ' + (benIk(x.verantw) ? 'jou' : x.verantw) : 'nog niemand', 'sinds ' + kortDatum(x.aangemaakt)].filter(Boolean).join(' · '))}</small></span></button>`).join('')}</div>` : ''}
-    ${STORINGEN.length ? `<div class="vb-storing"><h3>${KRIT_ICO}${STORINGEN.length === 1 ? 'Mogelijke storing' : STORINGEN.length + ' mogelijke storingen'}<small>meerdere vergelijkbare meldingen in korte tijd</small></h3>${STORINGEN.map((g, i) => `<div class="vbs-groep"><div class="vbs-kop">${g.nrs.length} meldingen over “${esc(g.woord)}”${g.loc ? ' · ' + esc(g.loc) : ''} <small class="hint" style="font-weight:400">sinds ${fmtTijd(g.sinds)}</small><button type="button" class="knop" data-storingkrit="${i}" title="Maakt een nieuwe melding als kritieke storing aan, met de vergelijkbare meldingen erin">Kritieke storing aanmaken</button></div><div class="vbs-nrs">${g.nrs.map(nr => { const y = items.find(z => String(z.nr) === nr); return `<span><button type="button" data-storingnr="${esc(nr)}" data-groep="${i}">${esc(nr)}</button> ${esc(kort(y ? y.onderwerp : '', 46))}</span>`; }).join('')}</div></div>`).join('')}</div>` : ''}
+    ${STORINGEN.length ? `<div class="vb-storing"><h3>${KRIT_ICO}${STORINGEN.length === 1 ? 'Mogelijke storing' : STORINGEN.length + ' mogelijke storingen'}<small>meerdere vergelijkbare meldingen in korte tijd</small></h3>${STORINGEN.map((g, i) => `<div class="vbs-groep"><div class="vbs-kop">${g.nrs.length} meldingen over “${esc(g.woord)}”${g.loc ? ' · ' + esc(g.loc) : ''} <small class="hint" style="font-weight:400">sinds ${fmtTijd(g.sinds)}</small><button type="button" class="knop" data-storingnegeer="${i}" title="Geen storing: deze melding over deze meldingen niet meer tonen">Negeren</button><button type="button" class="knop" data-storingkrit="${i}" title="Maakt een nieuwe melding als kritieke storing aan, met de vergelijkbare meldingen erin">Kritieke storing aanmaken</button></div><div class="vbs-nrs">${g.nrs.map(nr => { const y = items.find(z => String(z.nr) === nr); return `<span><button type="button" data-storingnr="${esc(nr)}" data-groep="${i}">${esc(nr)}</button> ${esc(kort(y ? y.onderwerp : '', 46))}</span>`; }).join('')}</div></div>`).join('')}</div>` : ''}
     <p class="vb-groet">${groet}, ${esc(voornaam)}</p><p class="vb-dag">${dag}<small>${esc(zin)}</small></p>
     <div class="vb-cijfers">${waarden.map(k => `<button type="button" class="vb-c ${k.n ? (k.kl || '') : 'nul'}" data-weergave="${k.id}" title="${esc(k.uitleg || 'Toon deze meldingen')}"><b>${k.n}</b><span>${esc(k.t)}</span></button>`).join('')}</div>
     ${plan.length ? `<div class="vb-lijsten een">
@@ -2436,6 +2489,15 @@ function zichtbaar(t, l){
 }
 // alleen eigen meldingen in beeld: dan is de kolom Verantwoordelijke overbodig (dat ben je zelf)
 const alleenEigen = t => t === 'toegewezen' || t === 'ch:mijn' || t.startsWith('k:') || schuifAan(t);
+const locGevraagd = new Set();
+let locBezig = false;
+async function vulLocaties(l){
+  if(locBezig || DEMO || (locGevraagd.size && !locBronTickets)) return;   // Helpdesk_PowerBI heeft geen Locatie: niet blijven vragen
+  const nrs = l.filter(x => !x.inuit && !x.locatie && !locCache.has(String(x.nr)) && !locGevraagd.has(String(x.nr))).map(x => String(x.nr)); if(!nrs.length) return;
+  nrs.forEach(n => locGevraagd.add(n)); locBezig = true;
+  try{ await sbIdsVoor('Nummer', nrs); }catch(e){} finally{ locBezig = false; }
+  if(!$('#detail').open && isLijstTab(tab)) teken();
+}
 function tekenLijst(){
   if(tab === 'historie') return tekenHistorie();
   if(tab === 'controle'){ if(isBeheerder()) return tekenControle(); tab = 'mij'; return teken(); }
@@ -2466,6 +2528,7 @@ function tekenLijst(){
   $('#lijst-kol').innerHTML = kopKnoppen({od: kanDicht, dicht, alleOpen: tab === 'alle' ? !alles : undefined, samen: alleenChanges(), tl: alleenChanges() ? tlAan : undefined, plusCh: tab === 'toegewezen' ? MCH.aan : undefined, leeg: !l.length && !(tab === 'toegewezen' && MCH.aan), geenKol: tab.startsWith('inuit')});
   const extra = alleenChanges() && TL.samen ? zoekProj(dicht ? PRJ.lijst.filter(p => p.afgesloten) : projOpen()) : null;
   if(tlAan){ $('#lijst-sub').textContent = ''; $('#lijst').innerHTML = samenTijdlijn(l, extra || []); $('#titel').textContent = ''; $('#subtitel').textContent = ''; return; }
+  if(!heeftLocKolom && !verborgenKol.has('loc')) vulLocaties(l.slice(0, 400));
   $('#lijst').innerHTML = (l.length && tab === 'inuit' ? iuSecties(lid, l, dicht) : l.length ? tabel(lid, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(isDicht ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])], changes: alleenChanges() || soortVan(tab) === 'changes'}) : `<p class="leeg">${tab === 'zoek' && !w ? 'Typ bovenin wat je zoekt.' : dicht ? 'Geen afgehandelde meldingen.' : tab === 'zoek' ? 'Geen meldingen gevonden.' : 'Geen open meldingen.'}</p>`)
     + (extra ? projSectie(extra, dicht) : '') + (tab === 'toegewezen' && MCH.aan ? chSectie(dicht, w, isDicht) : '');
   $('#titel').textContent = ''; $('#subtitel').textContent = '';   // de naam staat al in het menu en boven de lijst
@@ -3235,8 +3298,8 @@ function openDetail(nr){
     ${(() => { const sg = x._sg.filter(s => s.code !== 'onvolledig').sort((a, b) => (b.code === 'kritiekwas') - (a.code === 'kritiekwas')); return sg.length ? `<div class="stappen"><span class="chips">${sg.map(c => SJABLOON_SIG[c.code] && !x.afgesloten ? `<button type="button" class="chipknop" data-sjabloon="sig:${c.code}" title="Klik voor een voorsteltekst aan de melder">${chip(c)}</button>` : chip(c)).join('')}</span></div>` : ''; })()}
     ${!x.afgesloten && isNieuw(x) ? `<div class="checklist" id="d-check">${checklist(x)}</div>` : ''}
     <div class="kaarten">
-      <div class="kaart2"><h3>Melding</h3><span>Instuurder</span><b id="d-inst" title="Wie de melding heeft aangemaakt (niet aan te passen)">${esc(instCache.get(String(x.nr)) || '…')}</b><span>Melder</span><b class="meldercel"><span id="d-melder">${esc(x.melder || '')}</span>${x.melder ? `<button type="button" class="melderinfo" id="d-melderinfo" aria-label="Gegevens van de melder" data-uitleg="Gegevens ophalen…"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 7.5h.01"></path></svg></button>` : ''}</b>${`<span>Bereikbaar</span><b class="telcel"><input id="d-tel" class="datumkeuze telkeuze" inputmode="tel" value="${esc(x.tel || '')}" data-oud="${esc(x.tel || '')}" placeholder="" title="Waar de melder nu bereikbaar is; wijzigt per keer" autocomplete="off">${x.tel && /\d{3}/.test(x.tel) ? belLink(x.tel).replace(/<\/svg>[^<]*<\/a>$/, '</svg></a>') : ''}</b>`}<span>Type melding</span><b>${x.afgesloten ? esc(x.type || '') : `<select id="d-type" class="afdkeuze" title="Klik om het type melding te wijzigen"><option value="">${esc(x.type || '')}</option></select>`}</b>${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}<span>Locatie${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.locatie || '') : `<select id="d-loc" class="afdkeuze" title="Klik om de locatie te wijzigen"><option value="">${esc(x.locatie || '')}</option></select>`}</b></div>
-      <div class="kaart2"><h3>Behandeling</h3><span>Afdeling${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.afdeling || '') : `<select id="d-afd" class="afdkeuze" title="Klik om de afdeling te wijzigen"><option>${esc(x.afdeling || '')}</option></select>`}</b><span>Verantwoordelijke</span><b>${x.afgesloten ? esc(x.verantw || '') : `<select id="d-verantw" class="afdkeuze" title="Klik om de verantwoordelijke te wijzigen"><option value="">${esc(x.verantw || '')}</option></select>${benIk(x.verantw) || st === 0 ? '' : '<button type="button" class="linkknop aanmij" id="d-aanmij">Toewijzen aan mij</button>'}`}</b><span>Status${x.afgesloten ? '' : '<i class="verpl" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(toonStatus(x.status) || '–') : `<select id="d-status" class="afdkeuze" title="Klik om de status te wijzigen"><option value="">${esc(toonStatus(x.status) || '')}</option></select>`}</b>
+      <div class="kaart2"><h3>Melding</h3><span>Instuurder</span><b id="d-inst" title="Wie de melding heeft aangemaakt (niet aan te passen)">${esc(instCache.get(String(x.nr)) || '…')}</b><span>Melder</span><b class="meldercel"><span id="d-melder">${esc(x.melder || '')}</span>${x.melder ? `<button type="button" class="melderinfo" id="d-melderinfo" aria-label="Gegevens van de melder" data-uitleg="Gegevens ophalen…"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 7.5h.01"></path></svg></button>` : ''}</b>${`<span>Bereikbaar</span><b class="telcel"><input id="d-tel" class="datumkeuze telkeuze" inputmode="tel" value="${esc(x.tel || '')}" data-oud="${esc(x.tel || '')}" placeholder="" title="Waar de melder nu bereikbaar is; wijzigt per keer" autocomplete="off">${x.tel && /\d{3}/.test(x.tel) ? belLink(x.tel).replace(/<\/svg>[^<]*<\/a>$/, '</svg></a>') : ''}</b>`}<span>Type melding</span><b>${x.afgesloten ? esc(x.type || '') : `<select id="d-type" class="afdkeuze" title="Klik om het type melding te wijzigen"><option value="">${esc(x.type || '')}</option></select>`}</b>${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}<span>Locatie${x.afgesloten ? '' : '<i class="verpl" data-verpl="#d-loc" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(locVan(x)) : `<select id="d-loc" class="afdkeuze" title="Klik om de locatie te wijzigen"><option value="">${esc(x.locatie || '')}</option></select>`}</b></div>
+      <div class="kaart2"><h3>Behandeling</h3><span>Afdeling${x.afgesloten ? '' : '<i class="verpl" data-verpl="#d-afd" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.afdeling || '') : `<select id="d-afd" class="afdkeuze" title="Klik om de afdeling te wijzigen"><option>${esc(x.afdeling || '')}</option></select>`}</b><span>Verantwoordelijke</span><b>${x.afgesloten ? esc(x.verantw || '') : `<select id="d-verantw" class="afdkeuze" title="Klik om de verantwoordelijke te wijzigen"><option value="">${esc(x.verantw || '')}</option></select>${benIk(x.verantw) || st === 0 ? '' : '<button type="button" class="linkknop aanmij" id="d-aanmij">Toewijzen aan mij</button>'}`}</b><span>Status${x.afgesloten ? '' : '<i class="verpl" data-verpl="#d-status" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(toonStatus(x.status) || '–') : `<select id="d-status" class="afdkeuze" title="Klik om de status te wijzigen"><option value="">${esc(toonStatus(x.status) || '')}</option></select>`}</b>
         ${x.afgesloten ? r('Gepland', x.gepland ? fmtDatum(x.gepland) : '') : `<span>Gepland</span><b><input type="date" id="d-gepland" class="datumkeuze" value="${x.gepland ? isoD(x.gepland) : ''}" data-oud="${x.gepland ? isoD(x.gepland) : ''}" title="Datum waarop het werk gepland staat"></b>`}${x.afgesloten ? (isChange(x) ? r('Startdatum project', x.projStart ? fmtDatum(x.projStart) : '') + r('Deadline', x.projEind ? fmtDatum(x.projEind) : '') : '') : `<span class="dchg"${isChange(x) ? '' : ' hidden'}>Startdatum project</span><b class="dchg"${isChange(x) ? '' : ' hidden'}><input type="date" id="d-pstart" class="datumkeuze" value="${x.projStart ? isoD(x.projStart) : ''}" data-oud="${x.projStart ? isoD(x.projStart) : ''}" title="Begindatum project van deze change"></b><span class="dchg"${isChange(x) ? '' : ' hidden'}>Deadline</span><b class="dchg"${isChange(x) ? '' : ' hidden'}><input type="date" id="d-peind" class="datumkeuze" value="${x.projEind ? isoD(x.projEind) : ''}" data-oud="${x.projEind ? isoD(x.projEind) : ''}" title="Einddatum project (deadline) van deze change"></b>`}<span>Extern ticket</span><b><input id="d-extern" class="datumkeuze" value="${esc(x.extern || '')}" data-oud="${esc(x.extern || '')}" autocomplete="off" title="Ticketnummer bij de leverancier"></b>${x.afgesloten ? (x.kritiek ? r('Kritieke storing', 'Ja') + opgelostRij(x) : '') + (x.datalek ? r('Datalek', 'Ja') : '') + r('CC', x.cc) : `<span>CC</span><b><input id="d-cc" class="datumkeuze cckeuze metpijl" value="${esc(x.cc || '')}" data-oud="${esc(x.cc || '')}" placeholder="" title="Medewerker die een kopie van de mails krijgt" autocomplete="off" spellcheck="false"></b>
           <span>Markeren</span><b class="vinkjes"><label class="vink"><input type="checkbox" id="d-kritiek" ${x.kritiek ? 'checked' : ''} data-oud="${x.kritiek ? 1 : 0}"> Kritieke storing</label><label class="vink"><input type="checkbox" id="d-datalek" ${x.datalek ? 'checked' : ''} data-oud="${x.datalek ? 1 : 0}"> Datalek</label></b>${opgelostRij(x)}`}</div>
     </div>
@@ -3302,7 +3365,7 @@ async function toonMelderInfo(x){
   if(uitlegBij === knop && $('#uitleg').className) toonUitleg(knop);
   // lege locatie in het ticket: voorstel uit de medewerkersgegevens (wordt pas opgeslagen met Opslaan)
   const sel = $('#d-loc');
-  if(sel && !sel.value && !x.locatie){ const o = locVoorstel(m, [...sel.options].filter(o => o.value));
+  if(sel && !sel.value && !locVan(x)){ const o = locVoorstel(m, [...sel.options].filter(o => o.value));
     if(o){ sel.value = o.value; sel.classList.add('voorstel', 'gewijzigd'); sel.classList.remove('mist'); sel.title = `Voorgesteld op basis van de werklocatie van ${m.vol || m.naam}; wordt opgeslagen met Opslaan`;
       if(!$('#d-loc-hint')) sel.insertAdjacentHTML('afterend', '<small class="hint" id="d-loc-hint" style="display:block;font-weight:400">voorstel o.b.v. melder</small>'); } }
 }
@@ -3559,8 +3622,11 @@ async function vulLocKeuze(x){
   const sel = $('#d-loc'); if(!sel) return;
   try{ const m = await laadSubjMeta(); if(!huidig || huidig.x !== x || !$('#d-loc')) return;
     if(!m.locatie) throw new Error('Het veld Locatie is niet gevonden in AFAS (KnSubject / ' + (INST.vrijeVelden || 'KnS38') + ').');
-    const l = waardenVan(m.locatie.values).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')), nu = l.find(w => norm(w.naam) === norm(x.locatie) || norm(w.code) === norm(x.locatie));
-    sel.innerHTML = (nu ? '' : `<option value="">${esc(x.locatie || '')}</option>`) + l.map(w => `<option value="${esc(w.code)}" ${w === nu ? 'selected' : ''}>${esc(w.naam)}</option>`).join('');
+    // opgeslagen locatie: uit de lijst-connector, anders uit Helpdesk_PowerBI (eerst ophalen, anders lijkt hij leeg en komt er ten onrechte een voorstel)
+    if(!x.locatie && !heeftLocKolom && !locCache.has(String(x.nr)) && !DEMO){ try{ await sbIdsVoor('Nummer', [x.nr]); }catch(e){} if(!huidig || huidig.x !== x || !$('#d-loc')) return; }
+    const opgeslagen = locVan(x);
+    const l = waardenVan(m.locatie.values).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')), nu = l.find(w => norm(w.naam) === norm(opgeslagen) || norm(w.code) === norm(opgeslagen));
+    sel.innerHTML = (nu ? '' : `<option value="">${esc(opgeslagen)}</option>`) + l.map(w => `<option value="${esc(w.code)}" ${w === nu ? 'selected' : ''}>${esc(w.naam)}</option>`).join('');
     sel.dataset.oud = nu ? nu.code : '';
     sel.onchange = () => { sel.classList.toggle('gewijzigd', !!sel.value && sel.value !== sel.dataset.oud); if(sel.value) sel.classList.remove('mist'); };
   }catch(e){ sel.disabled = true; sel.title = e.message; }
@@ -3955,10 +4021,10 @@ async function nieuweMelding(){
         <span>Melder</span><b><input name="melder" id="n-melder" class="datumkeuze metpijl" autocomplete="off" spellcheck="false" placeholder="Zoek op naam of nummer"><input type="hidden" name="melderId"><small class="hint" id="n-melder-hint">Medewerkers ophalen…</small></b>
         <span>Bereikbaar</span><b><input name="tel" id="n-tel" class="datumkeuze" inputmode="tel" autocomplete="off" placeholder="" title="Vraag waar de melder nu bereikbaar is; dat kan per keer verschillen"></b>
         ${m.type ? `<span>Type melding</span><b>${kz(m.type, 'type', 'Incident')}</b>` : ''}
-        ${m.loc ? `<span>Locatie<i class="verpl" title="Verplicht">*</i></span><b>${kz(m.loc, 'loc', '')}</b>` : ''}
+        ${m.loc ? `<span>Locatie<i class="verpl" data-verpl="#n-form [name=loc]" title="Verplicht">*</i></span><b>${kz(m.loc, 'loc', '')}</b>` : ''}
       </div>
       <div class="kaart2"><h3>Behandeling</h3>
-        ${m.afd ? `<span>Afdeling<i class="verpl" title="Verplicht">*</i></span><b>${kz(m.afd, 'afd', stdAfd)}</b>` : ''}
+        ${m.afd ? `<span>Afdeling<i class="verpl" data-verpl="#n-form [name=afd]" title="Verplicht">*</i></span><b>${kz(m.afd, 'afd', stdAfd)}</b>` : ''}
         <span>Verantwoordelijke</span><b><input name="beh" id="n-beh" class="datumkeuze metpijl" autocomplete="off" spellcheck="false" placeholder=""><input type="hidden" name="behCode"><small class="hint" id="n-beh-hint">Leeg = de melding komt bij Nieuwe meldingen.</small></b>
         <span>Gepland</span><b><input type="date" name="gepland" class="datumkeuze" title="Datum waarop het werk gepland staat"></b>
         <span class="nchg" hidden>Startdatum project</span><b class="nchg" hidden><input type="date" name="pstart" class="datumkeuze"></b>
@@ -4356,7 +4422,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
   // verplicht bij opslaan: afdeling, locatie en status
   if(!x.afgesloten){ const leeg = [];
     if(!nieuweAfd && !String(x.afdeling || '').trim()) leeg.push(['Afdeling', '#d-afd']);
-    const locBekend = heeftLocKolom || locCache.has(String(x.nr)), locNu = String(x.locatie || locCache.get(String(x.nr)) || '').trim();
+    const locBekend = heeftLocKolom || locCache.has(String(x.nr)), locNu = locVan(x);
     if(!nieuweLoc && locBekend && !locNu) leeg.push(['Locatie', '#d-loc']);
     if(!nieuweStatus && !act && !String(x.status || '').trim()) leeg.push(['Status', '#d-status']);
     if(leeg.length){ leeg.forEach(([, sel]) => { const e = $(sel); if(e) e.classList.add('mist'); });
@@ -4724,7 +4790,8 @@ const CONN_KAART = () => [
   {conn: INST.connProjUpdates, sleutel: 'connProjUpdates', soort: 'GET', nodig: 'opt', doel: 'Projectvenster: eerdere updates (dossieritems van type Update projectvoortgang) per project, net als de reacties bij een melding. Filter in AFAS op type dossieritem 77.', velden: [
     v(/^(project|projectcode|projectnummer)$/i, 'Projectcode (koppelt met PtProject)', 'ja', 'Project'), v(/^(toelichting|tekst|inhoud|bericht|update)$/i, 'Tekst van de update', 'ja', 'Toelichting'),
     v(/^(datum|instuurdatum|aangemaakt op|datum aanmaak)/i, 'Datum', 'opt', 'Datum'), v(/^(aangemaakt door|medewerker|instuurder|gebruiker|naam)/i, 'Wie schreef de update', 'opt', 'Aangemaakt door'), v(/^(onderwerp|omschrijving)$/i, 'Onderwerp', 'opt', 'Onderwerp')]},
-  {conn: INST.connCollegas, sleutel: 'connCollegas', soort: 'GET', nodig: 'opt', doel: 'ICT-collega’s: de leden van de ICT-gebruikersgroep (Gebruiker + Naam). Bepaalt wie je kunt kiezen bij Verantwoordelijke; nieuwe collega’s in de groep staan er vanzelf bij.'},
+  {conn: INST.connCollegas, sleutel: 'connCollegas', soort: 'GET', nodig: 'opt', doel: 'Alle AFAS-gebruikers met hun gebruikerscode. Nodig om bij Verantwoordelijke iedere ICT-collega te kunnen kiezen (ook zonder openstaande AFAS-taak) en om iemand buiten ICT te kiezen. Wie ICT is, bepaalt het organigram (Laag 4).', velden: [
+    v(/^(gebruiker(scode)?|user(id)?|usid|code)$/i, 'Gebruikerscode (bv. 88406.kgroen): wordt in Verantwoordelijke gezet', 'ja', 'Gebruiker'), v(/^(naam|name|weergavenaam|naam_gebruiker|gebruiker_naam|volledige_naam|medewerker)$/i, 'Naam van de gebruiker', 'ja', 'Naam'), v(/^(geblokkeerd|blocked|inactief)$/i, 'Geblokkeerde gebruikers niet tonen', 'opt', 'Geblokkeerd')]},
   {conn: INST.connInUit, sleutel: 'connInUit', soort: 'GET', nodig: 'opt', doel: 'In- en uitdienst: het overzicht en de velden zoals in AFAS (medewerker, datums, gegevensbewaring, mailbox, accounts).', velden: [
     v(/^nummer$/i, 'Nummer', 'ja', 'Nummer'), v(/^dossieritem$/i, 'Dossieritem (koppelt aan de melding)', 'ja', 'Dossieritem'), v(/datum.?in.?dienst/i, 'Datum in dienst', 'opt', 'Datum in dienst'), v(/uitdienst.?datum|datum.?uit.?dienst/i, 'Uitdienst datum', 'opt', 'Uitdienst datum'),
     v(/gegevensbewaring/i, 'Gegevensbewaring', 'opt', 'Gegevensbewaring'), v(/mailbox/i, 'Mailbox overdragen aan', 'opt', 'Mailbox overdragen aan'), v(/workflow.?afgerond/i, 'Workflow afgerond', 'opt', 'Workflow afgerond')]},
@@ -4762,7 +4829,7 @@ function tekenConnectoren(){
   const kaarten = kaart.map(k => {
     const r = c && c.conns[k.conn], lijst = r && r.velden || [];
     let actief = k.nodig !== 'reserve' || (toelBron && toelBron.conn === k.conn);
-    const rijen = k.velden.map(f => { const m = r && !r.fout && !k.geenMeta ? veldMatch(f, lijst) : null;
+    const rijen = (k.velden || []).map(f => { const m = r && !r.fout && !k.geenMeta ? veldMatch(f, lijst) : null;
       const st = !c || k.geenMeta ? '<span class="cn-st">–</span>' : r && r.fout ? '<span class="cn-st">?</span>' : m ? `<span class="cn-st ok" title="${esc(m.label)}">✓ ${esc(m.id)}</span>` : `<span class="cn-st ${f.nodig === 'ja' ? 'mis' : 'opt'}">${f.nodig === 'ja' ? '✗ ontbreekt' : '– niet aanwezig'}</span>`;
       return `<tr><td><code>${esc(f.naam || f.match.source.replace(/^\^\(?|\)?\$$/g, '').replace(/\\/g, ''))}</code></td><td>${esc(f.oms)}</td><td>${NODIG[f.nodig]}</td><td>${st}</td></tr>`; }).join('');
     const extra = r && !r.fout ? lijst.filter(f => !k.velden.some(x => veldMatch(x, [f]))) : [];
@@ -6159,20 +6226,26 @@ document.addEventListener('click', e => {
   const o = e.target.closest('[data-ctxopen]'); if(o){ navLijst = []; openDetail(o.dataset.ctxopen); return; }
   const op = e.target.closest('[data-ctxopl]'); if(op){ toonOplossing(op.dataset.ctxopl, op); return; }
   if(e.target.closest('[data-ctxgebruik]')){ const t = $('#tekst'), box = e.target.closest('.ctx-opl'); if(!t || !box) return; t.value = (t.value.trim() ? t.value.trimEnd() + '\n\n' : '') + box._tekst; t.dispatchEvent(new Event('input', {bubbles: true})); t.focus(); toast('Oplossing in je reactie gezet: pas hem aan waar nodig'); return; }
+  const ng = e.target.closest('[data-storingnegeer]'); if(ng){ const g = STORINGEN[+ng.dataset.storingnegeer]; if(g){ const l = opslag.get(negeerSleutel()) || []; g.nrs.forEach(n => { if(!l.includes(n)) l.push(n); }); opslag.set(negeerSleutel(), l.slice(-300)); teken(); toast('Genegeerd: komt alleen terug als er nieuwe vergelijkbare meldingen bij komen'); } return; }
   const sk = e.target.closest('[data-storingkrit]'); if(sk){ const g = STORINGEN[+sk.dataset.storingkrit]; if(g) kritiekVanStoring(g); return; }
   const sn = e.target.closest('[data-storingnr]'); if(sn){ const g = STORINGEN[+sn.dataset.groep]; navLijst = g ? [...g.nrs] : []; openDetail(sn.dataset.storingnr); return; }
 });
 /* mogelijke storing: 3 of meer open meldingen met hetzelfde kernwoord in de laatste uren (en nog niet kritiek) */
 const STORING_UREN = 4, STORING_MIN = 3;
 let STORINGEN = [], STORING_NR = new Map();
+const negeerSleutel = () => 'mict-storing-genegeerd-' + (sub || 'demo');   // per gebruiker: genegeerde mogelijke storingen (meldingnummers)
 function zoekStoringen(){
-  const grens = Date.now() - STORING_UREN * 36e5, recent = items.filter(x => !x.afgesloten && !x.inuit && !isChange(x) && x.aangemaakt && +x.aangemaakt >= grens);
+  // meldingen van ICT zelf (bv. "Feedback SubmIT") zijn geen storing; en één persoon met drie meldingen ook niet
+  const vanIct = x => { const ml = (typeof medewerkers !== 'undefined' && medewerkers) || []; return ml.some(m => m.ict) ? isIctStrikt(x.melder) : isIctCollega(x.melder); };
+  const grens = Date.now() - STORING_UREN * 36e5, recent = items.filter(x => !x.afgesloten && !x.inuit && !isChange(x) && x.aangemaakt && +x.aangemaakt >= grens && !vanIct(x));
   const perWoord = new Map(); recent.forEach(x => woordenVan(x.onderwerp).forEach(w => { if(!perWoord.has(w)) perWoord.set(w, []); perWoord.get(w).push(x); }));
   const groepen = [];
   [...perWoord.entries()].filter(([, l]) => l.length >= STORING_MIN).sort((a, b) => b[1].length - a[1].length).forEach(([w, l]) => {
     const nrs = l.map(x => String(x.nr)); if(groepen.some(g => nrs.every(n => g.nrs.includes(n)))) return;   // zelfde groep onder een ander woord
     if(l.some(kritiekActief)) return;   // al kritiek: dan staat hij al in het rode blok
-    const locs = [...new Set(l.map(x => x.locatie || locCache.get(String(x.nr)) || '').filter(Boolean))];
+    if(new Set(l.map(x => norm(x.melder))).size < 2) return;   // alles van dezelfde melder: geen storing
+    { const weg = new Set(opslag.get(negeerSleutel()) || []); if(l.every(x => weg.has(String(x.nr)))) return; }   // genegeerd; komt terug zodra er een nieuwe melding bij komt
+    const locs = [...new Set(l.map(locVan).filter(Boolean))];
     groepen.push({woord: w, nrs: l.sort((a, b) => a.aangemaakt - b.aangemaakt).map(x => String(x.nr)), loc: locs.length === 1 ? locs[0] : '', sinds: new Date(Math.min(...l.map(x => +x.aangemaakt)))}); });
   STORINGEN = groepen.slice(0, 3); STORING_NR = new Map(); STORINGEN.forEach(g => g.nrs.forEach(n => STORING_NR.set(n, g)));
 }
