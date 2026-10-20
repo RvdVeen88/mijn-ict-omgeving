@@ -707,6 +707,20 @@ dialog #combo{position:fixed}
 .tabel .kolfilter .kfknop.aan{border-color:var(--blauw-2);background:var(--lichtblauw-2);font-weight:600}
 #kfpop{position:fixed;z-index:70;width:260px;background:var(--vlak);border:1.5px solid var(--lijn);border-radius:14px;box-shadow:0 12px 32px rgba(3,31,77,.18);padding:8px;display:flex;flex-direction:column;gap:6px}
 #kfpop[hidden]{display:none}
+#kfpop.ops{width:230px;padding:6px}
+#kfpop .kfops{display:flex;flex-direction:column}
+#kfpop .kfops button{display:flex;align-items:center;gap:10px;border:0;background:none;border-radius:8px;padding:6px 8px;font-size:13px;color:var(--inkt);text-align:left;cursor:default}
+#kfpop .kfops button:hover{background:var(--lichtblauw-2)}
+#kfpop .kfops button[aria-checked="true"]{color:var(--blauw);font-weight:600}
+#kfpop .kfops svg{width:16px;height:16px;flex:none;color:var(--blauw)}
+#kfpop .kfops span{flex:1}
+#kfpop .kfops kbd{font:500 11px/1 ui-monospace,monospace;color:var(--grijs);background:var(--achtergrond);border:1px solid var(--lijn);border-radius:6px;padding:2px 5px}
+#kfpop .kfhint{font-size:11.5px;padding:6px 8px 2px;border-top:1px solid var(--lijn);margin-top:4px}
+.tabel .kolfilter .kfveld{position:relative;display:block}
+.tabel .kolfilter .kfveld input{padding-left:24px}
+.tabel .kolfilter .kfop{position:absolute;left:4px;top:50%;transform:translateY(-50%);width:18px;height:18px;padding:0;border:0;background:none;color:var(--grijs);display:grid;place-items:center;cursor:default;opacity:.6;z-index:1}
+.tabel .kolfilter .kfop svg{width:13px;height:13px}
+.tabel .kolfilter .kfop:hover,.tabel .kolfilter .kfop.aan{color:var(--blauw);opacity:1}
 #kfpop #kfzoek{border:1px solid var(--lijn);border-radius:999px;padding:5px 12px;font-size:13px;background:var(--achtergrond);color:var(--inkt)}
 #kfpop .kfacties{display:flex;justify-content:space-between;gap:8px}
 #kfpop .kfacties button{border:0;background:none;padding:2px 2px;font-size:12px;color:var(--blauw);cursor:default}
@@ -1339,7 +1353,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.21.1', VERSIE_DATUM = '19-10-2026';
+const VERSIE = 'v7.22', VERSIE_DATUM = '20-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2167,11 +2181,39 @@ async function exporteerExcel(){
 document.addEventListener('click', e => { if(e.target.closest('[data-export]')) exporteerExcel(); });
 const sortering = {};   // per tabel-id: {k, op}
 const kolFilter = {};   // per tabel-id: {kolom: zoektekst}
-const KEUZE = new Set(['iu-ict','iu-ond','iu-wie','iu-status','h-status','afd','melder','wie','status','type','loc','p-rol','p-leider','p-fase','p-voort','p-prio']);   // kolommen met een keuzelijst in het filterveld
+const KEUZE = new Set();   // geen keuzelijsten meer: overal typen, met een filteroptie zoals in AFAS
+/* filteren zoals in AFAS: typen = bevat; met een teken ervoor een andere optie (zelf typen of kiezen met het knopje) */
+const KF_OPS = [
+  {op:'bevat',    t:'Bevat',            code:'',     ico:'<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"/>'},
+  {op:'niet',     t:'Bevat niet',       code:'!',    ico:'<circle cx="12" cy="12" r="7"/><path d="M6.5 17.5l11-11"/>'},
+  {op:'gelijk',   t:'Is gelijk aan',    code:'=',    ico:'<path d="M6 9.5h12M6 14.5h12"/>'},
+  {op:'ongelijk', t:'Is ongelijk aan',  code:'!=',   ico:'<path d="M6 9.5h12M6 14.5h12M15 5.5l-6 13"/>'},
+  {op:'leeg',     t:'Is leeg',          code:'=[]',  ico:'<circle cx="12" cy="12" r="7"/>'},
+  {op:'nietleeg', t:'Is niet leeg',     code:'!=[]', ico:'<circle cx="12" cy="12" r="7"/><path d="M6.5 17.5l11-11"/><circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"/>'}
+];
+function kfParse(v){
+  const s = String(v ?? '').trim();
+  if(s === '=[]') return {op:'leeg', term:''};
+  if(s === '!=[]') return {op:'nietleeg', term:''};
+  if(s.startsWith('!=')) return {op:'ongelijk', term:s.slice(2).trim()};
+  if(s.startsWith('=')) return {op:'gelijk', term:s.slice(1).trim()};
+  if(s.startsWith('!')) return {op:'niet', term:s.slice(1).trim()};
+  return {op:'bevat', term:s};
+}
+// meerdere waarden met ; (zoals in AFAS): bij bevat/gelijk = één ervan, bij niet/ongelijk = geen ervan
+function kfMatch(tekst, v){
+  const {op, term} = kfParse(v), t = norm(String(tekst ?? '').trim() === '–' ? '' : tekst), delen = term.split(';').map(norm).filter(Boolean);
+  if(op === 'leeg') return !t; if(op === 'nietleeg') return !!t;
+  if(!delen.length) return true;
+  if(op === 'bevat') return delen.some(d => t.includes(d));
+  if(op === 'niet') return !delen.some(d => t.includes(d));
+  if(op === 'gelijk') return delen.some(d => t === d);
+  return !delen.some(d => t === d);
+}
 const keuzeOpties = {};   // per tabel en kolom: de waarden voor de filterlijst
 const LEEG = '(Leeg)';
 const keuzeWaarde = (c, x) => { const v = kolTekst(c, x).trim(); return v && v !== '–' ? v : LEEG; };
-const kfActief = v => Array.isArray(v) ? v.length > 0 : !!(v && v.trim());
+const kfActief = v => Array.isArray(v) ? v.length > 0 : !!(v && v.trim()) && (['leeg', 'nietleeg'].includes(kfParse(v).op) || !!kfParse(v).term);
 const kolTekst = (c, x) => c.k === 'sig' ? (x._sg || []).map(s => s.tekst).join(' ') : String(c.html(x)).replace(/<title>[^<]*<\/title>/g, '').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
 const kfLabel = (uit, opt) => { if(!Array.isArray(uit) || !uit.length) return 'Alle'; const aan = opt.filter(v => !uit.includes(v)); return !aan.length ? 'Niets' : aan.length === 1 ? aan[0] : `${aan.length} van ${opt.length}`; };
 const tabelVolgorde = {}, tabelExport = {};   // tabelExport: per tabel de kolommen en de hele gefilterde, gesorteerde lijst (voor Excel)
@@ -2181,13 +2223,14 @@ function tabel(id, l, opties = {}){
   const opties_ = {}; kol.filter(c => KEUZE.has(c.k)).forEach(c => opties_[c.k] = [...new Set(l.map(x => keuzeWaarde(c, x)))].sort((a, b) => (a === LEEG) - (b === LEEG) || a.localeCompare(b, 'nl')));
   Object.entries(opties_).forEach(([k, v]) => keuzeOpties[id + '|' + k] = v);
   const totaal = l.length;
-  if(actief.length) l = l.filter(x => actief.every(([k, v]) => { const c = elkeKol(k); return !c || (Array.isArray(v) ? !v.includes(keuzeWaarde(c, x)) : norm(kolTekst(c, x)).includes(norm(v))); }));
+  if(actief.length) l = l.filter(x => actief.every(([k, v]) => { const c = elkeKol(k); return !c || (Array.isArray(v) ? !v.includes(keuzeWaarde(c, x)) : kfMatch(kolTekst(c, x), v)); }));
   const s = sortering[id];
   if(s && elkeKol(s.k)){ const c = elkeKol(s.k); l = [...l].sort((a, b) => { const x = c.w(a), y = c.w(b); return (x < y ? -1 : x > y ? 1 : 0) * s.op || (+b.aangemaakt || 0) - (+a.aangemaakt || 0); }); }
   const max = opties.max && !blokOpen.has(id) ? opties.max : 400, zicht = l.slice(0, max);
   tabelVolgorde[id] = l.map(x => String(x.nr)); tabelExport[id] = {kol, l};   // voor vorige/volgende in het ticket: de hele lijst in deze volgorde, ook wat (nog) niet getoond wordt
   return `<div class="tw"><table class="tabel" data-tabel="${id}"><thead><tr>${kol.map(c => `<th data-sort="${c.k}" ${breedteVan(c) ? `style="width:${breedteVan(c)}"` : ''} class="${c.cls.replace(/(^|\s)(nr|ond|sig|zacht)(?=\s|$)/g, '$1').trim()}" ${s && s.k === c.k ? `aria-sort="${s.op > 0 ? 'ascending' : 'descending'}"` : ''}>${c.t}${s && s.k === c.k ? `<span class="pijl">${s.op > 0 ? '▲' : '▼'}</span>` : ''}<span class="kolgreep" data-greep="${c.k}" title="Sleep om de breedte aan te passen · dubbelklik = passend"></span></th>`).join('')}</tr>
-    <tr class="kolfilter${kfOpen && kfOpen.id === id ? ' open' : ''}">${kol.map(c => `<th class="${c.cls.replace(/(^|\s)(nr|ond|sig|zacht)(?=\s|$)/g, '$1').trim()}">${KEUZE.has(c.k) ? `<button type="button" class="kfknop${kfActief(kf[c.k]) ? ' aan' : ''}" data-kf="${c.k}" data-keuze aria-haspopup="true" aria-label="Filter op ${c.t}">${esc(kfLabel(kf[c.k], opties_[c.k] || []))}</button>` : `<input size="3" data-kf="${c.k}" value="${esc(typeof kf[c.k] === 'string' ? kf[c.k] : '')}" placeholder="Filter…" aria-label="Filter op ${c.t}" class="${kfActief(kf[c.k]) ? 'aan' : ''}">`}</th>`).join('')}</tr></thead>
+    <tr class="kolfilter${kfOpen && kfOpen.id === id ? ' open' : ''}">${kol.map(c => `<th class="${c.cls.replace(/(^|\s)(nr|ond|sig|zacht)(?=\s|$)/g, '$1').trim()}">${KEUZE.has(c.k) ? `<button type="button" class="kfknop${kfActief(kf[c.k]) ? ' aan' : ''}" data-kf="${c.k}" data-keuze aria-haspopup="true" aria-label="Filter op ${c.t}">${esc(kfLabel(kf[c.k], opties_[c.k] || []))}</button>` : (() => { const v = typeof kf[c.k] === 'string' ? kf[c.k] : '', o = KF_OPS.find(o => o.op === kfParse(v).op);
+      return `<span class="kfveld"><button type="button" class="kfop${o.op !== 'bevat' ? ' aan' : ''}" data-kfop="${c.k}" title="Filteroptie: ${o.t}" aria-label="Filteroptie voor ${esc(c.t || 'kolom')}: ${o.t}">${ico(o.ico)}</button><input size="3" data-kf="${c.k}" value="${esc(v)}" placeholder="Filter…" aria-label="Filter op ${c.t}" class="${kfActief(v) ? 'aan' : ''}"></span>`; })()}</th>`).join('')}</tr></thead>
     <tbody>${!zicht.length ? `<tr class="geenrij"><td colspan="${kol.length}">Geen ${opties.proj ? 'projecten' : 'meldingen'} met deze filters. <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></td></tr>` : ''}${zicht.map(x => opties.set ? `<tr class="${x._dicht || (opties.klik && x.afgesloten) ? 'dicht' : ''}"${x.nr && (x._x || opties.klik) ? ` data-nr="${esc(x.nr)}"` : ''}>${kol.map(c => `<td class="${c.cls}" title="${esc(kolTekst(c, x))}">${c.html(x)}</td>`).join('')}</tr>` : opties.proj ? `<tr class="${x.afgesloten ? 'dicht' : ''}" data-proj="${esc(x.code)}" tabindex="0">${kol.map(c => `<td class="${c.cls}" title="${esc(kolTekst(c, x))}">${c.html(x)}</td>`).join('')}</tr>` : `<tr draggable="${x.afgesloten ? 'false' : 'true'}" class="${KLEUR[ernst(x)]}${kritiekActief(x) ? ' kritiekrij' : ''}${x.afgesloten ? ' dicht' : ''}${(x._sg || []).some(s => s.code === 'ongelezen') ? ' ongelezen' : ''}" data-nr="${esc(x.nr)}">${kol.map(c => `<td class="${c.cls}"${c.k === 'sig' ? '' : ` title="${esc(kolTekst(c, x))}"`}>${c.html(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
     ${actief.length ? `<p class="filterinfo">${l.length} van ${totaal} na filteren · <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></p>` : ''}
     ${l.length > max ? `<button type="button" class="meer" data-blok="${id}">${blokOpen.has(id) ? 'Minder tonen' : `Alle ${l.length} tonen`}</button>` : ''}`;
@@ -5001,7 +5044,7 @@ function kfToon(){
   const onder = innerHeight - r.bottom;
   if(onder < 300 && r.top > onder){ el.style.top = ''; el.style.bottom = (innerHeight - r.top + 4) + 'px'; } else { el.style.bottom = ''; el.style.top = (r.bottom + 4) + 'px'; }
 }
-function kfSluit(){ document.querySelectorAll('.kolfilter.open').forEach(r => r.classList.remove('open')); const el = $('#kfpop'); el.hidden = true; el.innerHTML = ''; kfOpen = null; }
+function kfSluit(){ document.querySelectorAll('.kolfilter.open').forEach(r => r.classList.remove('open')); const el = $('#kfpop'); el.hidden = true; el.innerHTML = ''; el.classList.remove('ops'); kfOpen = null; }
 function kfZet(fn){ const f = kolFilter[kfOpen.id] = kolFilter[kfOpen.id] || {}; const u = new Set(Array.isArray(f[kfOpen.k]) ? f[kfOpen.k] : []); fn(u); f[kfOpen.k] = [...u]; teken(); kfToon(); }
 document.addEventListener('click', e => {
   const k = e.target.closest('.kolfilter [data-keuze]');
@@ -5010,7 +5053,26 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('change', e => { const c = e.target.closest('#kfpop [data-kfw]'); if(!c || !kfOpen) return; kfZet(u => c.checked ? u.delete(c.dataset.kfw) : u.add(c.dataset.kfw)); });
 document.addEventListener('input', e => { if(e.target.id !== 'kfzoek' || !kfOpen) return; kfOpen.zoek = e.target.value; kfToon(); });
-document.addEventListener('mousedown', e => { if(kfOpen && !e.target.closest('#kfpop') && !e.target.closest('.kolfilter [data-keuze]')) kfSluit(); }, true);
+document.addEventListener('mousedown', e => { if(kfOpen && !e.target.closest('#kfpop') && !e.target.closest('.kolfilter [data-keuze]') && !e.target.closest('.kolfilter [data-kfop]')) kfSluit(); }, true);
+// knopje voor de filteroptie (zoals AFAS): kiezen zet het teken vóór wat je al typte
+function kfOpToon(knop){
+  const el = $('#kfpop'), id = knop.closest('table').dataset.tabel, k = knop.dataset.kfop, nu = kfParse((kolFilter[id] || {})[k]).op;
+  const host = knop.closest('dialog') || document.body; if(el.parentElement !== host) host.appendChild(el);
+  kfOpen = {id, k, ops: true};
+  el.innerHTML = `<div class="kfops" role="menu">${KF_OPS.map(o => `<button type="button" role="menuitemradio" aria-checked="${o.op === nu}" data-kfkies="${o.op}">${ico(o.ico)}<span>${o.t}</span><kbd>${o.code ? esc(o.code) : 'typen'}</kbd></button>`).join('')}</div><p class="kfhint">Je kunt het teken ook zelf typen. Meerdere waarden: scheiden met ;</p>`;
+  el.classList.add('ops'); const r = knop.getBoundingClientRect(); el.hidden = false;
+  el.style.left = Math.max(8, Math.min(r.left, innerWidth - el.offsetWidth - 8)) + 'px';
+  const onder = innerHeight - r.bottom;
+  if(onder < 260 && r.top > onder){ el.style.top = ''; el.style.bottom = (innerHeight - r.top + 4) + 'px'; } else { el.style.bottom = ''; el.style.top = (r.bottom + 4) + 'px'; }
+}
+document.addEventListener('click', e => {
+  const knop = e.target.closest('.kolfilter [data-kfop]');
+  if(knop){ e.preventDefault(); const id = knop.closest('table').dataset.tabel; if(kfOpen && kfOpen.ops && kfOpen.id === id && kfOpen.k === knop.dataset.kfop){ kfSluit(); return; } kfSluit(); kfOpToon(knop); return; }
+  const kies = e.target.closest('#kfpop [data-kfkies]'); if(!kies || !kfOpen || !kfOpen.ops) return;
+  const {id, k} = kfOpen, o = KF_OPS.find(o => o.op === kies.dataset.kfkies), term = kfParse((kolFilter[id] || {})[k]).term;
+  const v = o.op === 'leeg' || o.op === 'nietleeg' ? o.code : o.code + term;
+  kfSluit(); zetKolFilter(id, k, v, true);
+});
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && kfOpen){ e.preventDefault(); e.stopPropagation(); kfSluit(); } }, true);
 document.addEventListener('input', e => {
   const f = e.target.closest('.kolfilter input'); if(!f) return;
