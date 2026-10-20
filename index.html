@@ -1363,7 +1363,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.23', VERSIE_DATUM = '20-10-2026';
+const VERSIE = 'v7.24', VERSIE_DATUM = '20-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1817,7 +1817,7 @@ async function verrijkMetTaken(){
       x.zoek = norm([x.nr, x.afasNr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.emma, ...x.taakBij].join(' ')); });
     takenKlaar = true;
     if(!$('#detail').open && !$('#app').hidden) teken();
-    if(!CTRL.taken && isBeheerder()) setTimeout(() => haalAlleTaken(), 8000);
+    if(!CTRL.ict && isBeheerder()) setTimeout(() => haalAlleTaken(), 8000);
     setTimeout(() => toonHerinnering(), 2500);   // herinnering bij inloggen, als je taken en meldingen compleet zijn   // Controle: één keer op de achtergrond, daarna bij openen (max. elke 10 min)
   }catch(e){ takenKlaar = true; }
 }
@@ -2010,15 +2010,7 @@ const HIST_KOLOMMEN = [
   {k:'h-wat', bw:'34%', t:'Wat je deed', w:x => norm(x._wat), html:x => esc(x._wat) + (x._meer ? ` <small class="hint">+${x._meer} eerder</small>` : ''), cls:''},
   {k:'h-status', bw:'150px', t:'Status nu', w:x => norm(x._status), html:x => esc(x._status), cls:'zacht'}
 ];
-const CTRL_KOLOMMEN = [
-  {k:'c-nr', bw:'78px', t:'Nr.', w:x => +x._nr || 0, html:x => esc(x._nr || ''), cls:'nr'},
-  {k:'c-ond', t:'Onderwerp', w:x => norm(x.onderwerp), html:x => esc(x.onderwerp || ''), cls:'ond'},
-  {k:'c-wat', bw:'30%', t:'Wat klopt er niet', w:x => norm(x._wat), html:x => esc(x._wat), cls:''},
-  {k:'c-bij', bw:'200px', t:'In takenlijst bij', w:x => norm(x._bij), html:x => esc(x._bij || '–'), cls:'zacht'},
-  {k:'c-status', bw:'130px', t:'Status', w:x => norm(x._status), html:x => esc(x._status || ''), cls:'zacht'},
-  {k:'c-afas', bw:'92px', t:'', w:x => 0, html:x => x._sb ? `<button type="button" class="linkknop" data-ctrlafas="${esc(x._sb)}" data-ctrlnr="${esc(x._nr)}" title="Openen in AFAS InSite">AFAS ↗</button>` : '', cls:'zacht'}
-];
-[...KOLOMMEN, ...PROJ_KOLOMMEN, ...HIST_KOLOMMEN, ...IU_KOLOMMEN, ...CTRL_KOLOMMEN].forEach(c => { if(!c.cls.split(' ').includes('k-' + c.k)) c.cls = (c.cls + ' k-' + c.k).trim(); });
+[...KOLOMMEN, ...PROJ_KOLOMMEN, ...HIST_KOLOMMEN, ...IU_KOLOMMEN].forEach(c => { if(!c.cls.split(' ').includes('k-' + c.k)) c.cls = (c.cls + ' k-' + c.k).trim(); });
 const kolSet = proj => proj ? PROJ_KOLOMMEN : KOLOMMEN, elkeKol = k => KOLOMMEN.find(c => c.k === k) || PROJ_KOLOMMEN.find(c => c.k === k) || HIST_KOLOMMEN.find(c => c.k === k) || IU_KOLOMMEN.find(c => c.k === k) || CTRL_KOLOMMEN.find(c => c.k === k);
 /* kolommen kiezen: per gebruiker te verbergen (Nr. en Onderwerp blijven altijd staan) */
 const VAST_KOL = new Set(['nr', 'ond', 'wie', 'p-nr', 'p-naam']);
@@ -2381,7 +2373,7 @@ function tekenNav(){
     ${favL.map(rijA).join('') || '<p class="favhint"><b style="color:var(--inkt);font-weight:500">Geen afdeling geselecteerd</b><br>Zet een ★ bij een afdeling om hem hier te tonen.</p>'}
     <h4><button type="button" id="k-overige" aria-expanded="${restOpen}">${ico('<path d="M6 9l6 6 6-6"/>')}Andere afdelingen (${rest.length})</button></h4>
     ${restOpen ? rest.map(rijA).join('') : ''}
-    <h4>Overig</h4>${[ALLE, ...ONDER].map(v => it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}${it(hist.id, hist.t, null, hist)}${isBeheerder() ? it('controle', 'Controle', CTRL.taken ? controleBevindingen().filter(b => b._ernst >= 2).length : null, {ico: CTRL_ICO, titel: 'Klopt SubmIT met de takenlijsten in AFAS? (alleen voor de beheerder)'}) : ''}`;
+    <h4>Overig</h4>${[ALLE, ...ONDER].map(v => it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}${it(hist.id, hist.t, null, hist)}${isBeheerder() ? it('controle', 'Controle', CTRL.ict ? controleBevindingen().length : null, {ico: CTRL_ICO, titel: 'Staat elke open melding bij een ICT-collega? (alleen voor de beheerder)'}) : ''}`;
 }
 
 /* ================= Overzicht: rustig voorblad met persoonlijke cijfers (zoals in Mijn changes) ================= */
@@ -3143,113 +3135,68 @@ $('#k-update').onclick = async () => {
 };
 setTimeout(checkVersie, 8000); setInterval(checkVersie, 15 * 60e3);
 document.addEventListener('visibilitychange', () => { if(!document.hidden) checkVersie(); });
-/* ================= Controle: klopt SubmIT met de takenlijsten in AFAS? =================
-   Twee gerichte vragen aan Profit_Subject_Tasks (nooit de hele organisatie):
-   1. alle taken van ICT-collega's  → wat staat er in hun AFAS-takenlijst dat al is afgehandeld?
-   2. de taken van de open meldingen → welke open melding staat bij niemand in de takenlijst?
-   Elke bevinding is een concrete actie in AFAS; een lege Controle betekent: alles klopt. */
+/* ================= Controle (alleen de beheerder): staat elke open melding bij een ICT-collega? =================
+   Eén regel: de verantwoordelijke moet in de ICT-lijst staan, dezelfde lijst als bij het kiezen van een verantwoordelijke
+   (ICT-collega's uit de AFAS-connector / organigram Laag 4). Leeg, uit dienst of geen ICT-collega = niet in orde. */
 const isBeheerder = () => !!profiel && !!INST.beheerder && benIk(INST.beheerder);
 const CTRL_ICO = '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>';
-const CTRL = {taken: null, t: 0, bezig: false, fout: '', rijen: new Map(), mensen: 0};
+const CTRL = {ict: null, t: 0, bezig: false, fout: ''};
 const CTRL_GROEP = {
-  dichttaak: {e:3, t:'Afgehandeld, maar nog in iemands takenlijst', d:'Alleen de collega zelf kan een Ter info-taak afhandelen. Kopieer per collega het bericht en stuur het via Teams. Structureel: laat de AFAS-beheerder de Ter info-taak in de ICT-workflow vervangen door alleen een mail (berichtsjabloon), dan ontstaan deze taken niet meer.', w:'Dit is waarom collega’s meldingen zien die niet (meer) bij hen horen.'},
-  niemand:   {e:3, t:'Ligt bij niemand', d:'Wijs een verantwoordelijke of afdeling toe (in SubmIT of AFAS).', w:'Geen verantwoordelijke en geen afdeling: de melding staat in geen enkele lijst.'},
-  geentaak:  {e:2, t:'Open, maar bij niemand in de takenlijst', d:'Open de melding in AFAS en zet de workflow weer in gang, of handel hem af als hij klaar is.', w:'De workflow is waarschijnlijk vastgelopen: niemand krijgt hem in AFAS te zien.'},
-  anders:    {e:2, t:'Taak staat bij een ander dan de verantwoordelijke', d:'Zet de verantwoordelijke goed, of stuur de taak in AFAS door naar de verantwoordelijke.', w:''},
-  geenict:   {e:2, t:'Verantwoordelijke is geen ICT-collega', d:'Wijs de melding toe aan een ICT-collega.', w:'De verantwoordelijke valt niet (meer) onder Digitale Zorg & ICT.'},
-  koppeling: {e:1, t:'Niet te koppelen', d:'Laat de beheerder het veld Dossieritem aan de genoemde connector toevoegen.', w:'Het interne AFAS-nummer ontbreekt; reacties, taken en acties werken dan niet.'}
+  geenict: {e:3, t:'Verantwoordelijke staat niet in de ICT-lijst', d:'Kies een ICT-collega als verantwoordelijke.', w:'Uit dienst, of geen collega van Digitale Zorg & ICT.'},
+  leeg:    {e:2, t:'Geen verantwoordelijke', d:'Kies een ICT-collega als verantwoordelijke.', w:'Nieuwe meldingen (status Nieuw) en in- en uitdiensten tellen hier niet mee: die worden nog opgepakt.'}
 };
-const takenVan = async (veld, waarden, per) => { const uit = [];
-  for(let i = 0; i < waarden.length; i += per){ const d = (await afas(`/connectors/${INST.connTaken}?skip=0&take=5000${filterOf(veld, waarden.slice(i, i + per))}`)).rows || []; uit.push(...d); }
-  return uit; };
-async function haalAlleTaken(forceer){
-  if(CTRL.bezig || (!forceer && CTRL.taken && Date.now() - CTRL.t < 10 * 60e3)) return;
+const CTRL_KOLOMMEN = [
+  {k:'c-nr', bw:'78px', t:'Nr.', w:x => +x._nr || 0, html:x => esc(x._nr || ''), cls:'nr'},
+  {k:'c-ond', t:'Onderwerp', w:x => norm(x.onderwerp), html:x => esc(x.onderwerp || ''), cls:'ond'},
+  {k:'c-wie', bw:'190px', t:'Verantwoordelijke', w:x => norm(x._verantw), html:x => esc(x._verantw || '–'), cls:''},
+  {k:'c-afd', bw:'140px', t:'Afdeling', w:x => norm(x._afd), html:x => esc(x._afd || ''), cls:'zacht'},
+  {k:'c-status', bw:'150px', t:'Status', w:x => norm(x._status), html:x => esc(x._status || ''), cls:'zacht'}
+];
+CTRL_KOLOMMEN.forEach(c => { c.cls = (c.cls + ' k-' + c.k).trim(); });
+const naamSl = v => String(v ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean).sort().join(' ');
+async function haalAlleTaken(forceer){   // naam behouden: laadt nu alleen de ICT-lijst (geen AFAS-taken meer)
+  if(CTRL.bezig || (!forceer && CTRL.ict && Date.now() - CTRL.t < 10 * 60e3)) return;
   CTRL.bezig = true; if(tab === 'controle' && !$('#detail').open) teken();
-  try{
-    let rows;
-    if(DEMO) rows = (await afas(`/connectors/${INST.connTaken}?skip=0&take=1000`)).rows || [];
-    else {
-      const namen = [...new Set(((await ictCollegas().catch(() => [])) || []).map(c => c.naam).filter(Boolean))]; CTRL.mensen = namen.length;
-      const sbs = [...new Set(items.filter(x => !x.afgesloten && x.sbid != null && x.sbid !== '').map(x => String(x.sbid)))];
-      const [vanIct, vanOpen] = await Promise.all([namen.length ? takenVan('UserName', namen, 20) : [], takenVan('SubjectId', sbs, 40)]);
-      const sleutel = t => [t.SubjectId, t.UserName, t.TaskName || t.TaskDescription].join('|'), gezien = new Set();
-      rows = [...vanIct, ...vanOpen].filter(t => { const k = sleutel(t); if(gezien.has(k)) return false; gezien.add(k); return true; });
-    }
-    // dossieritems met een taak die niet bij een geladen melding horen: opzoeken (max. 400)
-    (inUit.rows || []).forEach(r => { if(r.Dossieritem != null && r.Dossieritem !== '') CTRL.rijen.set(String(r.Dossieritem), {nr: r.Nummer, ond: r.Onderwerp, status: r.Status, dicht: ja(r.Workflow_afgerond) || !!iuV(r, 'Einddatum'), iu: true}); });
-    const bekend = new Set(items.map(x => String(x.sbid)));
-    const onbekend = [...new Set(rows.filter(t => t.SubjectId != null && t.SubjectId !== '' && !bekend.has(String(t.SubjectId)) && !CTRL.rijen.has(String(t.SubjectId))).map(t => String(t.SubjectId)))].slice(0, 400);
-    for(let i = 0; i < onbekend.length && !DEMO; i += 40){
-      try{ const d = (await afas(`/connectors/${INST.connTickets}?skip=0&take=200${filterOf('Dossieritem', onbekend.slice(i, i + 40))}`)).rows || [];
-        d.forEach(r => { const k = Object.keys(r), pak = re => { const c = k.find(c => re.test(c)); return c === undefined ? '' : r[c]; };
-          const st = String(pak(/^status$/i) ?? '').trim();
-          CTRL.rijen.set(String(r.Dossieritem), {nr: r.Nummer, ond: pak(/^onderwerp$/i), status: st, dicht: ja(pak(/^workflow_?afgerond$/i)) || lijst(INST.st_afgesloten).includes(norm(st)) || /^(afgehandeld|gesloten|afgesloten|geannuleerd|vervallen|ingetrokken)\b/.test(norm(st)), iu: rijIsIu(r)}); }); }catch(e){}
-    }
-    CTRL.taken = rows; CTRL.t = Date.now(); CTRL.fout = '';
-  }catch(e){ CTRL.fout = e.message; CTRL.t = Date.now(); }
+  try{ const l = await ictCollegas(); CTRL.ict = new Set((l || []).map(c => naamSl(c.naam)).filter(Boolean)); CTRL.t = Date.now(); CTRL.fout = l && l.length ? '' : 'de ICT-lijst is leeg'; }
+  catch(e){ CTRL.fout = e.message; CTRL.t = Date.now(); }
   finally{ CTRL.bezig = false; }
   if(!$('#detail').open && !$('#app').hidden) teken();
 }
+const inIctLijst = naam => !!naam && (benIk(naam) || (!!CTRL.ict && CTRL.ict.has(naamSl(naam))));
 function controleBevindingen(){
-  const uit = [], perSb = new Map(), takenPer = new Map();
-  (CTRL.taken || []).forEach(t => { if(t.SubjectId == null || t.SubjectId === '') return; const k = String(t.SubjectId), o = takenPer.get(k) || {bij: new Set(), taak: new Set()};
-    if(t.UserName) o.bij.add(wieNaam(String(t.UserName)).trim()); if(t.TaskDescription || t.WfDescription) o.taak.add(t.TaskDescription || t.WfDescription); takenPer.set(k, o); });
-  items.forEach(x => { if(x.sbid != null && x.sbid !== '') perSb.set(String(x.sbid), x); });
-  const bijTekst = k => { const o = takenPer.get(String(k)); return o ? [...o.bij].join(', ') : ''; };
-  const voeg = (code, x, wat, extra = {}) => uit.push({nr: x ? x.nr : '', _nr: x ? nrT(x) : extra._nr || '', onderwerp: x ? x.onderwerp : extra.onderwerp || '', _x: x || null, _sb: x ? x.sbid : extra._sb, _code: code, _ernst: CTRL_GROEP[code].e, _wat: wat,
-    _bij: x && x.sbid != null ? bijTekst(x.sbid) : extra._bij || '', _status: x ? (x.afgesloten ? 'Afgehandeld' : x.inuit ? x.ictStatus || toonStatus(x.status) : toonStatus(x.status)) || '' : extra._status || '', _dicht: x ? x.afgesloten : true});
-  const ictBekend = typeof medewerkers !== 'undefined' && medewerkers && medewerkers.some(m => m.ict);
+  if(!CTRL.ict || !CTRL.ict.size) return [];
+  const uit = [];
   items.filter(x => !x.afgesloten).forEach(x => {
-    if(!x.inuit && !String(x.verantw || '').trim() && !String(x.afdeling || '').trim() && x.emmer !== 'nieuw') voeg('niemand', x, 'Geen verantwoordelijke en geen afdeling');
-    if(takenKlaar && (x.sbid == null || x.sbid === '')) voeg('koppeling', x, x.inuit ? 'Dossieritem ontbreekt in ' + INST.connInUit : 'Dossieritem niet gevonden in ' + INST.connTickets);
-    if(ictBekend && x.verantw && !isIctCollega(x.verantw)) voeg('geenict', x, `${x.verantw} valt niet onder Digitale Zorg & ICT`);
-    if(!CTRL.taken || x.sbid == null || x.sbid === '') return;
-    const o = takenPer.get(String(x.sbid));
-    if(!o || !o.bij.size){ if(!x.afgerond) voeg('geentaak', x, 'Staat in AFAS bij niemand in de takenlijst'); return; }
-    if(x.verantw && ![...o.bij].some(n => norm(n) === norm(x.verantw))) voeg('anders', x, `Verantwoordelijke ${x.verantw}, maar de taak staat bij ${[...o.bij].join(', ')}`);
-  });
-  if(CTRL.taken) takenPer.forEach((o, k) => {
-    const taak = [...o.taak].join(', ') || 'workflowtaak', x = perSb.get(k);
-    if(x){ if(x.afgesloten) voeg('dichttaak', x, `Afgehandeld; taak “${taak}” staat nog open`); return; }
-    const r = CTRL.rijen.get(k); if(!r || !r.dicht) return;   // geen ICT-dossieritem, of gewoon open
-    voeg('dichttaak', null, `Afgehandeld; taak “${taak}” staat nog open`, {_nr: String(r.nr ?? ''), _sb: k, onderwerp: (r.iu ? '[In-/uitdienst] ' : '') + String(r.ond || ''), _bij: [...o.bij].join(', '), _status: String(r.status || 'Afgehandeld')});
+    const v = String(x.verantw || '').trim(), rij = code => uit.push({nr: x.nr, _nr: nrT(x), onderwerp: (x.inuit ? '[In-/uitdienst] ' : '') + x.onderwerp, _x: x, _verantw: v, _afd: x.afdeling, _code: code, _ernst: CTRL_GROEP[code].e,
+      _status: (x.inuit ? x.ictStatus || toonStatus(x.status) : toonStatus(x.status)) || ''});
+    if(v){ if(!inIctLijst(v)) rij('geenict'); }
+    else if(!x.inuit && x.emmer !== 'nieuw') rij('leeg');
   });
   return uit.sort((a, b) => b._ernst - a._ernst);
 }
-// veel regels van dezelfde soort: bundelen per oorzaak (taak) en per persoon; openklappen voor de afzonderlijke meldingen
 const ctrlOpen = new Set();
 function ctrlBundels(c, g){
-  if(g.length <= 8) return tabel('controle:' + c, g, {set: CTRL_KOLOMMEN, max: 25});
-  // afgehandeld-maar-nog-een-taak: per collega (die moet ze in InSite afhandelen); de rest per oorzaak
-  const sleutels = b => c === 'dichttaak' ? String(b._bij || 'onbekend').split(', ').filter(Boolean) : [c === 'koppeling' ? b._wat : b._x && b._x.inuit ? 'In- en uitdienst' : 'Meldingen'];
-  const per = new Map(); g.forEach(b => sleutels(b).forEach(k => { if(!per.has(k)) per.set(k, []); per.get(k).push(b); }));
-  if(c === 'dichttaak') CTRL.kopie = {};
-  return [...per].sort((a, b) => b[1].length - a[1].length).map(([k, l], i) => { const id = c + '|' + k, mensen = new Map();
-    l.forEach(b => String(b._bij || '').split(', ').filter(Boolean).forEach(n => mensen.set(n, (mensen.get(n) || 0) + 1)));
-    const top = [...mensen].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([n, v]) => `${n} (${v})`).join(', ') + (mensen.size > 4 ? ` en ${mensen.size - 4} anderen` : '');
-    if(c === 'dichttaak') CTRL.kopie[id] = `Hoi ${k.split(' ')[0]}, in je AFAS-takenlijst staan nog ${l.length} taken bij meldingen die al zijn afgehandeld. Wil je ze in InSite afhandelen (Taken → taak openen → Afhandelen)? Het gaat om: ${l.map(b => b._nr).filter(Boolean).join(', ')}`;
-    return `<details class="ctrl-bundel" data-ctrlbundel="${esc(id)}"${ctrlOpen.has(id) ? ' open' : ''}><summary><b>${l.length}×</b> ${esc(k)}${c !== 'dichttaak' && top ? ` <span class="hint">· bij ${esc(top)}</span>` : ''}${c === 'dichttaak' ? ` <button type="button" class="linkknop" data-ctrlkopie="${esc(id)}" title="Bericht met de nummers kopiëren, om in Teams te plakken">Bericht kopiëren</button>` : ''}</summary>${ctrlOpen.has(id) ? tabel('controle:' + c + ':' + i, l, {set: CTRL_KOLOMMEN, max: 25}) : ''}</details>`; }).join('');
+  if(c !== 'geenict' || g.length <= 8) return tabel('controle:' + c, g, {set: CTRL_KOLOMMEN, max: 50});
+  const per = new Map(); g.forEach(b => { const k = b._verantw || 'onbekend'; if(!per.has(k)) per.set(k, []); per.get(k).push(b); });   // per persoon: in één keer omzetten
+  return [...per].sort((a, b) => b[1].length - a[1].length).map(([k, l], i) => { const id = c + '|' + k;
+    return `<details class="ctrl-bundel" data-ctrlbundel="${esc(id)}"${ctrlOpen.has(id) ? ' open' : ''}><summary><b>${l.length}×</b> ${esc(k)}</summary>${ctrlOpen.has(id) ? tabel('controle:' + c + ':' + i, l, {set: CTRL_KOLOMMEN, max: 50}) : ''}</details>`; }).join('');
 }
-document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-ctrlkopie]'); if(!b) return; e.preventDefault(); e.stopPropagation();
-  const t = (CTRL.kopie || {})[b.dataset.ctrlkopie] || ''; navigator.clipboard.writeText(t).then(() => toast('Bericht gekopieerd: plak het in Teams'), () => toast('Kopiëren lukte niet', true)); }, true);
 document.addEventListener('toggle', e => { const d = e.target; if(!d.dataset || !d.dataset.ctrlbundel) return; const id = d.dataset.ctrlbundel, was = ctrlOpen.has(id);
   if(d.open) ctrlOpen.add(id); else ctrlOpen.delete(id); if(was !== d.open && tab === 'controle') tekenControle(); }, true);
 function tekenControle(){
-  if(!CTRL.taken && !CTRL.bezig) haalAlleTaken();
+  if(!CTRL.ict && !CTRL.bezig) haalAlleTaken();
   const l = controleBevindingen();
   $('#lijst-titel').textContent = 'Controle'; $('#lijst-n').hidden = false; $('#lijst-n').textContent = l.length; $('#titel').textContent = ''; $('#subtitel').textContent = '';
   $('#lijst-sub').textContent = ''; $('#lijst-kol').innerHTML = '';
   ['#f-mijn', '#f-mijalles', '#f-soort', '#f-changes', '#f-weergave', '#f-zoom'].forEach(sel => { const e = $(sel); if(e) e.hidden = true; });
   const groepen = Object.keys(CTRL_GROEP).map(code => [code, l.filter(b => b._code === code)]).filter(([, g]) => g.length);
-  const stand = CTRL.bezig ? 'Bezig met vergelijken met AFAS…' : CTRL.fout ? 'Vergelijken met AFAS mislukt: ' + CTRL.fout : CTRL.taken ? `Vergeleken met de AFAS-takenlijsten${CTRL.mensen ? ' van ' + CTRL.mensen + ' ICT-collega’s' : ''} en alle open meldingen · ${fmtTijd(new Date(CTRL.t))}` : '';
-  const kop = `<p class="ctrl-uitleg" style="margin-top:4px">Hier staat alles waarbij SubmIT en AFAS niet met elkaar kloppen. Elke regel is een actie: los hem op in AFAS (knop AFAS ↗) en klik daarna op Opnieuw controleren. Is de lijst leeg, dan staat alles waar het hoort.</p>
+  const stand = CTRL.bezig ? 'ICT-lijst ophalen…' : CTRL.fout ? 'Controleren lukte niet: ' + CTRL.fout : CTRL.ict ? `Vergeleken met de ICT-lijst (${CTRL.ict.size} collega’s) · ${fmtTijd(new Date(CTRL.t))}` : '';
+  const kop = `<p class="ctrl-uitleg" style="margin-top:4px">Elke open melding hoort een verantwoordelijke uit de ICT-lijst te hebben (dezelfde lijst als bij het kiezen van een verantwoordelijke). Klik op een melding om hem meteen goed te zetten.</p>
     <div class="ctrl-kop"><span>${esc(stand)}</span><button type="button" class="linkknop" id="ctrl-opnieuw"${CTRL.bezig ? ' disabled' : ''}>Opnieuw controleren</button></div>`;
-  $('#lijst').innerHTML = kop + (!groepen.length ? `<p class="leeg">${CTRL.taken ? '✓ Alles staat waar het hoort.' : 'Bezig met controleren…'}</p>`
-    : groepen.map(([c, g]) => `<h3 class="subkop ${CTRL_GROEP[c].e >= 3 ? 'rood' : CTRL_GROEP[c].e === 2 ? 'oranje' : ''}">${esc(CTRL_GROEP[c].t)} <b>${g.length}</b></h3><p class="ctrl-uitleg">${CTRL_GROEP[c].w ? esc(CTRL_GROEP[c].w) + ' ' : ''}<b>Wat te doen:</b> ${esc(CTRL_GROEP[c].d)}</p>` + ctrlBundels(c, g)).join(''));
+  $('#lijst').innerHTML = kop + (!groepen.length ? `<p class="leeg">${CTRL.ict ? '✓ Elke open melding staat bij een ICT-collega.' : 'Bezig met controleren…'}</p>`
+    : groepen.map(([c, g]) => `<h3 class="subkop ${CTRL_GROEP[c].e >= 3 ? 'rood' : 'oranje'}">${esc(CTRL_GROEP[c].t)} <b>${g.length}</b></h3><p class="ctrl-uitleg">${esc(CTRL_GROEP[c].w)} <b>Wat te doen:</b> ${esc(CTRL_GROEP[c].d)}</p>` + ctrlBundels(c, g)).join(''));
   const k = $('#ctrl-opnieuw'); if(k) k.onclick = () => haalAlleTaken(true);
 }
-document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-ctrlafas]'); if(!b) return; e.preventDefault(); e.stopPropagation();
-  const x = items.find(y => String(y.sbid) === b.dataset.ctrlafas) || {sbid: b.dataset.ctrlafas, nr: b.dataset.ctrlnr}; openInAfas(x); }, true);
 /* ---- historie: de laatste 10 meldingen waarin jij iets hebt gewijzigd (per gebruiker, in deze browser) ---- */
 const histSleutel = () => 'mict-historie-' + (sub || 'demo');
 function logHistorie(x, wat){
