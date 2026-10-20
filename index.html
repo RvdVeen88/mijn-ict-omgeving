@@ -701,6 +701,9 @@ select.afdkeuze:hover{border-bottom-color:var(--blauw-2)}
 #combo button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;text-align:left;border:0;background:transparent;padding:6px 10px;border-radius:8px;font-size:13px;color:var(--inkt);cursor:default}
 #combo button:hover,#combo button.actief{background:var(--lichtblauw-2);color:var(--blauw)}
 #combo button.recent span::before{content:'↺ ';color:var(--grijs)}
+#combo .combohint{margin:4px 0 0;padding:8px 10px 4px;border-top:1px solid var(--lijn);font-size:12px;color:var(--grijs)}
+#combo button.buiten small{color:var(--oranje)}
+#combo button:not(.buiten) + button.buiten{border-top:1px solid var(--lijn);margin-top:2px}
 #combo button.recent + button:not(.recent){border-top:1px solid var(--lijn)}
 #combo button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 #combo button small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;color:var(--grijs);font-size:11.5px}
@@ -1358,13 +1361,13 @@ const INST = Object.assign({
   vrijeVelden: 'KnS38',                  // vrije-veldentabel van type Aanvraag ICT (AFAS weigert velden uit andere KnS-tabellen)                       // type dossieritem Aanvraag ICT
   connMedewerkers: 'PowerBI_ICT_Verjaardag',
   hoofdkantoor: 'Planetarium',           // locatievoorstel voor medewerkers van stafafdelingen (organisatorische eenheid zonder "DC Klinieken <vestiging>")
-  connCollegas: 'PowerBI_ICT_Collegas',   // GetConnector: leden van de AFAS-gebruikersgroep met ICT-collega's (Gebruiker + Naam); bepaalt wie in Verantwoordelijke staat
+  connCollegas: 'PowerBI_ICT_Collegas',   // GetConnector op alle AFAS-gebruikers (Gebruiker + Naam + Geblokkeerd): codes voor Verantwoordelijke; wie ICT is bepaalt het organigram (Laag 4)
   ictLaag4: 'GROEMANDZI',
   beheerder: 'Robert van der Veen',   // alleen deze persoon ziet Controle              // organigram Laag 4 = valt onder Manager Digitale Zorg & ICT: dat zijn de ICT-medewerkers
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.25', VERSIE_DATUM = '20-10-2026';
+const VERSIE = 'v7.25.1', VERSIE_DATUM = '20-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3614,11 +3617,15 @@ function mailVooraf(){
   const na = $('#notitie-uitleg'); if(na) na.textContent = tekst ? (notitie ? 'Interne notitie: de melder krijgt géén mail.' : geenMail ? 'Let op: deze reactie gaat zonder mail naar AFAS.' : '✉ De melder krijgt deze reactie per mail.') : '';
 }
 /* verantwoordelijke kiezen, overal hetzelfde: eerst altijd de ICT-collega's; typ je een naam, dan komen ook AFAS-gebruikers buiten ICT erbij (onderaan) */
+// alle AFAS-gebruikers die verantwoordelijke kunnen zijn: de keuzelijst van het veld (als AFAS die meegeeft), anders de connector met gebruikers
 async function alleGebruikers(){ const m = await laadSubjMeta().catch(() => ({}));
-  return m.verantw ? waardenVan(m.verantw.values).filter(w => w.naam && !/^\d+\.\S+$/.test(w.naam)).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')) : []; }
+  const uitVeld = m.verantw ? waardenVan(m.verantw.values).filter(w => w.naam && !/^\d+\.\S+$/.test(w.naam)) : [];
+  const l = uitVeld.length ? uitVeld : ((await collegasUitConnector().catch(() => null)) || []);
+  return [...l].sort((a, b) => a.naam.localeCompare(b.naam, 'nl')); }
 const ictItem = c => ({waarde: c.naam, sub: (c.oe || '').replace(/^medewerkers\s+/i, '') || 'ICT', zoek: (c.code || '') + ' ' + (c.oe || ''), code: c.code});
 const buitenItems = (l, alle) => alle.filter(w => !l.some(c => norm(c.code) === norm(w.code)) && !l.some(c => zelfdePersoon(c.naam, w.naam))).map(w => ({waarde: w.naam, sub: 'buiten ICT', zoek: w.code, code: w.code}));
-const verantwItems = (l, alle, inp, filter = () => true) => () => [...l.filter(filter).map(ictItem), ...(inp.dataset.typt === '1' && inp.value.trim() ? buitenItems(l, alle) : [])];
+const verantwItems = (l, alle, inp, filter = () => true) => () => { const getypt = inp.dataset.typt === '1' && inp.value.trim(), buiten = buitenItems(l, alle).map(b => ({...b, buiten: true}));
+  return [...l.filter(filter).map(ictItem), ...(getypt ? buiten : []), ...(!getypt ? [{hint: true, waarde: buiten.length ? 'Iemand buiten ICT? Typ een naam.' : 'Iemand buiten ICT kiezen kan nog niet: de lijst met AFAS-gebruikers ontbreekt.'}] : [])]; };
 async function vulVerantwKeuze(x){
   const sel = $('#d-verantw'); if(!sel) return;
   try{ const l = await ictCollegas(); if(!huidig || huidig.x !== x || !$('#d-verantw')) return;
@@ -3626,7 +3633,7 @@ async function vulVerantwKeuze(x){
     const nu = l.find(c => norm(c.naam) === norm(x.verantw));
     // niet iedereen staat in de ICT-lijst (bv. een andere organisatorische eenheid of nu geen eigen melding): 'Andere collega…' toont de hele AFAS-keuzelijst
     const alle = await alleGebruikers();
-    const meer = alle.length ? '<option value="__meer">Iemand buiten ICT…</option>' : '';
+    const meer = alle.length ? '<option value="__meer">Iemand buiten ICT…</option>' : '<option value="__geen" disabled>Iemand buiten ICT: lijst met AFAS-gebruikers ontbreekt</option>';
     sel.innerHTML = (nu ? '' : `<option value="">${esc(x.verantw || '')}</option>`) + l.map(c => `<option value="${esc(c.code)}" ${c === nu ? 'selected' : ''}>${esc(c.naam)}</option>`).join('') + meer;
     sel.dataset.oud = nu ? nu.code : '';
     sel.onchange = () => {
@@ -3764,12 +3771,13 @@ let collegaConn = null, collegaConnT = 0, collegaConnFout = '';
 async function collegasUitConnector(){
   if(!INST.connCollegas || collegaConnFout) return null;
   if(collegaConn && Date.now() - collegaConnT < 10 * 6e4) return collegaConn.length ? collegaConn : null;   // leeg = nog niet ingericht: terugvallen
-  try{ const rows = (await afas(`/connectors/${encodeURIComponent(INST.connCollegas)}?skip=0&take=1000`)).rows || [];
+  try{ const rows = DEMO ? ((await afas(`/connectors/${encodeURIComponent(INST.connCollegas)}?skip=0&take=1000`)).rows || []) : await connectorAlles(INST.connCollegas, '');
     const veld = (r, re) => { const k = Object.keys(r).find(k => re.test(k)); return k ? String(r[k] ?? '').trim() : ''; };
     const l = rows.map(r => { const code = veld(r, /^(gebruiker(scode)?|user(id)?|usid|code)$/i) || Object.values(r).map(String).find(v => /^\d+\.\S+$/.test(v)) || '';
         let naam = veld(r, /^(naam|name|weergavenaam|naam_gebruiker|gebruiker_naam|volledige_naam|medewerker)$/i) || veld(r, /naam|name/i);
         if(naam.includes(',')) naam = naam.split(',').map(t => t.trim()).reverse().join(' ');
-        return {code, naam}; }).filter(c => c.code && c.naam);
+        const blok = Object.keys(r).find(k => /^(geblokkeerd|blocked|inactief)$/i.test(k));
+        return {code, naam, weg: !!(blok && ja(r[blok]))}; }).filter(c => c.code && c.naam && !c.weg);
     collegaConn = [...new Map(l.map(c => [norm(c.code), c])).values()].sort((a, b) => a.naam.localeCompare(b.naam, 'nl')); collegaConnT = Date.now();
     collegaConn.forEach(c => { gebruikerCode.set(norm(c.naam), c.code); codeNaam.set(norm(c.code), c.naam); });
     return collegaConn.length ? collegaConn : null;
@@ -3794,9 +3802,11 @@ async function ictCollegas(){
   // wie nu verantwoordelijke is telt alleen mee als het organigram er niet is (anders zou iemand die uit dienst is in de lijst blijven)
   const behandelaars = metLaag ? [] : [...new Set(items.map(x => x.verantw).filter(Boolean))];
   const hoortErbij = w => team.some(x => [x.vol, x.naam, x.off].some(n => n && zelfdePersoon(n, w.naam))) || behandelaars.some(n => zelfdePersoon(n, w.naam));
-  if(waarden.length){
-    const l = new Map((conn || []).map(c => [norm(c.code), c]));   // connector met ICT-collega's (als die er is) + iedereen uit het organigram
-    waarden.filter(hoortErbij).forEach(w => { if(!l.has(norm(w.code))) l.set(norm(w.code), w); });
+  // gebruikers met hun AFAS-code: de keuzelijst van het veld, anders de gebruikersconnector (PowerBI_ICT_Collegas: alle AFAS-gebruikers)
+  const pool = waarden.length ? waarden : (conn || []);
+  if(pool.length && (team.length || behandelaars.length)){
+    const l = new Map();
+    pool.filter(hoortErbij).forEach(w => { if(l.has(norm(w.code))) return; const t = team.find(x => [x.vol, x.naam, x.off].some(n => n && zelfdePersoon(n, w.naam))); l.set(norm(w.code), {...w, oe: w.oe || (t && t.oe) || ''}); });
     const zonder = team.filter(x => ![...l.values()].some(c => [x.vol, x.naam, x.off].some(n => n && zelfdePersoon(n, c.naam))));
     collegaDiag = zonder.length ? `${zonder.length} ICT-collega${zonder.length === 1 ? '' : '’s'} niet gevonden als AFAS-gebruiker: ${zonder.map(x => x.vol || x.naam).join(', ')}` : '';
     if(l.size) return [...l.values()].sort((a, b) => a.naam.localeCompare(b.naam, 'nl'));
@@ -3809,7 +3819,7 @@ async function ictCollegas(){
   const codes = await gebruikersCodes(ploeg.map(t => t.naam));
   const l = ploeg.map(t => ({...t, code: codes.get(norm(t.naam)) || ''})).filter(t => t.code);
   const zonder = ploeg.filter(t => !codes.get(norm(t.naam)));
-  collegaDiag = zonder.length ? `${zonder.length} collega${zonder.length === 1 ? '' : '’s'} zonder openstaande AFAS-taak niet in de lijst: ${zonder.map(t => t.naam).join(', ')}` : '';
+  collegaDiag = zonder.length ? `${zonder.length} ICT-collega${zonder.length === 1 ? '' : '’s'} niet in de lijst: SubmIT kent hun AFAS-gebruikerscode niet (die komt nu alleen uit openstaande taken): ${zonder.map(t => t.naam).join(', ')}. Oplossing: GetConnector ${INST.connCollegas} met alle AFAS-gebruikers.` : '';
   return l.sort((a, b) => a.naam.localeCompare(b.naam, 'nl'));
 }
 let actieKeuze = null;   // gekozen collega of datum voor de actie
@@ -4226,9 +4236,9 @@ function comboToon(inp, items, kies){
   const host = inp.closest('dialog') || document.body; if(el.parentElement !== host) host.appendChild(el);   // in een dialoog moet de lijst in de dialoog staan, anders valt hij erachter
   // elk woord moet ergens voorkomen: "rob veen" vindt "Veen, Robert van der"
   const woorden = w.split(' ').filter(Boolean), tekstVan = x => norm(x.waarde + ' ' + (x.sub || '') + ' ' + (x.zoek || ''));
-  const l = items().filter(x => !woorden.length || woorden.every(d => tekstVan(x).includes(d))).slice(0, 200);
+  const alleI = items(), hints = alleI.filter(x => x.hint), l = alleI.filter(x => !x.hint && (!woorden.length || woorden.every(d => tekstVan(x).includes(d)))).slice(0, 200);
   comboHuidig = {inp, l, kies, actief: -1};
-  el.innerHTML = l.length ? l.map((x, i) => `<button type="button" data-ci="${i}" class="${x.recent ? 'recent' : ''}"><span>${esc(x.waarde)}</span>${x.sub ? `<small>${esc(x.sub)}</small>` : ''}</button>`).join('') : '<p>Niets gevonden</p>';
+  el.innerHTML = (l.length ? l.map((x, i) => `<button type="button" data-ci="${i}" class="${x.recent ? 'recent' : ''}${x.buiten ? ' buiten' : ''}"><span>${esc(x.waarde)}</span>${x.sub ? `<small>${esc(x.sub)}</small>` : ''}</button>`).join('') : '<p>Niets gevonden</p>') + hints.map(x => `<p class="combohint">${esc(x.waarde)}</p>`).join('');
   const r = inp.getBoundingClientRect();
   el.style.left = r.left + 'px'; el.style.minWidth = Math.max(r.width, 220) + 'px';
   const onder = innerHeight - r.bottom;
