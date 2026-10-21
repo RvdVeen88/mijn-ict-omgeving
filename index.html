@@ -11,7 +11,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23053787'/%3E%3Csvg x='7' y='8' width='50' height='48' viewBox='105 110 505 435'%3E%3Cg fill='%23fff'%3E%3Cpath d='M518 257L517 258L512 259L509 261L507 261L506 262L489 267L486 269L472 273L469 275L446 282L443 284L441 284L440 285L438 285L437 286L402 297L432 312L437 316L414 341L414 342L403 353L403 354L376 384L342 345L342 344L331 332L331 331L325 325L320 318L313 311L295 331L295 332L278 350L278 351L271 358L271 359L261 369L261 370L221 414L221 415L212 424L212 425L205 432L205 433L181 459L181 460L166 476L166 477L118 531L164 496L168 494L184 482L188 478L204 466L208 464L235 443L243 438L255 428L259 426L260 427L258 431L256 433L247 451L245 453L242 460L240 462L227 488L318 396L319 396L326 403L326 404L372 454L469 347L471 348L471 349L475 353L475 354L479 358L479 359L483 363L495 379L496 379L496 375L497 374L497 370L498 369L498 364L499 363L499 359L500 358L500 353L501 352L501 347L502 346L502 342L503 341L503 337L504 336L504 332L505 331L506 320L507 319L507 315L508 314L508 309L509 308L509 304L510 303L510 298L511 297L511 293L512 292L512 287L513 286L514 276L515 275L515 270L516 269L516 264L517 263L517 259Z'/%3E%3Cpath d='M505 121L505 124L504 125L502 136L500 140L500 143L498 147L498 150L497 151L495 161L484 165L481 165L480 166L465 169L461 171L454 172L456 172L460 174L463 174L464 175L467 175L468 176L471 176L472 177L475 177L479 179L486 180L490 182L493 182L496 186L496 189L498 193L500 204L502 208L505 223L506 218L508 214L508 211L510 207L510 204L511 203L513 192L515 188L515 185L517 182L520 182L521 181L524 181L525 180L528 180L536 177L539 177L547 174L557 172L554 172L553 171L546 170L542 168L535 167L531 165L524 164L520 162L517 162L515 160L513 149L511 145L511 142L510 141L510 138L509 137L509 134L508 133L508 130L507 129L506 122Z'/%3E%3Cpath d='M452 195L446 217L444 219L442 219L441 220L438 220L434 222L423 224L427 226L430 226L431 227L434 227L435 228L438 228L439 229L444 230L446 232L447 237L448 238L448 241L449 242L449 245L450 246L450 249L451 250L451 253L452 254L452 251L455 243L457 232L459 230L461 230L462 229L465 229L473 226L480 225L480 224L477 224L476 223L473 223L472 222L469 222L465 220L459 219L457 217L457 214L454 206Z'/%3E%3Cpath d='M567 228L565 233L564 240L562 244L562 247L559 250L539 255L549 257L550 258L553 258L557 260L560 260L563 266L563 269L564 270L564 273L565 274L565 277L566 278L567 283L567 280L569 276L569 273L572 265L572 262L574 260L577 260L581 258L584 258L585 257L588 257L589 256L594 255L573 249L569 238Z'/%3E%3Cpath d='M576 177L572 191L569 193L566 193L565 194L557 196L560 196L561 197L571 199L573 202L574 209L576 213L577 207L580 199L594 196L589 194L582 193L579 191L579 188L577 184Z'/%3E%3C/g%3E%3C/svg%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,700&display=swap" rel="stylesheet">
 <style>
-:root{
+:root{--meldboven:56px;
   --blauw:#053787; --blauw-2:#2E5FB0; --lichtblauw:#B5D0FF; --lichtblauw-2:#E6EEFF;
   --goud:#EAC479; --goud-licht:#FBF3E2; --bruin:#7A5A12;
   --inkt:#16213E; --grijs:#5B6480; --lijn:#DFE5F0; --achtergrond:#F4F6FA;
@@ -281,7 +281,7 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .kk-knoppen{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
 .kk-knoppen .knop.vol{background:var(--rood);border-color:var(--rood)}
 /* herinnering bij inloggen: zelfde kaart als een kritieke storing, maar rustiger (oranje) */
-#herinnerbox{position:fixed;bottom:24px;right:24px;z-index:89;width:min(380px,calc(100vw - 32px));display:flex;flex-direction:column;gap:10px}
+#herinnerbox{position:fixed;bottom:var(--meldboven);right:24px;z-index:89;width:min(380px,calc(100vw - 32px));display:flex;flex-direction:column;gap:10px}
 .herinnerkaart.nieuwskaart{border-color:var(--blauw)}.herinnerkaart.nieuwskaart .kk-kop{color:var(--blauw)}
 .nieuwskort{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--inkt)}.nieuwskort li{margin:3px 0}
 .nieuwslijst{max-height:min(70vh,560px);overflow:auto}.nieuwslijst section{padding:10px 0;border-top:1px solid var(--lijn)}.nieuwslijst section:first-child{border-top:0}
@@ -486,7 +486,7 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .updateknop{margin-right:6px;display:inline-flex;align-items:center;gap:6px;border:0;background:var(--blauw);color:#fff;font:inherit;font-size:12px;font-weight:600;padding:4px 12px 4px 9px;border-radius:999px;cursor:default;animation:updPuls 2s ease-in-out 3}
 .updateknop svg{width:14px;height:14px}
 @keyframes updPuls{50%{box-shadow:0 0 0 6px rgba(46,95,176,.25)}}
-#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--inkt);color:var(--vlak);padding:10px 20px;border-radius:999px;transition:all .25s;pointer-events:none;z-index:99;max-width:90vw}
+#toast{position:fixed;left:50%;bottom:var(--meldboven);transform:translateX(-50%) translateY(20px);opacity:0;background:var(--inkt);color:var(--vlak);padding:10px 20px;border-radius:999px;transition:all .25s;pointer-events:none;z-index:99;max-width:90vw}
 #toast.zichtbaar{opacity:1;transform:translateX(-50%)}
 #toast.fout{background:var(--rood);color:#fff}
 
@@ -1219,7 +1219,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
   .teampaneel{left:8px!important;right:8px;top:auto!important;bottom:calc(var(--onder) + 8px + env(safe-area-inset-bottom));width:auto;max-height:70dvh}
   .teamwolk{display:none}
   #kritiekbox{top:10px;right:10px;left:10px;width:auto}
-  #herinnerbox{bottom:10px;right:10px;left:10px;width:auto}
+  #herinnerbox{bottom:calc(var(--onder) + 14px + env(safe-area-inset-bottom));right:10px;left:10px;width:auto}
   #toast{bottom:calc(var(--onder) + 14px + env(safe-area-inset-bottom))!important}
   .ikmenu{position:fixed;right:10px;left:auto;top:62px}
   #kolkeuze{left:10px!important;right:10px;width:auto}
@@ -6674,7 +6674,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
-  {v: 'v7.33', d: '21-10-2026', groot: true, p: ['De kolom Locatie is in alle overzichten gevuld.', 'Verantwoordelijke: alle ICT-collega’s (herkend aan kostenplaats ICT) en via "Iemand buiten ICT…" elke andere collega.']},
+  {v: 'v7.33', d: '21-10-2026', groot: true, p: ['De kolom Locatie is in alle overzichten gevuld.', 'Verantwoordelijke: alle ICT-collega’s (herkend aan kostenplaats ICT) en via "Iemand buiten ICT…" elke andere collega.', 'Meldingen en kaartjes verschijnen boven de regel “Live · bijgewerkt om …”, zodat ze die niet meer bedekken.']},
   {v: 'v7.32', d: '21-10-2026', groot: true, p: ['Wat is er nieuw: in je profielmenu (klik op je foto) zie je per versie wat er veranderd is.', 'Verbeteracties staan voortaan bij Mijn changes, niet meer tussen de meldingen.']},
   {v: 'v7.31', d: '21-10-2026', groot: true, p: ['Alt+← en Alt+→ (en de terugknop van je muis) gaan door de schermen en meldingen die je in SubmIT hebt bezocht, niet meer naar andere websites.']},
   {v: 'v7.30', d: '21-10-2026', groot: true, p: ['Hyperlinks in toelichting en reacties: plak je een link (uit Outlook, Teams, SharePoint), dan zie je de naam en zit de link erachter.', 'Zelf een link maken: tekst selecteren en rechtermuisklik of Ctrl+K. Ctrl+klik opent een link.']},
