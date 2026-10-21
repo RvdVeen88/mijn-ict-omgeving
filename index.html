@@ -1244,6 +1244,11 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
   #v-mij,#v-todo{max-width:1800px}
   .tabel td.ond,.tabel td.k-p-naam{font-size:14.5px}
 }
+
+/* thema-overgang: geen standaard crossfade, de cirkel komt uit wisselThema; het oude beeld vervaagt licht */
+.themawissel::view-transition-old(root),.themawissel::view-transition-new(root){animation:none;mix-blend-mode:normal}
+.themawissel::view-transition-old(root){animation:themaVaag .65s ease both}
+@keyframes themaVaag{to{opacity:.6;filter:blur(1px)}}
 </style>
 <script src="mijn-ict-config.js"></script>
 </head>
@@ -5193,7 +5198,7 @@ document.addEventListener('click', e => {
     if(k === 'feedback'){ feedback(); return; }
     if(k === 'nieuws'){ toonNieuws(); return; }
     if(k === 'foto'){ fotoBewerken(); return; }
-    if(k === 'tour') startTour(); else if(k === 'thema') wisselThema(); else if(k === 'uit') uitloggen();
+    if(k === 'tour') startTour(); else if(k === 'thema') wisselThema(e); else if(k === 'uit') uitloggen();
     else if(k === 'import'){ if(tab !== 'todo'){ tab = 'todo'; teken(); } if(TD.status === 'ok'){ $('#td-import-bestand').value = ''; $('#td-import-bestand').click(); } else toast('Kies eerst je to-do-bestand; daarna kun je importeren'); }
     else { tab = 'connectoren'; teken(); } return; }
   if($('#ikmenu') && !e.target.closest('#ikmenu') && !e.target.closest('#ik')) $('#ikmenu').hidden = true;
@@ -5457,7 +5462,18 @@ $('#bijgewerkt').onclick = () => ververs();
 $('#ik').onclick = () => ikMenu();
 if(!opslag.get(TOUR_GEZIEN)) $('#ik').classList.add('nieuw');
 const isDonker = () => (document.documentElement.dataset.thema || (matchMedia('(prefers-color-scheme: dark)').matches ? 'donker' : 'licht')) === 'donker';
-function wisselThema(){ document.documentElement.dataset.thema = isDonker() ? 'licht' : 'donker'; opslag.set('mict-thema', document.documentElement.dataset.thema); }
+// licht/donker wisselen met een overgang: de nieuwe stijl vloeit als een cirkel vanaf het knopje over het scherm (View Transitions; anders direct)
+function wisselThema(e){
+  const zet = () => { document.documentElement.dataset.thema = isDonker() ? 'licht' : 'donker'; opslag.set('mict-thema', document.documentElement.dataset.thema); };
+  if(!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return zet();
+  const ik = $('#ik') && $('#ik').getBoundingClientRect();   // het menu is al dicht: start op de klikplek, met het toetsenbord vanaf je foto
+  const x = (e && e.clientX) || (ik ? ik.left + ik.width / 2 : innerWidth - 40), y = (e && e.clientY) || (ik ? ik.top + ik.height / 2 : 40);
+  const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+  document.documentElement.classList.add('themawissel');
+  const t = document.startViewTransition(zet);
+  t.ready.then(() => document.documentElement.animate({clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`]}, {duration: 650, easing: 'cubic-bezier(.65,0,.35,1)', pseudoElement: '::view-transition-new(root)'})).catch(() => {});
+  t.finished.finally(() => document.documentElement.classList.remove('themawissel'));
+}
 { const t = opslag.get('mict-thema'); document.documentElement.dataset.thema = t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'donker' : 'licht'); }
 setInterval(async () => { if(!$('#app').hidden && !$('#detail').open){ await laadGegevens('open', true); await verrijkMetTaken(); teken(); await verrijkMelders(); controleerIctReacties(); } }, INST.verversMinuten * 60e3);   // ook je workflowtaken opnieuw: anders blijft een doorgezette melding bij Mijn meldingen staan
 
@@ -6680,7 +6696,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
-  {v: 'v7.33', d: '21-10-2026', groot: true, p: ['De kolom Locatie is in alle overzichten gevuld.', 'Verantwoordelijke: alle ICT-collega’s (herkend aan kostenplaats ICT) en via "Iemand buiten ICT…" elke andere collega.', 'Nieuwe meldingen = alle open meldingen zonder verantwoordelijke. Zodra iemand verantwoordelijke is, staat de melding in de gewone lijsten.', 'In een melding staat de link naar die melding in de adresbalk: kopieer hem en stuur hem via Teams of mail, de ander komt direct in de melding.', 'Meldingen en kaartjes verschijnen boven de regel “Live · bijgewerkt om …”, zodat ze die niet meer bedekken.']},
+  {v: 'v7.33', d: '21-10-2026', groot: true, p: ['De kolom Locatie is in alle overzichten gevuld.', 'Verantwoordelijke: alle ICT-collega’s (herkend aan kostenplaats ICT) en via "Iemand buiten ICT…" elke andere collega.', 'Wisselen tussen licht en donker gaat met een vloeiende overgang.', 'Nieuwe meldingen = alle open meldingen zonder verantwoordelijke. Zodra iemand verantwoordelijke is, staat de melding in de gewone lijsten.', 'In een melding staat de link naar die melding in de adresbalk: kopieer hem en stuur hem via Teams of mail, de ander komt direct in de melding.', 'Meldingen en kaartjes verschijnen boven de regel “Live · bijgewerkt om …”, zodat ze die niet meer bedekken.']},
   {v: 'v7.32', d: '21-10-2026', groot: true, p: ['Wat is er nieuw: in je profielmenu (klik op je foto) zie je per versie wat er veranderd is.', 'Verbeteracties staan voortaan bij Mijn changes, niet meer tussen de meldingen.']},
   {v: 'v7.31', d: '21-10-2026', groot: true, p: ['Alt+← en Alt+→ (en de terugknop van je muis) gaan door de schermen en meldingen die je in SubmIT hebt bezocht, niet meer naar andere websites.']},
   {v: 'v7.30', d: '21-10-2026', groot: true, p: ['Hyperlinks in toelichting en reacties: plak je een link (uit Outlook, Teams, SharePoint), dan zie je de naam en zit de link erachter.', 'Zelf een link maken: tekst selecteren en rechtermuisklik of Ctrl+K. Ctrl+klik opent een link.']},
