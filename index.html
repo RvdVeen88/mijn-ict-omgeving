@@ -277,23 +277,30 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .tabel tbody tr.kritiekrij td{background:var(--rood-licht)}
 .tabel tbody tr.kritiekrij td.nr{box-shadow:inset 6px 0 0 var(--rood);color:var(--rood)}
 #kritiekbox{position:fixed;top:76px;right:24px;z-index:90;display:flex;flex-direction:column;gap:10px;width:min(380px,calc(100vw - 32px))}
-.kritiekkaart{background:var(--vlak);border:2px solid var(--rood);border-radius:18px;box-shadow:0 18px 50px rgba(180,35,24,.28);padding:14px 16px 12px;animation:kkIn .45s cubic-bezier(.2,.9,.3,1.2)}
-.kk-kop{display:flex;align-items:center;gap:8px;color:var(--rood)}.kk-kop svg{width:20px;height:20px;animation:kkSchud 1.2s ease-in-out 2}
-.kk-kop b{font-size:15px}.kk-kop span{margin-left:auto;font-size:12px;color:var(--grijs)}
+.kritiekkaart{--kk:var(--rood);position:relative;overflow:hidden;border-radius:18px;padding:16px 18px 14px;animation:kkIn .45s cubic-bezier(.2,.9,.3,1.2);
+  border:1px solid color-mix(in srgb,var(--kk) 26%,transparent);
+  background:radial-gradient(120% 90% at 0% 0%,color-mix(in srgb,var(--kk) 11%,transparent) 0%,transparent 60%),linear-gradient(180deg,color-mix(in srgb,var(--kk) 4%,var(--vlak)) 0%,var(--vlak) 70%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 1px 2px rgba(3,31,77,.06),0 8px 16px -6px rgba(3,31,77,.10),0 24px 48px -14px color-mix(in srgb,var(--kk) 38%,rgba(3,31,77,.4))}
+.kritiekkaart::before{content:'';position:absolute;left:18px;right:18px;top:0;height:2px;border-radius:0 0 2px 2px;background:linear-gradient(90deg,transparent,var(--kk),transparent);opacity:.75}
+:root[data-thema="donker"] .kritiekkaart{box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 2px rgba(0,0,0,.3),0 24px 48px -14px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.02)}
+.kk-kop{display:flex;align-items:center;gap:10px;color:var(--kk)}.kk-kop svg{width:30px;height:30px;padding:6px;box-sizing:border-box;border-radius:10px;flex:none;background:color-mix(in srgb,var(--kk) 13%,transparent);animation:kkSchud 1.2s ease-in-out 2}
+.kk-kop b{font-size:15px}.kk-kop span{margin-left:auto;font-size:11.5px;color:var(--grijs);background:color-mix(in srgb,var(--grijs) 10%,transparent);padding:2px 8px;border-radius:999px}
 .kritiekkaart p{margin:6px 0 0;font-size:13px;color:var(--inkt)}.kk-wie{color:var(--grijs)!important}.kk-ond{font-weight:600;font-size:14px!important}
 .kk-toel{color:var(--grijs)!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.kk-knoppen{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.kk-knoppen{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.kk-knoppen .knop{border-width:1px}.kk-knoppen .knop:not(.vol){background:transparent}
+.kk-knoppen .knop.vol{box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 4px 12px -4px color-mix(in srgb,var(--blauw) 60%,transparent)}
 .kk-knoppen .knop.vol{background:var(--rood);border-color:var(--rood)}
 /* herinnering bij inloggen: zelfde kaart als een kritieke storing, maar rustiger (oranje) */
 #herinnerbox{position:fixed;bottom:var(--meldboven);right:24px;z-index:89;width:min(380px,calc(100vw - 32px));display:flex;flex-direction:column;gap:10px}
-.herinnerkaart.nieuwskaart{border-color:var(--blauw)}.herinnerkaart.nieuwskaart .kk-kop{color:var(--blauw)}
-.nieuwskort{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--inkt)}.nieuwskort li{margin:3px 0}
+.herinnerkaart.nieuwskaart{--kk:var(--blauw)}
+.nieuwskort{margin:10px 0 0;padding:0;list-style:none;font-size:13px;line-height:1.45;color:var(--inkt)}.nieuwskort li{margin:6px 0;padding-left:16px;position:relative}.nieuwskort li::before{content:'';position:absolute;left:2px;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--kk);opacity:.7}
 .nieuwslijst{max-height:min(70vh,560px);overflow:auto}.nieuwslijst section{padding:10px 0;border-top:1px solid var(--lijn)}.nieuwslijst section:first-child{border-top:0}
 .nieuwslijst h3{margin:0 0 4px;font-size:14.5px;color:var(--blauw)}.nieuwslijst h3 small{font-weight:400;color:var(--grijs);margin-left:6px}
 .nieuwslijst ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--inkt)}.nieuwslijst li{margin:3px 0}
 .zoekbuiten{width:100%}
-.herinnerkaart{border-color:var(--oranje);box-shadow:0 18px 50px rgba(3,31,77,.22)}
-.herinnerkaart .kk-kop{color:var(--oranje)}.herinnerkaart .kk-kop svg{animation:none}
+.herinnerkaart{--kk:var(--oranje)}
+.herinnerkaart .kk-kop svg{animation:none}
 .herinnerkaart .hk-soort{color:var(--grijs)!important}
 .herinnerkaart .hk-rij{display:flex;gap:8px;align-items:baseline;width:100%;border:0;background:none;padding:4px 0;text-align:left;font-size:13px;color:var(--inkt);cursor:pointer;border-top:1px solid var(--lijn)}
 .herinnerkaart .hk-rij:first-of-type{border-top:0}.herinnerkaart .hk-rij b{min-width:48px;color:var(--oranje)}.herinnerkaart .hk-rij span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -354,7 +361,11 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .tdtekst{min-width:0;display:flex;flex-direction:column;gap:1px}.tdtekst em{font-style:normal;font-size:14px;color:var(--inkt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tdtekst small{font-size:12px;color:var(--grijs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tdregel:hover .tdtekst em{color:var(--blauw)}
-.vb-lijsten.een .vb-todo{max-width:820px}
+.vb-lijsten.een .vb-todo{max-width:none}.vb-todo{min-width:0}
+.td-groepen{display:grid;grid-template-columns:minmax(0,1fr);gap:18px 40px}
+.td-groepen.twee{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.td-groep{min-width:0}.td-groep h4{margin:0 0 4px;font-size:12.5px;font-weight:600;color:var(--inkt);display:flex;align-items:baseline;gap:8px}
+.td-groep h4 small{font-weight:400;color:var(--grijs);font-size:12px}
 .tdw{font-size:12px;color:var(--grijs);white-space:nowrap;padding:2px 8px;border-radius:999px;background:var(--lichtblauw-2)}
 .tdw.vandaag{color:var(--blauw);font-weight:600}.tdw.laat{background:rgba(217,45,32,.1);color:var(--rood);font-weight:600}
 .tdmeer{all:unset;cursor:pointer;display:inline-block;margin-top:6px;font-size:13px;color:var(--blauw);font-weight:500}.tdmeer:hover{text-decoration:underline}.vb-leeg{color:var(--grijs);font-size:13.5px;margin:4px 0}
@@ -1441,7 +1452,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.34', VERSIE_DATUM = '21-10-2026';
+const VERSIE = 'v7.35', VERSIE_DATUM = '21-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2561,7 +2572,8 @@ function voorbladTodo(){   // twee blokken: wat een deadline heeft (op datum) en
   if(TD.status !== 'ok' || !TD.data) return {html: '', n: 0};
   const vandaag = tdIso(new Date());
   const alle = [...TD.data.taken.filter(t => !t.klaar).map(t => ({...t, bron: 'todo'})), ...(TD.planner || []).map(t => ({...t, bron: 'planner'}))];
-  const metDatum = alle.filter(t => t.deadline).sort((a, b) => a.deadline.localeCompare(b.deadline) || (b.belangrijk ? 1 : 0) - (a.belangrijk ? 1 : 0));
+  const grens = tdIso(new Date(Date.now() + 7 * DAG));   // alleen te laat en de komende 7 dagen
+  const metDatum = alle.filter(t => t.deadline && t.deadline <= grens).sort((a, b) => a.deadline.localeCompare(b.deadline) || (b.belangrijk ? 1 : 0) - (a.belangrijk ? 1 : 0));
   const belangrijk = alle.filter(t => t.belangrijk && !t.deadline);   // belangrijk mét deadline staat al (met ster) bij de deadlines
   const wanneer = t => !t.deadline ? '' : t.deadline < vandaag ? `<span class="tdw laat">te laat · ${fmtDatum(new Date(t.deadline + 'T00:00:00'))}</span>` : `<span class="tdw${t.deadline === vandaag ? ' vandaag' : ''}">${t.deadline === vandaag ? 'vandaag' : fmtDatum(new Date(t.deadline + 'T00:00:00'))}</span>`;
   const vast = ((TD.data.lijsten || []).find(x => x.vast) || {}).id;   // de standaardlijst niet onder elke regel herhalen
@@ -2569,10 +2581,10 @@ function voorbladTodo(){   // twee blokken: wat een deadline heeft (op datum) en
   const rij = t => `<button type="button" class="tdregel" data-tdnaar="${esc(t.id)}" data-tdbron="${t.bron}" title="${esc(t.titel)}"><span class="tdster ${t.belangrijk ? 'aan' : ''}" aria-label="${t.belangrijk ? 'Belangrijk' : ''}">${t.belangrijk ? TD_STER : ''}</span><span class="tdtekst"><em>${esc(t.titel)}</em>${waar(t) ? `<small>${esc(waar(t))}</small>` : ''}</span>${wanneer(t)}</button>`;
   const meer = (l, lijst) => l.length > 5 ? `<button type="button" class="tdmeer" data-tdnaar="" data-tdlijst="${lijst}">Nog ${l.length - 5} in To-do ›</button>` : '';
   const laat = metDatum.filter(t => t.deadline < vandaag).length, vnd = metDatum.filter(t => t.deadline === vandaag).length;
-  const blok = [];
-  if(metDatum.length) blok.push(`<div class="vb-todo"><h3>To-do’s met deadline<small>${[laat && `<b class="laat">${laat} te laat</b>`, vnd && `${vnd} vandaag`, `${metDatum.length} totaal`].filter(Boolean).join(' · ')}</small></h3>${metDatum.slice(0, 5).map(rij).join('')}${meer(metDatum, 'alle')}</div>`);
-  if(belangrijk.length) blok.push(`<div class="vb-todo"><h3>Belangrijke to-do’s<small>${belangrijk.length}</small></h3>${belangrijk.slice(0, 5).map(rij).join('')}${meer(belangrijk, 'belangrijk')}</div>`);
-  if(!blok.length) blok.push(`<div class="vb-todo"><h3>To-do’s</h3><p class="vb-leeg">Geen to-do’s met een deadline en niets als belangrijk gemarkeerd.</p></div>`);
+  const groep = (titel, l, lijst) => `<div class="td-groep"><h4>${titel}<small>${l.length}</small></h4>${l.slice(0, 5).map(rij).join('')}${meer(l, lijst)}</div>`;
+  const delen = [metDatum.length && groep('Komende 7 dagen', metDatum, 'alle'), belangrijk.length && groep('Belangrijk', belangrijk, 'belangrijk')].filter(Boolean);
+  const kop = [laat && `<b class="laat">${laat} te laat</b>`, vnd && `${vnd} vandaag`].filter(Boolean).join(' · ');
+  const blok = [`<div class="vb-todo"><h3>To-do${kop ? `<small>${kop}</small>` : ''}</h3>${delen.length ? `<div class="td-groepen${delen.length > 1 ? ' twee' : ''}">${delen.join('')}</div>` : '<p class="vb-leeg">Niets met een deadline in de komende 7 dagen en niets als belangrijk gemarkeerd.</p>'}</div>`];
   return {html: blok.join(''), n: blok.length};
 }
 function tekenMij(){
@@ -6829,6 +6841,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.35', d: '21-10-2026', p: ['To-do op het overzicht: één blok met Komende 7 dagen (en wat te laat is) en Belangrijk.', 'Nieuwe uitstraling van de kaartjes rechtsonder (update, herinnering, kritieke storing): dunne rand, zacht kleurverloop en een subtiele schaduw.']},
   {v: 'v7.34', d: '21-10-2026', groot: true, p: ['Rustscherm: na 2 minuten zonder muis zie je je overzicht met de tijd en heel rustig bewegende kleuren; beweeg je muis en je bent terug waar je was. Uit te zetten in je profielmenu.', 'Het overzicht toont je to-do’s in twee blokken: To-do’s met deadline en Belangrijke to-do’s. Klik erop en je bent in To-do.', 'Volledig scherm: knop rechtsboven naast je foto; nog eens klikken (of Esc) en het venster is weer normaal.', 'Niet storen is zichtbaar: een rood rondje op je foto, ook voor collega’s in Team en bij wie er online is.', 'Nieuwe meldingen = alle open meldingen zonder verantwoordelijke. Zodra iemand verantwoordelijke is, staat de melding in de gewone lijsten.', 'In een melding staat de link naar die melding in de adresbalk: kopieer hem en stuur hem via Teams of mail, de ander komt direct in de melding.', 'Bij opslaan zie je bij een statuswijziging precies wie de mail krijgt: de melder en wie in CC staat.', 'Windows-meldingen bij een kritieke storing staan standaard aan: SubmIT vraagt één keer toestemming.', 'Nieuw icoon voor Nieuwe melding: een potlood, zoals “Nieuw bericht” in Outlook en Teams.', 'Wisselen tussen licht en donker gaat met een vloeiende overgang.', 'Het cijfer Afgehandeld deze week staat er meteen; zolang het nog wordt opgehaald zie je een streepje in plaats van een 0.', 'To-do: één knop “Melding aanmaken”.', 'Een nieuwe versie zie je sneller: SubmIT kijkt elke 5 minuten en zodra je terugkomt in het venster.']},
   {v: 'v7.33', d: '21-10-2026', groot: true, p: ['De kolom Locatie is in alle overzichten gevuld.', 'Verantwoordelijke: alle ICT-collega’s (herkend aan kostenplaats ICT) en via "Iemand buiten ICT…" elke andere collega.', 'Meldingen en kaartjes verschijnen boven de regel “Live · bijgewerkt om …”, zodat ze die niet meer bedekken.']},
   {v: 'v7.32', d: '21-10-2026', groot: true, p: ['Wat is er nieuw: in je profielmenu (klik op je foto) zie je per versie wat er veranderd is.', 'Verbeteracties staan voortaan bij Mijn changes, niet meer tussen de meldingen.']},
