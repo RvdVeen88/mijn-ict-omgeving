@@ -85,6 +85,9 @@ button{cursor:default}
 .bovenbalk h1{font-size:22px;color:var(--blauw);white-space:nowrap}
 .bovenbalk .sub{color:var(--grijs);font-size:14px}
 .bovenbalk .rechts{display:flex;align-items:center;gap:12px}
+.volknop{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--lijn);background:var(--vlak);color:var(--grijs);display:grid;place-items:center;padding:0;cursor:pointer;flex:none}
+.volknop svg{width:18px;height:18px}.volknop:hover{color:var(--blauw);border-color:var(--blauw)}.volknop[aria-pressed="true"]{color:var(--blauw)}
+@media (max-width:760px){.volknop{display:none}}
 .globzoek{position:relative;flex:0 1 420px;min-width:200px;margin:0 0 0 auto;transition:flex-basis .25s ease,min-width .25s ease}
 /* ingeklapt: alleen het vergrootglas; klik (of Ctrl+K of /) schuift het veld uit, ergens anders klikken klapt het weer in (behalve als er nog een zoekterm staat) */
 .globzoek:not(.open){flex-basis:40px;min-width:40px}
@@ -339,12 +342,22 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .vb-c:hover span{color:var(--blauw)}
 .vb-c.rood b{color:var(--rood)} .vb-c.groen b{color:var(--groen)} .vb-c.blauw b{color:var(--blauw-2)}
 .vb-c.nul b{color:var(--lijn)}
+.vb-c.laadt b{color:var(--lijn);animation:rsPuls 1.4s ease-in-out infinite}
 .vb-lijsten.een{grid-template-columns:minmax(0,1fr)}
 .vb-lijsten{margin-top:56px;border-top:1px solid var(--lijn);padding-top:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:24px 56px}
 .vb-lijsten h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--grijs);margin:0 0 10px;font-weight:600}
 .vb-lijsten h3 small{text-transform:none;letter-spacing:0;font-weight:400;margin-left:10px;font-size:12.5px}.vb-lijsten h3 small .laat,.tdregel .laat{color:var(--rood);font-weight:600}
-.tdregel{cursor:pointer}.tdregel .tdster{display:inline-flex;align-items:center;min-width:46px}.tdregel .tdster svg{width:15px;height:15px;color:var(--oranje);fill:currentColor}
-.tdmeer{cursor:pointer}.tdmeer em{color:var(--blauw)!important}.vb-leeg{color:var(--grijs);font-size:13.5px;margin:4px 0}
+.tdregel{all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;margin:0 -10px;border-radius:10px;font:inherit}
+.tdregel:hover{background:var(--rail-hover)}.tdregel:focus-visible{outline:2px solid var(--blauw)}
+.tdregel .tdster{display:grid;place-items:center}.tdregel .tdster svg{width:15px;height:15px;color:var(--oranje);fill:currentColor}
+.tdregel .tdster:not(.aan)::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--lijn)}
+.tdtekst{min-width:0;display:flex;flex-direction:column;gap:1px}.tdtekst em{font-style:normal;font-size:14px;color:var(--inkt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tdtekst small{font-size:12px;color:var(--grijs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tdregel:hover .tdtekst em{color:var(--blauw)}
+.vb-lijsten.een .vb-todo{max-width:820px}
+.tdw{font-size:12px;color:var(--grijs);white-space:nowrap;padding:2px 8px;border-radius:999px;background:var(--lichtblauw-2)}
+.tdw.vandaag{color:var(--blauw);font-weight:600}.tdw.laat{background:rgba(217,45,32,.1);color:var(--rood);font-weight:600}
+.tdmeer{all:unset;cursor:pointer;display:inline-block;margin-top:6px;font-size:13px;color:var(--blauw);font-weight:500}.tdmeer:hover{text-decoration:underline}.vb-leeg{color:var(--grijs);font-size:13.5px;margin:4px 0}
 .voorregel{margin:0;padding:7px 0;display:flex;gap:12px;align-items:baseline;font-size:14px;cursor:default;border-bottom:1px solid transparent}
 .voorregel:hover em{color:var(--blauw);text-decoration:underline}
 .voorregel .vnr{font-weight:600;color:var(--blauw);font-size:13px;min-width:46px}
@@ -1262,11 +1275,26 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 #rustscherm{position:fixed;inset:0;width:100vw;height:100vh;max-width:none;max-height:none;margin:0;padding:0;border:0;border-radius:0!important;box-shadow:none!important;outline:none;background:var(--achtergrond);color:var(--inkt);opacity:0;transition:opacity .45s ease;overflow:auto;cursor:none}
 #rustscherm::backdrop{background:transparent}
 #rustscherm.aan{opacity:1}#rustscherm.weg{opacity:0}
-#rustscherm .rs-in{max-width:1100px;margin:0 auto;padding:6vh 32px 40px;pointer-events:none}
+#rustscherm .rs-in{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:6vh 32px 40px;pointer-events:none;animation:rsZweef 48s ease-in-out infinite alternate}
+@keyframes rsZweef{0%{transform:translate(0,0)}33%{transform:translate(14px,-10px)}66%{transform:translate(-12px,8px)}100%{transform:translate(8px,12px)}}
+/* zen: zachte, trage kleurvlekken (huisstijlblauw) en een paar zwevende lichtpuntjes; heel langzaam, nooit druk */
+.rs-zen{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.rs-zen i{position:absolute;width:62vmax;height:62vmax;border-radius:50%;filter:blur(70px);opacity:.16;will-change:transform;animation:rsDrift 90s ease-in-out infinite alternate}
+.rs-zen i:nth-child(1){background:#2F6FEB;left:-18vmax;top:-22vmax}
+.rs-zen i:nth-child(2){background:#053787;right:-22vmax;top:8vh;animation-duration:110s;animation-delay:-30s}
+.rs-zen i:nth-child(3){background:#6F9BEA;left:18vw;bottom:-30vmax;animation-duration:130s;animation-delay:-60s}
+.rs-zen i:nth-child(4){background:#14B87A;right:12vw;bottom:-36vmax;opacity:.07;animation-duration:150s;animation-delay:-90s}
+@keyframes rsDrift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(8vw,-6vh) scale(1.12)}100%{transform:translate(-6vw,7vh) scale(.94)}}
+.rs-zen b{position:absolute;bottom:-12px;width:6px;height:6px;border-radius:50%;background:var(--blauw);opacity:0;animation:rsStijg 34s linear infinite}
+.rs-zen b:nth-of-type(1){left:12%;animation-delay:0s}.rs-zen b:nth-of-type(2){left:28%;animation-delay:-9s;animation-duration:41s;width:4px;height:4px}
+.rs-zen b:nth-of-type(3){left:47%;animation-delay:-20s;animation-duration:38s}.rs-zen b:nth-of-type(4){left:63%;animation-delay:-5s;animation-duration:46s;width:5px;height:5px}
+.rs-zen b:nth-of-type(5){left:79%;animation-delay:-27s;width:4px;height:4px}.rs-zen b:nth-of-type(6){left:91%;animation-delay:-14s;animation-duration:44s}
+@keyframes rsStijg{0%{transform:translate(0,0);opacity:0}12%{opacity:.35}50%{transform:translate(18px,-55vh)}88%{opacity:.25}100%{transform:translate(-10px,-108vh);opacity:0}}
+:root[data-thema="donker"] .rs-zen i{opacity:.22}:root[data-thema="donker"] .rs-zen i:nth-child(4){opacity:.08}
 #rustscherm .rs-klok{font-size:clamp(56px,9vw,120px);font-weight:300;color:var(--blauw);letter-spacing:-.02em;line-height:1;margin-bottom:24px}
 #rustscherm .rs-hint{margin-top:40px;color:var(--grijs);font-size:13px;text-align:center;animation:rsPuls 3s ease-in-out infinite}
 @keyframes rsPuls{50%{opacity:.4}}
-@media (prefers-reduced-motion: reduce){#rustscherm{transition:none}#rustscherm .rs-hint{animation:none}}
+@media (prefers-reduced-motion: reduce){#rustscherm{transition:none}#rustscherm .rs-hint,#rustscherm .rs-in,.rs-zen i{animation:none}.rs-zen b{display:none}}
 </style>
 <script src="mijn-ict-config.js"></script>
 </head>
@@ -1292,7 +1320,7 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
       <button type="button" class="menuknop" id="menu-knop" aria-label="Menu" aria-controls="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       <h1 id="titel">Voor mij</h1><span class="sub" id="subtitel"></span>
       <div class="globzoek" id="globzoek"><label class="zoek" title="Zoeken (Ctrl+K)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="f-zoek" placeholder="Zoek op nummer, onderwerp of naam…" autocomplete="off" spellcheck="false" aria-label="Zoeken in meldingen"><kbd id="zoek-kbd">Ctrl K</kbd></label><div class="zoekres" id="zoekres" hidden></div></div>
-      <div class="rechts"><div class="schakel klein" id="mijalles-top" role="group" aria-label="Welke meldingen je ziet"><button type="button" data-v="mij" title="Alleen meldingen waar jij verantwoordelijke bent of een taak hebt">Mij</button><button type="button" data-v="afd" title="Jouw meldingen plus alles in je ★-afdelingen, wie de verantwoordelijke ook is">Afdelingen</button><button type="button" data-v="alles" title="Alle meldingen">Alles</button></div><button type="button" class="ik" id="ik" title="Menu" aria-haspopup="menu"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
+      <div class="rechts"><div class="schakel klein" id="mijalles-top" role="group" aria-label="Welke meldingen je ziet"><button type="button" data-v="mij" title="Alleen meldingen waar jij verantwoordelijke bent of een taak hebt">Mij</button><button type="button" data-v="afd" title="Jouw meldingen plus alles in je ★-afdelingen, wie de verantwoordelijke ook is">Afdelingen</button><button type="button" data-v="alles" title="Alle meldingen">Alles</button></div><button type="button" class="volknop" id="vol-knop" title="Volledig scherm (F11)" aria-label="Volledig scherm" aria-pressed="false" hidden></button><button type="button" class="ik" id="ik" title="Menu" aria-haspopup="menu"><i></i><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--grijs)"><path d="M6 9l6 6 6-6"/></svg></button></div>
     </div>
     <main>
       <section id="v-mij">
@@ -1713,6 +1741,10 @@ const locCache = new Map();   // locatie per meldingnummer uit Helpdesk_PowerBI 
 const LOC_KOL = /^(locatie|kostendrager)$/i;   // in Helpdesk_PowerBI heet de locatie van de melding 'Kostendrager' (Locatiebezoek is iets anders)
 // alle locaties in één keer op de achtergrond (Helpdesk_PowerBI), zodat de kolom Locatie in elk overzicht gevuld is
 let locAlleGeladen = false, locAlleBezig = false;
+function laadLocatiesNaLaden(){   // wacht tot de lijsten en de afgehandelde meldingen binnen zijn; dan pas, rustig op de achtergrond
+  const klaar = () => alleGeladen && takenKlaar && !achterBezig;
+  const t = setInterval(() => { if(!klaar()) return; clearInterval(t); (window.requestIdleCallback || (f => setTimeout(f, 500)))(() => laadAlleLocaties()); }, 2000);
+}
 async function laadAlleLocaties(test){
   if((DEMO && !test) || heeftLocKolom || locAlleGeladen || locAlleBezig) return; locAlleBezig = true;
   try{ const rows = await connectorAlles(INST.connTickets, '');
@@ -1893,6 +1925,7 @@ async function verrijkMetTaken(){
   }catch(e){ takenKlaar = true; }
 }
 /* achtergrond 2: afgesloten meldingen van de laatste 90 dagen erbij halen, voortgang onderin */
+let weekGeladen = false;
 function laadRestOpAchtergrond(){
   if(alleGeladen || achterBezig) return achterBezig;
   const el = $('#achter');
@@ -1900,6 +1933,11 @@ function laadRestOpAchtergrond(){
   const vg = maakVoortgang([INST.connSla + '|dicht'], p => { el.style.setProperty('--p', p + '%'); el.querySelector('span').textContent = `Gesloten meldingen ophalen… ${p}%`; });
   vg.begin();
   return achterBezig = (async () => {
+    // snel eerst: afgehandeld deze week (paar regels), zodat het cijfer op het overzicht meteen klopt
+    if(!weekGeladen){ try{ let w = null, gelukt = false;
+        for(const v of ['true', '1']){ try{ w = await connectorAlles(INST.connSla, filterEn([['Workflow_afgerond', v, 1], ['Laatste_wijziging_externe_status', isoD(beginWeek()), 2]])); gelukt = true; if(w.length) break; }catch(e){ w = null; } }
+        if(w && w.length){ const al = new Set(items.map(x => String(x.nr))); items = [...items, ...bouwItems(w, new Map(sbCache)).filter(x => !al.has(String(x.nr)))]; pasInUitToe(); }
+        weekGeladen = gelukt; if(gelukt && !$('#detail').open && tab === 'mij') teken(); }catch(e){} }
     try{
       const sinds = isoD(new Date(Date.now() - 90 * DAG)), mee = (r, k) => vg.stap(INST.connSla + '|dicht', r, k);
       let dicht = null;
@@ -1907,7 +1945,7 @@ function laadRestOpAchtergrond(){
       if(!dicht) dicht = await connectorAlles(INST.connSla, filterEn([['Laatste_wijziging_externe_status', sinds, 2]]), mee).catch(() => connectorAlles(INST.connSla, '', mee));
       const nrs = new Set(items.map(x => String(x.nr)));
       items = [...items, ...bouwItems(dicht, new Map(sbCache)).filter(x => !nrs.has(String(x.nr)))]; pasInUitToe();
-      alleGeladen = true;
+      alleGeladen = true; weekGeladen = true;
       vg.stop(); el.querySelector('span').textContent = 'Alle meldingen geladen'; setTimeout(() => el.hidden = true, 2500);
       if(!$('#detail').open) teken(); }
     catch(e){ vg.stop(); el.querySelector('span').textContent = 'Gesloten meldingen ophalen mislukt'; }
@@ -2528,9 +2566,11 @@ function voorbladTodo(){
   const laat = l.filter(t => t.deadline && t.deadline < vandaag).length, vnd = l.filter(t => t.deadline === vandaag).length, bel = l.filter(t => t.belangrijk).length;
   const kop = [laat && `<b class="laat">${laat} te laat</b>`, vnd && `${vnd} vandaag`, bel && `${bel} belangrijk`].filter(Boolean).join(' · ');
   l.sort((a, b) => ((a.deadline && a.deadline < vandaag) ? 0 : 1) - ((b.deadline && b.deadline < vandaag) ? 0 : 1) || (a.deadline || '9999').localeCompare(b.deadline || '9999') || (b.belangrijk ? 1 : 0) - (a.belangrijk ? 1 : 0));
-  const wanneer = t => !t.deadline ? '' : t.deadline < vandaag ? `<span class="laat">te laat · ${fmtDatum(new Date(t.deadline + 'T00:00:00'))}</span>` : t.deadline === vandaag ? 'vandaag' : fmtDatum(new Date(t.deadline + 'T00:00:00'));
-  const rij = t => `<p class="voorregel tdregel" data-tdnaar="${esc(t.id)}" data-tdbron="${t.bron}"><span class="vnr tdster ${t.belangrijk ? 'aan' : ''}" title="${t.belangrijk ? 'Belangrijk' : ''}">${t.belangrijk ? TD_STER : ''}</span><em>${esc(t.titel)}</em><small>${[wanneer(t), t.bron === 'planner' && esc(t.plan || 'Planner')].filter(Boolean).join(' · ')}</small></p>`;
-  return `<div class="vb-todo"><h3>To-do${kop ? `<small>${kop}</small>` : ''}</h3>${l.slice(0, 5).map(rij).join('')}${l.length > 5 ? `<p class="voorregel tdmeer" data-tdnaar=""><em>Nog ${l.length - 5} in To-do</em></p>` : ''}</div>`;
+  const wanneer = t => !t.deadline ? '' : t.deadline < vandaag ? `<span class="tdw laat">te laat · ${fmtDatum(new Date(t.deadline + 'T00:00:00'))}</span>` : `<span class="tdw${t.deadline === vandaag ? ' vandaag' : ''}">${t.deadline === vandaag ? 'vandaag' : fmtDatum(new Date(t.deadline + 'T00:00:00'))}</span>`;
+  const vast = ((TD.data.lijsten || []).find(x => x.vast) || {}).id;   // de standaardlijst niet onder elke regel herhalen
+  const waar = t => t.bron === 'planner' ? 'Planner · ' + (t.plan || '') : t.lijst === vast ? '' : tdLijstNaam(t.lijst);
+  const rij = t => `<button type="button" class="tdregel" data-tdnaar="${esc(t.id)}" data-tdbron="${t.bron}" title="${esc(t.titel)}"><span class="tdster ${t.belangrijk ? 'aan' : ''}" aria-label="${t.belangrijk ? 'Belangrijk' : ''}">${t.belangrijk ? TD_STER : ''}</span><span class="tdtekst"><em>${esc(t.titel)}</em>${waar(t) ? `<small>${esc(waar(t))}</small>` : ''}</span>${wanneer(t)}</button>`;
+  return `<div class="vb-todo"><h3>To-do${kop ? `<small>${kop}</small>` : ''}</h3>${l.slice(0, 5).map(rij).join('')}${l.length > 5 ? `<button type="button" class="tdmeer" data-tdnaar="">Nog ${l.length - 5} in To-do ›</button>` : ''}</div>`;
 }
 function tekenMij(){
   $('#tegels').innerHTML = ''; $('#blokken').innerHTML = voorbladHtml();
@@ -2541,7 +2581,7 @@ function voorbladHtml(){
   const nu = new Date(), u = nu.getHours(), voornaam = String(profiel.naam || '').split(' ')[0];
   const groet = u < 6 ? 'Goedenacht' : u < 12 ? 'Goedemorgen' : u < 18 ? 'Goedemiddag' : 'Goedenavond';
   const dag = nu.toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'});
-  const waarden = KPI.map(k => ({...k, n: k.f().length}));
+  const waarden = KPI.map(k => ({...k, n: k.f().length, laadt: k.id === 'k:klaar' && !weekGeladen && !alleGeladen}));
   const actieN = waarden[0].n;
   const zin = actieN ? `${actieN} ${actieN === 1 ? 'melding vraagt' : 'meldingen vragen'} nu je aandacht.` : 'Alles op jouw naam zit binnen de normen.';
   // eerst oppakken: de drie belangrijkste meldingen op jouw naam
@@ -2554,13 +2594,21 @@ function voorbladHtml(){
     ${krit.length ? `<div class="vb-kritiek" role="alert"><h3>${KRIT_ICO}${krit.length === 1 ? 'Kritieke storing' : krit.length + ' kritieke storingen'}<small>zorgproces verstoord: gaat voor alles</small></h3>${krit.map(x => `<button type="button" class="vbk-rij" data-nr="${esc(x.nr)}"><b>${esc(nrT(x))}</b><span>${esc(x.onderwerp)}<small>${esc([x.afdeling, x.locatie, x.verantw ? 'bij ' + (benIk(x.verantw) ? 'jou' : x.verantw) : 'nog niemand', 'sinds ' + kortDatum(x.aangemaakt)].filter(Boolean).join(' · '))}</small></span></button>`).join('')}</div>` : ''}
     ${STORINGEN.length ? `<div class="vb-storing"><h3>${KRIT_ICO}${STORINGEN.length === 1 ? 'Mogelijke storing' : STORINGEN.length + ' mogelijke storingen'}<small>meerdere vergelijkbare meldingen in korte tijd</small></h3>${STORINGEN.map((g, i) => `<div class="vbs-groep"><div class="vbs-kop">${g.nrs.length} meldingen over “${esc(g.woord)}”${g.loc ? ' · ' + esc(g.loc) : ''} <small class="hint" style="font-weight:400">sinds ${fmtTijd(g.sinds)}</small><button type="button" class="knop" data-storingnegeer="${i}" title="Geen storing: deze melding over deze meldingen niet meer tonen">Negeren</button><button type="button" class="knop" data-storingkrit="${i}" title="Maakt een nieuwe melding als kritieke storing aan, met de vergelijkbare meldingen erin">Kritieke storing aanmaken</button></div><div class="vbs-nrs">${g.nrs.map(nr => { const y = items.find(z => String(z.nr) === nr); return `<span><button type="button" data-storingnr="${esc(nr)}" data-groep="${i}">${esc(nr)}</button> ${esc(kort(y ? y.onderwerp : '', 46))}</span>`; }).join('')}</div></div>`).join('')}</div>` : ''}
     <p class="vb-groet">${groet}, ${esc(voornaam)}</p><p class="vb-dag">${dag}<small>${esc(zin)}</small></p>
-    <div class="vb-cijfers">${waarden.map(k => `<button type="button" class="vb-c ${k.n ? (k.kl || '') : 'nul'}" data-weergave="${k.id}" title="${esc(k.uitleg || 'Toon deze meldingen')}"><b>${k.n}</b><span>${esc(k.t)}</span></button>`).join('')}</div>
+    <div class="vb-cijfers">${waarden.map(k => `<button type="button" class="vb-c ${k.laadt ? 'laadt' : k.n ? (k.kl || '') : 'nul'}" data-weergave="${k.id}" title="${esc(k.laadt ? 'Wordt opgehaald…' : k.uitleg || 'Toon deze meldingen')}"><b>${k.laadt ? '–' : k.n}</b><span>${esc(k.t)}</span></button>`).join('')}</div>
     ${plan.length || td ? `<div class="vb-lijsten ${plan.length && td ? '' : 'een'}">
       ${plan.length ? `<div><h3>Eerstvolgende werkzaamheden</h3>${plan.map(x => regel(x, beginDag(x.gepland).getTime() === vandaagBegin().getTime() ? 'vandaag' : fmtDatum(x.gepland))).join('')}</div>` : ''}
       ${td}
     </div>` : ''}
   </div>`;
 }
+/* ================= volledig scherm: knop rechtsboven, nog eens klikken = terug ================= */
+const VOL_AAN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/></svg>';
+const VOL_UIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v4a1 1 0 0 1-1 1H4M20 9h-4a1 1 0 0 1-1-1V4M15 20v-4a1 1 0 0 1 1-1h4M4 15h4a1 1 0 0 1 1 1v4"/></svg>';
+const isVol = () => !!document.fullscreenElement;
+function zetVolKnop(){ const k = $('#vol-knop'); if(!k) return; k.hidden = !document.fullscreenEnabled; k.innerHTML = isVol() ? VOL_UIT : VOL_AAN;
+  k.setAttribute('aria-pressed', isVol()); k.title = isVol() ? 'Volledig scherm uit (Esc)' : 'Volledig scherm'; }
+$('#vol-knop').addEventListener('click', () => { (isVol() ? document.exitFullscreen() : document.documentElement.requestFullscreen({navigationUI: 'hide'})).catch(e => toast('Volledig scherm lukt niet: ' + e.message, true)); });
+document.addEventListener('fullscreenchange', zetVolKnop); zetVolKnop();
 /* ================= rustscherm: na 2 minuten zonder muis of toetsenbord je overzicht, met de tijd erbij.
    Muis bewegen of een toets: het vervaagt en je bent terug waar je was (er wordt niets gesloten of weggegooid). ================= */
 const RUST_MIN = 2; let rustAan = opslag.get('mict-rustscherm') !== false, rustTimer = null, rustKlok = null, rustSinds = 0, rustPos = null;
@@ -2573,7 +2621,8 @@ function rustInhoud(){
   const d = $('#rustscherm'); if(!d) return;
   const nu = new Date(), tijd = `${String(nu.getHours()).padStart(2, '0')}:${String(nu.getMinutes()).padStart(2, '0')}`;
   let html = ''; try{ html = voorbladHtml(); }catch(e){}
-  d.innerHTML = `<div class="rs-in" inert><div class="rs-klok">${tijd}</div>${html}<p class="rs-hint">Beweeg je muis om verder te gaan</p></div>`;
+  if(!d.querySelector('.rs-in')) d.innerHTML = '<div class="rs-zen" aria-hidden="true"><i></i><i></i><i></i><i></i><b></b><b></b><b></b><b></b><b></b><b></b></div><div class="rs-in" inert></div>';
+  d.querySelector('.rs-in').innerHTML = `<div class="rs-klok">${tijd}</div>${html}<p class="rs-hint">Beweeg je muis om verder te gaan</p>`;
 }
 function rustToon(){
   if(!rustAan || !profiel || document.hidden || !$('#app') || $('#app').hidden) return rustReset();
@@ -4949,7 +4998,7 @@ function startInlog(fout){
   $('#k-in').onclick = () => inloggen();
 }
 function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken();
-  if(!toonApp.nieuws){ toonApp.nieuws = 1; setTimeout(() => nieuwsNaUpdate(), 3000); setTimeout(() => laadAlleLocaties(), 4000); } }   // na een update één keer 'SubmIT is bijgewerkt'
+  if(!toonApp.nieuws){ toonApp.nieuws = 1; setTimeout(() => nieuwsNaUpdate(), 3000); laadLocatiesNaLaden(); } }   // na een update één keer 'SubmIT is bijgewerkt'
 
 /* ================= Connectoren & velden: wat SubmIT per connector nodig heeft, live gecontroleerd ================= */
 // gebruik per connector in deze sessie (bijgehouden in afas())
@@ -5292,7 +5341,7 @@ document.addEventListener('click', e => {
   if(e.target.closest('[data-kolbreedstd]')){ $('#kolkeuze').hidden = true; zetZelf(null); zetBreedtes({}); return; }
   const th = e.target.closest('th[data-sort]'); if(th){ const id = th.closest('table').dataset.tabel, k = th.dataset.sort, s = sortering[id];
     sortering[id] = s && s.k === k ? (s.op > 0 ? {k, op:-1} : undefined) : {k, op: ['in','reactie','gepland','sig','pstart','peind','p-start','p-eind','iu-in','iu-indienst','iu-uitdienst','h-wanneer'].includes(k) ? -1 : 1}; teken(); return; }
-  const tdv = e.target.closest('.voorregel[data-tdnaar]'); if(tdv){ const id = tdv.dataset.tdnaar, t = id && (tdv.dataset.tdbron === 'planner' ? null : tdTaak(id));
+  const tdv = e.target.closest('.vb-todo [data-tdnaar]'); if(tdv){ const id = tdv.dataset.tdnaar, t = id && (tdv.dataset.tdbron === 'planner' ? null : tdTaak(id));
     TD.lijst = tdv.dataset.tdbron === 'planner' ? 'mij' : t ? t.lijst : TD.lijst; TD.open = t ? t.id : null; tab = 'todo'; teken(); return; }
   const vr = e.target.closest('.voorregel[data-nr]'); if(vr){ navLijst = [...vr.parentElement.querySelectorAll('.voorregel[data-nr]')].map(p => p.dataset.nr); openDetail(vr.dataset.nr); return; }
   const r = e.target.closest('tr[data-nr]'); if(r){ const tid = r.closest('table').dataset.tabel; navLijst = (tid && tabelVolgorde[tid]) || [...r.closest('tbody').querySelectorAll('tr[data-nr]')].map(t => t.dataset.nr); openDetail(r.dataset.nr); return; }
@@ -5860,11 +5909,11 @@ function tdRij(t){
       <span>Deadline</span><b><input type="date" class="datumkeuze" data-veld="deadline" value="${esc(t.deadline || '')}"></b>
       <span>Lijst</span><b><select class="afdkeuze" data-veld="lijst">${TD.data.lijsten.map(l => `<option value="${esc(l.id)}" ${l.id === t.lijst ? 'selected' : ''}>${esc(l.naam)}</option>`).join('')}</select></b>
       <span>Notitie</span><b><textarea class="toelinvoer" data-veld="notitie" rows="2">${esc(t.notitie || '')}</textarea></b></div>
-      <div class="acties">${!t.klaar && !t.melding && !t.ticket ? '<button type="button" class="knop klein" data-tdactie="naarafas">Omzetten naar melding in AFAS</button>' : ''}${t.melding ? `<button type="button" class="knop klein" data-tdactie="ticket">Melding ${esc(t.melding)} openen</button>` : ''}<button type="button" class="linkknop weg" data-tdactie="weg">Verwijderen</button></div></div>` : '';
+      <div class="acties">${t.melding ? `<button type="button" class="knop klein" data-tdactie="ticket">Melding ${esc(t.melding)} openen</button>` : ''}<button type="button" class="linkknop weg" data-tdactie="weg">Verwijderen</button></div></div>` : '';
   return `<div class="taak ${t.klaar ? 'klaar' : ''} ${TD.open === t.id ? 'open' : ''}" data-taak="${esc(t.id)}" draggable="${TD.open === t.id ? 'false' : 'true'}">
     <button type="button" class="tdvink" data-tdactie="vink" aria-label="${t.klaar ? 'Weer openzetten' : 'Afvinken'}">${TD_VINK}</button>
     <span class="titel" data-tdactie="open">${esc(t.titel)}${sub.length ? `<small>${sub.join(' · ')}</small>` : ''}</span>
-    ${t.melding ? '<span class="gekoppeld">✓ in AFAS</span>' : t.klaar || t.ticket ? '<span></span>' : '<button type="button" class="naarafas" data-tdactie="naarafas" title="Maak er een melding in AFAS van">→ AFAS</button>'}
+    ${t.melding ? `<span class="gekoppeld">✓ melding ${esc(kaalNr(t.melding))}</span>` : t.klaar || t.ticket ? '<span></span>' : '<button type="button" class="naarafas" data-tdactie="naarafas" title="Maak van deze to-do een melding">+ Melding aanmaken</button>'}
     <button type="button" class="ster" data-tdactie="belangrijk" aria-pressed="${!!t.belangrijk}" title="${t.belangrijk ? 'Niet meer belangrijk' : 'Markeer als belangrijk'}">${TD_STER}</button>
     ${detail}</div>`;
 }
@@ -6774,7 +6823,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
-  {v: 'v7.33', d: '21-10-2026', groot: true, p: ['De kolom Locatie is in alle overzichten gevuld.', 'Verantwoordelijke: alle ICT-collega’s (herkend aan kostenplaats ICT) en via "Iemand buiten ICT…" elke andere collega.', 'Wisselen tussen licht en donker gaat met een vloeiende overgang.', 'Niet storen is zichtbaar: een rood rondje op je foto, ook voor collega’s in Team en bij wie er online is.', 'Windows-meldingen bij een kritieke storing staan standaard aan: SubmIT vraagt één keer toestemming.', 'Nieuw icoon voor Nieuwe melding: een potlood, zoals “Nieuw bericht” in Outlook en Teams.', 'Rustscherm: na 2 minuten zonder muis zie je je overzicht met de tijd; beweeg je muis en je bent terug waar je was. Uit te zetten in je profielmenu.', 'Het overzicht toont je to-do’s: wat te laat is, wat deze week gepland staat en wat je als belangrijk hebt gemarkeerd. Klik erop en je bent in To-do.', 'Nieuwe meldingen = alle open meldingen zonder verantwoordelijke. Zodra iemand verantwoordelijke is, staat de melding in de gewone lijsten.', 'In een melding staat de link naar die melding in de adresbalk: kopieer hem en stuur hem via Teams of mail, de ander komt direct in de melding.', 'Meldingen en kaartjes verschijnen boven de regel “Live · bijgewerkt om …”, zodat ze die niet meer bedekken.']},
+  {v: 'v7.33', d: '21-10-2026', groot: true, p: ['De kolom Locatie is in alle overzichten gevuld.', 'Verantwoordelijke: alle ICT-collega’s (herkend aan kostenplaats ICT) en via "Iemand buiten ICT…" elke andere collega.', 'Wisselen tussen licht en donker gaat met een vloeiende overgang.', 'Niet storen is zichtbaar: een rood rondje op je foto, ook voor collega’s in Team en bij wie er online is.', 'Windows-meldingen bij een kritieke storing staan standaard aan: SubmIT vraagt één keer toestemming.', 'Nieuw icoon voor Nieuwe melding: een potlood, zoals “Nieuw bericht” in Outlook en Teams.', 'Rustscherm: na 2 minuten zonder muis zie je je overzicht met de tijd; beweeg je muis en je bent terug waar je was. Uit te zetten in je profielmenu.', 'Volledig scherm: knop rechtsboven naast je foto; nog eens klikken (of Esc) en het venster is weer normaal.', 'Het rustscherm beweegt heel rustig: zachte kleuren en zwevende lichtpuntjes.', 'Het cijfer Afgehandeld deze week staat er meteen; zolang het nog wordt opgehaald zie je een streepje in plaats van een 0.', 'To-do: één knop “Melding aanmaken”.', 'Het overzicht toont je to-do’s: wat te laat is, wat deze week gepland staat en wat je als belangrijk hebt gemarkeerd. Klik erop en je bent in To-do.', 'Nieuwe meldingen = alle open meldingen zonder verantwoordelijke. Zodra iemand verantwoordelijke is, staat de melding in de gewone lijsten.', 'In een melding staat de link naar die melding in de adresbalk: kopieer hem en stuur hem via Teams of mail, de ander komt direct in de melding.', 'Meldingen en kaartjes verschijnen boven de regel “Live · bijgewerkt om …”, zodat ze die niet meer bedekken.']},
   {v: 'v7.32', d: '21-10-2026', groot: true, p: ['Wat is er nieuw: in je profielmenu (klik op je foto) zie je per versie wat er veranderd is.', 'Verbeteracties staan voortaan bij Mijn changes, niet meer tussen de meldingen.']},
   {v: 'v7.31', d: '21-10-2026', groot: true, p: ['Alt+← en Alt+→ (en de terugknop van je muis) gaan door de schermen en meldingen die je in SubmIT hebt bezocht, niet meer naar andere websites.']},
   {v: 'v7.30', d: '21-10-2026', groot: true, p: ['Hyperlinks in toelichting en reacties: plak je een link (uit Outlook, Teams, SharePoint), dan zie je de naam en zit de link erachter.', 'Zelf een link maken: tekst selecteren en rechtermuisklik of Ctrl+K. Ctrl+klik opent een link.']},
