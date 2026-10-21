@@ -281,7 +281,12 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .kk-knoppen{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
 .kk-knoppen .knop.vol{background:var(--rood);border-color:var(--rood)}
 /* herinnering bij inloggen: zelfde kaart als een kritieke storing, maar rustiger (oranje) */
-#herinnerbox{position:fixed;bottom:24px;right:24px;z-index:89;width:min(380px,calc(100vw - 32px))}
+#herinnerbox{position:fixed;bottom:24px;right:24px;z-index:89;width:min(380px,calc(100vw - 32px));display:flex;flex-direction:column;gap:10px}
+.herinnerkaart.nieuwskaart{border-color:var(--blauw)}.herinnerkaart.nieuwskaart .kk-kop{color:var(--blauw)}
+.nieuwskort{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--inkt)}.nieuwskort li{margin:3px 0}
+.nieuwslijst{max-height:min(70vh,560px);overflow:auto}.nieuwslijst section{padding:10px 0;border-top:1px solid var(--lijn)}.nieuwslijst section:first-child{border-top:0}
+.nieuwslijst h3{margin:0 0 4px;font-size:14.5px;color:var(--blauw)}.nieuwslijst h3 small{font-weight:400;color:var(--grijs);margin-left:6px}
+.nieuwslijst ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--inkt)}.nieuwslijst li{margin:3px 0}
 .zoekbuiten{width:100%}
 .herinnerkaart{border-color:var(--oranje);box-shadow:0 18px 50px rgba(3,31,77,.22)}
 .herinnerkaart .kk-kop{color:var(--oranje)}.herinnerkaart .kk-kop svg{animation:none}
@@ -1302,6 +1307,7 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
 
 <dialog id="detail" class="lade"><button type="button" class="navpijl links" id="nav-vorige" hidden aria-label="Vorige melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button><div class="dlg-in" id="detail-in"></div><button type="button" class="navpijl rechts" id="nav-volgende" hidden aria-label="Volgende melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button></dialog>
 <dialog id="sleepvraag" class="smal"></dialog>
+<dialog id="nieuwsdlg" class="smal" aria-label="Wat is er nieuw"></dialog>
 <dialog id="vraag" class="vraagdlg"></dialog>
 <dialog id="bekijk" class="bekijkdlg"></dialog>
 <dialog id="nieuw" class="lade nieuwdlg"><div class="dlg-in" id="nieuw-in"></div></dialog>
@@ -1383,7 +1389,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.31', VERSIE_DATUM = '21-10-2026';
+const VERSIE = 'v7.32', VERSIE_DATUM = '21-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1982,7 +1988,8 @@ function sigGewicht(x){
 const ernst = x => Math.max(0, ...(x._sg || []).map(s => s.ernst));
 const PROJTYPE_RE = /change|rfc|verbeter/i;   // typen met Startdatum project en Deadline (zoals een change); kritiek blijft gewoon mogelijk
 const heeftProjDatums = x => PROJTYPE_RE.test(x.type || '') || PROJTYPE_RE.test(x.soort || '');
-const isChange = x => /change/i.test(x.type) || /change/i.test(x.soort);
+const CHANGE_RE = /change|verbeter/i;   // verbeteracties horen bij Changes (zelfde velden, geen SLA, niet in de meldingenlijsten)
+const isChange = x => CHANGE_RE.test(x.type || '') || CHANGE_RE.test(x.soort || '');
 const meld = () => open().filter(x => !isChange(x));   // meldingen = alles behalve changes en RfC's   // Changes en Requests for Change vallen buiten Aandacht nodig
 const actie = x => ernst(x) >= 2 && !isChange(x);
 
@@ -4834,7 +4841,8 @@ function startInlog(fout){
     ${fout ? `<p class="fout">${esc(fout)}</p>` : ''}<div><button class="knop vol" id="k-in">Inloggen met AFAS</button></div>`);
   $('#k-in').onclick = () => inloggen();
 }
-function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken(); }
+function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken();
+  if(!toonApp.nieuws){ toonApp.nieuws = 1; setTimeout(() => nieuwsNaUpdate(), 3000); } }   // na een update één keer 'SubmIT is bijgewerkt'
 
 /* ================= Connectoren & velden: wat SubmIT per connector nodig heeft, live gecontroleerd ================= */
 // gebruik per connector in deze sessie (bijgehouden in afas())
@@ -5134,6 +5142,7 @@ function ikMenu(){
     ${schuif('stil', 'Niet storen', 'Alleen kritieke storingen melden; de rest zie je in Team', nietStoren)}
     ${schuif('win', /Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Pushmelding bij kritiek' : 'Windows-melding bij kritiek', 'Ook een melding als SubmIT op de achtergrond staat', windowsAan())}<hr>
     ${rij('feedback', '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v4M12 14h.01"/>', 'Feedback of fout melden')}
+    ${rij('nieuws', '<path d="M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z"/>', 'Wat is er nieuw')}
     ${rij('tour', '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>', 'Rondleiding')}
     ${rij('conn', '<path d="M8 3v4M16 3v4M6 7h12v4a6 6 0 0 1-12 0zM12 17v4"/>', 'Connectoren &amp; velden')}<hr>
     <div class="ikvoet">${rij('uit', '<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11"/>', 'Uitloggen')}<span class="ikversie">v${VERSIE.slice(1)}</span></div>`;
@@ -5145,6 +5154,7 @@ document.addEventListener('click', e => {
     if(k === 'win'){ wisselWindows(); return; }
     if(k === 'stil'){ nietStoren = !nietStoren; opslag.set('mict-nietstoren', nietStoren); toast(nietStoren ? 'Niet storen staat aan: wat er gebeurt zie je in Team' : 'Niet storen staat uit'); return; }
     if(k === 'feedback'){ feedback(); return; }
+    if(k === 'nieuws'){ toonNieuws(); return; }
     if(k === 'foto'){ fotoBewerken(); return; }
     if(k === 'tour') startTour(); else if(k === 'thema') wisselThema(); else if(k === 'uit') uitloggen();
     else if(k === 'import'){ if(tab !== 'todo'){ tab = 'todo'; teken(); } if(TD.status === 'ok'){ $('#td-import-bestand').value = ''; $('#td-import-bestand').click(); } else toast('Kies eerst je to-do-bestand; daarna kun je importeren'); }
@@ -6630,6 +6640,48 @@ async function wisselWindows(){
     new Notification('SubmIT', {body: 'Windows-meldingen staan aan: bij een kritieke storing zie je dit, ook als je in een ander programma zit.'}); return; }
   const aan = opslag.get('mict-winmelding') === false; opslag.set('mict-winmelding', aan); toast(aan ? 'Windows-meldingen bij kritieke storingen staan aan' : 'Windows-meldingen staan uit');
 }
+/* ================= Wat is er nieuw (releasenotes) =================
+   Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
+const RELEASES = [
+  {v: 'v7.32', d: '21-10-2026', groot: true, p: ['Wat is er nieuw: in je profielmenu (klik op je foto) zie je per versie wat er veranderd is.', 'Verbeteracties staan voortaan bij Mijn changes, niet meer tussen de meldingen.']},
+  {v: 'v7.31', d: '21-10-2026', groot: true, p: ['Alt+← en Alt+→ (en de terugknop van je muis) gaan door de schermen en meldingen die je in SubmIT hebt bezocht, niet meer naar andere websites.']},
+  {v: 'v7.30', d: '21-10-2026', groot: true, p: ['Hyperlinks in toelichting en reacties: plak je een link (uit Outlook, Teams, SharePoint), dan zie je de naam en zit de link erachter.', 'Zelf een link maken: tekst selecteren en rechtermuisklik of Ctrl+K. Ctrl+klik opent een link.']},
+  {v: 'v7.29', d: '21-10-2026', groot: true, p: ['Veel minder pop-ups: alleen nog als iemand een melding op jouw naam zet of je noemt.', 'Type Verbeteractie heeft dezelfde velden als een change (startdatum en deadline) en kan ook een kritieke storing zijn.']},
+  {v: 'v7.28', d: '21-10-2026', p: ['Een reactie op je eigen melding (jij bent de melder, niemand in CC) stuurt geen mail meer naar jezelf.', 'Geen pop-ups meer over je eigen acties vanuit een ander tabblad of apparaat.']},
+  {v: 'v7.27', d: '21-10-2026', p: ['Grote kwaliteitsronde: getallen, lijsten, scrollen en vensters overal nagelopen en verbeterd.', 'In- en uitdienst heeft een kolom Nr.', '"Planning verlopen" verschijnt pas de dag na de geplande datum.']},
+  {v: 'v7.26', d: '20-10-2026', groot: true, p: ['Filteren: bovenin zie je meteen hoeveel meldingen voldoen ("37 van 176").', 'Brede tabellen hebben onderin beeld een horizontale scrollbalk.', 'Het verplicht-sterretje staat alleen nog bij een leeg veld.', 'Mogelijke storing: meldingen van ICT zelf tellen niet mee, en je kunt een melding negeren.']},
+  {v: 'v7.25', d: '20-10-2026', p: ['Verantwoordelijke: altijd alle ICT-collega’s, en via "Iemand buiten ICT…" kun je ook iemand anders kiezen.']},
+  {v: 'v7.24', d: '20-10-2026', p: ['Herinnering bij het openen van SubmIT als je verlopen meldingen hebt (hooguit eens per 4 uur).']},
+  {v: 'v7.22', d: '20-10-2026', groot: true, p: ['Filters werken zoals in AFAS: gewoon typen = bevat; met het knopje of een teken kies je bevat niet (!), gelijk aan (=), ongelijk aan (!=), leeg (=[]) of niet leeg (!=[]).']},
+  {v: 'v7.21', d: '19-10-2026', p: ['Onderwerp is altijd zichtbaar in de lijsten.', 'Type melding is bij elke melding te zien en aan te passen.']},
+  {v: 'v7.20', d: '19-10-2026', p: ['In- en uitdiensten lopen niet meer door elkaar met een ICT-melding met hetzelfde nummer.', 'De melder staat er met roepnaam en achternaam, zoals de instuurder.']}
+];
+const nieuwsSleutel = () => 'mict-versie-gezien';
+function toonNieuws(){
+  const d = $('#nieuwsdlg');
+  d.innerHTML = `<div class="dlg-in"><div class="dlg-kop"><div><small>SubmIT ${esc(VERSIE)}</small><h2>Wat is er nieuw</h2></div><button class="sluit" data-nieuwsdicht aria-label="Sluiten">×</button></div>
+    <div class="nieuwslijst">${RELEASES.map(r => `<section><h3>${esc(r.v)} <small>${esc(r.d)}</small></h3><ul>${r.p.map(t => `<li>${esc(t)}</li>`).join('')}</ul></section>`).join('')}</div></div>`;
+  d.showModal(); opslag.set(nieuwsSleutel(), VERSIE);
+}
+// na een update één keer een kaartje met de belangrijkste punten (alleen bij een grote verandering; nieuwe gebruikers krijgen het niet)
+function nieuwsNaUpdate(){
+  const gezien = opslag.get(nieuwsSleutel()); opslag.set(nieuwsSleutel(), VERSIE);
+  if(!gezien || gezien === VERSIE) return;
+  const nieuw = RELEASES.filter(r => nieuwer(r.v, gezien) && !nieuwer(r.v, VERSIE)), groot = nieuw.filter(r => r.groot);
+  if(!groot.length) return;
+  const punten = groot.flatMap(r => r.p).slice(0, 3);
+  let box = $('#herinnerbox'); if(!box){ document.body.insertAdjacentHTML('beforeend', '<div id="herinnerbox" aria-live="polite"></div>'); box = $('#herinnerbox'); }
+  box.insertAdjacentHTML('beforeend', `<div class="kritiekkaart herinnerkaart nieuwskaart" role="status">
+    <div class="kk-kop">${ico('<path d="M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z"/>')}<b>SubmIT is bijgewerkt</b><span>${esc(VERSIE)}</span></div>
+    <ul class="nieuwskort">${punten.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+    <div class="kk-knoppen"><button type="button" class="knop" data-nieuwsweg>Sluiten</button><button type="button" class="knop vol" data-nieuwsalles>Alles lezen</button></div></div>`);
+}
+document.addEventListener('click', e => {
+  if(e.target.closest('[data-nieuwsdicht]')){ $('#nieuwsdlg').close(); return; }
+  const k = e.target.closest('.nieuwskaart'); if(!k) return;
+  if(e.target.closest('[data-nieuwsweg]')) k.remove();
+  if(e.target.closest('[data-nieuwsalles]')){ k.remove(); toonNieuws(); }
+});
 /* ================= herinnering bij inloggen: je hebt meldingen over de norm =================
    Eén keer per keer dat je SubmIT opent (per browsersessie), en niet vaker dan eens per 4 uur. Geen herhaling, geen geluid. */
 const HERINNER_UUR = 4, herinnerSleutel = () => 'mict-herinnering-' + (sub || 'demo');
