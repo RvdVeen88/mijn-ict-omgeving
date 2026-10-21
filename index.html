@@ -1373,7 +1373,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.26', VERSIE_DATUM = '20-10-2026';
+const VERSIE = 'v7.28.1', VERSIE_DATUM = '21-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1536,6 +1536,7 @@ function emmer(status){ const s = norm(status); if(!s) return 'nieuw';   // nieu
 /* AFAS nummert dossieritems per type: nummer 1642 kan een ICT-melding én een in-/uitdienst zijn. In- en uitdienst krijgt daarom
    intern een eigen sleutel (U1642); op het scherm staat het AFAS-nummer (nrT). Gegevens die op nummer uit Helpdesk_PowerBI komen,
    worden nooit aan een melding van een ander type gekoppeld. */
+const zoekTekst = x => norm([x.nr, x.afasNr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.module, x.emma, x.medewerker, x.medNr, ...(x.taakBij || [])].filter(v => v != null && v !== '').join(' '));   // overal dezelfde zoekvelden
 const isIuSoort = s => /(^|[\s\/(-])(in|uit)[\s-]*dienst(treding)?(?![a-zà-ÿ])/i.test(s || '') || /^(in|uit)dienst/i.test(s || '');
 const IU = 'U', iuSleutel = n => IU + n, nrT = x => x ? String(x.afasNr ?? x.nr ?? '') : '';
 const kaalNr = v => String(v).replace(/^U(?=\d)/, '');
@@ -1563,7 +1564,7 @@ function maakItem(r, extra){
   x.afgesloten = x.afgerond || lijst(INST.st_afgesloten).includes(norm(x.status)) || /^(afgehandeld|gesloten|afgesloten|geannuleerd|vervallen|ingetrokken)\b/.test(norm(x.status));   // ook nieuwe AFAS-statussen met deze betekenis
   x.sla = (!lijst(INST.slaSoorten).length || lijst(INST.slaSoorten).includes(norm(x.soort))) && !x.zorgadmin;
   const t = taakVan(x); x.taak = t ? t.taak : ''; x.taakBij = t ? t.bij : [];
-  x.zoek = norm([x.nr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.module, x.emma, ...x.taakBij].join(' '));
+  x.zoek = zoekTekst(x);
   return x;
 }
 let alleDichtGeladen = false, alleDichtBezig = null;
@@ -1701,8 +1702,7 @@ const iuV = (r, ...namen) => { for(const n of namen){ const k = Object.keys(r).f
 async function haalInUit(forceer){
   if(!INST.connInUit || inUit.bezig || (!forceer && Date.now() - inUit.t < 2 * 60e3)) return;
   inUit.bezig = true;
-  try{ const d = await afas(`/connectors/${encodeURIComponent(INST.connInUit)}?skip=0&take=3000${DEMO ? '' : '&orderbyfieldids=-Instuurdatum'}`);
-    inUit.rows = d.rows || []; inUit.t = Date.now(); inUit.fout = ''; pasInUitToe(); if(!$('#detail').open) teken(); }
+  try{ inUit.rows = DEMO ? ((await afas(`/connectors/${encodeURIComponent(INST.connInUit)}?skip=0&take=3000`)).rows || []) : await connectorAlles(INST.connInUit, '&orderbyfieldids=-Instuurdatum'); inUit.t = Date.now(); inUit.fout = ''; pasInUitToe(); if(!$('#detail').open) teken(); }
   catch(e){ inUit.fout = e.message; inUit.t = Date.now(); console.warn('In- en uitdienst', e); }
   finally{ inUit.bezig = false; }
 }
@@ -1726,7 +1726,7 @@ function zetIU(x, r){
   if(/afgerond|gereed|klaar|verwerkt/i.test(x.ictStatus) && !x.iuFout) x.afgesloten = true;
   if(x.afgesloten && x.iuOpen){ x.iuOpen = false; x.ictStatus = 'Afgehandeld'; }
   x.extern = '';   // Extern_ticket bevat hier de medewerker
-  if(!norm(x.zoek).includes(norm(x.medewerker))) x.zoek = norm(x.zoek + ' ' + x.medewerker + ' ' + x.medNr);
+  x.zoek = zoekTekst(x);
 }
 function pasInUitToe(){
   if(!inUit.rows) return;
@@ -1736,7 +1736,7 @@ function pasInUitToe(){
   const weg = new Set();   // een eerder zelf aangemaakte regel die nu ook uit de SLA-connector komt: maar één keer tonen
   [...items.filter(x => !x.synth), ...items.filter(x => x.synth)].forEach(x => { const r = (x.sbid != null && perSb.get(String(x.sbid))) || ((x.inuit || x.iu) && perNr.get(nrT(x)));
     if(r){ if(gebruikt.has(r)){ if(x.synth) weg.add(x); return; } zetIU(x, r); gebruikt.add(r); }
-    else if(x.inuit && !x.synth){ x.inuit = false; delete x.iu; if(x.afasNr != null){ x.nr = x.afasNr; delete x.afasNr; } } });   // alleen wat écht dit type is
+    else if(x.inuit && !x.synth && !isIuSoort(x.soort)){ x.inuit = false; delete x.iu; if(x.afasNr != null){ x.nr = x.afasNr; delete x.afasNr; } } });   // alleen wat écht dit type is (het type dossieritem beslist)
   { const gezien = new Set(); items.forEach(x => { if(gezien.has(String(x.nr))) weg.add(x); else gezien.add(String(x.nr)); }); }   // vangnet: elke sleutel één keer
   if(weg.size) items = items.filter(x => !weg.has(x));
   const nieuw = inUit.rows.filter(r => !gebruikt.has(r)).map(r => {
@@ -1752,6 +1752,7 @@ function iuSecties(lid, l, dicht){
     + `<h3 class="subkop">Op te pakken en lopend <b>${rest.length}</b></h3>` + (rest.length ? tabel(lid, rest, {set: IU_KOLOMMEN, klik: true}) : '<p class="leeg">Geen open in- of uitdiensten.</p>');
 }
 const IU_KOLOMMEN = [
+  {k:'iu-nr', bw:'78px', t:'Nr.', w:x => +nrT(x) || 0, html:x => esc(nrT(x)), cls:'nr'},
   {k:'iu-in', bw:'104px', t:'Ingestuurd', w:x => +x.aangemaakt || 0, html:x => x.aangemaakt ? fmtDatum(x.aangemaakt) : '', cls:'zacht'},
   {k:'iu-ond', t:'Onderwerp', w:x => norm(x.onderwerp), html:x => esc(x.onderwerp), cls:'ond'},
   {k:'iu-med', bw:'200px', t:'Medewerker', w:x => norm(x.medewerker), html:x => esc(x.medewerker || '') + (x.medNr ? ` <small class="hint">${esc(x.medNr)}</small>` : ''), cls:''},
@@ -1813,7 +1814,7 @@ async function verrijkMelders(){
     items.forEach(x => { const s = sollCache.get(String(x.nr)); if(!x.sbid && sbCache.has(String(x.nr))) x.sbid = sbCache.get(String(x.nr));
       const pd = projCache.get(String(x.nr)); if(pd && (+pd.start !== +x.projStart || +pd.eind !== +x.projEind)){ x.projStart = pd.start; x.projEind = pd.eind; veranderd = true; }
       const ev = extraCache.get(String(x.nr)); if(ev && (ev.datalek !== x.datalek || ev.tel !== x.tel || ev.cc !== x.cc || +ev.opgelost !== +x.opgelost)){ Object.assign(x, ev); veranderd = true; }
-      if(s && norm(s) !== norm(x.melder)){ x.melder = s; x.zoek = norm([x.nr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.module, x.emma, ...(x.taakBij || [])].join(' ')); veranderd = true; } });
+      if(s && norm(s) !== norm(x.melder)){ x.melder = s; x.zoek = zoekTekst(x); veranderd = true; } });
     if(veranderd && !$('#detail').open) teken();
   }catch(e){ console.warn('Melders ophalen mislukt', e); }
 }
@@ -1825,7 +1826,7 @@ async function verrijkMetTaken(){
     bouwItems([], new Map());   // vult taakPerSb opnieuw
     items.forEach(x => { if(!x.sbid && sbCache.has(String(x.nr))) x.sbid = sbCache.get(String(x.nr));
       const t = taakVan(x); x.taak = t ? t.taak : ''; x.taakBij = t ? t.bij : [];
-      x.zoek = norm([x.nr, x.afasNr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.emma, ...x.taakBij].join(' ')); });
+      x.zoek = zoekTekst(x); });
     takenKlaar = true;
     if(!$('#detail').open && !$('#app').hidden) teken();
     if(!CTRL.ict && isBeheerder()) setTimeout(() => haalAlleTaken(), 8000);
@@ -1922,7 +1923,7 @@ function signalen(x){
     if(ms >= INST.melderDagen * werkdagMs()) s.push({ernst:3, code:'melder', tekst:`Melder ${wd(ms)} werkdagen stil`, uitleg:`Status "${toonStatus(x.status)}": na ${INST.melderDagen} werkdagen zonder antwoord van de melder de melding opvolgen of afsluiten. Nu ${wd(ms)} werkdagen stil; ${laatsteActiviteit(x)}.`}); }
   if(sla && x.emmer === 'leverancier'){ const ms = werkMs(stilSinds(x), nu);
     if(ms >= INST.leverancierDagen * werkdagMs()) s.push({ernst:3, code:'leverancier', tekst:`Leverancier ${wd(ms)} werkdagen stil`, uitleg:`Status "${toonStatus(x.status)}": na ${INST.leverancierDagen} werkdagen zonder nieuws de leverancier rappelleren en de melder bijpraten. Nu ${wd(ms)} werkdagen stil; ${laatsteActiviteit(x)}.`}); }
-  if(x.gepland && +x.gepland < nu) s.push({ernst:3, code:'planning', tekst:`Planning verlopen · ${fmtDatum(x.gepland)}`, uitleg:`De geplande datum (${fmtDatum(x.gepland)}) is voorbij en de melding staat nog open. Rond deze af of zet een nieuwe planningsdatum.`});
+  if(x.gepland && +x.gepland < +beginDag(nu)) s.push({ernst:3, code:'planning', tekst:`Planning verlopen · ${fmtDatum(x.gepland)}`, uitleg:`De geplande datum (${fmtDatum(x.gepland)}) is voorbij en de melding staat nog open. Rond deze af of zet een nieuwe planningsdatum.`});
   else if(!x.gepland && x.emmer === 'planning') s.push({ernst:3, code:'planning', tekst:'Planning ontbreekt', uitleg:`Status "${toonStatus(x.status)}" vraagt om een planningsdatum, maar die is niet ingevuld.`});
   else if(x.gepland && (beginDag(x.gepland) - beginDag(nu)) / DAG <= 1) s.push({ernst:1, code:'binnenkort', tekst:`Gepland ${beginDag(x.gepland) - beginDag(nu) < DAG ? 'vandaag' : 'morgen'}`, uitleg:`Ter info: deze melding staat gepland op ${fmtDatum(x.gepland)}.`});
   const u = ongelezen(x);
@@ -2024,7 +2025,7 @@ const HIST_KOLOMMEN = [
 [...KOLOMMEN, ...PROJ_KOLOMMEN, ...HIST_KOLOMMEN, ...IU_KOLOMMEN].forEach(c => { if(!c.cls.split(' ').includes('k-' + c.k)) c.cls = (c.cls + ' k-' + c.k).trim(); });
 const kolSet = proj => proj ? PROJ_KOLOMMEN : KOLOMMEN, elkeKol = k => KOLOMMEN.find(c => c.k === k) || PROJ_KOLOMMEN.find(c => c.k === k) || HIST_KOLOMMEN.find(c => c.k === k) || IU_KOLOMMEN.find(c => c.k === k) || CTRL_KOLOMMEN.find(c => c.k === k);
 /* kolommen kiezen: per gebruiker te verbergen (Nr. en Onderwerp blijven altijd staan) */
-const VAST_KOL = new Set(['nr', 'ond', 'wie', 'p-nr', 'p-naam']);
+const VAST_KOL = new Set(['nr', 'ond', 'wie', 'p-nr', 'p-naam', 'iu-nr', 'iu-ond']);
 let verborgenKol = new Set(opslag.get('mict-kolommen-uit') || []);
 /* kolomvolgorde: zelf te slepen in de kop van elke tabel; één volgorde voor alle lijsten (één systeem), per gebruiker onthouden en meegesynchroniseerd */
 let kolVolgorde = opslag.get('mict-kolvolgorde') || [];
@@ -2035,7 +2036,10 @@ function opVolgorde(set){
   return o.map(k => set.find(c => c.k === k));
 }
 function zetVolgorde(van, naar, voor){   // kolom 'van' vóór (voor=true) of na kolom 'naar'
-  const alle = [...new Set([...opVolgorde(KOLOMMEN).map(c => c.k), ...opVolgorde(PROJ_KOLOMMEN).map(c => c.k)])], o = kolVolgorde.length ? [...new Set([...kolVolgorde, ...alle])] : alle;
+  const sets = [KOLOMMEN, PROJ_KOLOMMEN, IU_KOLOMMEN, HIST_KOLOMMEN, CTRL_KOLOMMEN], set = sets.find(st => st.some(c => c.k === van));
+  if(!set || !set.some(c => c.k === naar)) return;   // alleen binnen dezelfde tabel
+  const alle = [...new Set(sets.flatMap(st => opVolgorde(st).map(c => c.k)))], o = kolVolgorde.length ? [...new Set([...kolVolgorde, ...alle])] : alle;
+  if(o.indexOf(van) < 0 || o.indexOf(naar) < 0) return;
   o.splice(o.indexOf(van), 1); o.splice(o.indexOf(naar) + (voor ? 0 : 1), 0, van);
   kolVolgorde = o; opslag.set('mict-kolvolgorde', o); teken();
 }
@@ -2061,11 +2065,15 @@ function houdOnderwerp(t){
   t.querySelectorAll('[data-kolweg]').forEach(el => { el.style.display = ''; delete el.dataset.kolweg; });
   const ond = t.querySelector('thead th[data-sort="ond"], thead th[data-sort="p-naam"], thead th[data-sort="iu-ond"], thead th[data-sort="h-ond"], thead th[data-sort="c-ond"]');
   if(!ond || ond.offsetParent === null) return;   // telefoon: kaartweergave
+  t.style.minWidth = '';
   for(const k of WEG_VOLGORDE){
     if(ond.offsetWidth >= ONDERWERP_MIN) break;
     const cel = t.querySelectorAll(`.k-${k}`); if(!cel.length || [...cel].every(el => el.offsetParent === null)) continue;
     cel.forEach(el => { if(el.offsetParent !== null || el.tagName === 'TH'){ el.style.display = 'none'; el.dataset.kolweg = '1'; } });
   }
+  // nog steeds te weinig ruimte (bv. In- en uitdienst, projecten): de tabel breder maken, dan kun je scrollen; nooit een kolom op 0
+  const tekort = [...t.querySelectorAll('thead tr:first-child th')].filter(th => th.offsetParent !== null).reduce((n, th) => n + Math.max(0, (th === ond ? ONDERWERP_MIN : 48) - th.offsetWidth), 0);
+  if(tekort > 0) t.style.minWidth = (t.offsetWidth + tekort) + 'px';
 }
 const twLinks = {};   // horizontale scrollpositie per tabel: blijft staan als de lijst ververst
 function zorgScrollbalk(tw){
@@ -2093,7 +2101,9 @@ function zetVerplicht(){
 const tabelTel = {};
 function telFilterKop(){
   const kop = $('#lijst-n'); if(!kop || kop.hidden) return;
-  const t = [...document.querySelectorAll('#lijst table[data-tabel]')].map(x => tabelTel[x.dataset.tabel]).filter(Boolean);
+  const eerste = document.querySelector('#lijst table[data-tabel]'); if(!eerste) return;
+  if(tab === 'inuit' || tab === 'controle'){ /* meerdere secties: samen tellen */ }
+  const t = (tab === 'inuit' || tab === 'controle' ? [...document.querySelectorAll('#lijst table[data-tabel]')] : [eerste]).map(x => tabelTel[x.dataset.tabel]).filter(Boolean);
   const n = t.reduce((a, b) => a + b.n, 0), tot = t.reduce((a, b) => a + b.totaal, 0), filter = t.some(x => x.n !== x.totaal);
   if(filter) kop.textContent = `${n} van ${tot}`; kop.classList.toggle('gefilterd', filter);
   kop.title = filter ? `${n} van de ${tot} meldingen voldoen aan het filter` : '';
@@ -2444,7 +2454,7 @@ const KPI = [
   {id:'k:verlopen', t:'Planning verlopen', kl:'rood', f:() => mijnOpen().filter(x => x.gepland && +x.gepland < +vandaagBegin())},
   {id:'k:week', t:'Gepland deze week', f:() => mijnOpen().filter(x => x.gepland && +x.gepland >= +vandaagBegin() && +x.gepland <= +eindWeek()), uitleg:'Vandaag en de rest van deze week'},
   {id:'k:wacht', t:'Wacht op melder/leverancier', f:() => mijnOpen().filter(x => x.emmer === 'melder' || x.emmer === 'leverancier')},
-  {id:'k:klaar', t:'Afgehandeld deze week', kl:'groen', f:() => items.filter(x => x.afgesloten && isMijn(x) && x.statusDatum && +x.statusDatum >= +beginWeek())}
+  {id:'k:klaar', t:'Afgehandeld deze week', kl:'groen', f:() => items.filter(x => x.afgesloten && !isChange(x) && isMijn(x) && x.statusDatum && +x.statusDatum >= +beginWeek())}
 ];
 function tekenMij(){
   const nu = new Date(), u = nu.getHours(), voornaam = String(profiel.naam || '').split(' ')[0];
@@ -2460,7 +2470,7 @@ function tekenMij(){
   $('#tegels').innerHTML = '';
   const krit = kritiekOpen().sort((a, b) => (b.statusDatum || b.aangemaakt || 0) - (a.statusDatum || a.aangemaakt || 0));
   $('#blokken').innerHTML = `<div class="voorblad">
-    ${krit.length ? `<div class="vb-kritiek" role="alert"><h3>${KRIT_ICO}${krit.length === 1 ? 'Kritieke storing' : krit.length + ' kritieke storingen'}<small>zorgproces verstoord: gaat voor alles</small></h3>${krit.map(x => `<button type="button" class="vbk-rij" data-nr="${esc(x.nr)}"><b>${esc(x.nr)}</b><span>${esc(x.onderwerp)}<small>${esc([x.afdeling, x.locatie, x.verantw ? 'bij ' + (benIk(x.verantw) ? 'jou' : x.verantw) : 'nog niemand', 'sinds ' + kortDatum(x.aangemaakt)].filter(Boolean).join(' · '))}</small></span></button>`).join('')}</div>` : ''}
+    ${krit.length ? `<div class="vb-kritiek" role="alert"><h3>${KRIT_ICO}${krit.length === 1 ? 'Kritieke storing' : krit.length + ' kritieke storingen'}<small>zorgproces verstoord: gaat voor alles</small></h3>${krit.map(x => `<button type="button" class="vbk-rij" data-nr="${esc(x.nr)}"><b>${esc(nrT(x))}</b><span>${esc(x.onderwerp)}<small>${esc([x.afdeling, x.locatie, x.verantw ? 'bij ' + (benIk(x.verantw) ? 'jou' : x.verantw) : 'nog niemand', 'sinds ' + kortDatum(x.aangemaakt)].filter(Boolean).join(' · '))}</small></span></button>`).join('')}</div>` : ''}
     ${STORINGEN.length ? `<div class="vb-storing"><h3>${KRIT_ICO}${STORINGEN.length === 1 ? 'Mogelijke storing' : STORINGEN.length + ' mogelijke storingen'}<small>meerdere vergelijkbare meldingen in korte tijd</small></h3>${STORINGEN.map((g, i) => `<div class="vbs-groep"><div class="vbs-kop">${g.nrs.length} meldingen over “${esc(g.woord)}”${g.loc ? ' · ' + esc(g.loc) : ''} <small class="hint" style="font-weight:400">sinds ${fmtTijd(g.sinds)}</small><button type="button" class="knop" data-storingnegeer="${i}" title="Geen storing: deze melding over deze meldingen niet meer tonen">Negeren</button><button type="button" class="knop" data-storingkrit="${i}" title="Maakt een nieuwe melding als kritieke storing aan, met de vergelijkbare meldingen erin">Kritieke storing aanmaken</button></div><div class="vbs-nrs">${g.nrs.map(nr => { const y = items.find(z => String(z.nr) === nr); return `<span><button type="button" data-storingnr="${esc(nr)}" data-groep="${i}">${esc(nr)}</button> ${esc(kort(y ? y.onderwerp : '', 46))}</span>`; }).join('')}</div></div>`).join('')}</div>` : ''}
     <p class="vb-groet">${groet}, ${esc(voornaam)}</p><p class="vb-dag">${dag}<small>${esc(zin)}</small></p>
     <div class="vb-cijfers">${waarden.map(k => `<button type="button" class="vb-c ${k.n ? (k.kl || '') : 'nul'}" data-weergave="${k.id}" title="${esc(k.uitleg || 'Toon deze meldingen')}"><b>${k.n}</b><span>${esc(k.t)}</span></button>`).join('')}</div>
@@ -2650,7 +2660,7 @@ function pasLokaalToe(){
     if(x._lokaal === o) return;   // dit meldingobject heeft de eigen waarden al
     if(Object.entries(o.velden).every(([k, v]) => zelfde(k, x[k], v))){ lokaalNieuw.delete(nr); return; }   // verse AFAS-gegevens zijn bij
     Object.assign(x, o.velden); x._lokaal = o; x.emmer = emmer(x.status);
-    x.zoek = norm([x.nr, x.onderwerp, x.melder, x.verantw, x.status, x.categorie, x.afdeling, x.emma, ...(x.taakBij || [])].join(' '));
+    x.zoek = zoekTekst(x);
   });
 }
 const naAchtergrond = () => { setTimeout(async () => { await laadGegevens('open', true); if(!$('#detail').open) teken(); }, 4000); setTimeout(async () => { await laadGegevens('open', true); if(!$('#detail').open) teken(); }, 15000); };
@@ -2659,6 +2669,11 @@ const meldPlek = {tab: 'toegewezen', scroll: 0};
 const isLijstTab = t => !['todo', 'mij', 'connectoren'].includes(t);
 addEventListener('scroll', () => { if(isLijstTab(tab)) meldPlek.scroll = scrollY; }, {passive: true});
 function teken(){
+  const f = document.activeElement, fk = f && f.matches && f.matches('.kolfilter input[data-kf]') ? {id: f.closest('table').dataset.tabel, k: f.dataset.kf, pos: f.selectionStart} : null;
+  tekenEcht();
+  if(fk && document.activeElement !== f){ const n = document.querySelector(`table[data-tabel="${CSS.escape(fk.id)}"] .kolfilter input[data-kf="${fk.k}"]`); if(n){ n.focus({preventScroll: true}); try{ n.setSelectionRange(fk.pos, fk.pos); }catch(e){} } }
+}
+function tekenEcht(){
   { const z = $('#f-zoek'); if(z && document.activeElement !== z && !z.value.trim()) $('#globzoek').classList.remove('open'); }
   if(!profiel) return;
   pasLokaalToe();
@@ -3162,7 +3177,7 @@ function zetNavPijlen(x){
   const i = navLijst.indexOf(String(x.nr)), v = $('#nav-vorige'), n = $('#nav-volgende');
   const vorig = i > 0 ? items.find(y => String(y.nr) === navLijst[i - 1]) : null, volg = i >= 0 && i < navLijst.length - 1 ? items.find(y => String(y.nr) === navLijst[i + 1]) : null;
   v.hidden = !vorig; n.hidden = !volg;
-  if(vorig) v.title = `Vorige: ${vorig.nr} · ${vorig.onderwerp} (←)`; if(volg) n.title = `Volgende: ${volg.nr} · ${volg.onderwerp} (→)`;
+  if(vorig) v.title = `Vorige: ${nrT(vorig)} · ${vorig.onderwerp} (←)`; if(volg) n.title = `Volgende: ${nrT(volg)} · ${volg.onderwerp} (→)`;
 }
 let navNu = null;   // nummer van de melding die nu open staat (los van 'huidig', dat bij sluiten leeg wordt)
 async function gaNaar(r){
@@ -3173,7 +3188,7 @@ async function gaNaar(r){
   const d = $('#detail');
   if(onopgeslagen(d) && !(await vraag('Wijzigingen niet opgeslagen', 'Je hebt iets ingevuld of gewijzigd dat nog niet is opgeslagen. Toch naar de ' + (r < 0 ? 'vorige' : 'volgende') + ' melding?', 'Doorgaan zonder opslaan', 'Terug', true))) return;
   try{ comboSluit(); }catch(e){}
-  try{ openDetail(doel); }catch(e){ console.error(e); toast('Openen van melding ' + doel + ' mislukt: ' + e.message, true); }
+  try{ openDetail(doel); }catch(e){ console.error(e); toast('Openen van melding ' + kaalNr(doel) + ' mislukt: ' + e.message, true); }
 }
 document.addEventListener('keydown', e => {
   if((e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
@@ -3229,6 +3244,11 @@ async function haalAlleTaken(forceer){   // naam behouden: laadt nu alleen de IC
   finally{ CTRL.bezig = false; }
   if(!$('#detail').open && !$('#app').hidden) teken();
 }
+function isIctStrikt(naam){   // ICT volgens het organigram (Laag 4) of de lijst met ICT-collega's; niet "wie ergens verantwoordelijke is"
+  if(!naam) return false; if(benIk(naam)) return true;
+  const ml = (typeof medewerkers !== 'undefined' && medewerkers) || [];
+  return ml.some(m => m.ict && [m.vol, m.naam, m.off].some(n => n && zelfdePersoon(n, naam))) || (!!CTRL.ict && CTRL.ict.has(naamSl(naam)));
+}
 const inIctLijst = naam => !!naam && (benIk(naam) || (!!CTRL.ict && CTRL.ict.has(naamSl(naam))));
 function controleBevindingen(){
   if(!CTRL.ict || !CTRL.ict.size) return [];
@@ -3275,7 +3295,7 @@ function logHistorie(x, wat){
 function tekenHistorie(){
   const l = opslag.get(histSleutel()) || [];
   $('#lijst-titel').textContent = 'Mijn activiteiten'; $('#lijst-n').hidden = false; $('#lijst-n').textContent = l.length; $('#titel').textContent = ''; $('#subtitel').textContent = '';
-  $('#lijst-sub').textContent = ''; $('#lijst-kol').innerHTML = l.length ? kolKnop_() : '';
+  $('#lijst-sub').textContent = ''; $('#lijst-kol').innerHTML = '';
   ['#f-mijn', '#f-mijalles', '#f-soort', '#f-changes', '#f-weergave', '#f-zoom'].forEach(sel => { const e = $(sel); if(e) e.hidden = true; });
   const rijen = l.map(h => { const x = items.find(y => String(y.nr) === String(h.nr)), r0 = h.regels[0];
     return {nr: h.nr, onderwerp: h.ond, _t: r0.t, _wat: r0.wat, _meer: h.regels.length - 1, _x: x, _dicht: x && x.afgesloten, _status: x ? (x.afgesloten ? 'Afgehandeld' : toonStatus(x.status) || '') : 'nog niet geladen'}; });
@@ -3328,6 +3348,8 @@ function openDetail(nr){
     <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>`}`;
   if(x.iu){   // in- en uitdienst: alleen wat bij dit type hoort, zoals in AFAS
     ['#d-inst', '#d-type', '#d-extern', '#d-tel', '#d-loc', '#d-afd', '#d-gepland', '#d-cc', '#d-kritiek', '#d-opgelost'].forEach(sel => { const el = $(sel); const b = el && el.closest('b'); if(b){ const sp = b.previousElementSibling; if(sp && sp.tagName === 'SPAN') sp.remove(); b.remove(); } });
+    const wegLabels = new Set(['Type melding', 'Extern ticket', 'Bereikbaar', 'Locatie', 'Afdeling', 'Gepland', 'CC', 'Markeren', 'Storing opgelost']);
+    [...document.querySelectorAll('#detail .kaart2 > span')].filter(sp => wegLabels.has(sp.textContent.replace(/\*/g, '').trim())).forEach(sp => { const b = sp.nextElementSibling; if(b && b.tagName === 'B') b.remove(); sp.remove(); });
     const lbl = [...document.querySelectorAll('#detail .kaart2 > span')].find(sp => sp.textContent.trim() === 'Melder'); if(lbl) lbl.textContent = 'Instuurder';
     const mi = $('#d-melderinfo'); if(mi) mi.remove(); }
   $('#detail').dataset.gewijzigd = ''; if(!$('#detail').open) $('#detail').showModal();
@@ -3555,7 +3577,7 @@ const ICO_FEEDBACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 const fbKnop = () => `<button type="button" class="afasknop" data-feedback title="Feedback of fout melden (met schermafdruk)" aria-label="Feedback of fout melden">${ICO_FEEDBACK}</button>`;
 const laadScript = src => new Promise((ok, nee) => { if(document.querySelector(`script[src="${src}"]`)) return ok(); const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = () => nee(new Error('script laden mislukt')); document.head.appendChild(el); });
 async function feedback(){
-  const waar = $('#detail').open && huidig ? `melding ${nrT(huidig.x)}` : $('#projdlg').open ? 'projectvenster' : $('#nieuw').open ? 'nieuwe melding' : `lijst "${(document.querySelector('#nav .actief, #nav [aria-current]') || {}).textContent || tab}"`.replace(/\s+/g, ' ').trim();
+  const waar = $('#detail').open && huidig ? `melding ${nrT(huidig.x)}` : $('#projdlg').open ? 'projectvenster' : $('#nieuw').open ? 'nieuwe melding' : `lijst "${(document.querySelector('#nav [aria-pressed="true"] > span') || {}).textContent || tab}"`.replace(/\s+/g, ' ').trim();
   let shot = null;
   toast('Schermafdruk maken…');
   try{ await laadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
@@ -3628,7 +3650,8 @@ async function vulLocKeuze(x){
     const l = waardenVan(m.locatie.values).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')), nu = l.find(w => norm(w.naam) === norm(opgeslagen) || norm(w.code) === norm(opgeslagen));
     sel.innerHTML = (nu ? '' : `<option value="">${esc(opgeslagen)}</option>`) + l.map(w => `<option value="${esc(w.code)}" ${w === nu ? 'selected' : ''}>${esc(w.naam)}</option>`).join('');
     sel.dataset.oud = nu ? nu.code : '';
-    sel.onchange = () => { sel.classList.toggle('gewijzigd', !!sel.value && sel.value !== sel.dataset.oud); if(sel.value) sel.classList.remove('mist'); };
+    sel.onchange = e => { sel.classList.toggle('gewijzigd', !!sel.value && sel.value !== sel.dataset.oud); if(sel.value) sel.classList.remove('mist');
+      if(e && e.isTrusted){ sel.classList.remove('voorstel'); sel.title = ''; const h = $('#d-loc-hint'); if(h) h.remove(); } };   // zelf gekozen: geen voorstel meer (telt als wijziging)
   }catch(e){ sel.disabled = true; sel.title = e.message; }
 }
 // voorspelling: welke mails gaan er uit als je nu op Opslaan klikt
@@ -3674,13 +3697,14 @@ function mailVooraf(){
   const ss = $('#d-status'); const stap = ss && ss.value.startsWith('a:') ? ss.options[ss.selectedIndex].textContent : '';
   const wfL = huidig.wf ? huidig.wf.acties : null, kanReageren = !wfL || wfL.some(notitie ? isNotitieActie : isReactieActie);
   const geenMail = tekst && !stap && !kanReageren;   // er is geen actie 'Reactie plaatsen' in deze stap: AFAS stuurt dan geen mail
-  if(tekst && !notitie && !geenMail) uit.push(`${x.melder || 'melder'} (reactie${nb ? ` + ${nb} bijlage${nb === 1 ? '' : 'n'}` : ''})`);
+  const eigen = tekst && !notitie && !stap && eigenMelding(x);   // je eigen melding: geen mail aan jezelf
+  if(tekst && !notitie && !geenMail && !eigen) uit.push(`${x.melder || 'melder'} (reactie${nb ? ` + ${nb} bijlage${nb === 1 ? '' : 'n'}` : ''})`);
   if(stap && !(tekst && !notitie)) uit.push(`volgens sjabloon van "${stap}"`);
-  el.hidden = !uit.length && !geenMail;
+  el.hidden = !uit.length && !geenMail && !eigen;
   el.classList.toggle('waarschuw', geenMail);
-  el.innerHTML = geenMail ? `<span class="mailicoon">!</span> Geen mail: de actie "${notitie ? 'Interne notitie' : 'Reactie plaatsen'}" is in deze workflowstap niet beschikbaar` : uit.length ? `<span class="mailicoon">✉</span> Bij opslaan mailt AFAS: ${uit.map(esc).join(', ')}` : '';
+  el.innerHTML = eigen && !uit.length ? '<span class="mailicoon">✓</span> Geen mail: je bent zelf de melder' : geenMail ? `<span class="mailicoon">!</span> Geen mail: de actie "${notitie ? 'Interne notitie' : 'Reactie plaatsen'}" is in deze workflowstap niet beschikbaar` : uit.length ? `<span class="mailicoon">✉</span> Bij opslaan mailt AFAS: ${uit.map(esc).join(', ')}` : '';
   document.querySelectorAll('#detail .opslaanmail').forEach(k => k.hidden = !uit.length);
-  const na = $('#notitie-uitleg'); if(na) na.textContent = tekst ? (notitie ? 'Interne notitie: de melder krijgt géén mail.' : geenMail ? 'Let op: deze reactie gaat zonder mail naar AFAS.' : '✉ De melder krijgt deze reactie per mail.') : '';
+  const na = $('#notitie-uitleg'); if(na) na.textContent = tekst ? (notitie ? 'Interne notitie: de melder krijgt géén mail.' : eigen ? 'Je eigen melding: geen mail aan jezelf.' : geenMail ? 'Let op: deze reactie gaat zonder mail naar AFAS.' : '✉ De melder krijgt deze reactie per mail.') : '';
 }
 /* verantwoordelijke kiezen, overal hetzelfde: eerst altijd de ICT-collega's; typ je een naam, dan komen ook AFAS-gebruikers buiten ICT erbij (onderaan) */
 // alle AFAS-gebruikers die verantwoordelijke kunnen zijn: de keuzelijst van het veld (als AFAS die meegeeft), anders de connector met gebruikers
@@ -4151,7 +4175,7 @@ let medewerkers = null, medewerkerFout = '', medewerkerConn = '', medewerkerKolD
 let heeftFunctieKol = DEMO;
 async function laadMedewerkers(){
   if(medewerkers) return medewerkers;
-  if(DEMO) return (medewerkers = [['Robert','van der','Veen'],['Anouk','de','Vries'],['Kelly','','Groen'],['Glenn','','Brons'],['Daphne','van de','Weert'],['Teun','','Kessels'],['Wilma','','Balm'],['Bianca','van den','Berg'],['Guillonard','','Leer'],['Steven','van','Dijk'],['Anouk','van','Riel'],['Noah','','Westerweel']].map(([v, t, a], i) => ({id: String(488760 + i), mail: `${v[0].toLowerCase()}${(t + a).replace(/\s/g, '').toLowerCase()}@dcklinieken.nl`, oe: i === 0 ? 'Manager Digitale Zorg en ICT' : i === 11 ? 'Medewerkers SIC' : ['Artsen DC Klinieken Almere','Doktersassistenten DC Klinieken Amsterdam','Medewerkers DC Klinieken Breda','Radiodiagnostisch laborant DC Klinieken Utrecht','Balie DC Klinieken Hanzeplein'][i % 5], naam: `${a}, ${[v, t].filter(Boolean).join(' ')}`, vol: [v, t, a].filter(Boolean).join(' ')})).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));
+  if(DEMO) return (medewerkers = [['Robert','van der','Veen'],['Anouk','de','Vries'],['Kelly','','Groen'],['Glenn','','Brons'],['Daphne','van de','Weert'],['Teun','','Kessels'],['Wilma','','Balm'],['Bianca','van den','Berg'],['Guillonard','','Leer'],['Steven','van','Dijk'],['Anouk','van','Riel'],['Noah','','Westerweel']].map(([v, t, a], i) => ({id: String(488760 + i), mail: `${v[0].toLowerCase()}${(t + a).replace(/\s/g, '').toLowerCase()}@dcklinieken.nl`, oe: i === 0 ? 'Manager Digitale Zorg en ICT' : i === 11 ? 'Medewerkers SIC' : ['Artsen DC Klinieken Almere','Doktersassistenten DC Klinieken Amsterdam','Medewerkers DC Klinieken Breda','Radiodiagnostisch laborant DC Klinieken Utrecht','Balie DC Klinieken Hanzeplein'][i % 5], naam: `${a}, ${[v, t].filter(Boolean).join(' ')}`, vol: [v, t, a].filter(Boolean).join(' '), ict: ['Robert', 'Kelly', 'Glenn', 'Daphne', 'Guillonard', 'Eleandro', 'Mehmet'].includes(v)})).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')));   // ict = organigram Laag 4, zoals in AFAS
   medewerkerConn = await kiesMedewerkerConnector();
   const rijen = await connectorAlles(medewerkerConn), k = medewerkerKolommen(Object.keys(rijen[0] || {}));
   const t = v => String(v ?? '').trim();
@@ -4318,9 +4342,9 @@ function comboKoppel(inp, items, kies, typt){
   inp.addEventListener('input', () => { inp.dataset.typt = '1'; if(typt) typt(inp.value); comboToon(inp, items, kies); });
   inp.addEventListener('blur', () => setTimeout(() => { if(comboHuidig && comboHuidig.inp === inp) comboSluit(); }, 150));
   inp.addEventListener('keydown', e => { const c = comboHuidig; if(!c || c.inp !== inp) return;
-    if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); c.actief = Math.max(0, Math.min(c.l.length - 1, c.actief + (e.key === 'ArrowDown' ? 1 : -1)));
+    if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); if(!c.l.length){ c.actief = -1; return; } c.actief = Math.max(0, Math.min(c.l.length - 1, c.actief + (e.key === 'ArrowDown' ? 1 : -1)));
       $('#combo').querySelectorAll('button').forEach((b, i) => { b.classList.toggle('actief', i === c.actief); if(i === c.actief) b.scrollIntoView({block:'nearest'}); }); }
-    else if(e.key === 'Enter' && c.actief >= 0){ e.preventDefault(); const x = c.l[c.actief]; comboSluit(); c.kies(x); }
+    else if(e.key === 'Enter' && c.actief >= 0 && c.l[c.actief]){ e.preventDefault(); const x = c.l[c.actief]; comboSluit(); c.kies(x); }
     else if(e.key === 'Escape'){ e.preventDefault(); comboSluit(); } });   // Esc sluit eerst alleen de lijst, niet het venster
 }
 document.addEventListener('mousedown', e => { const b = e.target.closest('#combo button'); if(!b) return; e.preventDefault();
@@ -4371,7 +4395,10 @@ async function wfActie(x, kies, extra = {}, objecten = null, cache = null){
   await stuur(a); return a.naam;
 }
 // reactie via de actie 'Reactie plaatsen' of 'Interne notitie' (met mail); bestaat die actie niet, dan een losse reactie (zonder mail)
+// eigen melding: jij bent de melder en er staat niemand in CC. Een reactie gaat dan zonder AFAS-actie (dus zonder mail aan jezelf), wel zichtbaar.
+const eigenMelding = x => !!x && benIk(x.melder) && !String(x.cc || '').trim();
 async function reactieMetMail(x, tekst, notitie = false, objecten = null){
+  if(!notitie && eigenMelding(x)){ await zoekZichtVeld(); await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body: JSON.stringify({KnWorkflow:{Element:{Fields:{SbId: isNaN(+x.sbid) ? x.sbid : +x.sbid, Tx: tekst, ...zichtVelden(false)}, ...(objecten ? {Objects: objecten} : {})}}})}); return 'eigen'; }
   await zoekZichtVeld();
   const naam = await wfActie(x, notitie ? isNotitieActie : isReactieActie, {Tx: tekst, ...zichtVelden(notitie)}, objecten);
   if(!naam) await afas('/connectors/KnSubjectWorkflowReaction', {method:'POST', body: JSON.stringify({KnWorkflow:{Element:{Fields:{SbId: isNaN(+x.sbid) ? x.sbid : +x.sbid, Tx: tekst, ...zichtVelden(notitie)}, ...(objecten ? {Objects: objecten} : {})}}})});
@@ -4459,7 +4486,8 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
     const reactieObj = bijlR.length ? [{KnReactionAttachment: {Element: await bijlElementen(bijlR)}}] : null;
     let reactieGedaan = false;
     const plaatsReactie = async () => { stap = 'reactie'; const n = await reactieMetMail(x, tekst, notitie, reactieObj); if(bijlR.length){ klaar.reactie = []; gedaan.push(`${bijlR.length} bijlage${bijlR.length === 1 ? '' : 'n'} bij de reactie`); }
-      if(n){ viaActie.push(n); if(!notitie) logMail(x, x.melder || 'melder', 'nieuwe reactie', n); }
+      if(n === 'eigen') gedaan.push('geen mail: je bent zelf de melder');
+      else if(n){ viaActie.push(n); if(!notitie) logMail(x, x.melder || 'melder', 'nieuwe reactie', n); }
       else { zonderMail.push(notitie ? 'interne notitie' : 'reactie'); if(!notitie) logMail(x, 'GEEN mail', 'reactie zonder AFAS-actie geplaatst (actie Reactie plaatsen niet beschikbaar in deze stap)', '–'); }
       gedaan.push(notitie ? 'interne notitie geplaatst' : 'reactie geplaatst');  reactieGedaan = true; };
     // eerst reageren, dan pas toewijzen: daarna ligt de AFAS-taak bij de ander en mag jij geen reactie meer plaatsen
@@ -4598,7 +4626,7 @@ function tekenMetTelling(){
 function toonVerplaatsing(voor){
   const na = items.find(y => String(y.nr) === String(voor.nr));
   let doel = null, label = '';
-  if(na && na.afgesloten && !voor.dicht){ doel = '[data-weergave="dicht"]'; label = 'Afgehandeld'; }
+  if(na && na.afgesloten && !voor.dicht){ doel = '#nav [data-weergave="alle"]'; label = 'Afgehandeld'; }
   else if(na && norm(na.afdeling) !== norm(voor.afd)){
     label = '→ ' + (na.afdeling || 'geen afdeling');
     doel = document.querySelector(`#nav [data-weergave="afd:${CSS.escape(na.afdeling)}"]`) ? `#nav [data-weergave="afd:${CSS.escape(na.afdeling)}"]` : '#k-overige';
@@ -4607,7 +4635,7 @@ function toonVerplaatsing(voor){
     label = '→ ' + (na.verantw || 'niemand');
     doel = isMijn(na) ? '#nav [data-weergave="toegewezen"]' : '#nav [data-weergave="alle"]';
   }
-  else if(!na){ doel = '#nav [data-weergave="dicht"]'; label = 'Afgehandeld'; }
+  else if(!na){ doel = '#nav [data-weergave="alle"]'; label = 'Afgehandeld'; }
   if(!doel) return;
   const el = document.querySelector(doel); if(!el) return;
   vlieg(voor, el, label);
@@ -4615,7 +4643,7 @@ function toonVerplaatsing(voor){
 function vlieg(voor, doelEl, label){
   const van = voor.rect, naar = doelEl.getBoundingClientRect();
   const kaart = document.createElement('div'); kaart.className = 'vlieger';
-  kaart.innerHTML = `<b>${esc(voor.nr)}</b><span>${esc(voor.ond)}</span><em>${esc(label)}</em>`;
+  kaart.innerHTML = `<b>${esc(kaalNr(voor.nr))}</b><span>${esc(voor.ond)}</span><em>${esc(label)}</em>`;
   document.body.appendChild(kaart);
   const w = kaart.offsetWidth, h = kaart.offsetHeight;
   const x0 = van.left + van.width / 2 - w / 2, y0 = van.top + van.height / 2 - h / 2;
@@ -5013,7 +5041,7 @@ document.addEventListener('click', e => {
   if(e.target.closest('[data-kolpassend]')){ $('#kolkeuze').hidden = true; zetZelf(null); zetBreedtes(besteBreedtes()); toast('Kolommen passend gemaakt'); return; }
   if(e.target.closest('[data-kolbreedstd]')){ $('#kolkeuze').hidden = true; zetZelf(null); zetBreedtes({}); return; }
   const th = e.target.closest('th[data-sort]'); if(th){ const id = th.closest('table').dataset.tabel, k = th.dataset.sort, s = sortering[id];
-    sortering[id] = s && s.k === k ? (s.op > 0 ? {k, op:-1} : undefined) : {k, op: ['in','reactie','gepland','sig'].includes(k) ? -1 : 1}; teken(); return; }
+    sortering[id] = s && s.k === k ? (s.op > 0 ? {k, op:-1} : undefined) : {k, op: ['in','reactie','gepland','sig','pstart','peind','p-start','p-eind','iu-in','iu-indienst','iu-uitdienst','h-wanneer'].includes(k) ? -1 : 1}; teken(); return; }
   const vr = e.target.closest('.voorregel[data-nr]'); if(vr){ navLijst = [...vr.parentElement.querySelectorAll('.voorregel[data-nr]')].map(p => p.dataset.nr); openDetail(vr.dataset.nr); return; }
   const r = e.target.closest('tr[data-nr]'); if(r){ const tid = r.closest('table').dataset.tabel; navLijst = (tid && tabelVolgorde[tid]) || [...r.closest('tbody').querySelectorAll('tr[data-nr]')].map(t => t.dataset.nr); openDetail(r.dataset.nr); return; }
   const m = e.target.closest('.meer'); if(m){ const id = m.dataset.blok; blokOpen.has(id) ? blokOpen.delete(id) : blokOpen.add(id); teken(); return; }
@@ -5023,7 +5051,7 @@ document.addEventListener('click', e => {
   const a = e.target.closest('[data-actie]'); if(a){ laatsteKnop = a; opslaanAlles(+a.dataset.actie); return; }
   const ah = e.target.closest('[data-afhandel]'); if(ah && huidig){ afhandelen(ah); return; }
   const sn = e.target.closest('[data-snel]'); if(sn && huidig){ laatsteKnop = sn; snelActie(sn); return; }   // bv. Afhandelen: neemt afdeling en reactie mee
-  if(e.target.closest('#k-actie')){ const v = $('#actie-keuze').value; if(v !== '') voerUit(+v); return; }
+  if(e.target.closest('#k-actie') && $('#actie-keuze')){ const v = $('#actie-keuze').value; if(v !== '') voerUit(+v); return; }
   if(e.target.closest('#k-reageer')){ voerUit(null); return; }
   if(e.target.closest('#k-heropen') && huidig){ const k = $('#k-heropen'), wf = huidig.wf, i = wf ? wf.acties.findIndex(isHeropenActie) : -1; if(i < 0) return;
     vraag(`Melding ${nrT(huidig.x)} heropenen?`, 'De melding gaat terug naar In behandeling ICT en komt weer in je open meldingen. Gewijzigde velden worden meteen mee opgeslagen.', 'Heropenen', 'Annuleren').then(ja => { if(ja){ laatsteKnop = k; opslaanAlles(i, false); } }); return; }
@@ -5209,7 +5237,7 @@ const markeer = (t, q) => { const i = norm(t).indexOf(q); return i < 0 || !q ? e
 function tekenZoekRes(){
   const box = $('#zoekres'), q = norm($('#f-zoek').value);
   if(!q){ box.hidden = true; zoekHits = []; return; }
-  const score = x => String(x.nr) === q ? 0 : String(x.nr).startsWith(q) ? 1 : norm(x.onderwerp).includes(q) ? 2 : 3;
+  const score = x => nrT(x) === q ? 0 : nrT(x).startsWith(q) ? 1 : norm(x.onderwerp).includes(q) ? 2 : 3;
   const alle = items.filter(x => x.zoek.includes(q)).sort((a, b) => score(a) - score(b) || (b.aangemaakt || 0) - (a.aangemaakt || 0));
   const open = alle.filter(x => !x.afgesloten).slice(0, 7), dicht = alle.filter(x => x.afgesloten).slice(0, 5);
   if(!alleDichtGeladen && q.length >= 3) laadAlleGesloten()?.then(() => { if(norm($('#f-zoek').value) === q && tab !== 'todo') tekenZoekRes(); });   // het hele archief pas ophalen als je zoekt
@@ -5223,7 +5251,7 @@ function tekenZoekRes(){
   box.hidden = false;
 }
 function openZoekHit(nr){ $('#zoekres').hidden = true; navLijst = zoekHits.map(x => String(x.nr)); $('#f-zoek').blur(); openDetail(nr); }
-$('#f-zoek').addEventListener('input', e => { zoekSel = -1; filt.zoek = e.target.value; if(tab === 'todo'){ if(TD.status === 'ok') tdTeken(); return; } if(!$('#v-lijst').hidden) tekenLijst(); if(tab !== 'zoek') tekenZoekRes(); });
+$('#f-zoek').addEventListener('input', e => { zoekSel = -1; filt.zoek = e.target.value; if(tab === 'todo'){ if(TD.status === 'ok') tdTeken(); return; } if(!$('#v-lijst').hidden){ tekenLijst(); pasTabelBreedtes(); } if(tab !== 'zoek') tekenZoekRes(); });
 $('#f-zoek').addEventListener('focus', () => { if($('#f-zoek').value && tab !== 'todo' && tab !== 'zoek') tekenZoekRes(); });
 $('#f-zoek').addEventListener('keydown', e => {
   const box = $('#zoekres');
@@ -5473,7 +5501,7 @@ function naarTaak(t, lijst){
 }
 const naarMs = t => ({title: t.titel, importance: t.belangrijk ? 'high' : 'normal', status: t.klaar ? 'completed' : 'notStarted',
   body: {content: t.notitie || '', contentType: 'text'}, dueDateTime: t.deadline ? {dateTime: t.deadline + 'T00:00:00', timeZone: 'UTC'} : null});
-const msLink = (soort, nr) => ({webUrl: LINK + '#melding=' + nr, applicationName: 'SubmIT', displayName: 'Melding ' + nr + ' in SubmIT', externalId: `submit-${soort}:${nr}`});
+const msLink = (soort, nr) => ({webUrl: LINK + '#melding=' + nr, applicationName: 'SubmIT', displayName: 'Melding ' + kaalNr(nr) + ' in SubmIT', externalId: `submit-${soort}:${nr}`});
 let tdSnap = null;   // stand zoals die in Microsoft To Do staat (om alleen wijzigingen te sturen)
 const kloon = o => JSON.parse(JSON.stringify(o));
 async function tdLees(){
@@ -5563,7 +5591,7 @@ const TD_VINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const TD_STER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>';
 function tdRij(t){
   const vandaag = tdIso(new Date()), laat = t.deadline && !t.klaar && t.deadline < vandaag;
-  const sub = [['alle', 'belangrijk'].includes(TD.lijst) && esc(tdLijstNaam(t.lijst)), t.deadline && `<span class="${laat ? 'laat' : ''}">${laat ? 'te laat · ' : ''}${fmtDatum(new Date(t.deadline + 'T00:00:00'))}</span>`, t.notitie && 'notitie', t.melding && `melding ${esc(t.melding)}`, t.ticket && `<a data-tdticket="${esc(t.ticket)}" title="Melding openen">melding ${esc(t.ticket)}</a>`].filter(Boolean);
+  const sub = [['alle', 'belangrijk'].includes(TD.lijst) && esc(tdLijstNaam(t.lijst)), t.deadline && `<span class="${laat ? 'laat' : ''}">${laat ? 'te laat · ' : ''}${fmtDatum(new Date(t.deadline + 'T00:00:00'))}</span>`, t.notitie && 'notitie', t.melding && `melding ${esc(kaalNr(t.melding))}`, t.ticket && `<a data-tdticket="${esc(t.ticket)}" title="Melding openen">melding ${esc(t.ticket)}</a>`].filter(Boolean);
   const detail = TD.open === t.id ? `<div class="taakdetail"><div class="kaart2">
       <span>Titel</span><b><input class="datumkeuze" data-veld="titel" value="${esc(t.titel)}"></b>
       <span>Deadline</span><b><input type="date" class="datumkeuze" data-veld="deadline" value="${esc(t.deadline || '')}"></b>
@@ -5993,7 +6021,7 @@ function openProject(code){
 async function bewaarProject(p){
   const f = $('#p-form'), fout = $('#p-fout'), knop = $('#p-opslaan'), m = PRJ.meta || {};
   const tekst = f.tekst.value.trim(), nieuwFase = f.fase.value !== f.fase.dataset.begin && f.fase.value ? f.fase.value : null;
-  const nieuwVoort = f.voort.value !== f.voort.dataset.begin && f.voort.value ? f.voort.value : null;
+  const nieuwVoort = f.voort.value !== f.voort.dataset.begin && f.voort.value && !(f.voort.classList.contains('voorstel') && p.rol !== 'Projectleider') ? f.voort.value : null;   // voorstel van de app: alleen de projectleider neemt het over met Opslaan
   const oudG = p.gereedPlanning ? isoD(p.gereedPlanning) : '', nieuwG = f.gereed.value !== oudG ? f.gereed.value : undefined;
   if(!tekst && !nieuwFase && !nieuwVoort && nieuwG === undefined){ $('#projdlg').close(); return; }
   if((nieuwFase || nieuwVoort || nieuwG !== undefined) && p.rol !== 'Projectleider' && !(await vraag('Je bent niet de projectleider', `Je bent ${p.rol.toLowerCase()} van ${p.onderwerp}. Wil je de fase, voortgang of datum toch aanpassen in AFAS?`, 'Ja, aanpassen'))) return;
@@ -6205,7 +6233,7 @@ function toonContext(x){
   const e = eerderVan(x).slice(0, 5), v = vergelijkbaar(x);
   if(!e.length && !v.length){ el.innerHTML = ''; el.hidden = true; return; }
   el.hidden = false;
-  const regel = (y, opl) => `<div class="ctx-regel" data-ctxnr="${esc(y.nr)}"><b data-ctxopen="${esc(y.nr)}" title="Melding ${esc(y.nr)} openen">${esc(y.nr)}</b><span class="ctx-ond" title="${esc(y.onderwerp)}">${esc(y.onderwerp)}</span><small>${y.afgesloten ? 'afgehandeld ' + kortDatum(y.statusDatum || y.aangemaakt) : esc(toonStatus(y.status) || 'open')}${opl ? ` · <button type="button" class="linkknop" data-ctxopl="${esc(y.nr)}">oplossing</button>` : ''}</small></div>`;
+  const regel = (y, opl) => `<div class="ctx-regel" data-ctxnr="${esc(y.nr)}"><b data-ctxopen="${esc(y.nr)}" title="Melding ${esc(nrT(y))} openen">${esc(nrT(y))}</b><span class="ctx-ond" title="${esc(y.onderwerp)}">${esc(y.onderwerp)}</span><small>${y.afgesloten ? 'afgehandeld ' + kortDatum(y.statusDatum || y.aangemaakt) : esc(toonStatus(y.status) || 'open')}${opl ? ` · <button type="button" class="linkknop" data-ctxopl="${esc(y.nr)}">oplossing</button>` : ''}</small></div>`;
   el.innerHTML = `<button type="button" class="ctx-kop" data-ctxwissel><i>▸</i>Eerder &amp; vergelijkbaar <span>${[e.length && `${e.length} eerder van ${esc(String(x.melder).split(' ')[0])}`, v.length && `${v.length} vergelijkbaar opgelost`].filter(Boolean).join(' · ')}</span></button>
     <div class="ctx-in"><div class="ctx-kol"><h4>Eerder van ${esc(x.melder || 'deze melder')}</h4>${e.length ? e.map(y => regel(y, y.afgesloten)).join('') : '<p class="hint">Geen eerdere meldingen.</p>'}</div>
     <div class="ctx-kol"><h4>Vergelijkbaar opgelost</h4>${v.length ? v.map(y => regel(y, true)).join('') : '<p class="hint">Niets vergelijkbaars gevonden.</p>'}</div></div>`;
@@ -6273,8 +6301,8 @@ function neemOver(e){
   x._lokaal = null; pasLokaalToe(); x._sg = signalen(x);
   if(huidig && String(huidig.x.nr) === String(x.nr) && $('#detail').open){ const wat = Object.keys(w).map(k => DEEL_LABEL[k]).filter(Boolean).join(', ') || 'een reactie';
     const k = $('#k-opslaan'), bezig = (k && !k.disabled) || ($('#tekst') && $('#tekst').value.trim());
-    if(!bezig){ openDetail(x.nr); toast(`${e.door} wijzigde ${wat}; je ziet het al`); }   // niets eigens onder handen: venster meteen bijwerken
-    else toast(`${e.door} wijzigde ${wat} van deze melding. Sla eerst je eigen wijziging op; daarna zie je het.`); }
+    if(!bezig){ const di = $('#detail-in'), top = di ? di.scrollTop : 0; openDetail(x.nr); requestAnimationFrame(() => { const d2 = $('#detail-in'); if(d2) d2.scrollTop = top; }); if(!doorMijPersoon(e)) toast(`${e.door} wijzigde ${wat}; je ziet het al`); }   // niets eigens onder handen: venster meteen bijwerken
+    else if(!doorMijPersoon(e)) toast(`${e.door} wijzigde ${wat} van deze melding. Sla eerst je eigen wijziging op; daarna zie je het.`); }
   return true;
 }
 function meldActiviteitVan(x, v){
@@ -6337,7 +6365,16 @@ document.addEventListener('keydown', e => {
 }, true);
 document.addEventListener('mousedown', e => { const b = e.target.closest('[data-vmnaam]'); if(b){ e.preventDefault(); vermeldKies(b.dataset.vmnaam); return; } if($('#vermeldlijst') && !e.target.closest('#vermeldlijst')) $('#vermeldlijst').remove(); });
 const STROOM = new Map();   // id -> gebeurtenis (van de server, plus in/uit en je eigen acties)
-const doorMij = e => e.zelf || (e.sessie ? e.sessie === AANW.sessie : (e.code && e.code === AANW.ik));
+const doorMij = e => e.zelf || (e.sessie ? e.sessie === AANW.sessie : (e.code && e.code === AANW.ik));   // deze sessie (wijziging is hier al verwerkt)
+const doorMijPersoon = e => doorMij(e) || (!!e.code && e.code === AANW.ik) || benIk(e.door);   // ik als persoon, ook vanuit een ander tabblad of apparaat: nooit een pop-up
+let laatstePopup = 0, popupWacht = [], popupTimer = null;
+function toonTeamPopup(regels){
+  popupWacht.push(...regels); popupWacht = [...new Set(popupWacht)];   // dubbele regels één keer
+  const wacht = Math.max(0, laatstePopup + 60e3 - Date.now());   // hooguit één pop-up per minuut; wat er tussendoor komt wordt gebundeld
+  clearTimeout(popupTimer);
+  popupTimer = setTimeout(() => { if(!popupWacht.length || nietStoren) { popupWacht = []; return; } const l = popupWacht; popupWacht = []; laatstePopup = Date.now();
+    toast(l.length > 2 ? `${l.slice(-2).join(' · ')} · en nog ${l.length - 2}` : l.join(' · ')); }, wacht);
+}
 function stroomErbij(e){ if(!e || !e.id || STROOM.has(e.id)) return false; STROOM.set(e.id, e); return true; }
 const STROOM_ZIN = {gewijzigd: e => { let w = {}; try{ w = JSON.parse(e.w || '{}'); }catch(err){} const l = Object.keys(w).map(k => DEEL_LABEL[k]).filter(Boolean); return `wijzigde ${l.length ? esc(l.join(', ')) + ' van ' : ''}<b>${esc(kaalNr(e.nr))}</b>`; }, gesloten: e => `heeft <b>${esc(kaalNr(e.nr))}</b> afgehandeld`, doorgezet: e => `heeft <b>${esc(kaalNr(e.nr))}</b> doorgezet naar ${esc(String(e.naar || '').split(' · ').map(d => benIk(d) ? 'jou' : d).join(' · '))}`, opgepakt: e => `heeft <b>${esc(kaalNr(e.nr))}</b> opgepakt`,
   reactie: e => `reageerde op <b>${esc(kaalNr(e.nr))}</b>`, vermeld: e => `noemde ${esc(String(e.naar || '').split(' · ').map(d => benIk(d) ? 'jou' : d.split(' ')[0]).join(', '))} in <b>${esc(kaalNr(e.nr))}</b>${e.tekst ? ': “' + esc(kort(e.tekst, 90)) + '”' : ''}`, kritiek: e => `zette <b>${esc(kaalNr(e.nr))}</b> op kritieke storing`, in: () => 'is ingelogd', uit: () => 'is uitgelogd'};
@@ -6357,8 +6394,8 @@ function toonActiviteit(){
   if(!anderen.length){ tekenTeam(); return; }
   anderen.forEach(e => AANW.flits.set(String(e.nr), Date.now() + 2500));
   if(anderen.filter(e => e.w).map(neemOver).some(Boolean)){ if($('#detail').open) tekenNaSluiten = true; else teken(); }
-  const raak = anderen.filter(raaktMij), zin = e => `${e.door} ${STROOM_ZIN[e.soort](e).replace(/<[^>]+>/g, '')}`;
-  if(raak.length && !nietStoren) toast(raak.length > 2 ? `${raak.slice(-2).map(zin).join(' · ')} · en nog ${raak.length - 2}` : raak.map(zin).join(' · '));
+  const raak = anderen.filter(e => !doorMijPersoon(e) && raaktMij(e)), zin = e => `${e.door} ${STROOM_ZIN[e.soort](e).replace(/<[^>]+>/g, '')}`;
+  if(raak.length && !nietStoren) toonTeamPopup(raak.map(zin));
   tekenTeam();
   if(!$('#detail').open && !$('#app').hidden && anderen.some(e => e.soort !== 'reactie' && !e.w)) laadGegevens('open', true).then(() => { if(!$('#detail').open) teken(); }).catch(() => {});   // lijst meteen bijwerken
   else tekenAanwezig();
@@ -6368,11 +6405,11 @@ function tekenTeam(){
   const ander = AANW.lijst.filter(a => a.code !== AANW.ik && !benIk(a.naam)).sort((a, b) => (b.zicht !== false) - (a.zicht !== false) || String(a.naam).localeCompare(b.naam, 'nl'));
   { const n = $('#team-aantal'); if(n){ n.textContent = ander.length || ''; $('#team-knop').title = ander.length ? `Team: ${ander.length} collega${ander.length === 1 ? '' : '’s'} online · laatste activiteit` : 'Team: wie is er online en wat gebeurt er'; } }
   { const dag = +vandaagBegin(); STROOM.forEach((e, id) => { if(e.t < dag) STROOM.delete(id); }); }   // alleen vandaag: na middernacht valt gisteren eruit
-  const gezien = +opslag.get('mict-team-gezien') || 0, ongezien = [...STROOM.values()].some(e => !doorMij(e) && e.t > gezien);
+  const gezien = +opslag.get('mict-team-gezien') || 0, ongezien = [...STROOM.values()].some(e => !doorMijPersoon(e) && e.t > gezien);
   if($('#team-stip')) $('#team-stip').hidden = !ongezien;
   const p = $('#teampaneel'); if(!p || p.hidden) return;
   const alle = [...STROOM.values()].sort((a, b) => b.t - a.t), lijst = p._alles ? alle : alle.slice(0, 10), meer = alle.length - lijst.length;
-  p.innerHTML = `<div id="ik-online"></div><hr><h5>Vandaag in het team</h5>` + (lijst.length ? lijst.map(e => `<button type="button" class="act${!doorMij(e) && e.t > (p._gezien || 0) ? ' nieuw' : ''}" ${e.nr ? `data-onlnr="${esc(e.nr)}" title="Melding ${esc(kaalNr(e.nr))} openen"` : 'tabindex="-1"'}>${avatar(e.door, e.soort === 'kritiek' ? 'k' : e.soort === 'gesloten' ? 'g' : '', e.code)}<span><span><b>${esc(doorMij(e) ? 'Jij' : String(e.door || '').split(' ')[0])}</b> ${STROOM_ZIN[e.soort] ? STROOM_ZIN[e.soort](e) : esc(e.soort)}</span><small>${geleden(e.t)}${e.onderwerp ? ' · ' + esc(e.onderwerp) : ''}</small></span></button>`).join('') : '<p class="onl-leeg">Nog niets gebeurd vandaag.</p>') + (meer > 0 ? `<button type="button" class="linkknop teammeer" data-teammeer>Alle activiteiten (${alle.length})</button>` : '');
+  p.innerHTML = `<div id="ik-online"></div><hr><h5>Vandaag in het team</h5>` + (lijst.length ? lijst.map(e => `<button type="button" class="act${!doorMijPersoon(e) && e.t > (p._gezien || 0) ? ' nieuw' : ''}" ${e.nr ? `data-onlnr="${esc(e.nr)}" title="Melding ${esc(kaalNr(e.nr))} openen"` : 'tabindex="-1"'}>${avatar(e.door, e.soort === 'kritiek' ? 'k' : e.soort === 'gesloten' ? 'g' : '', e.code)}<span><span><b>${esc(doorMij(e) ? 'Jij' : String(e.door || '').split(' ')[0])}</b> ${STROOM_ZIN[e.soort] ? STROOM_ZIN[e.soort](e) : esc(e.soort)}</span><small>${geleden(e.t)}${e.onderwerp ? ' · ' + esc(e.onderwerp) : ''}</small></span></button>`).join('') : '<p class="onl-leeg">Nog niets gebeurd vandaag.</p>') + (meer > 0 ? `<button type="button" class="linkknop teammeer" data-teammeer>Alle activiteiten (${alle.length})</button>` : '');
   tekenOnline();
 }
 function wisselTeam(){
@@ -6589,7 +6626,7 @@ async function mailNaarMelding(f){
   if(!(await vraag('Mail omzetten naar melding?', `"${f.name}" is een e-mail. Wil je het onderwerp en de inhoud van deze mail gebruiken voor de melding? De mail blijft in beide gevallen als bijlage bewaard.`, 'Ja, omzetten', 'Nee, alleen bijlage'))) return;
   let m; try{ m = await leesMail(f); }catch(e){ toast('De mail kon niet worden gelezen: ' + e.message, true); return; }
   const schoon = String(m.tekst || '').replace(/\r\n/g, '\n').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
-  const kop = [m.van || m.vanMail ? `Van: ${m.van || ''}${m.vanMail && !String(m.van).includes(m.vanMail) ? ` <${m.vanMail}>` : ''}`.trim() : '', m.datum && !isNaN(m.datum) ? `Verzonden: ${m.datum.toLocaleString('nl-NL', {dateStyle: 'long', timeStyle: 'short'})}` : '', m.onderwerp ? `Onderwerp: ${m.onderwerp}` : ''].filter(Boolean).join('\n');
+  const kop = [m.van || m.vanMail ? `Van: ${m.van || ''}${m.vanMail && !String(m.van).includes(m.vanMail) ? ` <${m.vanMail}>` : ''}`.trim() : '', m.datum && !isNaN(m.datum) ? `Verzonden: ${fmtDatum(m.datum)} ${fmtTijd(m.datum)}` : '', m.onderwerp ? `Onderwerp: ${m.onderwerp}` : ''].filter(Boolean).join('\n');
   f2.ond.value = String(m.onderwerp || '').replace(/^\s*((re|fw|fwd|antw|doorst)\s*:\s*)+/i, '').slice(0, 80);
   f2.tx.value = (kop ? kop + '\n\n' : '') + schoon.slice(0, 30000);
   // melder: de afzender, als die eenduidig in de medewerkerslijst staat
