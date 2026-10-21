@@ -143,7 +143,7 @@ dialog.nieuwdlg{width:min(660px, calc(100vw - 32px))}
 .nform label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:var(--grijs)}
 .nform input,.nform select{border:0;border-bottom:1.5px dashed var(--lichtblauw);border-radius:0;padding:6px 2px;background-color:transparent;font-weight:500;color:var(--inkt);outline:0}
 .nform input:focus,.nform select:focus{border-bottom:1.5px solid var(--blauw-2)}
-.nform select.voorstel,.nform input.voorstel{color:var(--grijs)}
+
 .nform select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232E5FB0' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 4px center;background-size:12px;padding-right:22px}
 .nform .twee{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .nform .drie{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:start}
@@ -617,7 +617,7 @@ kbd{font:inherit;font-size:10.5px;font-weight:600;opacity:.7;margin-left:8px;bor
 .checklist{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--oranje-licht);border-radius:12px;padding:8px 14px;font-size:13px}
 .checklist b{color:var(--oranje);font-weight:700}
 .checklist .ok{color:var(--groen)} .checklist .mist{color:var(--oranje);font-weight:600}
-select.voorstel{color:var(--grijs)}
+
 #n-loc-hint{display:block;font-size:11.5px;margin-top:3px}
 i.verpl{font-style:normal;color:var(--oranje);margin-left:3px;font-weight:700}
 i.verpl.gevuld{display:none}
@@ -694,7 +694,7 @@ input:is([type=date],[type=datetime-local]):is([value=""],:not([value])):not(:fo
 @keyframes opVink{to{stroke-dashoffset:0}}
 #k-opslaan{margin-left:auto;padding:8px 26px 8px 22px}
 select.afdkeuze.gewijzigd{color:var(--grijs)}
-.kaart2 select.afdkeuze.voorstel,.kaart2 input.datumkeuze.voorstel{color:var(--grijs)}
+
 dialog.vraagdlg{width:min(440px, calc(100vw - 32px))}
 dialog.vraagdlg.breed{width:min(580px,calc(100vw - 32px))}
 dialog.vraagdlg.breed .vraag-knoppen{flex-wrap:wrap}
@@ -830,7 +830,17 @@ dialog#detail.groot .kaart2 select.afdkeuze,dialog#detail.groot .kaart2 input.da
 .melderinfo:hover{background:var(--lichtblauw-2)}
 .melderinfo.leeg{color:var(--grijs);opacity:.6}
 #uitleg{white-space:pre-line}
-textarea.voorstel{color:var(--grijs)}
+/* voorstel (door SubmIT ingevuld, nog niet van jou): zacht blauw vlak + gestippelde rand. Anders dan 'opgeslagen' (zwart) en 'gewijzigd' (grijs). */
+select.voorstel,input.voorstel,textarea.voorstel,.linkveld.voorstel,.kaart2 select.afdkeuze.voorstel,.kaart2 input.datumkeuze.voorstel,.nform select.voorstel,.nform input.voorstel{
+  color:var(--inkt)!important;background-color:color-mix(in srgb,var(--blauw) 8%,transparent)!important;outline:1px dashed color-mix(in srgb,var(--blauw) 55%,transparent);outline-offset:2px;border-radius:6px}
+.vstel{display:inline-flex;align-items:center;gap:3px;margin-left:8px;vertical-align:middle;white-space:nowrap;font-size:11px;line-height:1}
+.vstel .vst-l{color:var(--blauw);font-weight:600;background:color-mix(in srgb,var(--blauw) 12%,transparent);padding:3px 8px;border-radius:999px;letter-spacing:.01em;cursor:help}
+.vstel button{width:20px;height:20px;border-radius:50%;border:1px solid color-mix(in srgb,var(--blauw) 30%,transparent);background:var(--vlak);color:var(--blauw);font:inherit;font-size:12px;font-weight:700;padding:0;display:grid;place-items:center;cursor:pointer}
+.vstel button:hover{background:var(--blauw);color:var(--vlak);border-color:var(--blauw)}
+.vstel .vst-weg{color:var(--grijs)}
+.conceptknop{color:var(--blauw);font-weight:600;font-size:12.5px;white-space:nowrap}.conceptknop:disabled{opacity:.6}
+.onder>.vstel{margin-left:6px}
+.kaart2 b>.vstel{display:flex;width:max-content;margin:5px 0 3px}
 .chipknop{border:0;background:none;padding:0;cursor:default;font:inherit}
 .chipknop .chip{text-decoration:underline dotted;text-underline-offset:3px}
 .chipknop:hover .chip{filter:brightness(.95);box-shadow:0 0 0 2px var(--lichtblauw)}
@@ -1452,7 +1462,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.36', VERSIE_DATUM = '21-10-2026';
+const VERSIE = 'v7.37', VERSIE_DATUM = '21-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3626,7 +3636,7 @@ function openDetail(nr){
       ${x.afgesloten ? '' : '<input type="file" id="f-ticket" multiple hidden>'}</div>
     
     ${x.afgesloten ? `<div class="onderbalk"><div class="actiebalk" id="actiebalk"><span class="hint">Deze melding is afgehandeld.</span></div>
-      <span class="opslaanknoppen"><button type="button" class="knop" id="k-heropen" disabled title="Workflow ophalen…">Heropenen</button><button type="button" class="knop vol" id="k-opslaan" disabled title="Er is nog niets om op te slaan">Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
+      <span class="opslaanknoppen"><button type="button" class="knop" id="k-instructie" title="Maak van de oplossing een instructie voor de kennisbank (Word-concept in DC-huisstijl)">✦ Instructie maken</button><button type="button" class="knop" id="k-heropen" disabled title="Workflow ophalen…">Heropenen</button><button type="button" class="knop vol" id="k-opslaan" disabled title="Er is nog niets om op te slaan">Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
     <p class="fout" id="d-fout"></p>
     <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3></div>` : `
     <div class="onderbalk"><div class="actiebalk" id="actiebalk">${st === 0 ? '<button class="knop" data-snel="oppak" title="Kan meteen: wacht zo nodig even op de workflow uit AFAS">Toewijzen aan mij</button>' : ''}</div>
@@ -3637,7 +3647,7 @@ function openDetail(nr){
       <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
       <div class="klaarzet" id="klaar-reactie"></div>
       <div class="onder"><button type="button" class="linkknop paperclip" id="k-clip" title="Bestand meesturen met deze reactie. Je kunt ook een bestand op het reactievak slepen of een schermafbeelding plakken met Ctrl+V.">${CLIP}Bijlage</button><input type="file" id="f-reactie" multiple hidden><label class="vink notitie" data-uitleg="Alleen zichtbaar voor de afdeling ICT. De melder ziet deze notitie niet en krijgt geen mail."><input type="checkbox" id="notitie"> Interne notitie</label>
-        <select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select>
+        <select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select>${x.afgesloten ? '' : '<button type="button" class="linkknop conceptknop" id="k-concept" title="Concept-antwoord op basis van hoe een vergelijkbare melding is opgelost, met een instructie uit de kennisbank als die er is">✦ Concept-antwoord</button>'}
         <span class="hint" id="notitie-uitleg"></span></div>
     </div>
     <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>`}`;
@@ -3653,7 +3663,7 @@ function openDetail(nr){
   $('#detail').onchange = e => { if(/^d-(afd|verantw|status|gepland)$/.test(e.target.id)) autoReactie(); mailVooraf(); };
   huidig.klaar = {ticket: [], reactie: []}; huidig.bijl = null;
   (DEMO ? Promise.resolve() : zorgSbId(x)).then(() => { laadBijlagen(x); return toonReacties(x); }).catch(e => { const el = $('#tijdlijn'); if(el) el.innerHTML = `<h3>Reacties</h3><p class="hint">Het interne nummer van deze melding kon niet worden opgezocht: ${esc(e.message)}</p>`; const bl = $('#bijl-lijst'); if(bl) bl.innerHTML = '<span class="hint">Bijlagen ophalen kan niet zonder het interne nummer van de melding.</span>'; });
-  if(!x.afgesloten){ vulAfdKeuze(x); vulStatusKeuze(x); vulVerantwKeuze(x); vulLocKeuze(x); vulTypeKeuze(x); setTimeout(() => markeerOntbrekend(x), 0); }
+  if(!x.afgesloten){ vulStatusKeuze(x); vulLocKeuze(x); Promise.all([vulAfdKeuze(x), vulVerantwKeuze(x), vulTypeKeuze(x)]).then(() => stelVoorBijBinnenkomst(x)).catch(() => {}); setTimeout(() => markeerOntbrekend(x), 0); }
   if(x.toelichting == null || !x.toelichting) toonToelichting(x); else if($('#d-toel') && $('#d-toel').tagName === 'TEXTAREA') pasToelHoogte($('#d-toel'));
   toonContext(x);
   if(x.melder) toonMelderInfo(x);
@@ -3683,8 +3693,7 @@ async function toonMelderInfo(x){
   // lege locatie in het ticket: voorstel uit de medewerkersgegevens (wordt pas opgeslagen met Opslaan)
   const sel = $('#d-loc');
   if(sel && !sel.value && !locVan(x)){ const o = locVoorstel(m, [...sel.options].filter(o => o.value));
-    if(o){ sel.value = o.value; sel.classList.add('voorstel', 'gewijzigd'); sel.classList.remove('mist'); sel.title = `Voorgesteld op basis van de werklocatie van ${m.vol || m.naam}; wordt opgeslagen met Opslaan`;
-      if(!$('#d-loc-hint')) sel.insertAdjacentHTML('afterend', '<small class="hint" id="d-loc-hint" style="display:block;font-weight:400">voorstel o.b.v. melder</small>'); } }
+    if(o) zetVeldVoorstel(sel, o.value, `Voorstel op basis van de werklocatie van ${m.vol || m.naam}`); }
 }
 /* toelichting staat niet in de SLA-connector: per melding ophalen uit een connector die het veld wel heeft */
 let toelBron;   // {conn, veld, filter} of null als geen connector het veld levert
@@ -6558,6 +6567,185 @@ function vergelijkbaar(x){
   return items.filter(y => y.afgesloten && String(y.nr) !== String(x.nr)).map(y => ({y, s: gelijkenis(t, y.onderwerp)})).filter(r => r.s >= 0.5)
     .sort((a, b) => b.s - a.s || (b.y.statusDatum || 0) - (a.y.statusDatum || 0)).slice(0, 4).map(r => r.y);
 }
+/* ================= voorstellen in een melding: één herkenbare stijl (✦ Voorstel ✓ ×) =================
+   Een voorstel is een waarde die SubmIT zelf invult. Het wordt opgeslagen met Opslaan, tenzij je × klikt (dan staat de oude waarde er weer).
+   ✓ = overnemen: het wordt een gewone wijziging. Zelf iets kiezen in het veld = ook geen voorstel meer. */
+function zetVeldVoorstel(sel, waarde, uitleg){
+  if(!sel || sel.disabled || (huidig && (huidig.vstelWeg || new Set()).has(sel.id))) return false;
+  const o = [...sel.options].find(o => o.value && o.value === waarde) || [...sel.options].find(o => o.value && norm(o.textContent) === norm(waarde))
+    || (sel.id === 'd-verantw' ? [...sel.options].find(o => o.value && !o.value.startsWith('__') && zelfdePersoon(o.textContent, waarde)) : null);
+  if(!o) return false;
+  if(sel._vstelVoor === undefined) sel._vstelVoor = sel.value;
+  sel.value = o.value; sel._vorige = o.value; sel.classList.add('voorstel', 'gewijzigd'); sel.classList.remove('mist');
+  sel.title = uitleg + '\nWordt opgeslagen met Opslaan, tenzij je op × klikt.';
+  let l = document.getElementById('vst-' + sel.id);
+  if(!l){ sel.insertAdjacentHTML('afterend', `<span class="vstel" id="vst-${sel.id}" data-vstel="${sel.id}"><span class="vst-l">✦ Voorstel</span><button type="button" class="vst-ok" data-vstok aria-label="Voorstel overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Voorstel weghalen" title="Weghalen: de oude waarde terug">×</button></span>`); l = document.getElementById('vst-' + sel.id); }
+  l.querySelector('.vst-l').title = sel.title;
+  return true;
+}
+function voorstelKlaar(sel, overnemen){
+  if(!sel) return; const l = document.getElementById('vst-' + sel.id); if(l) l.remove(); const h = sel.id === 'd-loc' && $('#d-loc-hint'); if(h) h.remove();
+  sel.classList.remove('voorstel'); sel.title = '';
+  if(!overnemen){ sel.value = sel._vstelVoor ?? ''; sel._vorige = sel.value; if(huidig){ (huidig.vstelWeg = huidig.vstelWeg || new Set()).add(sel.id); }
+    if(typeof sel.onchange === 'function') sel.onchange();
+    if(sel.tagName === 'SELECT') sel.classList.toggle('gewijzigd', veldGewijzigd(sel)); else { if(huidig) huidig.autoTekst = null; if(typeof pasHoogteAan === 'function') pasHoogteAan(sel); } }
+  else if(sel.id === 'tekst' && huidig) huidig.autoTekst = null;   // overgenomen: nu jouw tekst
+  delete sel._vstelVoor; zetKnoppen(); mailVooraf();
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-vstok], [data-vstweg]'); if(!b) return; const l = b.closest('[data-vstel]'), sel = l && document.getElementById(l.dataset.vstel); voorstelKlaar(sel, !!b.closest('[data-vstok]')); });
+document.addEventListener('change', e => { const sel = e.target; if(e.isTrusted && sel && sel.classList && sel.classList.contains('voorstel') && document.getElementById('vst-' + sel.id)) voorstelKlaar(sel, true); }, true);   // zelf gekozen: gewone wijziging
+
+/* idee 2: concept-antwoord. Zoekt de best passende afgehandelde melding, neemt de oplossing (laatste reactie van ICT, zonder aanhef en groet)
+   en zet er een instructie uit de kennisbank bij als die er is. Alles als voorstel in het reactievak: jij past aan en verstuurt. */
+// vergelijken: woorden uit het onderwerp tellen volledig, woorden die alleen in de toelichting staan half; zeldzame woorden wegen zwaarder.
+// Er moet minstens één woord uit het onderwerp overeenkomen, anders is het geen vergelijkbare melding.
+function scoorVergelijkbaar(x, pool, extra = () => 0){
+  const O = new Set(woordenVan(x.onderwerp)), T = new Set(woordenVan(String(x.toelichting || toelCache.get(String(x.nr)) || '').slice(0, 400)).filter(w => !O.has(w)));
+  if(!O.size) return [];
+  const df = new Map(); pool.forEach(y => woordenVan(y.onderwerp).forEach(w => df.set(w, (df.get(w) || 0) + 1)));
+  const idf = w => Math.log(1 + pool.length / (1 + (df.get(w) || 0)));
+  return pool.map(y => { let s = 0, n = 0; woordenVan(y.onderwerp).forEach(w => { if(O.has(w)){ s += idf(w); n++; } else if(T.has(w)) s += idf(w) / 2; });
+      if(n) s += extra(y); return {y, s, n}; })
+    .filter(r => r.n && r.s >= 1.5).sort((a, b) => b.s - a.s || (b.y.statusDatum || 0) - (a.y.statusDatum || 0));
+}
+function vergelijkbaarGescoord(x, max = 3){ return scoorVergelijkbaar(x, items.filter(y => y.afgesloten && !y.inuit && String(y.nr) !== String(x.nr))).slice(0, max).map(r => r.y); }
+const kaleOplossing = t => String(t || '').replace(/\r/g, '').split(/\n/)
+  .filter((r, i, a) => !(i < 2 && /^\s*(beste|hoi|hallo|goedemorgen|goedemiddag|dag)\b.*[,!]?\s*$/i.test(r)))
+  .join('\n').split(/\n\s*(met vriendelijke groet|met hartelijke groet|vriendelijke groet|groet(en)?|mvg)\b/i)[0].trim();
+async function maakConcept(){
+  const x = huidig && huidig.x, t = $('#tekst'), k = $('#k-concept'); if(!x || !t || !k) return;
+  const oud = k.textContent; k.disabled = true; k.textContent = '✦ Zoeken…';
+  try{
+    if(!alleDichtGeladen) await Promise.resolve(laadAlleGesloten()).catch(() => {});
+    let bron = null, oplossing = '';
+    for(const y of vergelijkbaarGescoord(x)){
+      try{ if(!DEMO) await zorgSbId(y); const l = await haalReacties(y);
+        const r = [...l].reverse().find(r => r.tekst && !r.intern && norm(r.wie) !== norm(y.melder)); const o = r && kaleOplossing(r.tekst);
+        if(o && o.length > 15){ bron = y; oplossing = o; break; } }catch(e){}
+    }
+    let kb = null;
+    if(opslag.get(KB.sleutel()) || msOpgeslagen() || DEMO){ try{
+      const w = woordenVan(x.onderwerp).slice(0, 3); if(w.length){ const l = await kbZoek(w.join(' ')); kb = l[0] || (w.length > 1 ? (await kbZoek(w[0]))[0] : null); } }catch(e){} }
+    if(!bron && !kb){ toast('Geen vergelijkbare opgeloste melding of instructie gevonden voor een concept'); return; }
+    const delen = [];
+    if(bron) delen.push(oplossing);
+    if(kb){ const naam = String(kb.name || 'instructie').replace(/\.(docx?|pdf)$/i, ''); delen.push(`${bron ? 'Meer uitleg' : 'Misschien helpt deze instructie je verder'}: ${kb.webUrl ? `[${naam}](${kb.webUrl})` : naam}`); }
+    t._vstelVoor = t.value;
+    await zetVoorstel(await maakBrief(x, delen), true);
+    if(!t.classList.contains('voorstel')) return;   // niet vervangen (jij koos Annuleren)
+    const uitleg = [bron && `oplossing van melding ${nrT(bron)} (${bron.onderwerp})`, kb && `instructie "${kb.name}" uit de kennisbank`].filter(Boolean).join(' en ');
+    let l = $('#vst-tekst'); if(l) l.remove();
+    k.insertAdjacentHTML('afterend', `<span class="vstel" id="vst-tekst" data-vstel="tekst"><span class="vst-l" title="Concept op basis van ${esc(uitleg)}. Lees het na en pas aan; × haalt het weer weg.">✦ Concept${bron ? ' o.b.v. ' + esc(nrT(bron)) : ''}</span><button type="button" class="vst-ok" data-vstok aria-label="Concept overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Concept weghalen" title="Weghalen">×</button></span>`);
+    t.focus();
+  }finally{ k.disabled = false; k.textContent = oud; }
+}
+document.addEventListener('click', e => { if(e.target.closest('#k-concept')) maakConcept(); });
+document.addEventListener('input', e => { if(e.isTrusted && (e.target.id === 'tekst' || (e.target.dataset && e.target.dataset.voor === 'tekst'))){ const l = $('#vst-tekst'); if(l){ l.remove(); $('#tekst').classList.remove('voorstel'); if(huidig) huidig.autoTekst = null; } } });
+
+/* idee 3: van melding naar instructie. Een Word-concept (.docx) in DC-huisstijl: titel "Systeem - Handeling", waar het over gaat,
+   de stappen uit de oplossing van ICT en waar je terecht kunt als het niet lukt. Namen van de melder, telefoonnummers, mailadressen en
+   lange nummers worden weggehaald. Het blijft een concept: nalezen en dan in de kennisbank zetten. */
+const DC_LOGO_PNG = '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';
+const ZIP_CRC = (() => { const t = new Uint32Array(256); for(let n = 0; n < 256; n++){ let c = n; for(let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = d => { let c = 0xFFFFFFFF; for(let i = 0; i < d.length; i++) c = ZIP_CRC[(c ^ d[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+function maakZip(bestanden){   // [{naam, data: string|Uint8Array}] → Blob (zonder compressie; Word leest dat gewoon)
+  const enc = new TextEncoder(), delen = [], centraal = []; let pos = 0;
+  const u16 = v => [v & 255, (v >>> 8) & 255], u32 = v => [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255];
+  for(const b of bestanden){
+    const naam = enc.encode(b.naam), data = typeof b.data === 'string' ? enc.encode(b.data) : b.data, c = crc32(data);
+    const kop = new Uint8Array([...u32(0x04034b50), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(c), ...u32(data.length), ...u32(data.length), ...u16(naam.length), ...u16(0)]);
+    delen.push(kop, naam, data);
+    centraal.push(new Uint8Array([...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(c), ...u32(data.length), ...u32(data.length), ...u16(naam.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(pos)]), naam);
+    pos += kop.length + naam.length + data.length;
+  }
+  const cdLen = centraal.reduce((n, d) => n + d.length, 0);
+  const eind = new Uint8Array([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(bestanden.length), ...u16(bestanden.length), ...u32(cdLen), ...u32(pos), ...u16(0)]);
+  return new Blob([...delen, ...centraal, eind], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+}
+const xmlEsc = t => String(t ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+function anoniem(t, x){
+  let u = String(t || '');
+  const namen = [x.melder, x.instuurder, x.medewerker].filter(Boolean).flatMap(n => [n, ...String(n).split(/\s+/).filter(w => w.length >= 3 && !TUSSENV.has(w.toLowerCase()))]);
+  namen.sort((a, b) => b.length - a.length).forEach(n => { u = u.replace(new RegExp('\\b' + n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi'), 'de gebruiker'); });
+  return u.replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '[e-mailadres]').replace(/(\+31|0)[\d\s-]{8,12}\d/g, '[telefoonnummer]').replace(/\b\d{7,}\b/g, '[nummer]')
+    .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '$1 ($2)').replace(/(de gebruiker)(\s+de gebruiker)+/gi, '$1');
+}
+function instructieDocx(titel, waar, stappen, bron){
+  const run = (t, extra = '') => `<w:r><w:rPr>${extra}</w:rPr><w:t xml:space="preserve">${xmlEsc(t)}</w:t></w:r>`;
+  const p = (t, stijl, extra = '') => `<w:p><w:pPr>${stijl ? `<w:pStyle w:val="${stijl}"/>` : ''}${extra}</w:pPr>${run(t)}</w:p>`;
+  const stap = t => `<w:p><w:pPr><w:pStyle w:val="Lijstalinea"/><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr></w:pPr>${run(t)}</w:p>`;
+  const body = [p(titel, 'Titel'),
+    p('Waar gaat dit over?', 'Kop1'), ...waar.split(/\n{2,}/).map(t => p(t.replace(/\n/g, ' '), '')),
+    p('Zo los je het op', 'Kop1'), ...(stappen.length ? stappen.map(stap) : [p('Beschrijf hier de stappen.', '')]),
+    p('Lukt het niet?', 'Kop1'), p('Maak een melding bij ICT via de ICT Assistent of de ticketpagina in InSite. Vermeld wat je al hebt geprobeerd.', '')].join('');
+  const cx = 1620000, cy = Math.round(cx * 73 / 600);
+  const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>${body}<w:sectPr><w:headerReference w:type="default" r:id="rIdKop"/><w:footerReference w:type="default" r:id="rIdVoet"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1701" w:right="1418" w:bottom="1418" w:left="1418" w:header="567" w:footer="567" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+  const kop = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:hdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="1" name="DC Klinieken"/><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="1" name="logo.png"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rIdLogo"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p></w:hdr>`;
+  const voet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p><w:pPr><w:pStyle w:val="Voettekst"/></w:pPr>${run(bron)}</w:p></w:ftr>`;
+  const f = 'w:ascii="Helvetica" w:hAnsi="Helvetica" w:cs="Helvetica" w:eastAsia="Helvetica"';
+  const stijlen = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts ${f}/><w:color w:val="16213E"/><w:sz w:val="21"/><w:lang w:val="nl-NL"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="288" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>
+<w:style w:type="paragraph" w:default="1" w:styleId="Standaard"><w:name w:val="Normal"/></w:style>
+<w:style w:type="paragraph" w:styleId="Titel"><w:name w:val="Title"/><w:basedOn w:val="Standaard"/><w:pPr><w:spacing w:after="240"/></w:pPr><w:rPr><w:b/><w:color w:val="053787"/><w:sz w:val="40"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Kop1"><w:name w:val="heading 1"/><w:basedOn w:val="Standaard"/><w:next w:val="Standaard"/><w:pPr><w:keepNext/><w:spacing w:before="280" w:after="100"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:color w:val="053787"/><w:sz w:val="26"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Lijstalinea"><w:name w:val="List Paragraph"/><w:basedOn w:val="Standaard"/><w:pPr><w:spacing w:after="80"/><w:ind w:left="425" w:hanging="425"/></w:pPr></w:style>
+<w:style w:type="paragraph" w:styleId="Voettekst"><w:name w:val="footer"/><w:basedOn w:val="Standaard"/><w:rPr><w:color w:val="6B7899"/><w:sz w:val="16"/></w:rPr></w:style></w:styles>`;
+  const nummering = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:abstractNum w:abstractNumId="0"><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="425" w:hanging="425"/></w:pPr><w:rPr><w:b/><w:color w:val="053787"/></w:rPr></w:lvl></w:abstractNum><w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num></w:numbering>`;
+  const R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const png = Uint8Array.from(atob(DC_LOGO_PNG), c => c.charCodeAt(0));
+  return maakZip([
+    {naam: '[Content_Types].xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/><Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/></Types>`},
+    {naam: '_rels/.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${R}/officeDocument" Target="word/document.xml"/></Relationships>`},
+    {naam: 'word/_rels/document.xml.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdStijl" Type="${R}/styles" Target="styles.xml"/><Relationship Id="rIdNum" Type="${R}/numbering" Target="numbering.xml"/><Relationship Id="rIdKop" Type="${R}/header" Target="header1.xml"/><Relationship Id="rIdVoet" Type="${R}/footer" Target="footer1.xml"/></Relationships>`},
+    {naam: 'word/_rels/header1.xml.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdLogo" Type="${R}/image" Target="media/logo.png"/></Relationships>`},
+    {naam: 'word/document.xml', data: doc}, {naam: 'word/styles.xml', data: stijlen}, {naam: 'word/numbering.xml', data: nummering},
+    {naam: 'word/header1.xml', data: kop}, {naam: 'word/footer1.xml', data: voet}, {naam: 'word/media/logo.png', data: png}]);
+}
+async function maakInstructie(){
+  const x = huidig && huidig.x, k = $('#k-instructie'); if(!x || !k) return;
+  const oud = k.textContent; k.disabled = true; k.textContent = '✦ Maken…';
+  try{
+    let l = huidig.reacties; if(!l){ if(!DEMO) await zorgSbId(x); l = await haalReacties(x); }
+    const ict = l.filter(r => r.tekst && !r.intern && norm(r.wie) !== norm(x.melder) && !benIkNiet(r));
+    const stappen = ict.flatMap(r => anoniem(kaleOplossing(r.tekst), x).split(/\n+/)).map(t => t.replace(/^\s*(\d+[.)]|[-•*])\s*/, '').trim()).filter(t => t.length > 3 && !/^(ik|wij|we) (heb|hebben|zal|zullen|kijk|kijken)\b/i.test(t));
+    const waar = anoniem(kaal(x.toelichting || toelCache.get(String(x.nr)) || '') || x.onderwerp, x).split(/\n/).filter(r => !/^\s*(beste|hoi|hallo|goedemorgen|goedemiddag|groet|met vriendelijke|mvg)\b/i.test(r)).join('\n').trim().slice(0, 900);
+    const systeem = (navAfd(x.afdeling) || x.afdeling || 'Overig').trim(), handeling = String(x.onderwerp || 'Instructie').replace(/^\s*((re|fw|fwd|antw)\s*:\s*)+/i, '').replace(/[.!?\s]+$/, '').trim();
+    const titel = `${systeem} - ${handeling.charAt(0).toUpperCase() + handeling.slice(1)}`;
+    const blob = instructieDocx(titel, waar, stappen.slice(0, 15), `Concept uit SubmIT · melding ${nrT(x)} · ${fmtDatum(new Date())} · ${profiel ? profiel.naam : ''} · nalezen vóór publicatie in de kennisbank`);
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = titel.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120) + '.docx';
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    toast('Instructie gedownload: lees hem na en zet hem in de kennisbank (Instructies › ' + systeem + ')');
+  }catch(e){ toast('Instructie maken lukte niet: ' + e.message, true); }
+  finally{ k.disabled = false; k.textContent = oud; }
+}
+const benIkNiet = r => false;   // reacties van ICT (alle niet-melders) tellen mee, ook die van jezelf
+document.addEventListener('click', e => { if(e.target.closest('#k-instructie')) maakInstructie(); });
+
+/* idee 1: voorstel bij binnenkomst. Melding zonder verantwoordelijke: afdeling, type en verantwoordelijke voorstellen
+   op basis van vergelijkbare meldingen (woorden in het onderwerp, zeldzame woorden tellen zwaarder) en eerdere meldingen van dezelfde melder.
+   Alleen als er genoeg steun is: minstens 2 vergelijkbare meldingen en meer dan de helft van het gewicht. */
+function zoekVoorstellen(x){
+  const pool = items.filter(y => y !== x && !y.inuit && String(y.nr) !== String(x.nr) && String(y.verantw || '').trim());
+  const scored = scoorVergelijkbaar(x, pool, y => x.melder && norm(y.melder) === norm(x.melder) ? 1 : 0).slice(0, 15);
+  if(scored.length < 2) return null;
+  const stem = (veld, l = scored, ok = () => true) => { const m = new Map(); let tot = 0;
+    l.forEach(r => { const v = String(r.y[veld] || '').trim(); if(!v) return; tot += r.s; if(ok(v)) m.set(v, (m.get(v) || 0) + r.s); });
+    const [best, w] = [...m].sort((a, b) => b[1] - a[1])[0] || [];
+    const steun = best ? l.filter(r => norm(r.y[veld]) === norm(best)) : [];
+    return best && tot && w / tot > 0.5 && steun.length >= 2 ? {waarde: best, steun: steun.map(r => r.y)} : null; };
+  const afd = !String(x.afdeling || '').trim() ? stem('afdeling') : null;
+  const doelAfd = x.afdeling || (afd && afd.waarde), inAfd = doelAfd ? scored.filter(r => norm(r.y.afdeling) === norm(doelAfd)) : [];
+  return {afd, type: !String(x.type || '').trim() ? stem('type') : null,
+    verantw: stem('verantw', inAfd.length >= 2 ? inAfd : scored, v => isIctStrikt(v) || inIctLijst(v))};
+}
+const voorstelUitleg = s => `Voorstel op basis van ${s.steun.length} vergelijkbare meldingen, o.a. ${s.steun.slice(0, 3).map(y => nrT(y)).join(', ')}`;
+function stelVoorBijBinnenkomst(x){
+  if(!huidig || huidig.x !== x || x.afgesloten || x.inuit || String(x.verantw || '').trim() || !$('#detail').open) return;
+  const v = zoekVoorstellen(x); if(!v) return;
+  if(v.afd) zetVeldVoorstel($('#d-afd'), v.afd.waarde, voorstelUitleg(v.afd));
+  if(v.type) zetVeldVoorstel($('#d-type'), v.type.waarde, voorstelUitleg(v.type));
+  if(v.verantw) zetVeldVoorstel($('#d-verantw'), v.verantw.waarde, voorstelUitleg(v.verantw));
+  zetKnoppen(); mailVooraf();
+}
 function toonContext(x){
   const el = $('#d-context'); if(!el) return;
   if(!alleDichtGeladen) laadAlleGesloten();
@@ -6841,6 +7029,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.37', d: '21-10-2026', groot: true, p: ['Voorstel bij binnenkomst: bij een melding zonder verantwoordelijke stelt SubmIT afdeling, type en verantwoordelijke voor, op basis van vergelijkbare meldingen. Herkenbaar aan ✦ Voorstel: ✓ neemt over, × haalt weg.', 'Concept-antwoord: één klik onder het reactievak geeft een concept op basis van hoe een vergelijkbare melding is opgelost, met een instructie uit de kennisbank erbij.', 'Instructie maken: bij een afgehandelde melding maak je van de oplossing een Word-concept in DC-huisstijl voor de kennisbank.']},
   {v: 'v7.36', d: '21-10-2026', p: ['To-do op het overzicht: rustigere kopjes, het aantal als label.']},
   {v: 'v7.35', d: '21-10-2026', p: ['To-do op het overzicht: één blok met Komende 7 dagen (en wat te laat is) en Belangrijk.', 'Nieuwe uitstraling van de kaartjes rechtsonder (update, herinnering, kritieke storing): dunne rand, zacht kleurverloop en een subtiele schaduw.']},
   {v: 'v7.34', d: '21-10-2026', groot: true, p: ['Rustscherm: na 2 minuten zonder muis zie je je overzicht met de tijd en heel rustig bewegende kleuren; beweeg je muis en je bent terug waar je was. Uit te zetten in je profielmenu.', 'Het overzicht toont je to-do’s in twee blokken: To-do’s met deadline en Belangrijke to-do’s. Klik erop en je bent in To-do.', 'Volledig scherm: knop rechtsboven naast je foto; nog eens klikken (of Esc) en het venster is weer normaal.', 'Niet storen is zichtbaar: een rood rondje op je foto, ook voor collega’s in Team en bij wie er online is.', 'Nieuwe meldingen = alle open meldingen zonder verantwoordelijke. Zodra iemand verantwoordelijke is, staat de melding in de gewone lijsten.', 'In een melding staat de link naar die melding in de adresbalk: kopieer hem en stuur hem via Teams of mail, de ander komt direct in de melding.', 'Bij opslaan zie je bij een statuswijziging precies wie de mail krijgt: de melder en wie in CC staat.', 'Windows-meldingen bij een kritieke storing staan standaard aan: SubmIT vraagt één keer toestemming.', 'Nieuw icoon voor Nieuwe melding: een potlood, zoals “Nieuw bericht” in Outlook en Teams.', 'Wisselen tussen licht en donker gaat met een vloeiende overgang.', 'Het cijfer Afgehandeld deze week staat er meteen; zolang het nog wordt opgehaald zie je een streepje in plaats van een 0.', 'To-do: één knop “Melding aanmaken”.', 'Een nieuwe versie zie je sneller: SubmIT kijkt elke 5 minuten en zodra je terugkomt in het venster.']},
