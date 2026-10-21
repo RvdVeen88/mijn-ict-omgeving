@@ -1545,6 +1545,9 @@ const filterEn = vw => `&filterfieldids=${vw.map(v => encodeURIComponent(v[0])).
 /* ================= gegevens ================= */
 let items = [], taakPerSb = new Map(), mensen = [], gebieden = [], status = {bijgewerkt:null, fout:null};
 const EMMER_RE = [['leverancier', /leverancier|derde partij/], ['melder', /melder|aanvrager|gebruiker|klant|reactie van/], ['nieuw', /^nieuw|^open$|ingediend|aangemeld|ontvangen|geregistreerd|^ingevoerd/], ['opvolging', /behandeling|opvolging|actief|bezig|uitvoering/]];
+// Nieuwe meldingen = open melding zonder verantwoordelijke. Zodra er een verantwoordelijke is, gaat hij van nieuw naar de gewone lijst (ook als de status nog Nieuw is).
+function emmerVan(x){ const e = emmer(x.status); if(x.afgesloten || x.inuit) return e;
+  if(!String(x.verantw || '').trim()) return 'nieuw'; return e === 'nieuw' ? 'opvolging' : e; }
 function emmer(status){ const s = norm(status); if(!s) return 'nieuw';   // nieuw aangemaakte melding heeft vaak nog geen status
   for(const k of ['nieuw','opvolging','melder','leverancier','planning']) if(lijst(INST['st_' + k]).includes(s)) return k;
   if(lijst(INST.st_afgesloten).includes(s)) return null;
@@ -1579,6 +1582,7 @@ function maakItem(r, extra){
   x.inuit = iuRij;
   x.emmer = emmer(x.status);
   x.afgesloten = x.afgerond || lijst(INST.st_afgesloten).includes(norm(x.status)) || /^(afgehandeld|gesloten|afgesloten|geannuleerd|vervallen|ingetrokken)\b/.test(norm(x.status));   // ook nieuwe AFAS-statussen met deze betekenis
+  x.emmer = emmerVan(x);
   x.sla = (!lijst(INST.slaSoorten).length || lijst(INST.slaSoorten).includes(norm(x.soort))) && !x.zorgadmin;
   const t = taakVan(x); x.taak = t ? t.taak : ''; x.taakBij = t ? t.bij : [];
   x.zoek = zoekTekst(x);
@@ -2694,7 +2698,7 @@ function pasLokaalToe(){
     const x = items.find(y => String(y.nr) === nr); if(!x) return;
     if(x._lokaal === o) return;   // dit meldingobject heeft de eigen waarden al
     if(Object.entries(o.velden).every(([k, v]) => zelfde(k, x[k], v))){ lokaalNieuw.delete(nr); return; }   // verse AFAS-gegevens zijn bij
-    Object.assign(x, o.velden); x._lokaal = o; x.emmer = emmer(x.status);
+    Object.assign(x, o.velden); x._lokaal = o; x.emmer = emmerVan(x);
     x.zoek = zoekTekst(x);
   });
 }
@@ -6676,7 +6680,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
-  {v: 'v7.33', d: '21-10-2026', groot: true, p: ['De kolom Locatie is in alle overzichten gevuld.', 'Verantwoordelijke: alle ICT-collega’s (herkend aan kostenplaats ICT) en via "Iemand buiten ICT…" elke andere collega.', 'In een melding staat de link naar die melding in de adresbalk: kopieer hem en stuur hem via Teams of mail, de ander komt direct in de melding.', 'Meldingen en kaartjes verschijnen boven de regel “Live · bijgewerkt om …”, zodat ze die niet meer bedekken.']},
+  {v: 'v7.33', d: '21-10-2026', groot: true, p: ['De kolom Locatie is in alle overzichten gevuld.', 'Verantwoordelijke: alle ICT-collega’s (herkend aan kostenplaats ICT) en via "Iemand buiten ICT…" elke andere collega.', 'Nieuwe meldingen = alle open meldingen zonder verantwoordelijke. Zodra iemand verantwoordelijke is, staat de melding in de gewone lijsten.', 'In een melding staat de link naar die melding in de adresbalk: kopieer hem en stuur hem via Teams of mail, de ander komt direct in de melding.', 'Meldingen en kaartjes verschijnen boven de regel “Live · bijgewerkt om …”, zodat ze die niet meer bedekken.']},
   {v: 'v7.32', d: '21-10-2026', groot: true, p: ['Wat is er nieuw: in je profielmenu (klik op je foto) zie je per versie wat er veranderd is.', 'Verbeteracties staan voortaan bij Mijn changes, niet meer tussen de meldingen.']},
   {v: 'v7.31', d: '21-10-2026', groot: true, p: ['Alt+← en Alt+→ (en de terugknop van je muis) gaan door de schermen en meldingen die je in SubmIT hebt bezocht, niet meer naar andere websites.']},
   {v: 'v7.30', d: '21-10-2026', groot: true, p: ['Hyperlinks in toelichting en reacties: plak je een link (uit Outlook, Teams, SharePoint), dan zie je de naam en zit de link erachter.', 'Zelf een link maken: tekst selecteren en rechtermuisklik of Ctrl+K. Ctrl+klik opent een link.']},
