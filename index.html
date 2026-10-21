@@ -2801,18 +2801,20 @@ new MutationObserver(() => document.querySelectorAll(LINKVELDEN).forEach(maakLin
    op het eerste scherm blijf je in SubmIT staan in plaats van naar de vorige website te gaan. */
 let navStart = false, navBezig = false;
 const navStaat = () => ({submit: true, tab, nr: $('#detail').open && huidig ? String(huidig.x.nr) : null});
+// de adresbalk volgt de open melding (…#melding=13016): kopiëren uit de adresbalk geeft een link die direct die melding opent
+const navUrl = st => location.pathname + location.search + (st && st.nr ? '#melding=' + encodeURIComponent(st.nr) : '');
 function navPush(){
   if(navBezig || !profiel) return;
   const st = navStaat(), nu = history.state;
-  if(!navStart){ navStart = true; history.replaceState({submit: true, grens: true}, '', location.href); history.pushState(st, '', location.href); return; }
+  if(!navStart){ navStart = true; history.replaceState({submit: true, grens: true}, '', navUrl(null)); history.pushState(st, '', navUrl(st)); return; }
   if(nu && nu.submit && !nu.grens && nu.tab === st.tab && nu.nr === st.nr) return;
-  history.pushState(st, '', location.href);
+  history.pushState(st, '', navUrl(st));
 }
 addEventListener('popstate', async e => {
   const st = e.state; if(!st || !st.submit) return;
-  if(st.grens){ history.pushState(navStaat(), '', location.href); toast('Dit is het eerste scherm in SubmIT'); return; }   // niet terug naar een andere website
+  if(st.grens){ const n = navStaat(); history.pushState(n, '', navUrl(n)); toast('Dit is het eerste scherm in SubmIT'); return; }   // niet terug naar een andere website
   const d = $('#detail');
-  if(d.open && huidig && onopgeslagen(d) && (!st.nr || st.nr !== String(huidig.x.nr))){ navBezig = true; history.pushState(navStaat(), '', location.href); navBezig = false; toast('Je hebt nog iets onopgeslagen in deze melding: sla eerst op of sluit hem'); return; }
+  if(d.open && huidig && onopgeslagen(d) && (!st.nr || st.nr !== String(huidig.x.nr))){ navBezig = true; { const n = navStaat(); history.pushState(n, '', navUrl(n)); } navBezig = false; toast('Je hebt nog iets onopgeslagen in deze melding: sla eerst op of sluit hem'); return; }
   navBezig = true;
   try{
     if(d.open && (!st.nr || (huidig && String(huidig.x.nr) !== st.nr))){ d.dataset.gewijzigd = ''; d.close(); }
@@ -6674,7 +6676,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
-  {v: 'v7.33', d: '21-10-2026', groot: true, p: ['De kolom Locatie is in alle overzichten gevuld.', 'Verantwoordelijke: alle ICT-collega’s (herkend aan kostenplaats ICT) en via "Iemand buiten ICT…" elke andere collega.', 'Meldingen en kaartjes verschijnen boven de regel “Live · bijgewerkt om …”, zodat ze die niet meer bedekken.']},
+  {v: 'v7.33', d: '21-10-2026', groot: true, p: ['De kolom Locatie is in alle overzichten gevuld.', 'Verantwoordelijke: alle ICT-collega’s (herkend aan kostenplaats ICT) en via "Iemand buiten ICT…" elke andere collega.', 'In een melding staat de link naar die melding in de adresbalk: kopieer hem en stuur hem via Teams of mail, de ander komt direct in de melding.', 'Meldingen en kaartjes verschijnen boven de regel “Live · bijgewerkt om …”, zodat ze die niet meer bedekken.']},
   {v: 'v7.32', d: '21-10-2026', groot: true, p: ['Wat is er nieuw: in je profielmenu (klik op je foto) zie je per versie wat er veranderd is.', 'Verbeteracties staan voortaan bij Mijn changes, niet meer tussen de meldingen.']},
   {v: 'v7.31', d: '21-10-2026', groot: true, p: ['Alt+← en Alt+→ (en de terugknop van je muis) gaan door de schermen en meldingen die je in SubmIT hebt bezocht, niet meer naar andere websites.']},
   {v: 'v7.30', d: '21-10-2026', groot: true, p: ['Hyperlinks in toelichting en reacties: plak je een link (uit Outlook, Teams, SharePoint), dan zie je de naam en zit de link erachter.', 'Zelf een link maken: tekst selecteren en rechtermuisklik of Ctrl+K. Ctrl+klik opent een link.']},
@@ -6777,7 +6779,8 @@ async function openGedeeld(nr){
   if(!x){ toast(`Melding ${nr} wordt opgezocht…`); await laadAlleGesloten(); x = items.find(y => String(y.nr) === String(nr)); }
   if(x){ navLijst = []; openDetail(x.nr); } else toast(`Melding ${nr} is niet gevonden.`, true);
 }
-addEventListener('hashchange', () => { const m = location.hash.match(/melding=([^&]+)/); if(m && profiel){ history.replaceState(null, '', location.pathname + location.search); openGedeeld(decodeURIComponent(m[1])); } });
+addEventListener('hashchange', () => { if(history.state && history.state.submit) return;   // terug/vooruit binnen SubmIT: dat regelt popstate
+  const m = location.hash.match(/melding=([^&]+)/); if(m && profiel){ history.replaceState(null, '', location.pathname + location.search); openGedeeld(decodeURIComponent(m[1])); } });
 
 /* ================= Outlook-mail (.msg / .eml) omzetten naar een melding ================= */
 // .msg = Outlook-bestand (Compound File); .eml = standaard mailbestand. Alles wordt in de browser gelezen, er gaat niets naar een server.
