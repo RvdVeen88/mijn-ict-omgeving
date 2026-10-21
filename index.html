@@ -1441,7 +1441,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.33', VERSIE_DATUM = '21-10-2026';
+const VERSIE = 'v7.34', VERSIE_DATUM = '21-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2557,20 +2557,23 @@ const KPI = [
   {id:'k:klaar', t:'Afgehandeld deze week', kl:'groen', f:() => items.filter(x => x.afgesloten && !isChange(x) && isMijn(x) && x.statusDatum && +x.statusDatum >= +beginWeek())}
 ];
 /* To-do op het overzicht: wat te laat is, wat vandaag of deze week gepland staat en wat je belangrijk vond (Microsoft To Do + Planner) */
-function voorbladTodo(){
-  if(TD.status !== 'ok' || !TD.data) return '';
-  const vandaag = tdIso(new Date()), weekEind = tdIso(eindWeek());
-  const l = [...TD.data.taken.filter(t => !t.klaar).map(t => ({...t, bron: 'todo'})), ...(TD.planner || []).map(t => ({...t, bron: 'planner'}))]
-    .filter(t => t.belangrijk || (t.deadline && t.deadline <= weekEind));
-  if(!l.length) return `<div class="vb-todo"><h3>To-do</h3><p class="vb-leeg">Niets gepland deze week en niets als belangrijk gemarkeerd.</p></div>`;
-  const laat = l.filter(t => t.deadline && t.deadline < vandaag).length, vnd = l.filter(t => t.deadline === vandaag).length, bel = l.filter(t => t.belangrijk).length;
-  const kop = [laat && `<b class="laat">${laat} te laat</b>`, vnd && `${vnd} vandaag`, bel && `${bel} belangrijk`].filter(Boolean).join(' · ');
-  l.sort((a, b) => ((a.deadline && a.deadline < vandaag) ? 0 : 1) - ((b.deadline && b.deadline < vandaag) ? 0 : 1) || (a.deadline || '9999').localeCompare(b.deadline || '9999') || (b.belangrijk ? 1 : 0) - (a.belangrijk ? 1 : 0));
+function voorbladTodo(){   // twee blokken: wat een deadline heeft (op datum) en wat je met een ster belangrijk vond; geeft {html, n: aantal blokken}
+  if(TD.status !== 'ok' || !TD.data) return {html: '', n: 0};
+  const vandaag = tdIso(new Date());
+  const alle = [...TD.data.taken.filter(t => !t.klaar).map(t => ({...t, bron: 'todo'})), ...(TD.planner || []).map(t => ({...t, bron: 'planner'}))];
+  const metDatum = alle.filter(t => t.deadline).sort((a, b) => a.deadline.localeCompare(b.deadline) || (b.belangrijk ? 1 : 0) - (a.belangrijk ? 1 : 0));
+  const belangrijk = alle.filter(t => t.belangrijk && !t.deadline);   // belangrijk mét deadline staat al (met ster) bij de deadlines
   const wanneer = t => !t.deadline ? '' : t.deadline < vandaag ? `<span class="tdw laat">te laat · ${fmtDatum(new Date(t.deadline + 'T00:00:00'))}</span>` : `<span class="tdw${t.deadline === vandaag ? ' vandaag' : ''}">${t.deadline === vandaag ? 'vandaag' : fmtDatum(new Date(t.deadline + 'T00:00:00'))}</span>`;
   const vast = ((TD.data.lijsten || []).find(x => x.vast) || {}).id;   // de standaardlijst niet onder elke regel herhalen
   const waar = t => t.bron === 'planner' ? 'Planner · ' + (t.plan || '') : t.lijst === vast ? '' : tdLijstNaam(t.lijst);
   const rij = t => `<button type="button" class="tdregel" data-tdnaar="${esc(t.id)}" data-tdbron="${t.bron}" title="${esc(t.titel)}"><span class="tdster ${t.belangrijk ? 'aan' : ''}" aria-label="${t.belangrijk ? 'Belangrijk' : ''}">${t.belangrijk ? TD_STER : ''}</span><span class="tdtekst"><em>${esc(t.titel)}</em>${waar(t) ? `<small>${esc(waar(t))}</small>` : ''}</span>${wanneer(t)}</button>`;
-  return `<div class="vb-todo"><h3>To-do${kop ? `<small>${kop}</small>` : ''}</h3>${l.slice(0, 5).map(rij).join('')}${l.length > 5 ? `<button type="button" class="tdmeer" data-tdnaar="">Nog ${l.length - 5} in To-do ›</button>` : ''}</div>`;
+  const meer = (l, lijst) => l.length > 5 ? `<button type="button" class="tdmeer" data-tdnaar="" data-tdlijst="${lijst}">Nog ${l.length - 5} in To-do ›</button>` : '';
+  const laat = metDatum.filter(t => t.deadline < vandaag).length, vnd = metDatum.filter(t => t.deadline === vandaag).length;
+  const blok = [];
+  if(metDatum.length) blok.push(`<div class="vb-todo"><h3>To-do’s met deadline<small>${[laat && `<b class="laat">${laat} te laat</b>`, vnd && `${vnd} vandaag`, `${metDatum.length} totaal`].filter(Boolean).join(' · ')}</small></h3>${metDatum.slice(0, 5).map(rij).join('')}${meer(metDatum, 'alle')}</div>`);
+  if(belangrijk.length) blok.push(`<div class="vb-todo"><h3>Belangrijke to-do’s<small>${belangrijk.length}</small></h3>${belangrijk.slice(0, 5).map(rij).join('')}${meer(belangrijk, 'belangrijk')}</div>`);
+  if(!blok.length) blok.push(`<div class="vb-todo"><h3>To-do’s</h3><p class="vb-leeg">Geen to-do’s met een deadline en niets als belangrijk gemarkeerd.</p></div>`);
+  return {html: blok.join(''), n: blok.length};
 }
 function tekenMij(){
   $('#tegels').innerHTML = ''; $('#blokken').innerHTML = voorbladHtml();
@@ -2595,9 +2598,9 @@ function voorbladHtml(){
     ${STORINGEN.length ? `<div class="vb-storing"><h3>${KRIT_ICO}${STORINGEN.length === 1 ? 'Mogelijke storing' : STORINGEN.length + ' mogelijke storingen'}<small>meerdere vergelijkbare meldingen in korte tijd</small></h3>${STORINGEN.map((g, i) => `<div class="vbs-groep"><div class="vbs-kop">${g.nrs.length} meldingen over “${esc(g.woord)}”${g.loc ? ' · ' + esc(g.loc) : ''} <small class="hint" style="font-weight:400">sinds ${fmtTijd(g.sinds)}</small><button type="button" class="knop" data-storingnegeer="${i}" title="Geen storing: deze melding over deze meldingen niet meer tonen">Negeren</button><button type="button" class="knop" data-storingkrit="${i}" title="Maakt een nieuwe melding als kritieke storing aan, met de vergelijkbare meldingen erin">Kritieke storing aanmaken</button></div><div class="vbs-nrs">${g.nrs.map(nr => { const y = items.find(z => String(z.nr) === nr); return `<span><button type="button" data-storingnr="${esc(nr)}" data-groep="${i}">${esc(nr)}</button> ${esc(kort(y ? y.onderwerp : '', 46))}</span>`; }).join('')}</div></div>`).join('')}</div>` : ''}
     <p class="vb-groet">${groet}, ${esc(voornaam)}</p><p class="vb-dag">${dag}<small>${esc(zin)}</small></p>
     <div class="vb-cijfers">${waarden.map(k => `<button type="button" class="vb-c ${k.laadt ? 'laadt' : k.n ? (k.kl || '') : 'nul'}" data-weergave="${k.id}" title="${esc(k.laadt ? 'Wordt opgehaald…' : k.uitleg || 'Toon deze meldingen')}"><b>${k.laadt ? '–' : k.n}</b><span>${esc(k.t)}</span></button>`).join('')}</div>
-    ${plan.length || td ? `<div class="vb-lijsten ${plan.length && td ? '' : 'een'}">
+    ${plan.length || td.n ? `<div class="vb-lijsten ${(plan.length ? 1 : 0) + td.n > 1 ? '' : 'een'}">
       ${plan.length ? `<div><h3>Eerstvolgende werkzaamheden</h3>${plan.map(x => regel(x, beginDag(x.gepland).getTime() === vandaagBegin().getTime() ? 'vandaag' : fmtDatum(x.gepland))).join('')}</div>` : ''}
-      ${td}
+      ${td.html}
     </div>` : ''}
   </div>`;
 }
@@ -3494,7 +3497,8 @@ $('#k-update').onclick = async () => {
   if($('#detail').open && onopgeslagen($('#detail')) && !(await vraag('Nu bijwerken?', 'Je hebt een melding open met wijzigingen die nog niet zijn opgeslagen. Die gaan verloren als je nu bijwerkt.', 'Toch bijwerken', 'Later', true))) return;
   location.reload();
 };
-setTimeout(checkVersie, 8000); setInterval(checkVersie, 15 * 60e3);
+setTimeout(checkVersie, 8000); setInterval(checkVersie, 5 * 60e3);
+document.addEventListener('visibilitychange', () => { if(!document.hidden) checkVersie(); });   // terug in het venster: meteen kijken (hooguit eens per minuut)
 document.addEventListener('visibilitychange', () => { if(!document.hidden) checkVersie(); });
 /* ================= Controle (alleen de beheerder): staat elke open melding bij een ICT-collega? =================
    Eén regel: de verantwoordelijke moet in de ICT-lijst staan, dezelfde lijst als bij het kiezen van een verantwoordelijke
@@ -5344,7 +5348,7 @@ document.addEventListener('click', e => {
   const th = e.target.closest('th[data-sort]'); if(th){ const id = th.closest('table').dataset.tabel, k = th.dataset.sort, s = sortering[id];
     sortering[id] = s && s.k === k ? (s.op > 0 ? {k, op:-1} : undefined) : {k, op: ['in','reactie','gepland','sig','pstart','peind','p-start','p-eind','iu-in','iu-indienst','iu-uitdienst','h-wanneer'].includes(k) ? -1 : 1}; teken(); return; }
   const tdv = e.target.closest('.vb-todo [data-tdnaar]'); if(tdv){ const id = tdv.dataset.tdnaar, t = id && (tdv.dataset.tdbron === 'planner' ? null : tdTaak(id));
-    TD.lijst = tdv.dataset.tdbron === 'planner' ? 'mij' : t ? t.lijst : TD.lijst; TD.open = t ? t.id : null; tab = 'todo'; teken(); return; }
+    TD.lijst = tdv.dataset.tdlijst || (tdv.dataset.tdbron === 'planner' ? 'mij' : t ? t.lijst : TD.lijst); TD.open = t ? t.id : null; tab = 'todo'; teken(); return; }
   const vr = e.target.closest('.voorregel[data-nr]'); if(vr){ navLijst = [...vr.parentElement.querySelectorAll('.voorregel[data-nr]')].map(p => p.dataset.nr); openDetail(vr.dataset.nr); return; }
   const r = e.target.closest('tr[data-nr]'); if(r){ const tid = r.closest('table').dataset.tabel; navLijst = (tid && tabelVolgorde[tid]) || [...r.closest('tbody').querySelectorAll('tr[data-nr]')].map(t => t.dataset.nr); openDetail(r.dataset.nr); return; }
   const m = e.target.closest('.meer'); if(m){ const id = m.dataset.blok; blokOpen.has(id) ? blokOpen.delete(id) : blokOpen.add(id); teken(); return; }
@@ -6825,7 +6829,8 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
-  {v: 'v7.33', d: '21-10-2026', groot: true, p: ['De kolom Locatie is in alle overzichten gevuld.', 'Verantwoordelijke: alle ICT-collega’s (herkend aan kostenplaats ICT) en via "Iemand buiten ICT…" elke andere collega.', 'Wisselen tussen licht en donker gaat met een vloeiende overgang.', 'Niet storen is zichtbaar: een rood rondje op je foto, ook voor collega’s in Team en bij wie er online is.', 'Windows-meldingen bij een kritieke storing staan standaard aan: SubmIT vraagt één keer toestemming.', 'Nieuw icoon voor Nieuwe melding: een potlood, zoals “Nieuw bericht” in Outlook en Teams.', 'Rustscherm: na 2 minuten zonder muis zie je je overzicht met de tijd; beweeg je muis en je bent terug waar je was. Uit te zetten in je profielmenu.', 'Bij opslaan zie je bij een statuswijziging precies wie de mail krijgt: de melder en wie in CC staat.', 'Volledig scherm: knop rechtsboven naast je foto; nog eens klikken (of Esc) en het venster is weer normaal.', 'Het rustscherm beweegt heel rustig: zachte kleuren en zwevende lichtpuntjes.', 'Het cijfer Afgehandeld deze week staat er meteen; zolang het nog wordt opgehaald zie je een streepje in plaats van een 0.', 'To-do: één knop “Melding aanmaken”.', 'Het overzicht toont je to-do’s: wat te laat is, wat deze week gepland staat en wat je als belangrijk hebt gemarkeerd. Klik erop en je bent in To-do.', 'Nieuwe meldingen = alle open meldingen zonder verantwoordelijke. Zodra iemand verantwoordelijke is, staat de melding in de gewone lijsten.', 'In een melding staat de link naar die melding in de adresbalk: kopieer hem en stuur hem via Teams of mail, de ander komt direct in de melding.', 'Meldingen en kaartjes verschijnen boven de regel “Live · bijgewerkt om …”, zodat ze die niet meer bedekken.']},
+  {v: 'v7.34', d: '21-10-2026', groot: true, p: ['Rustscherm: na 2 minuten zonder muis zie je je overzicht met de tijd en heel rustig bewegende kleuren; beweeg je muis en je bent terug waar je was. Uit te zetten in je profielmenu.', 'Het overzicht toont je to-do’s in twee blokken: To-do’s met deadline en Belangrijke to-do’s. Klik erop en je bent in To-do.', 'Volledig scherm: knop rechtsboven naast je foto; nog eens klikken (of Esc) en het venster is weer normaal.', 'Niet storen is zichtbaar: een rood rondje op je foto, ook voor collega’s in Team en bij wie er online is.', 'Nieuwe meldingen = alle open meldingen zonder verantwoordelijke. Zodra iemand verantwoordelijke is, staat de melding in de gewone lijsten.', 'In een melding staat de link naar die melding in de adresbalk: kopieer hem en stuur hem via Teams of mail, de ander komt direct in de melding.', 'Bij opslaan zie je bij een statuswijziging precies wie de mail krijgt: de melder en wie in CC staat.', 'Windows-meldingen bij een kritieke storing staan standaard aan: SubmIT vraagt één keer toestemming.', 'Nieuw icoon voor Nieuwe melding: een potlood, zoals “Nieuw bericht” in Outlook en Teams.', 'Wisselen tussen licht en donker gaat met een vloeiende overgang.', 'Het cijfer Afgehandeld deze week staat er meteen; zolang het nog wordt opgehaald zie je een streepje in plaats van een 0.', 'To-do: één knop “Melding aanmaken”.', 'Een nieuwe versie zie je sneller: SubmIT kijkt elke 5 minuten en zodra je terugkomt in het venster.']},
+  {v: 'v7.33', d: '21-10-2026', groot: true, p: ['De kolom Locatie is in alle overzichten gevuld.', 'Verantwoordelijke: alle ICT-collega’s (herkend aan kostenplaats ICT) en via "Iemand buiten ICT…" elke andere collega.', 'Meldingen en kaartjes verschijnen boven de regel “Live · bijgewerkt om …”, zodat ze die niet meer bedekken.']},
   {v: 'v7.32', d: '21-10-2026', groot: true, p: ['Wat is er nieuw: in je profielmenu (klik op je foto) zie je per versie wat er veranderd is.', 'Verbeteracties staan voortaan bij Mijn changes, niet meer tussen de meldingen.']},
   {v: 'v7.31', d: '21-10-2026', groot: true, p: ['Alt+← en Alt+→ (en de terugknop van je muis) gaan door de schermen en meldingen die je in SubmIT hebt bezocht, niet meer naar andere websites.']},
   {v: 'v7.30', d: '21-10-2026', groot: true, p: ['Hyperlinks in toelichting en reacties: plak je een link (uit Outlook, Teams, SharePoint), dan zie je de naam en zit de link erachter.', 'Zelf een link maken: tekst selecteren en rechtermuisklik of Ctrl+K. Ctrl+klik opent een link.']},
