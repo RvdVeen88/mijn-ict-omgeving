@@ -1384,12 +1384,13 @@ const INST = Object.assign({
   connMedewerkers: 'PowerBI_ICT_Verjaardag',
   hoofdkantoor: 'Planetarium',           // locatievoorstel voor medewerkers van stafafdelingen (organisatorische eenheid zonder "DC Klinieken <vestiging>")
   connCollegas: 'PowerBI_ICT_Collegas',   // GetConnector op alle AFAS-gebruikers (Gebruiker + Naam + Geblokkeerd): codes voor Verantwoordelijke; wie ICT is bepaalt het organigram (Laag 4)
-  ictLaag4: 'GROEMANDZI',
+  ictLaag4: 'GROEMANDZI',   // terugval als de medewerkersconnector (nog) geen Kostenplaats heeft
+  ictKostenplaats: 'ICT',   // ICT-collega = medewerker met deze kostenplaats (kolom Kostenplaats in de medewerkersconnector)
   beheerder: 'Robert van der Veen',   // alleen deze persoon ziet Controle              // organigram Laag 4 = valt onder Manager Digitale Zorg & ICT: dat zijn de ICT-medewerkers
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.32', VERSIE_DATUM = '21-10-2026';
+const VERSIE = 'v7.33', VERSIE_DATUM = '21-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1569,7 +1570,7 @@ function maakItem(r, extra){
     afgerond: ja(r.Workflow_afgerond), kritiek: ja(r.Kritieke_storing), extern: String(r.Extern_ticket ?? '').trim(),
     ...extra };
   const veld = re => { const k = Object.keys(r).find(k => re.test(k)); return k ? String(r[k] ?? '').trim() : ''; };
-  x.toelichting = veld(/^toelichting/i); x.locatie = veld(/^locatie$/i);
+  x.toelichting = veld(/^toelichting/i); x.locatie = veld(LOC_KOL);
   // de melder is in AFAS de sollicitant; Omschrijving_2 is soms de registreerder (bv. Glenn die een mail invoert)
   const soll = (!iuRij && sollCache.get(String(x.nr))) || sollNaam(r); if(soll) x.melder = soll;
   { const pd = (!iuRij && projCache.get(String(x.nr))) || projDatums(r); if(pd){ x.projStart = pd.start; x.projEind = pd.eind; } }
@@ -1629,7 +1630,7 @@ let heeftLocKolom = false, locBronTickets = false;   // locatie: in de SLA-conne
 const locVan = x => String((x && (x.locatie || locCache.get(String(x.nr)))) || '').trim();
 function bouwItems(sla, sbPerNr){
   bepaalAfdVeld(sla);
-  if(sla.length) heeftLocKolom = sla.some(r => Object.keys(r).some(k => /^locatie$/i.test(k)));
+  if(sla.length) heeftLocKolom = sla.some(r => Object.keys(r).some(k => LOC_KOL.test(k)));
   // taken: alleen die van de ingelogde gebruiker (die maken een melding "van mij")
   taakPerSb = new Map();
   mijnTaken.forEach(t => { if(t.SubjectId == null || t.SubjectId === '') return; const k = String(t.SubjectId); const o = taakPerSb.get(k) || {taak: t.TaskDescription || t.WfDescription || '', bij: []};
@@ -1682,6 +1683,21 @@ function kortNaam(naam){
 }   // melder = sollicitant (veld Sollicitant_3 in Helpdesk_PowerBI) per meldingnummer
 const instCache = new Map();   // instuurder (veld Gebruiker in Helpdesk_PowerBI) per meldingnummer
 const locCache = new Map();   // locatie per meldingnummer uit Helpdesk_PowerBI (als de SLA-connector geen Locatie heeft)
+const LOC_KOL = /^(locatie|kostendrager)$/i;   // in Helpdesk_PowerBI heet de locatie van de melding 'Kostendrager' (Locatiebezoek is iets anders)
+// alle locaties in één keer op de achtergrond (Helpdesk_PowerBI), zodat de kolom Locatie in elk overzicht gevuld is
+let locAlleGeladen = false, locAlleBezig = false;
+async function laadAlleLocaties(test){
+  if((DEMO && !test) || heeftLocKolom || locAlleGeladen || locAlleBezig) return; locAlleBezig = true;
+  try{ const rows = await connectorAlles(INST.connTickets, '');
+    const lk = rows.length && Object.keys(rows[0]).find(k => LOC_KOL.test(k));
+    if(lk){ locBronTickets = true;
+      rows.forEach(r => { const nk = rijIsIu(r) ? iuSleutel(r.Nummer) : String(r.Nummer), v = String(r[lk] ?? '').trim();
+        if(v || !locCache.has(nk)) locCache.set(nk, v); if(r.Dossieritem != null && !sbCache.has(nk)) sbCache.set(nk, r.Dossieritem); }); }
+    locAlleGeladen = true;
+    if(!$('#detail').open && isLijstTab(tab)) teken();
+  }catch(e){ console.warn('SubmIT: locaties ophalen lukte niet:', e.message); }
+  finally{ locAlleBezig = false; }
+}
 // is deze rij uit Helpdesk_PowerBI een in-/uitdienst? (alleen als de connector het type meegeeft)
 const rijIsIu = r => { const k = Object.keys(r).find(c => c === INST.soortVeld || /^type_?dossieritem$/i.test(c)); return !!k && isIuSoort(String(r[k] ?? '')); };
 async function sbIdsVoor(veld, waarden){
@@ -1692,7 +1708,7 @@ async function sbIdsVoor(veld, waarden){
       rows.forEach(r => { const nk = rijIsIu(r) ? iuSleutel(r.Nummer) : String(r.Nummer);   // sleutel per type: nooit een uitdienst aan een gelijknamige ICT-melding hangen
         uit.set(nk, r.Dossieritem); sbCache.set(nk, r.Dossieritem);
         const tk = Object.keys(r).find(k => /^toelichting/i.test(k)); if(tk) toelCache.set(nk, kaal(r[tk]));
-        const lk = Object.keys(r).find(k => /^locatie$/i.test(k)); if(lk){ locBronTickets = true; locCache.set(nk, String(r[lk] ?? '').trim()); }
+        const lk = Object.keys(r).find(k => LOC_KOL.test(k)); if(lk){ locBronTickets = true; locCache.set(nk, String(r[lk] ?? '').trim()); }
         const gk = Object.keys(r).find(k => /^gebruiker$/i.test(k)); if(gk) instCache.set(nk, String(r[gk] ?? '').trim());
         const sn = sollNaam(r); if(sn !== null) sollCache.set(nk, sn);
         const pd = projDatums(r); if(pd) projCache.set(nk, pd);
@@ -3844,7 +3860,8 @@ function mailVooraf(){
 }
 /* verantwoordelijke kiezen, overal hetzelfde: eerst altijd de ICT-collega's; typ je een naam, dan komen ook AFAS-gebruikers buiten ICT erbij (onderaan) */
 // alle AFAS-gebruikers die verantwoordelijke kunnen zijn: de keuzelijst van het veld (als AFAS die meegeeft), anders de connector met gebruikers
-async function alleGebruikers(){ const m = await laadSubjMeta().catch(() => ({}));
+async function alleGebruikers(){ const mwg = await mwGebruikers(); if(mwg) return [...new Map(mwg.map(c => [norm(c.code), c])).values()].sort((a, b) => a.naam.localeCompare(b.naam, 'nl'));
+  const m = await laadSubjMeta().catch(() => ({}));
   const uitVeld = m.verantw ? waardenVan(m.verantw.values).filter(w => w.naam && !/^\d+\.\S+$/.test(w.naam)) : [];
   const l = uitVeld.length ? uitVeld : ((await collegasUitConnector().catch(() => null)) || []);
   return [...l].sort((a, b) => a.naam.localeCompare(b.naam, 'nl')); }
@@ -4018,7 +4035,13 @@ function zelfdePersoon(a, b){
   if(A.join(' ') === B.join(' ')) return true;
   const [k, g] = A.length <= B.length ? [A, B] : [B, A]; return k.length >= 2 && k.every(t => g.includes(t));
 }
+// gebruikers uit de medewerkersconnector (zodra die de AFAS-gebruikerscode heeft): één lijst voor Melder, Verantwoordelijke en wie ICT is
+async function mwGebruikers(){ try{ const mw = await laadMedewerkers(); const l = (mw || []).filter(m => m.code);
+    return l.length ? l.map(m => ({code: m.code, naam: m.vol || m.naam, oe: m.oe || '', ict: m.ict})) : null; }catch(e){ return null; } }
 async function ictCollegas(){
+  const mwg = await mwGebruikers();
+  if(mwg){ const team = mwg.filter(m => m.ict); collegaDiag = '';
+    if(team.length) return [...new Map(team.map(c => [norm(c.code), c])).values()].sort((a, b) => a.naam.localeCompare(b.naam, 'nl')); }
   const conn = await collegasUitConnector();
   const m = await laadSubjMeta().catch(() => ({})), waarden = m.verantw ? waardenVan(m.verantw.values).filter(w => w.naam && !/^\d+\.\S+$/.test(w.naam)) : [];
   // het ICT-team = organigram Laag 4 (GROEMANDZI) in de medewerkersconnector; anders de OE-naam
@@ -4307,7 +4330,7 @@ async function kiesMedewerkerConnector(){
   }
   throw new Error(`geen GetConnector met alle medewerkers gevonden in de app connector. Bekeken: ${pogingen.join('; ') || 'niets'}${alleGet.length ? '. Beschikbaar: ' + alleGet.map(c => c.id).join(', ') : ''}`);
 }
-let medewerkers = null, medewerkerFout = '', medewerkerConn = '', medewerkerKolDiag = '';
+let medewerkers = null, medewerkerFout = '', medewerkerConn = '', medewerkerKolDiag = '', medewerkerKpBron = '';
 let heeftFunctieKol = DEMO;
 async function laadMedewerkers(){
   if(medewerkers) return medewerkers;
@@ -4329,8 +4352,14 @@ async function laadMedewerkers(){
   const mailK = Object.keys(rijen[0] || {}).find(c => /mail/i.test(c) && /werk|work|zakelijk|business|^e.?mail$|^mail$/i.test(c)) || Object.keys(rijen[0] || {}).find(c => /mail/i.test(c) && !/prive|privé|home|personal/i.test(c));
   const funK = Object.keys(rijen[0] || {}).find(c => /^functie/i.test(c.replace(/_/g, ' ')) && !/code|id$/i.test(c)) || Object.keys(rijen[0] || {}).find(c => /functie/i.test(c)); heeftFunctieKol = !!funK;
   const lgK = Object.keys(rijen[0] || {}).find(c => /^laag.?4/i.test(c.replace(/_/g, ' ')) && !/oms|naam|desc/i.test(c)) || Object.keys(rijen[0] || {}).find(c => /^laag.?4/i.test(c.replace(/_/g, ' ')));
-  const uniek = new Map(); rijen.filter(inDienst).forEach(r => { const id = t(r[k.idK]), n = naamVan(r); if(id && n.label && !uniek.has(id)) uniek.set(id, {id, ict: !!(lgK && INST.ictLaag4 && norm(t(r[lgK])) === norm(INST.ictLaag4)), naam: n.label, vol: n.vol, roep: t(r[k.roep]), off: [t(r[k.voor]), t(r[k.tus]), t(r[k.ach])].filter(Boolean).join(' '), oe: k.oeK ? t(r[k.oeK]) : '', loc: locK ? t(r[locK]) : '', functie: funK ? t(r[funK]) : '', mail: mailK && /@/.test(t(r[mailK])) ? t(r[mailK]) : ''}); });
+  // AFAS-gebruikerscode (nodig voor Verantwoordelijke) en kostenplaats (wie is ICT) — zodra de beheerder ze aan de connector toevoegt
+  const gebK = Object.keys(rijen[0] || {}).find(c => /^(gebruiker|gebruikerscode|gebruiker_code|usid|userid)$/i.test(c));
+  const kpK = Object.keys(rijen[0] || {}).find(c => /^kostenplaats$/i.test(c)) || Object.keys(rijen[0] || {}).find(c => /^kostenplaats/i.test(c) && /oms|naam|desc/i.test(c)) || Object.keys(rijen[0] || {}).find(c => /^kostenplaats/i.test(c));
+  const isIctMw = r => kpK ? norm(t(r[kpK])) === norm(INST.ictKostenplaats) : !!(lgK && INST.ictLaag4 && norm(t(r[lgK])) === norm(INST.ictLaag4));
+  medewerkerKpBron = kpK ? 'kostenplaats' : (lgK ? 'organigram' : '');
+  const uniek = new Map(); rijen.filter(inDienst).forEach(r => { const id = t(r[k.idK]), n = naamVan(r); if(id && n.label && !uniek.has(id)) uniek.set(id, {id, ict: isIctMw(r), code: gebK ? t(r[gebK]) : '', kp: kpK ? t(r[kpK]) : '', naam: n.label, vol: n.vol, roep: t(r[k.roep]), off: [t(r[k.voor]), t(r[k.tus]), t(r[k.ach])].filter(Boolean).join(' '), oe: k.oeK ? t(r[k.oeK]) : '', loc: locK ? t(r[locK]) : '', functie: funK ? t(r[funK]) : '', mail: mailK && /@/.test(t(r[mailK])) ? t(r[mailK]) : ''}); });
   medewerkers = [...uniek.values()].sort((a, b) => a.naam.localeCompare(b.naam, 'nl'));
+  medewerkers.forEach(m => { if(m.code){ gebruikerCode.set(norm(m.vol || m.naam), m.code); gebruikerCode.set(norm(m.naam), m.code); if(!codeNaam.has(norm(m.code))) codeNaam.set(norm(m.code), m.vol || m.naam); } });
   items.forEach(x => { const k = kortNaam(x.melder); if(k !== x.melder) x.melder = k; });   // melders met roepnaam, nu de connector er is
   return medewerkers;
 }
@@ -4842,7 +4871,7 @@ function startInlog(fout){
   $('#k-in').onclick = () => inloggen();
 }
 function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken();
-  if(!toonApp.nieuws){ toonApp.nieuws = 1; setTimeout(() => nieuwsNaUpdate(), 3000); } }   // na een update één keer 'SubmIT is bijgewerkt'
+  if(!toonApp.nieuws){ toonApp.nieuws = 1; setTimeout(() => nieuwsNaUpdate(), 3000); setTimeout(() => laadAlleLocaties(), 4000); } }   // na een update één keer 'SubmIT is bijgewerkt'
 
 /* ================= Connectoren & velden: wat SubmIT per connector nodig heeft, live gecontroleerd ================= */
 // gebruik per connector in deze sessie (bijgehouden in afas())
@@ -4875,14 +4904,14 @@ const CONN_KAART = () => [
     v('Extern_ticket', 'Extern ticketnummer (leverancier) in het meldingvenster', 'opt'),
     v('Focusgebied_ICT', 'Alleen voor zoeken', 'opt'),
     v('Focusgebied_EMMA', 'Alleen voor zoeken', 'opt'),
-    v(/^locatie$/i, 'Locatie (anders uit Helpdesk_PowerBI)', 'opt', 'Locatie')]},
+    v(LOC_KOL, 'Locatie (anders uit Kostendrager in Helpdesk_PowerBI)', 'opt', 'Locatie')]},
   {conn: INST.connTickets, sleutel: 'connTickets', soort: 'GET', nodig: 'ja', doel: 'Aanvulling per melding: intern nummer (nodig voor elke wijziging), melder, instuurder, toelichting en change-datums. Wordt per 40 meldingen opgevraagd.', velden: [
     v('Nummer', 'Meldingnummer (filter)'),
     v('Dossieritem', 'Intern nummer (SbId): zonder dit kan niets worden opgeslagen, geen reacties of bijlagen'),
     v('Sollicitant_3', 'Melder (sollicitant): kolom Melder, aanhef standaardtekst, ⓘ'),
     v('Gebruiker', 'Instuurder: wie de melding aanmaakte'),
     v(/^toelichting/i, 'Toelichting in het meldingvenster', 'opt', 'Toelichting'),
-    v(/^locatie$/i, 'Locatie (als de SLA-connector die niet heeft)', 'opt', 'Locatie'),
+    v(LOC_KOL, 'Locatie van de melding: kolom Locatie in elk overzicht (alles één keer op de achtergrond)', 'opt', 'Kostendrager'),
     v(/^(begin|start)_?datum_?project|^begindatum/i, 'Startdatum project (changes, tijdlijn)', 'opt', 'Begindatum project'),
     v(/^eind_?datum_?project|^einddatum/i, 'Deadline / einddatum project (changes, tijdlijn)', 'opt', 'Einddatum project'),
     v(/^(bereikbaarheid|telefoon(nr|nummer)?|telefoonnr)/i, 'Telefoon/bereikbaarheid melder: bellen via Teams', 'opt', 'Bereikbaarheid'),
@@ -4922,7 +4951,9 @@ const CONN_KAART = () => [
     v(/organisatorische|^oe$/i, 'Organisatorische eenheid: ⓘ, locatievoorstel, ICT-collega’s', 'ja', 'Organisatorische eenheid'),
     v(/^(locatie|standplaats|werklocatie|werkplek|vestiging)/i, 'Werklocatie (beter locatievoorstel)', 'opt', 'Locatie'),
     v(/uit.?dienst|einddatum|date.?of.?leaving/i, 'Uit dienst: niet meer tonen', 'opt', 'Datum uit dienst'),
-    v(/^(geblokkeerd|blocked|inactief)$/i, 'Geblokkeerd: niet meer tonen', 'opt', 'Geblokkeerd')]},
+    v(/^(geblokkeerd|blocked|inactief)$/i, 'Geblokkeerd: niet meer tonen', 'opt', 'Geblokkeerd'),
+    v(/^(gebruiker|gebruikerscode|gebruiker_code|usid|userid)$/i, 'AFAS-gebruikerscode: iedereen kiesbaar als Verantwoordelijke (ICT en buiten ICT)', 'opt', 'Gebruiker'),
+    v(/^kostenplaats/i, 'Kostenplaats: ICT-collega = kostenplaats ICT', 'opt', 'Kostenplaats')]},
   {conn: INST.connIk, sleutel: 'connIk', soort: 'GET', nodig: 'ja', doel: 'Wie ben ik: filter Gebruiker = [Gebruiker] geeft alleen de ingelogde gebruiker.', velden: [
     v(/^(gebruiker|gebruikerscode|gebruiker_code|user|userid)$/i, 'Gebruikerscode van de ingelogde gebruiker (filter Gebruiker = [Gebruiker])', 'ja', 'Gebruiker'),
     v(/naam/i, 'Naam van de ingelogde gebruiker', 'ja', 'Naam'),
@@ -4955,7 +4986,7 @@ const CONN_KAART = () => [
   {conn: INST.connProjUpdates, sleutel: 'connProjUpdates', soort: 'GET', nodig: 'opt', doel: 'Projectvenster: eerdere updates (dossieritems van type Update projectvoortgang) per project, net als de reacties bij een melding. Filter in AFAS op type dossieritem 77.', velden: [
     v(/^(project|projectcode|projectnummer)$/i, 'Projectcode (koppelt met PtProject)', 'ja', 'Project'), v(/^(toelichting|tekst|inhoud|bericht|update)$/i, 'Tekst van de update', 'ja', 'Toelichting'),
     v(/^(datum|instuurdatum|aangemaakt op|datum aanmaak)/i, 'Datum', 'opt', 'Datum'), v(/^(aangemaakt door|medewerker|instuurder|gebruiker|naam)/i, 'Wie schreef de update', 'opt', 'Aangemaakt door'), v(/^(onderwerp|omschrijving)$/i, 'Onderwerp', 'opt', 'Onderwerp')]},
-  {conn: INST.connCollegas, sleutel: 'connCollegas', soort: 'GET', nodig: 'opt', doel: 'Alle AFAS-gebruikers met hun gebruikerscode. Nodig om bij Verantwoordelijke iedere ICT-collega te kunnen kiezen (ook zonder openstaande AFAS-taak) en om iemand buiten ICT te kiezen. Wie ICT is, bepaalt het organigram (Laag 4).', velden: [
+  {conn: INST.connCollegas, sleutel: 'connCollegas', soort: 'GET', nodig: 'opt', doel: 'Niet nodig zodra de medewerkersconnector Gebruiker en Kostenplaats heeft. Anders: alle AFAS-gebruikers met hun gebruikerscode, voor Verantwoordelijke.', velden: [
     v(/^(gebruiker(scode)?|user(id)?|usid|code)$/i, 'Gebruikerscode (bv. 88406.kgroen): wordt in Verantwoordelijke gezet', 'ja', 'Gebruiker'), v(/^(naam|name|weergavenaam|naam_gebruiker|gebruiker_naam|volledige_naam|medewerker)$/i, 'Naam van de gebruiker', 'ja', 'Naam'), v(/^(geblokkeerd|blocked|inactief)$/i, 'Geblokkeerde gebruikers niet tonen', 'opt', 'Geblokkeerd')]},
   {conn: INST.connInUit, sleutel: 'connInUit', soort: 'GET', nodig: 'opt', doel: 'In- en uitdienst: het overzicht en de velden zoals in AFAS (medewerker, datums, gegevensbewaring, mailbox, accounts).', velden: [
     v(/^nummer$/i, 'Nummer', 'ja', 'Nummer'), v(/^dossieritem$/i, 'Dossieritem (koppelt aan de melding)', 'ja', 'Dossieritem'), v(/datum.?in.?dienst/i, 'Datum in dienst', 'opt', 'Datum in dienst'), v(/uitdienst.?datum|datum.?uit.?dienst/i, 'Uitdienst datum', 'opt', 'Uitdienst datum'),
@@ -6643,6 +6674,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.33', d: '21-10-2026', groot: true, p: ['De kolom Locatie is in alle overzichten gevuld.', 'Verantwoordelijke: alle ICT-collega’s (herkend aan kostenplaats ICT) en via "Iemand buiten ICT…" elke andere collega.']},
   {v: 'v7.32', d: '21-10-2026', groot: true, p: ['Wat is er nieuw: in je profielmenu (klik op je foto) zie je per versie wat er veranderd is.', 'Verbeteracties staan voortaan bij Mijn changes, niet meer tussen de meldingen.']},
   {v: 'v7.31', d: '21-10-2026', groot: true, p: ['Alt+← en Alt+→ (en de terugknop van je muis) gaan door de schermen en meldingen die je in SubmIT hebt bezocht, niet meer naar andere websites.']},
   {v: 'v7.30', d: '21-10-2026', groot: true, p: ['Hyperlinks in toelichting en reacties: plak je een link (uit Outlook, Teams, SharePoint), dan zie je de naam en zit de link erachter.', 'Zelf een link maken: tekst selecteren en rechtermuisklik of Ctrl+K. Ctrl+klik opent een link.']},
