@@ -1462,7 +1462,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.37', VERSIE_DATUM = '21-10-2026';
+const VERSIE = 'v7.38', VERSIE_DATUM = '21-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -4189,6 +4189,7 @@ function zelfdePersoon(a, b){
   if(A.join(' ') === B.join(' ')) return true;
   const [k, g] = A.length <= B.length ? [A, B] : [B, A]; return k.length >= 2 && k.every(t => g.includes(t));
 }
+const isIctKp = v => { const n = norm(v); return !!n && (n === norm(INST.ictKostenplaats) || new RegExp('(^|[^a-z])' + norm(INST.ictKostenplaats) + '([^a-z]|$)').test(n)); };
 // gebruikers uit de medewerkersconnector (zodra die de AFAS-gebruikerscode heeft): één lijst voor Melder, Verantwoordelijke en wie ICT is
 async function mwGebruikers(){ try{ const mw = await laadMedewerkers(); const l = (mw || []).filter(m => m.code);
     return l.length ? l.map(m => ({code: m.code, naam: m.vol || m.naam, oe: m.oe || '', ict: m.ict})) : null; }catch(e){ return null; } }
@@ -4509,8 +4510,11 @@ async function laadMedewerkers(){
   // AFAS-gebruikerscode (nodig voor Verantwoordelijke) en kostenplaats (wie is ICT) — zodra de beheerder ze aan de connector toevoegt
   const gebK = Object.keys(rijen[0] || {}).find(c => /^(gebruiker|gebruikerscode|gebruiker_code|usid|userid)$/i.test(c));
   const kpK = Object.keys(rijen[0] || {}).find(c => /^kostenplaats$/i.test(c)) || Object.keys(rijen[0] || {}).find(c => /^kostenplaats/i.test(c) && /oms|naam|desc/i.test(c)) || Object.keys(rijen[0] || {}).find(c => /^kostenplaats/i.test(c));
-  const isIctMw = r => kpK ? norm(t(r[kpK])) === norm(INST.ictKostenplaats) : !!(lgK && INST.ictLaag4 && norm(t(r[lgK])) === norm(INST.ictLaag4));
-  medewerkerKpBron = kpK ? 'kostenplaats' : (lgK ? 'organigram' : '');
+  const laag4 = r => !!(lgK && INST.ictLaag4 && norm(t(r[lgK])) === norm(INST.ictLaag4));
+  // kostenplaats ICT: "ICT", maar ook "ICT - Servicedesk" of "4100 ICT"; levert de kolom voor niemand ICT op, dan terug naar het organigram
+  const kpWerkt = kpK && rijen.some(r => isIctKp(t(r[kpK])));
+  const isIctMw = r => kpWerkt ? isIctKp(t(r[kpK])) : laag4(r);
+  medewerkerKpBron = kpWerkt ? 'kostenplaats' : (lgK ? 'organigram' : '');
   const uniek = new Map(); rijen.filter(inDienst).forEach(r => { const id = t(r[k.idK]), n = naamVan(r); if(id && n.label && !uniek.has(id)) uniek.set(id, {id, ict: isIctMw(r), code: gebK ? t(r[gebK]) : '', kp: kpK ? t(r[kpK]) : '', naam: n.label, vol: n.vol, roep: t(r[k.roep]), off: [t(r[k.voor]), t(r[k.tus]), t(r[k.ach])].filter(Boolean).join(' '), oe: k.oeK ? t(r[k.oeK]) : '', loc: locK ? t(r[locK]) : '', functie: funK ? t(r[funK]) : '', mail: mailK && /@/.test(t(r[mailK])) ? t(r[mailK]) : ''}); });
   medewerkers = [...uniek.values()].sort((a, b) => a.naam.localeCompare(b.naam, 'nl'));
   medewerkers.forEach(m => { if(m.code){ gebruikerCode.set(norm(m.vol || m.naam), m.code); gebruikerCode.set(norm(m.naam), m.code); if(!codeNaam.has(norm(m.code))) codeNaam.set(norm(m.code), m.vol || m.naam); } });
@@ -7029,6 +7033,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.38', d: '22-10-2026', p: ['ICT-collega’s worden herkend aan hun kostenplaats ICT; bij Verantwoordelijke staan alle ICT-collega’s en via "Iemand buiten ICT…" iedereen met een AFAS-gebruiker.']},
   {v: 'v7.37', d: '21-10-2026', groot: true, p: ['Voorstel bij binnenkomst: bij een melding zonder verantwoordelijke stelt SubmIT afdeling, type en verantwoordelijke voor, op basis van vergelijkbare meldingen. Herkenbaar aan ✦ Voorstel: ✓ neemt over, × haalt weg.', 'Concept-antwoord: één klik onder het reactievak geeft een concept op basis van hoe een vergelijkbare melding is opgelost, met een instructie uit de kennisbank erbij.', 'Instructie maken: bij een afgehandelde melding maak je van de oplossing een Word-concept in DC-huisstijl voor de kennisbank.']},
   {v: 'v7.36', d: '21-10-2026', p: ['To-do op het overzicht: rustigere kopjes, het aantal als label.']},
   {v: 'v7.35', d: '21-10-2026', p: ['To-do op het overzicht: één blok met Komende 7 dagen (en wat te laat is) en Belangrijk.', 'Nieuwe uitstraling van de kaartjes rechtsonder (update, herinnering, kritieke storing): dunne rand, zacht kleurverloop en een subtiele schaduw.']},
