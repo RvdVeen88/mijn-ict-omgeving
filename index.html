@@ -1344,7 +1344,14 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 .pb-leeg{border:1px dashed var(--lijn);border-radius:14px;padding:22px;text-align:center;color:var(--grijs);margin-top:12px}.pb-leeg b{color:var(--inkt)}
 #pbdlg{width:min(860px,calc(100vw - 32px))}
 .pb-elke{display:flex;gap:8px;align-items:center}.pb-elke input{width:70px}
-.pb-kop3{font-size:13px;color:var(--blauw);margin:16px 0 6px}
+.pb-kop3{font-size:13px;color:var(--blauw);margin:16px 0 6px}.pb-kop3 small{font-weight:400;margin-left:6px}
+.pb-hulp{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border:1px dashed var(--lijn);border-radius:10px;min-height:44px}.pb-hulp.sleep{border-color:var(--blauw);background:var(--blauw-licht,rgba(5,55,135,.06))}
+.pbres{border:1px solid var(--lijn);border-left:3px solid var(--blauw);border-radius:12px;padding:12px 14px;margin:4px 0 12px;display:flex;flex-direction:column;gap:10px}
+.pbres h3{margin:0;font-size:13px;color:var(--blauw)}.pbres h3 small{font-weight:400;margin-left:6px}
+.pbres-check{display:flex;flex-direction:column;gap:6px}.pbres-uit{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.pbres-uit>span{font-size:12.5px;color:var(--zacht,#667)}
+.pbres-drop{display:flex;align-items:center;gap:6px;padding:10px 12px;border:1px dashed var(--lijn);border-radius:10px;font-size:13px;color:var(--zacht,#667)}.pbres-drop svg{width:16px;height:16px}.pbres-drop.sleep{border-color:var(--blauw);background:rgba(5,55,135,.06)}
+.pbres #pbres-hint:empty{display:none}.pbres #pbres-hint{margin:0}
+.pb-hulp .klikbaar{cursor:pointer;text-decoration:underline dotted}
 .pb-acties{display:flex;gap:10px;align-items:center;margin-top:14px}.linkknop.rood{color:var(--rood)}
 
 .docx-voorbeeld{max-width:760px;margin:0 auto;padding:28px 34px;background:var(--vlak);color:var(--inkt);font-size:14px;line-height:1.55}
@@ -1506,7 +1513,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.40', VERSIE_DATUM = '21-10-2026';
+const VERSIE = 'v7.41', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3715,8 +3722,11 @@ async function pbApi(methode, body){
     if(methode === 'PUT'){ d.defs = body.defs; (body.reset || []).forEach(id => { if(d.status[id]) delete d.status[id].volgende; }); }
     if(methode === 'POST' && body.actie === 'nu'){ const def = d.defs.find(x => x.id === body.id), st = d.status[body.id] = d.status[body.id] || {}; const v = st.volgende || def.start;
       st.open = String(900000 + Math.floor(Math.random() * 999)); st.laatst = tdIso(new Date()); st.laatsteVerval = v; (st.historie = st.historie || []).push({sbid: st.open, verval: v, aangemaakt: st.laatst}); if(!st.volgende){ let k = 1; while(pbKeer(def, k) <= v) k++; st.volgende = pbKeer(def, k); } }
+    if(methode === 'POST' && body.actie === 'bijlage'){ (window._demoPbb = window._demoPbb || {})[body.bid] = {naam: body.naam, data: body.data}; return {ok: true}; }
+    if(methode === 'GET' && body && body.bid) return (window._demoPbb || {})[body.bid] || {naam: 'voorbeeld.txt', data: btoa('Voorbeeldbestand (demo)')};
     opslag.set('mict-demo-pb', d); return {defs: d.defs, status: d.status, ok: true, uit: []}; }
-  const r = await fetch(pbUrl(), {method: methode, headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await geldigToken()}, body: body ? JSON.stringify(body) : undefined});
+  const url = methode === 'GET' && body && body.bid ? pbUrl() + '?soort=bijlage&bid=' + encodeURIComponent(body.bid) : pbUrl(); if(methode === 'GET') body = null;
+  const r = await fetch(url, {method: methode, headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await geldigToken()}, body: body ? JSON.stringify(body) : undefined});
   const j = await r.json().catch(() => ({}));
   if(!r.ok) throw new Error(r.status === 404 ? 'de Azure-functie ict-beoordelingen is (nog) niet gepubliceerd' : (j.error || 'HTTP ' + r.status));
   return j;
@@ -3746,7 +3756,7 @@ function tekenBeoordelingen(){
   $('#lijst-titel').textContent = 'Periodieke beoordelingen'; $('#lijst-n').hidden = !PB.defs; $('#lijst-n').textContent = (PB.defs || []).filter(d => d.actief).length;
   $('#titel').textContent = ''; $('#subtitel').textContent = ''; $('#lijst-sub').textContent = ''; $('#lijst-kol').innerHTML = '';
   ['#f-mijn', '#f-mijalles', '#f-soort', '#f-changes', '#f-weergave', '#f-zoom'].forEach(sel => { const e = $(sel); if(e) e.hidden = true; });
-  const uitleg = `<p class="ctrl-uitleg" style="margin-top:4px">Controles die met vaste tussenpozen terugkomen (NEN 7510: <i>met geplande tussenpozen beoordelen</i>). Op tijd komt er vanzelf een melding met de instructie, type <b>${PB_TYPE}</b>, bij de verantwoordelijke. Staat de vorige keer nog open, dan komt er geen nieuwe en zie je hem hier als <b>achter</b>.</p>`;
+  const uitleg = `<p class="ctrl-uitleg" style="margin-top:4px">Controles die met vaste tussenpozen terugkomen (NEN 7510: <i>met geplande tussenpozen beoordelen</i>). Op tijd komt er vanzelf een melding met de instructie en de hulpmiddelen, type <b>${PB_TYPE}</b>: als <b>Nieuw</b> bij de afdeling (de servicedesk wijst hem toe) of direct bij een vaste verantwoordelijke. Staat de vorige keer nog open, dan komt er geen nieuwe en zie je hem hier als <b>achter</b>.</p>`;
   const knoppen = `<div class="ctrl-kop"><span>${PB.bezig ? 'Ophalen…' : PB.fout ? '<span class="fout">' + esc(PB.fout) + '</span>' : PB.t ? 'Bijgewerkt ' + fmtTijd(new Date(PB.t)) : ''}</span><span class="pb-knoppen"><button type="button" class="linkknop" data-pbplan title="Doet wat de dagelijkse planner om 6 uur doet, nu meteen">Planner nu draaien</button><button type="button" class="knop vol klein" data-pbnieuw>+ Nieuwe beoordeling</button></span></div>`;
   if(!PB.defs){ $('#lijst').innerHTML = uitleg + knoppen + `<p class="leeg">${PB.bezig ? 'Beoordelingen ophalen…' : PB.fout ? 'Ophalen lukte niet.' : ''}</p>`; return; }
   const nu = tdIso(new Date()), over30 = tdIso(new Date(Date.now() + 30 * DAG)), jaar = String(new Date().getFullYear());
@@ -3772,11 +3782,11 @@ function tekenBeoordelingen(){
   const lijst = PB.defs.length ? `<div class="tw"><table class="tabel pb-tabel"><thead><tr><th>Beoordeling</th><th>Afdeling</th><th>Verantwoordelijke</th><th>Interval</th><th>Volgende</th><th>Laatste melding</th><th>Status</th></tr></thead><tbody>${PB.defs.map(d => {
       const st = PB.status[d.id] || {}, l = pbMeldingen(d)[0], isAchter = achter.includes(d);
       const stat = !d.actief ? '<span class="chip">uit</span>' : isAchter ? '<span class="chip rood">achter</span>' : st.fout ? `<span class="chip rood" title="${esc(st.fout)}">fout bij aanmaken</span>` : l && !l.afgesloten ? '<span class="chip oranje">loopt</span>' : '<span class="chip groen">op schema</span>';
-      return `<tr data-pbbewerk="${esc(d.id)}"><td><b>${esc(d.titel)}</b></td><td>${esc(d.afdeling || '')}</td><td>${esc(d.verantwNaam || '')}</td><td>${esc(pbElke(d))}</td><td>${esc(pbDatum(pbVolgende(d)))}</td><td>${l ? `<a href="#" data-pbmelding="${esc(l.nr)}">${esc(nrT(l))}</a> · ${l.afgesloten ? 'afgehandeld' : 'open'}` : st.open ? 'dossieritem ' + esc(st.open) : '–'}</td><td>${stat}</td></tr>`; }).join('')}</tbody></table></div>` : `<div class="pb-leeg"><p><b>Nog geen periodieke beoordelingen.</b></p><p>Denk aan: toegangsrechten per systeem nalopen, een back-up terugzetten, uitdiensttreders controleren, leveranciers evalueren, certificaten en licenties nalopen.</p><button type="button" class="knop vol" data-pbnieuw>+ Eerste beoordeling klaarzetten</button></div>`;
+      return `<tr data-pbbewerk="${esc(d.id)}"><td><b>${esc(d.titel)}</b></td><td>${esc(d.afdeling || '')}</td><td>${d.verantwNaam ? esc(d.verantwNaam) : '<span class="zacht">Nieuw, servicedesk wijst toe</span>'}</td><td>${esc(pbElke(d))}</td><td>${esc(pbDatum(pbVolgende(d)))}</td><td>${l ? `<a href="#" data-pbmelding="${esc(l.nr)}">${esc(nrT(l))}</a> · ${l.afgesloten ? 'afgehandeld' : 'open'}` : st.open ? 'dossieritem ' + esc(st.open) : '–'}</td><td>${stat}</td></tr>`; }).join('')}</tbody></table></div>` : `<div class="pb-leeg"><p><b>Nog geen periodieke beoordelingen.</b></p><p>Denk aan: toegangsrechten per systeem nalopen, een back-up terugzetten, uitdiensttreders controleren, leveranciers evalueren, certificaten en licenties nalopen.</p><button type="button" class="knop vol" data-pbnieuw>+ Eerste beoordeling klaarzetten</button></div>`;
   $('#lijst').innerHTML = uitleg + knoppen + (PB.defs.length ? `<div class="pb-blok">${tegels + tijdlijn}</div>` : `<div class="pb-blok">${lijst}</div>`) + (PB.defs.length ? lijst : '');
 }
 // melding-tekst: instructie + checklist (regels die met "- " beginnen worden ☐) + vervaldatum
-const pbToelichting = def => `${String(def.instructie || '').split('\n').map(r => /^\s*[-*•]\s+/.test(r) ? r.replace(/^\s*[-*•]\s+/, '☐ ') : r).join('\n').trim()}\n\nUiterlijk uitvoeren: {vervaldatum}. Leg in een reactie vast wat je hebt gecontroleerd en wat je hebt gevonden (bewijs voor de NEN 7510-audit).\n\nPeriodieke beoordeling · ${pbElke(def)}`;
+const pbToelichting = def => `${String(def.instructie || '').split('\n').map(r => /^\s*[-*•]\s+/.test(r) ? r.replace(/^\s*[-*•]\s+/, '☐ ') : r).join('\n').trim()}\n\nUiterlijk uitvoeren: {vervaldatum}.${(def.bijlagen || []).length ? ' De hulpmiddelen staan bij de bijlagen van deze melding.' : ''} Leg het resultaat vast met de knop "Resultaat vastleggen" in SubmIT: wat je hebt gecontroleerd, wat je hebt gevonden en het rapport als bijlage (bewijs voor de NEN 7510-audit).\n\nPeriodieke beoordeling · ${pbElke(def)}`;
 async function pbSjabloon(def){
   const m = await laadNieuwMeta(), sm = await laadSubjMeta();
   const w = {StId: isNaN(+m.stId) ? m.stId : +m.stId, Ds: (PB_PREFIX + def.titel).slice(0, 80), SbTx: pbToelichting(def)};
@@ -3792,8 +3802,8 @@ async function pbSjabloon(def){
   const top = {}, obj = {};
   Object.entries(w).forEach(([c, v]) => { const i = c.indexOf('/'); if(i > 0) (obj[c.slice(0, i)] = obj[c.slice(0, i)] || {})[c.slice(i + 1)] = v; else top[c] = v; });
   const objecten = Object.entries(obj).map(([o, v]) => ({[o]: {Element: {Fields: v}}}));
-  // melder: de verantwoordelijke als medewerker, anders jijzelf
-  let melder = def.melderId; if(!melder){ try{ const mw = await laadMedewerkers(); const v = mw.find(x => (x.code && norm(x.code) === norm(def.verantwCode)) || zelfdePersoon(x.vol || x.naam, def.verantwNaam)); melder = v ? v.id : profiel.emId; }catch(e){ melder = profiel.emId; } }
+  // melder: de verantwoordelijke als medewerker; zonder verantwoordelijke (of niet gevonden) jijzelf
+  let melder = def.melderId; if(!melder && !def.verantwCode) melder = profiel.emId; if(!melder){ try{ const mw = await laadMedewerkers(); const v = mw.find(x => (x.code && norm(x.code) === norm(def.verantwCode)) || zelfdePersoon(x.vol || x.naam, def.verantwNaam)); melder = v ? v.id : profiel.emId; }catch(e){ melder = profiel.emId; } }
   if(!melder) throw new Error('Geen melder gevonden: vul eenmalig je medewerkernummer in bij Nieuwe melding, of kies een verantwoordelijke die in de medewerkerslijst staat.');
   objecten.unshift({KnSubjectLink: {Element: {Fields: {SfTp: 17, SfId: isNaN(+melder) ? melder : +melder}}}});
   return {sjabloon: {KnSubject: {Element: {Fields: top, Objects: objecten}}}, geplandVeld: sm.gepland ? veldCode(sm.gepland) : ''};
@@ -3806,6 +3816,8 @@ async function pbBewerk(id){
   let afd = [], loc = [], ict = [], m;
   try{ m = await laadNieuwMeta(); afd = (await afdelingKeuzes()).waarden.map(w => w.naam).sort((a, b) => a.localeCompare(b, 'nl')); loc = m.loc ? waardenVan(m.loc.values).map(w => w.naam).sort((a, b) => a.localeCompare(b, 'nl')) : []; ict = await ictCollegas(); }
   catch(e){ d.querySelector('.leeg').outerHTML = `<p class="fout">${esc(e.message)}</p>`; return; }
+  if(!oud){ const sd = afd.find(a => /servicedesk/i.test(a)) || afd.find(a => norm(a) === 'ict'); if(sd) def.afdeling = sd; }
+  def.bijlagen = [...(def.bijlagen || [])];
   const opt = (l, v) => l.map(x => `<option ${norm(x) === norm(v) ? 'selected' : ''}>${esc(x)}</option>`).join('');
   const extra = m.extra.map(x => `<span>${esc(x.label)}</span><b>${keuze(x, 'pbx_' + x.code, (def.extra || {})[x.code]).replace('<select ', '<select class="afdkeuze" ').replace('<input ', '<input class="datumkeuze" ')}</b>`).join('');
   d.innerHTML = `<form class="dlg-in nform" id="pb-form" onsubmit="return false"><div class="dlg-kop"><div><small>${PB_TYPE}</small><h2><input name="titel" class="ondinvoer" maxlength="56" required placeholder="Bijv. Toegangsrechten Emma nalopen" value="${esc(def.titel)}" aria-label="Titel"></h2></div><button type="button" class="sluit" data-pbdicht aria-label="Sluiten">×</button></div>
@@ -3817,14 +3829,26 @@ async function pbBewerk(id){
       <span></span><b><small class="hint" id="pb-keren"></small></b></div>
     <div class="kaart2"><h3>Melding</h3>
       <span>Afdeling</span><b><select name="afdeling" class="afdkeuze">${opt(afd, def.afdeling)}</select></b>
-      <span>Verantwoordelijke</span><b><select name="verantw" class="afdkeuze"><option value="">Kies…</option>${ict.map(c => `<option value="${esc(c.code)}" ${norm(c.code) === norm(def.verantwCode) || norm(c.naam) === norm(def.verantwNaam) ? 'selected' : ''}>${esc(c.naam)}</option>`).join('')}</select></b>
+      <span>Verantwoordelijke</span><b><select name="verantw" class="afdkeuze"><option value="" title="De melding komt binnen als Nieuw; de servicedesk wijst hem toe">Niemand (Nieuw)</option>${ict.map(c => `<option value="${esc(c.code)}" ${norm(c.code) === norm(def.verantwCode) || norm(c.naam) === norm(def.verantwNaam) ? 'selected' : ''}>${esc(c.naam)}</option>`).join('')}</select></b>
       <span>Locatie</span><b><select name="locatie" class="afdkeuze">${opt(loc, def.locatie)}</select></b>${extra}</div></div>
     <h3 class="pb-kop3">Instructie</h3><textarea id="pb-instr" name="instructie" class="toelinvoer" rows="8" placeholder="Wat moet er gebeuren en hoe? Zet elke stap op een regel die begint met '- ', dan wordt het een afvinklijst. Links kun je plakken of met Ctrl+K maken.">${esc(def.instructie)}</textarea>
     <p class="hint">In de melding komt deze instructie, met de vervaldatum en de vraag om vast te leggen wat er is gecontroleerd (bewijs voor de audit).</p>
+    <h3 class="pb-kop3">Hulpmiddelen <small class="hint">gaan als bijlage mee met elke melding, bijv. een script of rapportsjabloon (max. 10 MB per bestand)</small></h3>
+    <div class="pb-hulp" id="pb-hulp" title="Sleep bestanden hierheen of klik op Bestand toevoegen"><span id="pb-hulplijst" class="bijlrij"></span><button type="button" class="linkknop paperclip" data-pbhulp>${CLIP}Bestand toevoegen</button><input type="file" id="pb-hulpf" multiple hidden></div>
     <p class="fout" id="pb-fout"></p>
     <div class="pb-acties">${oud ? '<button type="button" class="linkknop rood" data-pbweg>Verwijderen</button><button type="button" class="knop" data-pbnu title="Nu meteen een melding aanmaken (testen of een extra keer)">Nu aanmaken</button>' : ''}<span style="flex:1"></span><button type="button" class="knop" data-pbdicht>Annuleren</button><button type="button" class="knop vol" data-pbbewaar>Opslaan</button></div></form>`;
   const f = $('#pb-form'), keren = () => { const t = {aantal: f.aantal.value, eenheid: f.eenheid.value, start: f.start.value}, l = f.start.value ? [pbDatum(f.start.value), ...[1, 2, 3].map(k => pbDatum(pbKeer(t, k)))] : []; $('#pb-keren').textContent = l.length ? 'Volgende keren: ' + l.join(', ') + ' …' : ''; };
-  f.addEventListener('input', keren); keren(); f._def = def; f._oud = oud;
+  f.addEventListener('input', keren); keren(); f._def = def; f._oud = oud; f._nieuw = [];
+  pbTekenHulp();
+  const zone = $('#pb-hulp'), voeg = files => { const te = []; [...files].forEach(x => { if(x.size > 10 * 1048576) te.push(x.name); else if(!f._nieuw.some(y => y.name === x.name && y.size === x.size)) f._nieuw.push(x); }); if(te.length) $('#pb-fout').textContent = `Te groot (max. 10 MB): ${te.join(', ')}. Zet grote bestanden in de kennisbank en link ernaar in de instructie.`; pbTekenHulp(); };
+  $('#pb-hulpf').onchange = e => { voeg(e.target.files); e.target.value = ''; };
+  zone.ondragover = e => { e.preventDefault(); zone.classList.add('sleep'); }; zone.ondragleave = () => zone.classList.remove('sleep');
+  zone.ondrop = e => { e.preventDefault(); zone.classList.remove('sleep'); voeg(e.dataTransfer.files); };
+}
+function pbTekenHulp(){
+  const f = $('#pb-form'), el = $('#pb-hulplijst'); if(!f || !el) return;
+  const chip = (n, g, attr) => `<span class="bijlchip${attr.includes('nieuw') ? ' klaar' : ''}" title="${esc(n)}"><span>${bestIcoon(n)}</span><b>${esc(n)}</b><small>${fmtGrootteB(g)}</small><button type="button" class="weg" ${attr} aria-label="Weghalen">×</button></span>`;
+  el.innerHTML = f._def.bijlagen.map(b => chip(b.naam, b.grootte, `data-pbhulpweg="${esc(b.id)}"`).replace('<b>', `<b data-pbhulpget="${esc(b.id)}" class="klikbaar" title="Downloaden">`)).join('') + f._nieuw.map((x, i) => chip(x.name, x.size, `data-pbhulpnieuw="${i}"`)).join('') || '<span class="hint">Nog geen hulpmiddelen.</span>';
 }
 async function pbBewaar(){
   const f = $('#pb-form'), fout = $('#pb-fout'), oud = f._oud, def = {...f._def};
@@ -3835,10 +3859,12 @@ async function pbBewaar(){
   if(!def.titel){ fout.textContent = 'Geef de beoordeling een titel.'; f.titel.focus(); return; }
   if((PB.defs || []).some(d => d.id !== def.id && norm(d.titel) === norm(def.titel))){ fout.textContent = 'Er is al een beoordeling met deze titel.'; return; }
   if(!def.start){ fout.textContent = 'Kies de eerste datum.'; return; }
-  if(!def.verantwCode){ fout.textContent = 'Kies een verantwoordelijke.'; f.verantw.focus(); return; }
   if(!def.instructie){ fout.textContent = 'Schrijf een instructie: wat moet er gebeuren?'; f.instructie.focus(); return; }
   const k = f.querySelector('[data-pbbewaar]'); k.disabled = true; k.textContent = 'Opslaan…'; fout.textContent = '';
   try{
+    for(const b of f._nieuw){ k.textContent = 'Uploaden: ' + b.name.slice(0, 24) + '…'; const bid = 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      await pbApi('POST', {actie: 'bijlage', bid, naam: b.name, data: await naarBase64(b)}); def.bijlagen.push({id: bid, naam: b.name, grootte: b.size}); }
+    f._nieuw = []; f._def.bijlagen = def.bijlagen; pbTekenHulp(); k.textContent = 'Opslaan…';
     if(!DEMO) Object.assign(def, await pbSjabloon(def));
     const defs = [...(PB.defs || []).filter(d => d.id !== def.id), def];
     const reset = !oud || oud.start !== def.start || oud.aantal !== def.aantal || oud.eenheid !== def.eenheid || def.start !== pbVolgende(oud) ? [def.id] : [];
@@ -3848,6 +3874,42 @@ async function pbBewaar(){
   }catch(e){ fout.textContent = 'Opslaan lukte niet: ' + e.message; }
   finally{ k.disabled = false; k.textContent = 'Opslaan'; }
 }
+/* ---- resultaat van een periodieke beoordeling vastleggen (in de melding zelf) ----
+   Afvinklijst uit de instructie (☐-regels), uitkomst, bevindingen en het rapport als bijlage. Alles komt als één reactie
+   in het reactievak (met de bestanden erbij), zodat het met Opslaan of Afhandelen als bewijs in de melding staat. */
+const pbIs = x => !!x && (norm(x.type) === norm(PB_TYPE) || String(x.onderwerp || '').startsWith(PB_PREFIX));
+function pbResInit(x){
+  const el = $('#d-pbres'); if(!el || !huidig || huidig.x !== x) return;
+  const stappen = String(($('#d-toel') || {}).value || x.toelichting || '').split('\n').map(r => r.trim()).filter(r => /^[☐☑]/.test(r)).map(r => r.replace(/^[☐☑]\s*/, ''));
+  huidig.pbres = {stappen, gen: ''};
+  el.innerHTML = `<h3>Resultaat vastleggen <small class="hint">komt als reactie in de melding, met het rapport als bijlage: bewijs voor de audit</small></h3>
+    ${stappen.length ? `<div class="pbres-check">${stappen.map((t, i) => `<label class="vink"><input type="checkbox" data-pbstap="${i}"> ${esc(t)}</label>`).join('')}</div>` : ''}
+    <div class="pbres-uit"><span>Uitkomst</span><label class="vink"><input type="radio" name="pbuit" value="ok"> In orde</label><label class="vink"><input type="radio" name="pbuit" value="afw"> Afwijking gevonden</label></div>
+    <textarea id="pbres-tekst" class="toelinvoer" rows="3" placeholder="Bevindingen: wat heb je gezien, wat heb je aangepast, is er een vervolgactie?"></textarea>
+    <div class="pbres-drop" id="pbres-drop">${CLIP}<span>Sleep het rapport of de export hierheen, of </span><button type="button" class="linkknop" data-pbresbestand>kies een bestand</button><input type="file" id="pbres-f" multiple hidden></div>
+    <p class="hint" id="pbres-hint"></p>`;
+  const drop = $('#pbres-drop');
+  drop.ondragover = e => { e.preventDefault(); e.stopPropagation(); drop.classList.add('sleep'); }; drop.ondragleave = () => drop.classList.remove('sleep');
+  drop.ondrop = e => { e.preventDefault(); e.stopPropagation(); drop.classList.remove('sleep'); zetKlaar(e.dataTransfer.files, 'reactie'); pbResSync(); };
+  $('#pbres-f').onchange = e => { zetKlaar(e.target.files, 'reactie'); e.target.value = ''; pbResSync(); };
+  el.addEventListener('input', pbResSync); el.addEventListener('change', pbResSync);
+}
+function pbResSync(){
+  const el = $('#d-pbres'), t = $('#tekst'); if(!el || !t || !huidig || !huidig.pbres) return;
+  const p = huidig.pbres, uit = (el.querySelector('[name="pbuit"]:checked') || {}).value, bev = $('#pbres-tekst').value.trim();
+  const vink = [...el.querySelectorAll('[data-pbstap]')], gedaan = vink.filter(v => v.checked).length;
+  const iets = uit || bev || gedaan || (huidig.klaar.reactie || []).length;
+  const tekst = !iets ? '' : [`Resultaat periodieke beoordeling: ${uit === 'ok' ? 'in orde ✓' : uit === 'afw' ? 'afwijking gevonden ⚠' : '(uitkomst nog kiezen)'}`,
+    `Uitgevoerd op ${fmtDatum(new Date())} door ${profiel.naam || 'ICT'}.`,
+    vink.length ? '\nGecontroleerd (' + gedaan + ' van ' + vink.length + '):\n' + vink.map((v, i) => (v.checked ? '☑ ' : '☐ ') + p.stappen[i]).join('\n') : '',
+    bev ? '\nBevindingen:\n' + bev : '',
+    (huidig.klaar.reactie || []).length ? '\nRapport/bewijs: zie bijlage' + ((huidig.klaar.reactie || []).length === 1 ? '' : 'n') + ' bij deze reactie.' : ''].filter(Boolean).join('\n');
+  if(t.value.trim() && t.value !== p.gen){ $('#pbres-hint').textContent = 'Je hebt het reactievak zelf aangepast; het resultaat wordt daar niet meer overschreven.'; return; }
+  t.value = tekst; p.gen = tekst; pasHoogteAan(t); $('#detail').dataset.gewijzigd = '1';
+  $('#pbres-hint').innerHTML = !iets ? '' : uit === 'afw' ? 'Staat in het reactievak hieronder. Maak voor de vervolgactie een aparte melding of to-do, en handel deze beoordeling daarna af.' : !uit ? 'Kies nog de uitkomst.' : 'Staat in het reactievak hieronder. Klik op <b>Afhandelen</b> als je klaar bent.';
+  mailVooraf();
+}
+document.addEventListener('click', e => { if(e.target.closest('[data-pbresbestand]')) $('#pbres-f').click(); });
 const pbMin = (d, n) => { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() - (+n || 0)); const v = tdIso(x), nu = tdIso(new Date()); return v < nu ? nu : v; };
 document.addEventListener('click', async e => {
   if(e.target.closest('[data-pbnieuw]')){ pbBewerk(null); return; }
@@ -3855,10 +3917,15 @@ document.addEventListener('click', async e => {
   const ml = e.target.closest('[data-pbmelding]'); if(ml){ e.preventDefault(); navLijst = []; openDetail(ml.dataset.pbmelding); return; }
   if(e.target.closest('[data-pbdicht]')){ const d = $('#pbdlg'); if(d) d.close(); return; }
   if(e.target.closest('[data-pbbewaar]')){ pbBewaar(); return; }
+  if(e.target.closest('[data-pbhulp]')){ $('#pb-hulpf').click(); return; }
+  const hw = e.target.closest('[data-pbhulpweg]'); if(hw){ const f = $('#pb-form'); f._def.bijlagen = f._def.bijlagen.filter(b => b.id !== hw.dataset.pbhulpweg); pbTekenHulp(); return; }
+  const hn = e.target.closest('[data-pbhulpnieuw]'); if(hn){ const f = $('#pb-form'); f._nieuw.splice(+hn.dataset.pbhulpnieuw, 1); pbTekenHulp(); return; }
+  const hg = e.target.closest('[data-pbhulpget]'); if(hg){ try{ const j = await pbApi('GET', {bid: hg.dataset.pbhulpget}); const bin = atob(j.data), u8 = new Uint8Array(bin.length); for(let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([u8])); a.download = j.naam || 'bestand'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }catch(err){ $('#pb-fout').textContent = 'Downloaden lukte niet: ' + err.message; } return; }
   if(e.target.closest('[data-pbweg]')){ const f = $('#pb-form'), def = f._oud; if(!(await vraag('Beoordeling verwijderen?', `"${def.titel}" komt dan niet meer terug. Meldingen die al zijn aangemaakt blijven gewoon bestaan.`, 'Verwijderen', 'Annuleren', true))) return;
     try{ const defs = PB.defs.filter(d => d.id !== def.id); await pbApi('PUT', {defs}); PB.defs = defs; delete PB.status[def.id]; $('#pbdlg').close(); toast('Beoordeling verwijderd'); tekenBeoordelingen(); }catch(err){ $('#pb-fout').textContent = 'Verwijderen lukte niet: ' + err.message; } return; }
   if(e.target.closest('[data-pbnu]')){ const f = $('#pb-form'), def = f._oud, k = e.target.closest('[data-pbnu]');
-    if(!(await vraag('Nu een melding aanmaken?', `Er komt meteen een melding "${PB_PREFIX}${def.titel}" bij ${def.verantwNaam || 'de verantwoordelijke'}. Sla eerst op als je iets hebt gewijzigd.`, 'Aanmaken', 'Annuleren'))) return;
+    if(!(await vraag('Nu een melding aanmaken?', `Er komt meteen een melding "${PB_PREFIX}${def.titel}" ${def.verantwNaam ? 'bij ' + def.verantwNaam : 'als Nieuw bij ' + (def.afdeling || 'de afdeling')}. Sla eerst op als je iets hebt gewijzigd.`, 'Aanmaken', 'Annuleren'))) return;
     k.disabled = true; k.textContent = 'Aanmaken…';
     try{ const j = await pbApi('POST', {actie: 'nu', id: def.id}); if(j.status) PB.status = j.status; const u = (j.uit || [])[0]; if(u && u.actie === 'fout') throw new Error(u.fout);
       $('#pbdlg').close(); toast('Melding aangemaakt'); if(!DEMO){ await laadGegevens('open', true); } tekenBeoordelingen(); }
@@ -3918,6 +3985,7 @@ function openDetail(nr){
       <span class="opslaanknoppen"><button type="button" class="knop" id="k-instructie" title="Maak van de oplossing een instructie voor de kennisbank (Word-concept in DC-huisstijl)">✦ Instructie maken</button><button type="button" class="knop" id="k-heropen" disabled title="Workflow ophalen…">Heropenen</button><button type="button" class="knop vol" id="k-opslaan" disabled title="Er is nog niets om op te slaan">Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
     <p class="fout" id="d-fout"></p>
     <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3></div>` : `
+    ${pbIs(x) ? '<div class="pbres" id="d-pbres"><h3>Resultaat vastleggen</h3><p class="hint">Ophalen…</p></div>' : ''}
     <div class="composer">
       <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
       <div class="klaarzet" id="klaar-reactie"></div>
@@ -3943,7 +4011,7 @@ function openDetail(nr){
   huidig.klaar = {ticket: [], reactie: []}; huidig.bijl = null;
   (DEMO ? Promise.resolve() : zorgSbId(x)).then(() => { laadBijlagen(x); return toonReacties(x); }).catch(e => { const el = $('#tijdlijn'); if(el) el.innerHTML = `<h3>Reacties</h3><p class="hint">Het interne nummer van deze melding kon niet worden opgezocht: ${esc(e.message)}</p>`; const bl = $('#bijl-lijst'); if(bl) bl.innerHTML = '<span class="hint">Bijlagen ophalen kan niet zonder het interne nummer van de melding.</span>'; });
   if(!x.afgesloten){ vulStatusKeuze(x); vulLocKeuze(x); Promise.all([vulAfdKeuze(x), vulVerantwKeuze(x), vulTypeKeuze(x)]).then(() => stelVoorBijBinnenkomst(x)).catch(() => {}); setTimeout(() => markeerOntbrekend(x), 0); }
-  if(x.toelichting == null || !x.toelichting) toonToelichting(x); else if($('#d-toel') && $('#d-toel').tagName === 'TEXTAREA') pasToelHoogte($('#d-toel'));
+  const toelKlaar = x.toelichting == null || !x.toelichting ? toonToelichting(x) : null; if(pbIs(x) && !x.afgesloten) Promise.resolve(toelKlaar).catch(() => {}).then(() => pbResInit(x)); if(toelKlaar){} else if($('#d-toel') && $('#d-toel').tagName === 'TEXTAREA') pasToelHoogte($('#d-toel'));
   toonContext(x);
   if(x.melder) toonMelderInfo(x);
   toonInstuurder(x);
@@ -4160,7 +4228,7 @@ async function voegBijlagenToe(x, files){
 }
 document.addEventListener('click', e => {
   const c = e.target.closest('[data-bijl]'); if(c && huidig && huidig.bijl){ toonBestand(huidig.bijl.lijst[+c.dataset.bijl]); return; }
-  const w = e.target.closest('[data-klaarweg]'); if(w && huidig){ const [s, i] = w.dataset.klaarweg.split(':'); huidig.klaar[s].splice(+i, 1); tekenKlaar(); mailVooraf(); return; }
+  const w = e.target.closest('[data-klaarweg]'); if(w && huidig){ const [s, i] = w.dataset.klaarweg.split(':'); huidig.klaar[s].splice(+i, 1); tekenKlaar(); mailVooraf(); pbResSync(); return; }
   if(e.target.closest('#k-clip')){ $('#f-reactie').click(); return; }
 });
 document.addEventListener('change', e => {
@@ -7356,6 +7424,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.41', d: '22-10-2026', groot: true, p: ['Periodieke beoordelingen: een melding kan nu als Nieuw bij de servicedesk binnenkomen, zonder vaste verantwoordelijke.', 'Hulpmiddelen (bijv. een script of rapportsjabloon) kun je bij een beoordeling zetten; ze komen als bijlage bij elke melding.', 'In een beoordelingsmelding leg je het resultaat vast: afvinklijst, uitkomst, bevindingen en het rapport als bijlage, in één keer als reactie.']},
   {v: 'v7.40', d: '22-10-2026', p: ['Word-bijlagen (.docx) zie je nu als leesbare voorvertoning in plaats van rare tekens; de bestandsgrootte klopt.', 'Standaardteksten worden centraal beheerd: de beheerder kan ze aanpassen, toevoegen en verwijderen, en ze gelden meteen voor iedereen.']},
   {v: 'v7.39', d: '22-10-2026', p: ['Afhandelen en Opslaan staan nu onder het reactieveld: eerst schrijven, dan opslaan.', 'Snel van de ene naar de andere melding gaan werkt betrouwbaarder.', 'Periodieke beoordelingen (alleen voor de beheerder): controles die met vaste tussenpozen terugkomen klaarzetten, met instructie, tijdlijn en overzicht. De melding komt vanzelf op tijd.']},
   {v: 'v7.38', d: '22-10-2026', p: ['ICT-collega’s worden herkend aan hun kostenplaats ICT; bij Verantwoordelijke staan alle ICT-collega’s en via "Iemand buiten ICT…" iedereen met een AFAS-gebruiker.']},
