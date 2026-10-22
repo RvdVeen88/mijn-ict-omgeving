@@ -1572,7 +1572,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.60', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.61', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1679,12 +1679,21 @@ async function afasKaal(pad, opties = {}, opnieuw = true){
     throw new Error(`AFAS gaf HTTP ${r.status}${detail ? ': ' + detail : ''}`); }
   return j || {};
 }
+// alle regels in pagina's. AFAS geeft bij grote opvragingen soms even HTTP 500 of een time-out:
+// dan dezelfde pagina opnieuw, met kleinere stukken en een korte pauze (max. 4 pogingen per pagina)
 async function connectorAlles(naam, filter = '', opVoortgang){
-  const rijen = [], take = 1000;
-  for(let skip = 0; skip < 50000; skip += take){
-    const d = await afas(`/connectors/${encodeURIComponent(naam)}?skip=${skip}&take=${take}${filter}`);
+  const rijen = []; let take = 1000, skip = 0;
+  while(skip < 50000){
+    let d = null, fout = null;
+    for(let poging = 0; poging < 4; poging++){
+      try{ d = await afas(`/connectors/${encodeURIComponent(naam)}?skip=${skip}&take=${take}${filter}`); fout = null; break; }
+      catch(e){ fout = e; if(!/HTTP 5\d\d|abort|Failed to fetch|NetworkError|time-?out/i.test(e.message + ' ' + e.name)) break;
+        take = Math.max(250, Math.floor(take / 2)); await new Promise(r => setTimeout(r, 1500 * (poging + 1))); }
+    }
+    if(fout) throw fout;
     rijen.push(...(d.rows || [])); const klaar = !d.rows || d.rows.length < take;
     if(opVoortgang) opVoortgang(rijen.length, klaar); if(klaar) break;
+    skip += take;
   }
   return rijen;
 }
@@ -1775,6 +1784,7 @@ function maakItem(r, extra){
 }
 let alleDichtGeladen = false, alleDichtBezig = null;
 /* alle gesloten meldingen (zonder 90-dagengrens): pas ophalen als je die weergave opent */
+let alleDichtPoging = 0;
 function laadAlleGesloten(){
   if(alleDichtGeladen || alleDichtBezig) return alleDichtBezig;
   return alleDichtBezig = (async () => {
@@ -1786,7 +1796,11 @@ function laadAlleGesloten(){
       const nrs = new Set(items.map(x => String(x.nr)));   // sleutel: in-/uitdienst heeft U + nummer
       items = [...items, ...bouwItems(dicht, new Map(sbCache)).filter(x => x.afgesloten && !nrs.has(String(x.nr)))]; pasInUitToe();
       alleDichtGeladen = true; try{ tekenNav(); }catch(e){}
-    }catch(e){ toast('Alle gesloten meldingen ophalen mislukt: ' + e.message, true); }
+    }catch(e){
+      // geen rode melding meer: stil opnieuw proberen (na 1, 3 en 5 minuten); alleen als je erop wacht, zie je het in de lijst
+      alleDichtPoging = (alleDichtPoging || 0) + 1;
+      if(alleDichtPoging <= 3) setTimeout(() => { alleDichtBezig = null; laadAlleGesloten(); }, (alleDichtPoging * 2 - 1) * 60e3);
+      if(tab === 'dichtalle' || tab === 'zoek') $('#lijst-sub').textContent = alleDichtPoging <= 3 ? 'AFAS reageert even niet; oudere gesloten meldingen worden zo opnieuw opgehaald.' : 'Oudere gesloten meldingen ophalen lukt nu niet (AFAS). Probeer het later opnieuw met F5.'; }
     alleDichtBezig = null;
     if((tab === 'dichtalle' || tab === 'zoek' || toonDicht() || alleAlles()) && !$('#detail').open) teken();
   })();
@@ -8038,6 +8052,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.61', d: '22-10-2026', p: ['Geeft AFAS bij het ophalen van veel meldingen even een fout, dan probeert SubmIT het vanzelf opnieuw in kleinere stukken. Geen rode melding meer.']},
   {v: 'v7.60', d: '22-10-2026', p: ['Het ✦-knopje voor persoonlijke standaardteksten zit nu klein in de keuzelijst zelf.']},
   {v: 'v7.59', d: '22-10-2026', p: ['Een lange toelichting wordt niet meer schermvullend: maximaal ongeveer 8 regels, daarna scroll je (of sleep je het vak groter).']},
   {v: 'v7.58', d: '22-10-2026', p: ['✦ Persoonlijk maken laat zien dat hij bezig is, en zegt het als het niet lukt.']},
