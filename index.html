@@ -1361,6 +1361,7 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 .pb-wanneer .pb-aan{white-space:nowrap}
 .kaart2 .pb-keren{font-weight:400;color:var(--grijs);font-size:13px;flex-wrap:wrap;gap:0 4px;line-height:1.5}
 .pb-kop3{font-size:13px;color:var(--blauw);margin:16px 0 6px}.pb-kop3 small{font-weight:400;margin-left:6px}
+.sj-kies{display:flex;align-items:center;gap:14px;margin:12px 0 10px}.sj-kies select{width:min(420px,100%)!important;padding:6px 26px 6px 8px!important;font-size:14px}.sj-kaart[hidden]{display:none}
 .pb-hulp{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border:1px dashed var(--lijn);border-radius:10px;min-height:44px}.pb-hulp.sleep{border-color:var(--blauw);background:var(--blauw-licht,rgba(5,55,135,.06))}
 #aidlg{width:min(860px,94vw)}.ai-regels{font-weight:400;color:var(--grijs);font-size:13px;line-height:1.5}
 .rap{padding:0 26px 20px}.rap-kop{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:4px 0 12px}.rap-periodes{display:flex;flex-wrap:wrap;gap:6px}
@@ -1565,7 +1566,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.55', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.56', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3600,22 +3601,30 @@ function sjBeheer(){
     <div class="sj-kop">${eigen ? `<input class="sj-naam datumkeuze" value="${esc(naam)}" placeholder="Naam in de keuzelijst" aria-label="Naam">` : `<b>${esc(naam)}</b>`}
       <label class="vink" title="Staat in de keuzelijst 'Standaardtekst…' onder het reactievak"><input type="checkbox" class="sj-lijst" ${inLijst.has(k) || eigen ? 'checked' : ''} ${eigen ? 'disabled' : ''}> in keuzelijst</label>
       ${eigen ? '<button type="button" class="linkknop rood" data-sjweg>Verwijderen</button>' : `<button type="button" class="linkknop" data-sjstd ${tekst === SJ_STD[k] ? 'hidden' : ''}>Standaard terugzetten</button>`}</div>
-    <textarea class="toelinvoer sj-tekst" rows="3">${esc(tekst)}</textarea></div>`;
+    <textarea class="toelinvoer sj-tekst" rows="6">${esc(tekst)}</textarea></div>`;
+  // één tekst tegelijk: kies in de keuzelijst, daaronder zie en bewerk je die tekst (de andere blijven bewaard tot Opslaan)
   const systeem = Object.keys(SJ_STD).map(k => kaart(k, SJ_LABEL[k] || k, SJ[k], false)).join('');
   const eigen = Object.entries(SJ_EIGEN).map(([k, e]) => kaart(k, e.naam, e.tekst, true)).join('');
+  const optE = Object.entries(SJ_EIGEN).map(([k, e]) => `<option value="${esc(k)}">${esc(e.naam)}</option>`).join('');
+  const optS = Object.keys(SJ_STD).map(k => `<option value="${esc(k)}">${esc(SJ_LABEL[k] || k)}${SJ[k] !== SJ_STD[k] ? ' · aangepast' : ''}</option>`).join('');
   d.innerHTML = `<div class="dlg-in"><div class="dlg-kop"><div><small>Alleen voor de beheerder · geldt voor iedereen</small><h2>Standaardteksten</h2></div><button class="sluit" data-sjdicht aria-label="Sluiten">×</button></div>
     <p class="hint">De aanhef ("Beste …,") en je handtekening komen er vanzelf omheen. Gebruik <code>{naam}</code>, <code>{afdeling}</code> en <code>{datum}</code>; SubmIT vult die in. Zet <code>[vul aan]</code> waar de collega zelf iets moet invullen.</p>
-    <h3 class="pb-kop3">Eigen teksten</h3><div id="sj-eigen">${eigen || '<p class="hint" id="sj-geen">Nog geen eigen teksten.</p>'}</div><button type="button" class="linkknop" data-sjnieuw>+ Nieuwe standaardtekst</button>
-    <h3 class="pb-kop3">Bij een actie of status</h3><p class="hint" style="margin-top:-2px">Deze komen automatisch als voorstel in het reactievak, bijvoorbeeld bij het wijzigen van de status.</p>${systeem}
-    <p class="fout" id="sj-fout"></p><div class="pb-acties"><span style="flex:1"></span><button type="button" class="knop" data-sjdicht>Annuleren</button><button type="button" class="knop vol" data-sjbewaar>Opslaan</button></div></div>`;
-  d.showModal();
+    <div class="sj-kies"><select id="sj-keuze" class="afdkeuze" aria-label="Kies een standaardtekst"><optgroup label="Eigen teksten" id="sj-opt-eigen">${optE}</optgroup><optgroup label="Bij een actie of status (komen vanzelf als voorstel)">${optS}</optgroup></select>
+      <button type="button" class="linkknop" data-sjnieuw>+ Nieuwe standaardtekst</button></div>
+    <div id="sj-eigen">${eigen}</div><div id="sj-systeem">${systeem}</div>
+<div class="pb-acties"><span style="flex:1"></span><button type="button" class="knop" data-sjdicht>Annuleren</button><button type="button" class="knop vol" data-sjbewaar>Opslaan</button></div></div>`;
+  d.showModal(); sjToon($('#sj-keuze').value);
 }
+function sjToon(k){ const sel = $('#sj-keuze'); if(!sel) return; if(k) sel.value = k;
+  document.querySelectorAll('#sjdlg .sj-kaart').forEach(kd => { kd.hidden = kd.dataset.sjk !== sel.value; }); }
+document.addEventListener('change', e => { if(e.target.id === 'sj-keuze') sjToon(); });
 document.addEventListener('click', async e => {
   if(e.target.closest('[data-sjdicht]')){ $('#sjdlg').close(); return; }
-  if(e.target.closest('[data-sjnieuw]')){ const g = $('#sj-geen'); if(g) g.remove(); const k = 'eigen:' + Date.now().toString(36);
-    $('#sj-eigen').insertAdjacentHTML('beforeend', `<div class="sj-kaart" data-sjk="${k}"><div class="sj-kop"><input class="sj-naam datumkeuze" placeholder="Naam in de keuzelijst" aria-label="Naam"><label class="vink"><input type="checkbox" class="sj-lijst" checked disabled> in keuzelijst</label><button type="button" class="linkknop rood" data-sjweg>Verwijderen</button></div><textarea class="toelinvoer sj-tekst" rows="3" placeholder="De tekst…"></textarea></div>`);
+  if(e.target.closest('[data-sjnieuw]')){ const k = 'eigen:' + Date.now().toString(36);
+    $('#sj-eigen').insertAdjacentHTML('beforeend', `<div class="sj-kaart" data-sjk="${k}"><div class="sj-kop"><input class="sj-naam datumkeuze" placeholder="Naam in de keuzelijst" aria-label="Naam"><label class="vink"><input type="checkbox" class="sj-lijst" checked disabled> in keuzelijst</label><button type="button" class="linkknop rood" data-sjweg>Verwijderen</button></div><textarea class="toelinvoer sj-tekst" rows="6" placeholder="De tekst…"></textarea></div>`);
+    $('#sj-opt-eigen').insertAdjacentHTML('beforeend', `<option value="${k}">Nieuwe tekst</option>`); sjToon(k);
     $('#sj-eigen .sj-kaart:last-child .sj-naam').focus(); return; }
-  const w = e.target.closest('[data-sjweg]'); if(w){ w.closest('.sj-kaart').remove(); return; }
+  const w = e.target.closest('[data-sjweg]'); if(w){ const kd = w.closest('.sj-kaart'), o = $('#sj-keuze').querySelector(`option[value="${CSS.escape(kd.dataset.sjk)}"]`); kd.remove(); if(o) o.remove(); sjToon($('#sj-keuze').options[0] && $('#sj-keuze').options[0].value); return; }
   const st = e.target.closest('[data-sjstd]'); if(st){ const kd = st.closest('.sj-kaart'); kd.querySelector('.sj-tekst').value = SJ_STD[kd.dataset.sjk]; st.hidden = true; return; }
   const b = e.target.closest('[data-sjbewaar]'); if(b){
     const teksten = {}, eigen = {}, lijst = []; let fout = '';
@@ -3631,7 +3640,8 @@ document.addEventListener('click', async e => {
     catch(err){ $('#sj-fout').textContent = 'Opslaan lukte niet: ' + err.message; }
     finally{ b.disabled = false; b.textContent = 'Opslaan'; } }
 });
-document.addEventListener('input', e => { const t = e.target.closest && e.target.closest('#sjdlg .sj-tekst'); if(!t) return; const kd = t.closest('.sj-kaart'), s = kd.querySelector('[data-sjstd]'); if(s) s.hidden = t.value.trim() === SJ_STD[kd.dataset.sjk]; });
+document.addEventListener('input', e => { const n = e.target.closest && e.target.closest('#sjdlg .sj-naam'); if(n){ const o = $('#sj-keuze').querySelector(`option[value="${CSS.escape(n.closest('.sj-kaart').dataset.sjk)}"]`); if(o) o.textContent = n.value.trim() || 'Nieuwe tekst'; return; }
+  const t = e.target.closest && e.target.closest('#sjdlg .sj-tekst'); if(!t) return; const kd = t.closest('.sj-kaart'), s = kd.querySelector('[data-sjstd]'); if(s) s.hidden = t.value.trim() === SJ_STD[kd.dataset.sjk]; });
 const langeDatum = v => v ? new Date(v + 'T00:00:00').toLocaleDateString('nl-NL', {weekday: 'long', day: 'numeric', month: 'long'}) : '[datum]';
 let mijnHandtekening = null;
 async function handtekening(){
@@ -7998,6 +8008,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.56', d: '22-10-2026', p: ['Standaardteksten beheren: kies een tekst uit de keuzelijst en bewerk alleen die; niet meer alles onder elkaar.']},
   {v: 'v7.55', d: '22-10-2026', p: ['Beheer: meer ruimte onder de tegels.']},
   {v: 'v7.54', d: '22-10-2026', p: ['Beheer staat alleen nog in het menu onder je profielfoto (rechtsboven), niet meer in het menu links.']},
   {v: 'v7.53', d: '22-10-2026', groot: true, p: ['Nieuw in de balk links: Rapportage. Aantallen, verloop, verdeling per type, locatie en afdeling, en met één klik een AI-analyse van de trends (ook als Word).', 'In een melding onder ✦ Meer: vraag ontbrekende info, samenvatting, en een nette overdracht aan een leverancier (KroonCo, Timeff, AFAS).', 'AI leest mee terwijl je een reactie typt en geeft tips over spelling, toon en duidelijkheid. Jij kiest wat je overneemt.', 'SubmIT waarschuwt als meerdere meldingen kort na elkaar over hetzelfde lijken te gaan (mogelijke storing).', 'Beheerder: kennisbank-gaten (wat wordt vaak gevraagd zonder instructie) en een NEN 7510-verslag van de periodieke beoordelingen in Word.']},
