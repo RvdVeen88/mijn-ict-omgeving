@@ -1345,7 +1345,7 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 .pb-knoppen{margin-left:auto}
 .bh-terug{margin:0 0 4px;padding:0 26px}.bh-terug .linkknop{font-size:13px}
 .bh-kop{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--grijs);margin:18px 26px 8px}
-.bh-raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;padding:0 26px}
+.bh-raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;padding:0 26px}.bh-raster:last-child{padding-bottom:28px}
 .bh-tegel{display:flex;align-items:center;gap:14px;text-align:left;padding:14px 16px;border:1px solid var(--lijn);border-radius:14px;background:var(--vlak,transparent);color:var(--inkt);font:inherit;cursor:default;transition:border-color .15s,box-shadow .15s}
 .bh-tegel:hover{border-color:var(--lichtblauw);box-shadow:0 4px 14px rgba(5,55,135,.08)}
 .bh-ico{flex:none;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:var(--blauw-licht,rgba(5,55,135,.08));color:var(--blauw)}.bh-ico svg{width:20px;height:20px}
@@ -1565,7 +1565,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.53', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.55', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2671,7 +2671,7 @@ function tekenNav(){
     ${favL.map(rijA).join('') || '<p class="favhint"><b style="color:var(--inkt);font-weight:500">Geen afdeling geselecteerd</b><br>Zet een ★ bij een afdeling om hem hier te tonen.</p>'}
     <h4><button type="button" id="k-overige" aria-expanded="${restOpen}">${ico('<path d="M6 9l6 6 6-6"/>')}Andere afdelingen (${rest.length})</button></h4>
     ${restOpen ? rest.map(rijA).join('') : ''}
-    <h4>Overig</h4>${[ALLE, ...ONDER].map(v => v.id === 'alle' ? it(v.id, v.t, alleTelling(), {...v, titel: alleUitleg()}) : it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}${it(hist.id, hist.t, null, hist)}${isBeheerder() ? it('beheer', 'Beheer', beheerAandacht() || null, {ico: BH_ICO, titel: 'Alles wat alleen de beheerder doet: controle, beoordelingen, standaardteksten, AI-instellingen, connectoren'}) : ''}`;
+    <h4>Overig</h4>${[ALLE, ...ONDER].map(v => v.id === 'alle' ? it(v.id, v.t, alleTelling(), {...v, titel: alleUitleg()}) : it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}${it(hist.id, hist.t, null, hist)}`;
 }
 
 /* ================= Overzicht: rustig voorblad met persoonlijke cijfers (zoals in Mijn changes) ================= */
@@ -7998,6 +7998,8 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.55', d: '22-10-2026', p: ['Beheer: meer ruimte onder de tegels.']},
+  {v: 'v7.54', d: '22-10-2026', p: ['Beheer staat alleen nog in het menu onder je profielfoto (rechtsboven), niet meer in het menu links.']},
   {v: 'v7.53', d: '22-10-2026', groot: true, p: ['Nieuw in de balk links: Rapportage. Aantallen, verloop, verdeling per type, locatie en afdeling, en met één klik een AI-analyse van de trends (ook als Word).', 'In een melding onder ✦ Meer: vraag ontbrekende info, samenvatting, en een nette overdracht aan een leverancier (KroonCo, Timeff, AFAS).', 'AI leest mee terwijl je een reactie typt en geeft tips over spelling, toon en duidelijkheid. Jij kiest wat je overneemt.', 'SubmIT waarschuwt als meerdere meldingen kort na elkaar over hetzelfde lijken te gaan (mogelijke storing).', 'Beheerder: kennisbank-gaten (wat wordt vaak gevraagd zonder instructie) en een NEN 7510-verslag van de periodieke beoordelingen in Word.']},
   {v: 'v7.52', d: '22-10-2026', p: ['Instructies in Word zijn compacter: smalle kopband, kleine stapcijfers en een vangnet op één regel, zodat er meer ruimte is voor de inhoud.']},
   {v: 'v7.51', d: '22-10-2026', p: ['✦ Instructie maken levert een Word-document in de vaste DC-opzet: blauw kopblok, genummerde stappen, een vangnetblok "Lukt het niet?" en onderaan de url en het logo.']},
