@@ -1519,7 +1519,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.43', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.44', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -7028,30 +7028,47 @@ function vergelijkbaarGescoord(x, max = 3){ return scoorVergelijkbaar(x, items.f
 const kaleOplossing = t => String(t || '').replace(/\r/g, '').split(/\n/)
   .filter((r, i, a) => !(i < 2 && /^\s*(beste|hoi|hallo|goedemorgen|goedemiddag|dag)\b.*[,!]?\s*$/i.test(r)))
   .join('\n').split(/\n\s*(met vriendelijke groet|met hartelijke groet|vriendelijke groet|groet(en)?|mvg)\b/i)[0].trim();
+/* AI via Azure-functie ai-concept (Azure OpenAI, gpt-4o-mini, Data Zone EU). Lukt het niet, dan valt SubmIT terug op de versie zonder AI. */
+const aiUrl = () => INST.aiUrl || String(INST.tokenFunctie || '').replace(/afas-token\/?$/, 'ai-concept');
+async function aiApi(body){
+  if(DEMO) throw new Error('demo');
+  const r = await fetch(aiUrl(), {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await geldigToken()}, body: JSON.stringify(body)});
+  const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(j.error || 'HTTP ' + r.status); return j;
+}
 async function maakConcept(){
   const x = huidig && huidig.x, t = $('#tekst'), k = $('#k-concept'); if(!x || !t || !k) return;
   const oud = k.textContent; k.disabled = true; k.textContent = '✦ Zoeken…';
   try{
     if(!alleDichtGeladen) await Promise.resolve(laadAlleGesloten()).catch(() => {});
-    let bron = null, oplossing = '';
+    let bron = null, oplossing = ''; const voorbeelden = [];
     for(const y of vergelijkbaarGescoord(x)){
       try{ if(!DEMO) await zorgSbId(y); const l = await haalReacties(y);
         const r = [...l].reverse().find(r => r.tekst && !r.intern && norm(r.wie) !== norm(y.melder)); const o = r && kaleOplossing(r.tekst);
-        if(o && o.length > 15){ bron = y; oplossing = o; break; } }catch(e){}
+        if(o && o.length > 15){ voorbeelden.push({y, o}); if(!bron){ bron = y; oplossing = o; } } }catch(e){}
     }
     let kb = null;
     if(opslag.get(KB.sleutel()) || msOpgeslagen() || DEMO){ try{
       const w = woordenVan(x.onderwerp).slice(0, 3); if(w.length){ const l = await kbZoek(w.join(' ')); kb = l[0] || (w.length > 1 ? (await kbZoek(w[0]))[0] : null); } }catch(e){} }
-    if(!bron && !kb){ toast('Geen vergelijkbare opgeloste melding of instructie gevonden voor een concept'); return; }
+    // eerst AI: schrijft een antwoord op basis van de melding, de vergelijkbare oplossingen en de instructie (namen en nummers eruit)
+    let ai = '';
+    if(!DEMO){ k.textContent = '✦ Schrijven…';
+      try{ const l = huidig.reacties || [];
+        const j = await aiApi({soort: 'concept', melding: {onderwerp: anoniem(x.onderwerp, x), toelichting: anoniem(kaal(x.toelichting || toelCache.get(String(x.nr)) || ''), x),
+            reacties: l.filter(r => r.tekst && !r.intern).slice(-6).map(r => ({van: norm(r.wie) === norm(x.melder) ? 'melder' : 'ict', tekst: anoniem(kaleOplossing(r.tekst), x)}))},
+          voorbeelden: voorbeelden.map(v => ({onderwerp: anoniem(v.y.onderwerp, v.y), oplossing: anoniem(v.o, v.y)})),
+          kb: kb ? {naam: String(kb.name || '').replace(/\.(docx?|pdf)$/i, ''), url: kb.webUrl || ''} : null});
+        ai = String(j.tekst || '').trim(); }catch(e){ console.warn('AI-concept niet beschikbaar:', e.message); } }
+    if(!ai && !bron && !kb){ toast('Geen vergelijkbare opgeloste melding of instructie gevonden voor een concept'); return; }
     const delen = [];
-    if(bron) delen.push(oplossing);
-    if(kb){ const naam = String(kb.name || 'instructie').replace(/\.(docx?|pdf)$/i, ''); delen.push(`${bron ? 'Meer uitleg' : 'Misschien helpt deze instructie je verder'}: ${kb.webUrl ? `[${naam}](${kb.webUrl})` : naam}`); }
+    if(ai) delen.push(ai);
+    else { if(bron) delen.push(oplossing);
+      if(kb){ const naam = String(kb.name || 'instructie').replace(/\.(docx?|pdf)$/i, ''); delen.push(`${bron ? 'Meer uitleg' : 'Misschien helpt deze instructie je verder'}: ${kb.webUrl ? `[${naam}](${kb.webUrl})` : naam}`); } }
     t._vstelVoor = t.value;
     await zetVoorstel(await maakBrief(x, delen), true);
     if(!t.classList.contains('voorstel')) return;   // niet vervangen (jij koos Annuleren)
-    const uitleg = [bron && `oplossing van melding ${nrT(bron)} (${bron.onderwerp})`, kb && `instructie "${kb.name}" uit de kennisbank`].filter(Boolean).join(' en ');
+    const uitleg = (ai ? 'AI, op basis van de melding' + (voorbeelden.length ? ' en ' : '') : '') + [voorbeelden.length && (ai ? voorbeelden.map(v => nrT(v.y)).join(', ') : `oplossing van melding ${nrT(bron)} (${bron.onderwerp})`), kb && `instructie "${kb.name}" uit de kennisbank`].filter(Boolean).join(' en ');
     let l = $('#vst-tekst'); if(l) l.remove();
-    k.insertAdjacentHTML('afterend', `<span class="vstel" id="vst-tekst" data-vstel="tekst"><span class="vst-l" title="Concept op basis van ${esc(uitleg)}. Lees het na en pas aan; × haalt het weer weg.">✦ Concept${bron ? ' o.b.v. ' + esc(nrT(bron)) : ''}</span><button type="button" class="vst-ok" data-vstok aria-label="Concept overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Concept weghalen" title="Weghalen">×</button></span>`);
+    k.insertAdjacentHTML('afterend', `<span class="vstel" id="vst-tekst" data-vstel="tekst"><span class="vst-l" title="Concept op basis van ${esc(uitleg)}. Lees het na en pas aan; × haalt het weer weg.">✦ ${ai ? 'AI-concept' : 'Concept' + (bron ? ' o.b.v. ' + esc(nrT(bron)) : '')}</span><button type="button" class="vst-ok" data-vstok aria-label="Concept overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Concept weghalen" title="Weghalen">×</button></span>`);
     t.focus();
   }finally{ k.disabled = false; k.textContent = oud; }
 }
@@ -7124,9 +7141,14 @@ async function maakInstructie(){
     const ict = l.filter(r => r.tekst && !r.intern && norm(r.wie) !== norm(x.melder) && !benIkNiet(r));
     const stappen = ict.flatMap(r => anoniem(kaleOplossing(r.tekst), x).split(/\n+/)).map(t => t.replace(/^\s*(\d+[.)]|[-•*])\s*/, '').trim()).filter(t => t.length > 3 && !/^(ik|wij|we) (heb|hebben|zal|zullen|kijk|kijken)\b/i.test(t));
     const waar = anoniem(kaal(x.toelichting || toelCache.get(String(x.nr)) || '') || x.onderwerp, x).split(/\n/).filter(r => !/^\s*(beste|hoi|hallo|goedemorgen|goedemiddag|groet|met vriendelijke|mvg)\b/i.test(r)).join('\n').trim().slice(0, 900);
-    const systeem = (navAfd(x.afdeling) || x.afdeling || 'Overig').trim(), handeling = String(x.onderwerp || 'Instructie').replace(/^\s*((re|fw|fwd|antw)\s*:\s*)+/i, '').replace(/[.!?\s]+$/, '').trim();
+    const systeem = (navAfd(x.afdeling) || x.afdeling || 'Overig').trim(); let handeling = String(x.onderwerp || 'Instructie').replace(/^\s*((re|fw|fwd|antw)\s*:\s*)+/i, '').replace(/[.!?\s]+$/, '').trim();
+    // AI maakt er een nette instructie van (titel, waar gaat het over, stappen); anders de versie zonder AI
+    let ai = null; if(!DEMO){ k.textContent = '✦ Schrijven…';
+      try{ ai = await aiApi({soort: 'instructie', melding: {onderwerp: anoniem(x.onderwerp, x), toelichting: waar}, oplossing: ict.map(r => anoniem(kaleOplossing(r.tekst), x)).slice(-8)});
+        if(!ai || !(ai.stappen || []).length) ai = null; }catch(e){ console.warn('AI-instructie niet beschikbaar:', e.message); ai = null; } }
+    if(ai && ai.handeling) handeling = ai.handeling;
     const titel = `${systeem} - ${handeling.charAt(0).toUpperCase() + handeling.slice(1)}`;
-    const blob = instructieDocx(titel, waar, stappen.slice(0, 15), `Concept uit SubmIT · melding ${nrT(x)} · ${fmtDatum(new Date())} · ${profiel ? profiel.naam : ''} · nalezen vóór publicatie in de kennisbank`);
+    const blob = instructieDocx(titel, ai ? ai.waar || waar : waar, ai ? ai.stappen : stappen.slice(0, 15), `${ai ? 'AI-concept' : 'Concept'} uit SubmIT · melding ${nrT(x)} · ${fmtDatum(new Date())} · ${profiel ? profiel.naam : ''} · nalezen vóór publicatie in de kennisbank`);
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = titel.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120) + '.docx';
     document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
     toast('Instructie gedownload: lees hem na en zet hem in de kennisbank (Instructies › ' + systeem + ')');
@@ -7443,6 +7465,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.44', d: '22-10-2026', groot: true, p: ['✦ Concept-antwoord en ✦ Instructie maken gebruiken nu AI (Azure OpenAI, binnen de EU). Namen, mailadressen en nummers gaan er niet heen.', 'Het concept is beter afgestemd op de melding zelf; ontbreekt informatie, dan stelt het een gerichte vraag. Lees het altijd na.']},
   {v: 'v7.43', d: '22-10-2026', p: ['Periodieke beoordeling klaarzetten: Wanneer is eenvoudiger, met vaste keuzes voor herhalen (elke maand, kwartaal, halfjaar, jaar) en hoe vroeg de melding komt.']},
   {v: 'v7.42', d: '22-10-2026', p: ['Voorstellen bij binnenkomst gaan alleen nog over afdeling en type, op basis van vergelijkbare meldingen. Een verantwoordelijke wordt nooit meer voorgesteld.', 'Periodieke beoordeling klaarzetten: het blok Wanneer is overzichtelijker.']},
   {v: 'v7.41', d: '22-10-2026', groot: true, p: ['Periodieke beoordelingen: een melding kan nu als Nieuw bij de servicedesk binnenkomen, zonder vaste verantwoordelijke.', 'Hulpmiddelen (bijv. een script of rapportsjabloon) kun je bij een beoordeling zetten; ze komen als bijlage bij elke melding.', 'In een beoordelingsmelding leg je het resultaat vast: afvinklijst, uitkomst, bevindingen en het rapport als bijlage, in één keer als reactie.']},
