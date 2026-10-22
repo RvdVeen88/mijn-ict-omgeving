@@ -1363,6 +1363,37 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 .pb-kop3{font-size:13px;color:var(--blauw);margin:16px 0 6px}.pb-kop3 small{font-weight:400;margin-left:6px}
 .pb-hulp{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border:1px dashed var(--lijn);border-radius:10px;min-height:44px}.pb-hulp.sleep{border-color:var(--blauw);background:var(--blauw-licht,rgba(5,55,135,.06))}
 #aidlg{width:min(860px,94vw)}.ai-regels{font-weight:400;color:var(--grijs);font-size:13px;line-height:1.5}
+.rap{padding:0 26px 20px}.rap-kop{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:4px 0 12px}.rap-periodes{display:flex;flex-wrap:wrap;gap:6px}
+.chipknop2{border:1px solid var(--lijn);background:transparent;border-radius:999px;padding:4px 12px;font:inherit;font-size:12.5px;color:var(--inkt);cursor:default}.chipknop2[aria-pressed="true"]{background:var(--blauw);border-color:var(--blauw);color:#fff}
+.rap-tegels{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.rap-tegel{border:1px solid var(--lijn);border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:2px}.rap-tegel span{font-size:12px;color:var(--grijs)}.rap-tegel b{font-size:24px;color:var(--blauw);line-height:1.15}
+.rap-tegel small,.rap-staaf small{font-size:11.5px;color:var(--grijs)}.rap-tegel small.op,.rap-staaf small.op{color:var(--rood)}.rap-tegel small.af,.rap-staaf small.af{color:var(--groen,#2e7d32)}
+.rap-raster{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}.rap-kaart{border:1px solid var(--lijn);border-radius:14px;padding:12px 14px;min-width:0}.rap-breed{grid-column:1/-1}
+.rap-kaart h3{font-size:13px;color:var(--blauw);margin:0 0 8px}
+.rap-svg{width:100%;height:auto;display:block}.rap-as{stroke:var(--lijn);stroke-width:1}.rap-at{font-size:10px;fill:var(--grijs)}.rap-b1{fill:#053787}.rap-b2{fill:#B5D0FF}
+.rap-leg{font-size:11.5px;color:var(--grijs);margin:4px 0 0;display:flex;gap:6px;align-items:center}.rap-leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-left:6px}.rap-leg i.rap-b1{background:#053787}.rap-leg i.rap-b2{background:#B5D0FF}
+.rap-staven{display:flex;flex-direction:column;gap:5px}.rap-staaf{display:grid;grid-template-columns:minmax(80px,38%) 1fr 30px 14px;gap:8px;align-items:center;font-size:12.5px}
+.rap-sl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rap-sb{height:8px;background:var(--lijn);border-radius:4px;overflow:hidden}.rap-sb i{display:block;height:100%;background:var(--verloop,linear-gradient(100deg,#053787,#2E5FB0 45%,#B5D0FF));border-radius:4px}.rap-staaf b{text-align:right}
+.rap-woorden{display:flex;flex-wrap:wrap;gap:6px}.rap-ai-kop{display:flex;align-items:center;gap:10px}.rap-ai-kop h3{margin:0}
+.rap-md{font-size:13.5px;line-height:1.5;margin-top:8px}.rap-md h4{font-size:13px;color:var(--blauw);margin:10px 0 4px}.rap-md ul{margin:0 0 6px 18px;padding:0}.rap-md p{margin:0 0 6px}
+#kbgdlg,#auditdlg{width:min(720px,94vw)}.kbg-lijst{display:flex;flex-direction:column;gap:8px;margin-top:8px}.kbg-rij{display:flex;gap:12px;align-items:center;border:1px solid var(--lijn);border-radius:12px;padding:10px 12px}
+.kbg-rij > div{flex:1;display:flex;flex-direction:column;gap:2px}.kbg-rij small{color:var(--grijs);font-size:12px}
+.ai-wrap{position:relative;display:inline-block}
+.ai-menu{position:absolute;left:0;bottom:calc(100% + 6px);z-index:30;background:var(--kaart,#fff);border:1px solid var(--lijn);border-radius:12px;box-shadow:0 10px 30px rgba(5,55,135,.16);padding:6px;min-width:290px;display:flex;flex-direction:column}
+.ai-menu[hidden]{display:none}.ai-menu button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;border:0;background:transparent;padding:8px 10px;border-radius:8px;color:var(--inkt);font:inherit;cursor:default}
+.ai-menu button:hover{background:var(--blauw-licht,rgba(5,55,135,.07))}.ai-menu b{font-size:13px;color:var(--blauw)}.ai-menu small{font-size:11.5px;color:var(--grijs)}
+.ai-tips{display:flex;flex-direction:column;gap:6px}.ai-tips[hidden]{display:none}
+.ai-tips-knop{align-self:flex-start;border:1px solid var(--lichtblauw);background:var(--blauw-licht,rgba(5,55,135,.06));color:var(--blauw);border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;cursor:default}.ai-tips-knop.bezig{border-style:dashed;font-weight:500;opacity:.8}
+.ai-tips-lijst{display:flex;flex-direction:column;gap:4px;border:1px solid var(--lijn);border-radius:10px;padding:6px 8px}
+.ai-tip{display:flex;align-items:center;gap:8px;font-size:12.5px}.ai-tip-u{flex:1;color:var(--inkt)}.ai-tip-w s{color:var(--rood);text-decoration-thickness:1px}.ai-tip-w b{color:var(--groen,#2e7d32)}
+.ai-tip-s{flex:none;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:1px 7px;border-radius:999px;background:#E7EFFF;color:var(--blauw)}.ai-tip-s.toon{background:#F3E8F3;color:#5A2D5C}.ai-tip-s.info{background:#F5EBE1;color:#6B4A1F}
+.ai-samen{border:1px solid var(--lichtblauw);border-left:3px solid var(--blauw);border-radius:12px;padding:10px 14px;margin:6px 0 10px;background:var(--blauw-licht,rgba(5,55,135,.04))}
+.ai-samen-kop{display:flex;align-items:center;gap:8px;margin-bottom:4px}.ai-samen-kop b{color:var(--blauw);font-size:13px}.ai-samen-kop .sluit{margin-left:auto}
+.ai-samen dl{display:grid;grid-template-columns:110px 1fr;gap:3px 10px;font-size:13px;margin:0}.ai-samen dt{color:var(--grijs)}.ai-samen dd{margin:0}
+#levdlg{width:min(760px,94vw)}.lev-keuze{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}.chipkeuze{display:inline-flex;cursor:default}.chipkeuze input{position:absolute;opacity:0;pointer-events:none}
+.chipkeuze span{border:1px solid var(--lijn);border-radius:999px;padding:4px 12px;font-size:13px}.chipkeuze input:checked + span{border-color:var(--blauw);background:var(--blauw);color:#fff}
+.lev-l{display:block;font-size:12px;color:var(--grijs);margin:10px 0 2px}
+.storingkaart .kk-kop b{color:var(--blauw)}
 .ai-vg{display:inline-flex;flex-direction:column;gap:3px;font-size:12px;color:var(--blauw);min-width:220px;max-width:340px}.ai-vg-t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ai-vg-b{display:block;height:3px;border-radius:2px;background:var(--lijn);overflow:hidden}.ai-vg-b>i{display:block;height:100%;width:0;background:var(--blauw);border-radius:2px;transition:width .4s ease;animation:aiPuls 1.2s ease-in-out infinite}
 @keyframes aiPuls{50%{opacity:.45}}
@@ -1403,6 +1434,7 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
     <button type="button" class="r" id="meld-knop" title="Meldingen (terug naar waar je was)" aria-label="Meldingen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16"/><path class="acc" d="M4 18h10"/></svg></button>
     <button type="button" class="r" id="todo-knop" data-weergave="todo" title="To-do en notities" aria-label="To-do en notities"><img class="todo-logo" src="todo.png" alt="" hidden onload="this.hidden=false;this.nextElementSibling.style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span class="tel" id="todo-aantal"></span></button>
     <button type="button" class="r" id="kb-knop" title="Kennisbank: instructies zoeken, openen en meesturen" aria-label="Kennisbank"><img class="todo-logo" src="kennisbank.png" alt="" hidden onload="this.hidden=false;this.nextElementSibling.style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 4.9 6.6 4.4 3 5v13c3.6-.6 7 0 9 1.6"/><path d="M12 6.5c2-1.6 5.4-2.1 9-1.5v13c-3.6-.6-7 0-9 1.6z"/><path d="M12 6.5v13.1"/><path class="acc" d="M5.8 9c1.6-.2 3 .1 4 .6M5.8 12.2c1.6-.2 3 .1 4 .6M14.2 9.6c1-.5 2.4-.8 4-.6M14.2 12.8c1-.5 2.4-.8 4-.6"/></svg></button>
+    <button type="button" class="r" id="rap-knop" data-weergave="rapport" title="Rapportage: aantallen, trends en een AI-analyse" aria-label="Rapportage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
     <button type="button" class="r" id="team-knop" title="Team: wie is er online en wat gebeurt er" aria-label="Team" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path class="acc" d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 20a6.5 6.5 0 0 0-2.6-5.2"/></svg><span class="tel online" id="team-aantal"></span><span class="stip" id="team-stip" hidden></span></button>
     <button type="button" class="r plus" id="nieuw-knop" title="Nieuwe melding" aria-label="Nieuwe melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><path class="acc" d="M17.5 3.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>
   </nav>
@@ -1533,7 +1565,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.52', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.53', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2770,6 +2802,7 @@ async function vulLocaties(l){
 }
 function tekenLijst(){
   if(tab === 'historie') return tekenHistorie();
+  if(tab === 'rapport') return tekenRapport();
   if(tab === 'beheer'){ if(isBeheerder()) return tekenBeheer(); tab = 'mij'; return teken(); }
   if(tab === 'controle'){ if(isBeheerder()) return tekenControle(); tab = 'mij'; return teken(); }
   if(tab === 'beoordelingen'){ if(isBeheerder()) return tekenBeoordelingen(); tab = 'mij'; return teken(); }
@@ -2928,7 +2961,7 @@ function pasLokaalToe(){
 const naAchtergrond = () => { setTimeout(async () => { await laadGegevens('open', true); if(!$('#detail').open) teken(); }, 4000); setTimeout(async () => { await laadGegevens('open', true); if(!$('#detail').open) teken(); }, 15000); };
 // terug naar Meldingen = terug naar dezelfde lijst, filters en scrollpositie
 const meldPlek = {tab: 'toegewezen', scroll: 0};
-const isLijstTab = t => !['todo', 'mij', 'connectoren'].includes(t);
+const isLijstTab = t => !['todo', 'mij', 'connectoren', 'rapport'].includes(t);
 addEventListener('scroll', () => { if(isLijstTab(tab)) meldPlek.scroll = scrollY; }, {passive: true});
 /* ================= tekstvelden met hyperlinks =================
    Toelichting en reacties: plak je een link (uit Outlook, Teams, SharePoint…), dan zie je de naam en zit de link erachter.
@@ -3080,7 +3113,7 @@ function tekenEcht(){
   if(tab === 'trajecten' || tab === 'ch:alle') tab = 'ch:mijn';
   if(tab === 'dichtalle') tab = 'mij';   // gesloten meldingen vind je via zoeken   // Alle changes vervallen: die staan al per afdeling
   $('#v-mij').hidden = tab !== 'mij' && tab !== 'connectoren'; $('#v-lijst').hidden = tab === 'mij' || tab === 'todo' || tab === 'connectoren'; $('#v-todo').hidden = tab !== 'todo';
-  $('#todo-knop').setAttribute('aria-pressed', tab === 'todo'); $('#meld-knop').setAttribute('aria-pressed', isLijstTab(tab));
+  $('#todo-knop').setAttribute('aria-pressed', tab === 'todo'); $('#meld-knop').setAttribute('aria-pressed', isLijstTab(tab)); $('#rap-knop').setAttribute('aria-pressed', tab === 'rapport');
   if(isLijstTab(tab) && meldPlek.tab !== tab){ meldPlek.tab = tab; meldPlek.scroll = 0; }   // onthouden in welke lijst je was (nooit het overzicht) 
   $('#nav').hidden = tab === 'todo'; $('#menu-knop').hidden = tab === 'todo'; plaatsTdMenu();   // bij To-do hoort het meldingmenu er niet bij
   if(tab === 'mij'){ $('#titel').textContent = ''; tekenMij(); } else if(tab === 'connectoren') tekenConnectoren(); else if(tab === 'todo') tdTeken(); else tekenLijst();
@@ -3387,7 +3420,7 @@ async function toonReacties(x){
     const reactiesT = [...l, ...wacht].filter(r => r.t), bij = m => { const r = reactiesT.filter(r => Math.abs(+r.t - +m.t) < 10 * 6e4).sort((a, b) => Math.abs(+a.t - +m.t) - Math.abs(+b.t - +m.t))[0]; return r ? +r.t - 1 : +m.t || 0; };
     mails.forEach(m => { m._s = bij(m); });   // een mail staat direct onder de reactie waar hij bij hoort, ook als AFAS hem een paar seconden eerder/later stempelt
     const alles = [...l, ...wacht, ...mails].sort((a, b) => (a._s ?? (+a.t || 0)) - (b._s ?? (+b.t || 0)));
-    el.innerHTML = `<h3>Reacties (${l.length + wacht.length})${mails.length ? ` · ✉ ${mails.length} mail${mails.length === 1 ? '' : 's'}` : ''} <small class="hint">nieuwste bovenaan</small></h3>` + (alles.length ? bundelMails([...alles].reverse()).map(r => r.groep ? mailGroep(r.groep) : r.mail ? mailRegel(r) : `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''} ${r.intern ? 'intern' : ''} ${r.wacht ? 'wacht' : ''}"${r.rid ? ` data-rid="${esc(r.rid)}"` : ''}>${avatar(r.wie)}
+    el.innerHTML = `<h3>Reacties (${l.length + wacht.length})${mails.length ? ` · ✉ ${mails.length} mail${mails.length === 1 ? '' : 's'}` : ''} <small class="hint">nieuwste bovenaan</small>${l.length >= 5 && !$('#ai-samen') ? ' <button type="button" class="linkknop conceptknop" data-aisamen title="AI vat de melding en de reacties samen">✦ Samenvatten</button>' : ''}</h3>` + (alles.length ? bundelMails([...alles].reverse()).map(r => r.groep ? mailGroep(r.groep) : r.mail ? mailRegel(r) : `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''} ${r.intern ? 'intern' : ''} ${r.wacht ? 'wacht' : ''}"${r.rid ? ` data-rid="${esc(r.rid)}"` : ''}>${avatar(r.wie)}
       <div class="wolk"><div class="kopje"><b>${esc(r.wie || 'Onbekend')}</b><span>${r.t ? fmtDatum(r.t) + ' ' + fmtTijd(r.t) : ''}</span>${r.wacht ? '<span class="hint">wordt verwerkt…</span>' : ''}${r.intern ? '<span class="internlabel">Intern</span>' : ''}</div><div class="tekst">${metLinks(r.tekst)}</div></div></div>`).join('') : `<p class="hint">Nog geen reacties.</p>${DEMO ? '' : `<p class="hint" style="font-size:11.5px;opacity:.7">${esc(reactieDiag)}</p>`}`);
     if(!DEMO && reactieKol && !reactieKol.zicht) el.insertAdjacentHTML('beforeend', `<p class="hint" style="font-size:11.5px">Of een reactie intern is, staat niet in ${esc(INST.connReacties)}; alleen jouw eigen interne notities zijn herkend. Laat het veld "Reactie zichtbaar" aan die GetConnector toevoegen.</p>`);
     el.scrollTop = 0;   // nieuwste reactie bovenaan, ouder = naar beneden scrollen
@@ -3526,7 +3559,7 @@ async function sjBewaar(data){
 /* AI-instellingen (alleen de beheerder, geldt voor iedereen): aanspreekvorm, lengte en extra aanwijzingen voor ✦ Concept-antwoord en ✦ Instructie maken.
    Opslag via ict-beoordelingen ?soort=ai; de functie ai-concept leest ze zelf in (niet via de browser van de gebruiker). */
 const aiInstUrl = () => pbUrl() + (pbUrl().includes('?') ? '&' : '?') + 'soort=ai';
-const AI_STD = {vorm: 'je', woorden: 120, concept: '', instructie: ''};
+const AI_STD = {vorm: 'je', woorden: 120, concept: '', instructie: '', meelezen: 'aan', meelezenNotitie: 'spelling', leveranciers: ''};
 async function aiBeheer(){
   let d = $('#aidlg'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="aidlg" aria-label="AI-instellingen"></dialog>'); d = $('#aidlg'); }
   d.innerHTML = '<div class="dlg-in"><p class="leeg">Instellingen ophalen…</p></div>'; d.showModal();
@@ -3539,6 +3572,10 @@ async function aiBeheer(){
     <div class="kaarten"><div class="kaart2"><h3>Schrijfstijl</h3>
       <span>Aanspreekvorm</span><b><select name="vorm" class="afdkeuze">${opt('je', 'Je-vorm', w.vorm)}${opt('u', 'U-vorm', w.vorm)}</select></b>
       <span>Lengte antwoord</span><b><select name="woorden" class="afdkeuze">${opt(70, 'Kort (± 70 woorden)', w.woorden)}${opt(120, 'Normaal (± 120 woorden)', w.woorden)}${opt(200, 'Uitgebreid (± 200 woorden)', w.woorden)}</select></b></div>
+    <div class="kaart2"><h3>Meelezen</h3>
+      <span>Tips bij typen</span><b><select name="meelezen" class="afdkeuze">${opt('aan', 'Aan', w.meelezen || 'aan')}${opt('uit', 'Uit', w.meelezen || 'aan')}</select></b>
+      <span>Bij interne notities</span><b><select name="meelezenNotitie" class="afdkeuze">${opt('spelling', 'Alleen spelling', w.meelezenNotitie || 'spelling')}${opt('alles', 'Alles', w.meelezenNotitie || 'spelling')}${opt('uit', 'Uit', w.meelezenNotitie || 'spelling')}</select></b>
+      <span>Leveranciers</span><b><input name="leveranciers" class="datumkeuze" style="width:230px" placeholder="extra, met komma's" value="${esc(w.leveranciers || '')}" title="KroonCo, Timeff en AFAS staan er altijd in"></b></div>
     <div class="kaart2"><h3>Vaste regels</h3><span></span><b class="ai-regels">Verzint niets, noemt geen namen, stelt een vraag als informatie ontbreekt. Aanhef en groet zet SubmIT er zelf omheen. Namen, mailadressen en nummers gaan niet naar de AI.</b></div></div>
     <h3 class="pb-kop3">Extra aanwijzingen voor ✦ Concept-antwoord</h3>
     <textarea name="concept" class="toelinvoer" rows="5" placeholder="Bijv.: Verwijs bij wachtwoordvragen altijd naar de selfservice (aka.ms/sspr). Noem bij storingen dat de melder een reactie krijgt zodra het is opgelost. Gebruik geen uitroeptekens.">${esc(w.concept || '')}</textarea>
@@ -3548,11 +3585,11 @@ async function aiBeheer(){
     <div class="pb-acties"><span style="flex:1"></span><button type="button" class="knop" data-aidicht>Annuleren</button><button type="button" class="knop vol" data-aibewaar>Opslaan</button></div></form>`;
 }
 async function aiBewaar(){
-  const f = $('#ai-form'), k = f.querySelector('[data-aibewaar]'), data = {vorm: f.vorm.value, woorden: +f.woorden.value, concept: f.concept.value.trim().slice(0, 2000), instructie: f.instructie.value.trim().slice(0, 2000)};
+  const f = $('#ai-form'), k = f.querySelector('[data-aibewaar]'), data = {vorm: f.vorm.value, woorden: +f.woorden.value, meelezen: f.meelezen.value, meelezenNotitie: f.meelezenNotitie.value, leveranciers: f.leveranciers.value.trim().slice(0, 300), concept: f.concept.value.trim().slice(0, 2000), instructie: f.instructie.value.trim().slice(0, 2000)};
   k.disabled = true; k.textContent = 'Opslaan…';
   try{ if(DEMO) opslag.set('mict-demo-ai', data);
     else { const r = await fetch(aiInstUrl(), {method: 'PUT', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await geldigToken()}, body: JSON.stringify({data})}); const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(j.error || 'HTTP ' + r.status); }
-    $('#aidlg').close(); toast('AI-instellingen opgeslagen: gelden binnen 2 minuten voor iedereen'); }
+    AI_INST = {...AI_STD, ...data}; opslag.set('mict-ai-inst', data); $('#aidlg').close(); toast('AI-instellingen opgeslagen: gelden binnen 2 minuten voor iedereen'); }
   catch(e){ $('#ai-fout').textContent = 'Opslaan lukte niet: ' + e.message; } finally{ k.disabled = false; k.textContent = 'Opslaan'; }
 }
 document.addEventListener('click', e => { if(e.target.closest('[data-aidicht]')){ $('#aidlg').close(); return; } if(e.target.closest('[data-aibewaar]')) aiBewaar(); });
@@ -3743,6 +3780,7 @@ function tekenBeheer(){
     ${tegel('data-weergave="beoordelingen"', PB_ICO, 'Periodieke beoordelingen', 'Controles die met vaste tussenpozen terugkomen (NEN 7510)', nA == null ? (PB.fout ? 'Ophalen lukte niet' : 'Ophalen…') : `${nA} actief` + (nP ? ` · ${nP} achter` : ''), !!nP)}</div>
   <h3 class="bh-kop">Instellen</h3><div class="bh-raster">
     ${tegel('data-ikm="sjab"', '<path d="M4 5h16M4 10h16M4 15h10"/><path d="M17 14l3 3-5 5h-3v-3z"/>', 'Standaardteksten', 'Teksten in de keuzelijst onder het reactievak', [sjAangepast && `${sjAangepast} aangepast`, sjEigen && `${sjEigen} eigen`].filter(Boolean).join(' · '))}
+    ${tegel('data-ikm="kbgaten"', '<path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5z"/><path d="M9 8h5M9 12h3"/><circle cx="17" cy="16" r="3"/><path d="M19.2 18.2 21 20"/>', '✦ Kennisbank-gaten', 'Wat wordt vaak gevraagd, maar staat nog niet in de kennisbank?', '')}
     ${tegel('data-ikm="ai"', '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>', 'AI-instellingen', 'Aanspreekvorm, lengte en aanwijzingen voor ✦ Concept-antwoord en ✦ Instructie', '')}
     ${tegel('data-ikm="conn"', '<path d="M8 3v4M16 3v4M6 7h12v4a6 6 0 0 1-12 0zM12 17v4"/>', 'Connectoren &amp; velden', 'Welke AFAS-connectoren en velden SubmIT gebruikt, en of ze werken', '')}</div>`;
 }
@@ -3858,7 +3896,7 @@ function tekenBeoordelingen(){
   $('#titel').textContent = ''; $('#subtitel').textContent = ''; $('#lijst-sub').textContent = ''; $('#lijst-kol').innerHTML = '';
   ['#f-mijn', '#f-mijalles', '#f-soort', '#f-changes', '#f-weergave', '#f-zoom'].forEach(sel => { const e = $(sel); if(e) e.hidden = true; });
   const uitleg = beheerTerug() + `<p class="ctrl-uitleg" style="margin-top:4px">Controles die met vaste tussenpozen terugkomen (NEN 7510). Op tijd komt er vanzelf een melding met de instructie en de hulpmiddelen, als <b>Nieuw</b> bij de afdeling of bij een vaste verantwoordelijke.</p>`;
-  const knoppen = `<div class="ctrl-kop"><span>${PB.bezig ? 'Ophalen…' : PB.fout ? '<span class="fout">' + esc(PB.fout) + '</span>' : PB.t ? 'Bijgewerkt ' + fmtTijd(new Date(PB.t)) : ''}</span><span class="pb-knoppen"><button type="button" class="linkknop" data-pbplan title="Doet wat de dagelijkse planner om 6 uur doet, nu meteen">Planner nu draaien</button><button type="button" class="knop vol klein" data-pbnieuw>+ Nieuwe beoordeling</button></span></div>`;
+  const knoppen = `<div class="ctrl-kop"><span>${PB.bezig ? 'Ophalen…' : PB.fout ? '<span class="fout">' + esc(PB.fout) + '</span>' : PB.t ? 'Bijgewerkt ' + fmtTijd(new Date(PB.t)) : ''}</span><span class="pb-knoppen"><button type="button" class="linkknop" data-pbaudit title="Word-verslag voor de NEN 7510-audit, met samenvatting door AI">✦ NEN 7510-verslag</button><button type="button" class="linkknop" data-pbplan title="Doet wat de dagelijkse planner om 6 uur doet, nu meteen">Planner nu draaien</button><button type="button" class="knop vol klein" data-pbnieuw>+ Nieuwe beoordeling</button></span></div>`;
   if(!PB.defs){ $('#lijst').innerHTML = uitleg + knoppen + `<p class="leeg">${PB.bezig ? 'Beoordelingen ophalen…' : PB.fout ? 'Ophalen lukte niet.' : ''}</p>`; return; }
   const nu = tdIso(new Date()), over30 = tdIso(new Date(Date.now() + 30 * DAG)), jaar = String(new Date().getFullYear());
   const actief = PB.defs.filter(d => d.actief), achter = pbAchter();
@@ -4104,9 +4142,12 @@ function openDetail(nr){
     ${pbIs(x) ? '<div class="pbres" id="d-pbres"><h3>Resultaat vastleggen</h3><p class="hint">Ophalen…</p></div>' : ''}
     <div class="composer">
       <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
-      <div class="klaarzet" id="klaar-reactie"></div>
+      <div class="klaarzet" id="klaar-reactie"></div><div class="ai-tips" id="ai-tips" hidden></div>
       <div class="onder"><button type="button" class="linkknop paperclip" id="k-clip" title="Bestand meesturen met deze reactie. Je kunt ook een bestand op het reactievak slepen of een schermafbeelding plakken met Ctrl+V.">${CLIP}Bijlage</button><input type="file" id="f-reactie" multiple hidden><label class="vink notitie" data-uitleg="Alleen zichtbaar voor de afdeling ICT. De melder ziet deze notitie niet en krijgt geen mail."><input type="checkbox" id="notitie"> Interne notitie</label>
-        <select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select>${x.afgesloten ? '' : '<button type="button" class="linkknop conceptknop" id="k-concept" title="Concept-antwoord op basis van hoe een vergelijkbare melding is opgelost, met een instructie uit de kennisbank als die er is">✦ Concept-antwoord</button>'}
+        <select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select>${x.afgesloten ? '' : `<button type="button" class="linkknop conceptknop" id="k-concept" title="Concept-antwoord op basis van hoe een vergelijkbare melding is opgelost, met een instructie uit de kennisbank als die er is">✦ Concept-antwoord</button><span class="ai-wrap"><button type="button" class="linkknop conceptknop" id="k-aimeer" aria-haspopup="menu" aria-expanded="false" title="Meer hulp van AI bij deze melding">✦ Meer ▾</button><div class="ai-menu" id="ai-menu" role="menu" hidden>
+          <button type="button" role="menuitem" id="k-vragen"><b>Vraag ontbrekende info</b><small>1-2 gerichte vragen aan de melder</small></button>
+          <button type="button" role="menuitem" id="k-samenvat"><b>Samenvatting</b><small>probleem, wat er al gedaan is, volgende stap</small></button>
+          <button type="button" role="menuitem" id="k-leverancier"><b>Overdracht aan leverancier</b><small>zakelijke tekst voor KroonCo, Timeff, AFAS…</small></button></div></span>`}
         <span class="hint" id="notitie-uitleg"></span></div>
     </div>
     <div class="onderbalk"><div class="actiebalk" id="actiebalk">${st === 0 ? '<button class="knop" data-snel="oppak" title="Kan meteen: wacht zo nodig even op de workflow uit AFAS">Toewijzen aan mij</button>' : ''}</div>
@@ -4124,7 +4165,7 @@ function openDetail(nr){
   $('#detail-in').scrollTop = 0; zetNavPijlen(x); setTimeout(() => { tekenAanwezig(); seinAanwezig(); }, 50);
   $('#detail').oninput = e => { if(e.target.id === 'tekst') pasHoogteAan(e.target); if(e.target.id === 'tekst' && huidig && huidig.autoTekst != null && e.target.value !== huidig.autoTekst){ huidig.autoTekst = null; e.target.classList.remove('voorstel'); } mailVooraf(); };
   $('#detail').onchange = e => { if(/^d-(afd|verantw|status|gepland)$/.test(e.target.id)) autoReactie(); mailVooraf(); };
-  huidig.klaar = {ticket: [], reactie: []}; huidig.bijl = null;
+  huidig.klaar = {ticket: [], reactie: []}; huidig.bijl = null; tipsReset(); { const sb = $('#ai-samen'); if(sb) sb.remove(); }
   (DEMO ? Promise.resolve() : zorgSbId(x)).then(() => { laadBijlagen(x); return toonReacties(x); }).catch(e => { const el = $('#tijdlijn'); if(el) el.innerHTML = `<h3>Reacties</h3><p class="hint">Het interne nummer van deze melding kon niet worden opgezocht: ${esc(e.message)}</p>`; const bl = $('#bijl-lijst'); if(bl) bl.innerHTML = '<span class="hint">Bijlagen ophalen kan niet zonder het interne nummer van de melding.</span>'; });
   if(!x.afgesloten){ vulStatusKeuze(x); vulLocKeuze(x); Promise.all([vulAfdKeuze(x), vulVerantwKeuze(x), vulTypeKeuze(x)]).then(() => stelVoorBijBinnenkomst(x)).catch(() => {}); setTimeout(() => markeerOntbrekend(x), 0); }
   const toelKlaar = x.toelichting == null || !x.toelichting ? toonToelichting(x) : null; if(pbIs(x) && !x.afgesloten) Promise.resolve(toelKlaar).catch(() => {}).then(() => pbResInit(x)); if(toelKlaar){} else if($('#d-toel') && $('#d-toel').tagName === 'TEXTAREA') pasToelHoogte($('#d-toel'));
@@ -5534,7 +5575,7 @@ function startInlog(fout){
   $('#k-in').onclick = () => inloggen();
 }
 function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken();
-  if(!toonApp.nieuws){ toonApp.nieuws = 1; sjLaad(); setTimeout(() => nieuwsNaUpdate(), 3000); laadLocatiesNaLaden(); } }   // na een update één keer 'SubmIT is bijgewerkt'
+  if(!toonApp.nieuws){ toonApp.nieuws = 1; sjLaad(); aiInstLaad(); setTimeout(() => nieuwsNaUpdate(), 3000); laadLocatiesNaLaden(); } }   // na een update één keer 'SubmIT is bijgewerkt'
 
 /* ================= Connectoren & velden: wat SubmIT per connector nodig heeft, live gecontroleerd ================= */
 // gebruik per connector in deze sessie (bijgehouden in afas())
@@ -5849,6 +5890,7 @@ document.addEventListener('click', e => {
     if(k === 'win'){ wisselWindows(); return; }
     if(k === 'sjab'){ sjBeheer(); return; }
     if(k === 'ai'){ aiBeheer(); return; }
+    if(k === 'kbgaten') return;
     if(k === 'beheer'){ tab = 'beheer'; filt.zoek = ''; $('#f-zoek').value = ''; teken(); scrollTo(0, 0); return; }
     if(k === 'rust'){ rustAan = !rustAan; opslag.set('mict-rustscherm', rustAan); rustReset(); toast(rustAan ? 'Rustscherm staat aan: na 2 minuten zonder muis zie je je overzicht' : 'Rustscherm staat uit'); return; }
     if(k === 'stil'){ nietStoren = !nietStoren; opslag.set('mict-nietstoren', nietStoren); zetIkAvatar(); seinAanwezig(); toast(nietStoren ? 'Niet storen staat aan: collega’s zien dat aan je foto; wat er gebeurt zie je in Team' : 'Niet storen staat uit'); return; }
@@ -7128,16 +7170,348 @@ const kaleOplossing = t => String(t || '').replace(/\r/g, '').split(/\n/)
 /* AI via Azure-functie ai-concept (Azure OpenAI, gpt-4o-mini, Data Zone EU). Lukt het niet, dan valt SubmIT terug op de versie zonder AI. */
 const aiUrl = () => INST.aiUrl || String(INST.tokenFunctie || '').replace(/afas-token\/?$/, 'ai-concept');
 async function aiApi(body){
-  if(DEMO) throw new Error('demo');
+  if(DEMO){ const d = typeof AI_DEMO !== 'undefined' && AI_DEMO[body.soort]; if(!d) throw new Error('demo'); await new Promise(r => setTimeout(r, 350)); return d(body); }
   const r = await fetch(aiUrl(), {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await geldigToken()}, body: JSON.stringify(body)});
   const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(j.error || 'HTTP ' + r.status); return j;
 }
 // voortgang bij AI-knoppen: stap x van y met uitleg en een balkje, zodat je ziet waar je op wacht
 function aiVoortgang(knop, stap, totaal, tekst){
-  let v = $('#ai-vg'); if(!v){ knop.insertAdjacentHTML('afterend', '<span class="ai-vg" id="ai-vg" role="status" aria-live="polite"><span class="ai-vg-t"></span><i class="ai-vg-b"><i></i></i></span>'); v = $('#ai-vg'); }
+  knop = aiAnker(knop); let v = $('#ai-vg'); if(!v){ knop.insertAdjacentHTML('afterend', '<span class="ai-vg" id="ai-vg" role="status" aria-live="polite"><span class="ai-vg-t"></span><i class="ai-vg-b"><i></i></i></span>'); v = $('#ai-vg'); }
   v.querySelector('.ai-vg-t').textContent = `${stap}/${totaal} · ${tekst}`; v.querySelector('.ai-vg-b > i').style.width = Math.round((stap - 0.5) / totaal * 100) + '%';
 }
 const aiVoortgangWeg = () => { const v = $('#ai-vg'); if(v) v.remove(); };
+/* ================= AI in SubmIT: meer hulp =================
+   Alles via de Azure-functie ai-concept. Namen, mailadressen en nummers gaan er vooraf uit (anoniem); resultaten zijn altijd een voorstel. */
+let AI_INST = {...AI_STD};
+async function aiInstLaad(){
+  try{ if(DEMO){ AI_INST = {...AI_STD, ...(opslag.get('mict-demo-ai') || {})}; return; }
+    const c = opslag.get('mict-ai-inst'); if(c) AI_INST = {...AI_STD, ...c};
+    const r = await fetch(aiInstUrl(), {headers: {Authorization: 'Bearer ' + await geldigToken()}}); if(!r.ok) return;
+    const j = await r.json(); if(j && j.data){ AI_INST = {...AI_STD, ...j.data}; opslag.set('mict-ai-inst', j.data); } }catch(e){}
+}
+// demo: voorbeeldantwoorden, zodat alles zonder Azure te bekijken en te testen is
+const AI_DEMO = {
+  tips: b => { const l = [], t = b.tekst; if(/\bword\b/.test(t)) l.push({soort: 'spelling', uitleg: 'dt-fout: het wordt', van: 'word', naar: 'wordt'});
+    if(/\bonmiddelijk\b/i.test(t)) l.push({soort: 'spelling', uitleg: 'Schrijf: onmiddellijk', van: 'onmiddelijk', naar: 'onmiddellijk'});
+    if(!b.notitie && t.length > 30 && !/\?|graag|wil je|kun je|kunt u/i.test(t)) l.push({soort: 'duidelijkheid', uitleg: 'Zeg wat de melder nu moet doen', van: '', naar: ''}); return {tips: l}; },
+  vragen: () => ({tekst: 'Om je goed te kunnen helpen hebben we nog twee dingen nodig:\n1. Op welke locatie en werkplek speelt dit?\n2. Kun je een schermafbeelding van de foutmelding sturen?'}),
+  samenvatting: () => ({probleem: 'Headset geeft geen geluid in Teams; in andere apps werkt hij wel.', geprobeerd: 'ICT vroeg om in Teams bij Apparaten de headset te kiezen; de melder heeft dat gedaan, maar het werkt nog niet.', volgende: 'Driver van de headset controleren of de headset omruilen.'}),
+  leverancier: b => ({onderwerp: 'Storing: ' + ((b.melding || {}).onderwerp || 'melding'), tekst: 'Probleem\nDe applicatie reageert traag bij het openen van dossiers.\n\nImpact\nMeerdere medewerkers op één locatie kunnen niet vlot werken.\n\nSinds wanneer / hoe vaak\nSinds vanochtend; 3 meldingen.\n\nAl geprobeerd\nWerkplek herstart, andere werkplek geprobeerd.\n\nVerzoek\nWilt u onderzoeken of er een storing is en ons laten weten wanneer dit is opgelost?'}),
+  cluster: b => { const l = b.meldingen || []; return {groepen: l.length >= 3 ? [{ids: l.slice(0, 3).map(m => m.id), titel: 'Mogelijke storing (demo)', waarom: 'Drie meldingen kort na elkaar over hetzelfde probleem.'}] : []}; },
+  kbgaten: b => ({gaten: (b.groepen || []).slice(0, 3).map(g => ({id: g.id, titel: 'Instructie: ' + g.id, waarom: 'Komt vaak terug en is met een instructie zelf op te lossen.'}))}),
+  verslag: b => ({tekst: `## In het kort\n- **${b.cijfers.binnengekomen.nu}** meldingen binnengekomen (vorige periode ${b.cijfers.binnengekomen.vorige}).\n- **${b.cijfers.afgehandeld.nu}** afgehandeld; nu ${b.cijfers.open} open.\n- Gemiddelde doorlooptijd ${b.cijfers.doorlooptijdDagen} dagen.\n\n## Trends\n- Dit is een voorbeeld van de AI-analyse in de demo.\n\n## Opvallend\n- Veel meldingen over ${(b.onderwerpen || ['–'])[0]}.\n\n## Aandachtspunten\n- Overweeg een instructie voor het meest gemelde onderwerp.`}),
+  audit: b => ({inleiding: 'Dit verslag laat zien welke periodieke beoordelingen de afdeling ICT heeft uitgevoerd (demo).', conclusie: 'De beoordelingen zijn grotendeels volgens plan uitgevoerd.', aandachtspunten: ['Leg bij elke beoordeling het resultaat vast.'], per: Object.fromEntries((b.beoordelingen || []).map(d => [d.id, 'Uitgevoerd volgens planning (demo).']))})
+};
+const aiMelding = x => ({onderwerp: anoniem(x.onderwerp, x), toelichting: anoniem(kaal(x.toelichting || toelCache.get(String(x.nr)) || ''), x),
+  reacties: ((huidig && huidig.x === x && huidig.reacties) || []).filter(r => r.tekst).slice(-12).map(r => ({van: r.intern ? 'intern' : norm(r.wie) === norm(x.melder) ? 'melder' : 'ict', tekst: anoniem(kaleOplossing(r.tekst), x)}))});
+const aiAnker = k => (k && k.closest('.ai-menu')) ? ($('#k-aimeer') || k) : k;
+
+// ---- menu ✦ Meer naast Concept-antwoord ----
+document.addEventListener('click', e => {
+  const m = $('#ai-menu');
+  if(e.target.closest('#k-aimeer')){ if(m){ m.hidden = !m.hidden; $('#k-aimeer').setAttribute('aria-expanded', !m.hidden); } return; }
+  if(m && !m.hidden && !e.target.closest('#ai-menu')){ m.hidden = true; $('#k-aimeer') && $('#k-aimeer').setAttribute('aria-expanded', false); }
+  if(e.target.closest('#k-vragen')){ m && (m.hidden = true); aiVragen(); }
+  if(e.target.closest('#k-samenvat') || e.target.closest('[data-aisamen]')){ m && (m.hidden = true); aiSamenvatting(); }
+  if(e.target.closest('#k-leverancier')){ m && (m.hidden = true); aiLeverancier(); }
+  if(e.target.closest('[data-aisamenweg]')){ const b = $('#ai-samen'); if(b) b.remove(); }
+});
+
+// ---- ontbrekende info vragen ----
+async function aiVragen(){
+  const x = huidig && huidig.x, k = $('#k-vragen'), t = $('#tekst'); if(!x || !t) return;
+  const anker = aiAnker(k); anker.disabled = true;
+  try{ aiVoortgang(anker, 1, 1, 'AI bepaalt welke informatie nog ontbreekt');
+    const j = await aiApi({soort: 'vragen', melding: aiMelding(x)}); if(!j.tekst) throw new Error('geen antwoord');
+    t._vstelVoor = t.value; await zetVoorstel(await maakBrief(x, [j.tekst]), true); if(!t.classList.contains('voorstel')) return;
+    let l = $('#vst-tekst'); if(l) l.remove();
+    $('#k-concept').insertAdjacentHTML('afterend', `<span class="vstel" id="vst-tekst" data-vstel="tekst"><span class="vst-l" title="Vragen om ontbrekende informatie, opgesteld door AI. Lees het na; × haalt het weg.">✦ AI-vragen</span><button type="button" class="vst-ok" data-vstok aria-label="Overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Weghalen" title="Weghalen">×</button></span>`);
+    t.focus(); }
+  catch(e){ toast('Vragen opstellen lukte niet: ' + e.message, true); }
+  finally{ aiVoortgangWeg(); anker.disabled = false; }
+}
+
+// ---- samenvatting boven de reacties ----
+const aiSamenCache = new Map();
+async function aiSamenvatting(){
+  const x = huidig && huidig.x, tl = $('#tijdlijn'); if(!x || !tl) return;
+  let b = $('#ai-samen'); if(!b){ tl.insertAdjacentHTML('beforebegin', '<div class="ai-samen" id="ai-samen" role="status"></div>'); b = $('#ai-samen'); }
+  const toon = j => { b.innerHTML = `<div class="ai-samen-kop"><b>✦ Samenvatting</b><small class="hint">door AI · lees na</small><button type="button" class="sluit" data-aisamenweg aria-label="Sluiten">×</button></div>
+    <dl><dt>Probleem</dt><dd>${esc(j.probleem)}</dd><dt>Al gedaan</dt><dd>${esc(j.geprobeerd)}</dd><dt>Volgende stap</dt><dd>${esc(j.volgende)}</dd></dl>`; };
+  const c = aiSamenCache.get(String(x.nr)); if(c && c.n === (huidig.reacties || []).length){ toon(c.j); return; }
+  b.innerHTML = '<div class="ai-samen-kop"><b>✦ Samenvatting</b><small class="hint">AI leest de melding en de reacties…</small></div><i class="ai-vg-b"><i style="width:60%"></i></i>';
+  try{ if(!huidig.reacties && !DEMO){ await zorgSbId(x); huidig.reacties = await haalReacties(x); }
+    const j = await aiApi({soort: 'samenvatting', melding: aiMelding(x)}); if(!huidig || huidig.x !== x) return;
+    aiSamenCache.set(String(x.nr), {n: (huidig.reacties || []).length, j}); toon(j); }
+  catch(e){ b.innerHTML = `<div class="ai-samen-kop"><b>✦ Samenvatting</b><small class="fout">lukte niet: ${esc(e.message)}</small><button type="button" class="sluit" data-aisamenweg aria-label="Sluiten">×</button></div>`; }
+}
+
+// ---- overdracht aan een leverancier ----
+const LEVERANCIERS = ['KroonCo', 'Timeff', 'AFAS'];
+function aiLeverancier(){
+  const x = huidig && huidig.x; if(!x) return;
+  let d = $('#levdlg'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="levdlg" aria-label="Overdracht aan leverancier"></dialog>'); d = $('#levdlg'); }
+  const lijst = [...LEVERANCIERS, ...String(AI_INST.leveranciers || '').split(/[,\n]/).map(s => s.trim()).filter(Boolean)].filter((v, i, a) => a.indexOf(v) === i);
+  d.innerHTML = `<form class="dlg-in nform" id="lev-form" onsubmit="return false"><div class="dlg-kop"><div><small>✦ AI · melding ${esc(nrT(x))}</small><h2>Overdracht aan leverancier</h2></div><button type="button" class="sluit" data-levdicht aria-label="Sluiten">×</button></div>
+    <p class="hint">AI zet het probleem, de impact, sinds wanneer, wat er al geprobeerd is en het verzoek zakelijk op een rij. Zonder namen. Lees na en kopieer het naar de mail of de ticketportal van de leverancier.</p>
+    <div class="lev-keuze">${lijst.map((l, i) => `<label class="chipkeuze"><input type="radio" name="lev" value="${esc(l)}" ${i === 0 ? 'checked' : ''}><span>${esc(l)}</span></label>`).join('')}<label class="chipkeuze"><input type="radio" name="lev" value=""><span>Anders:</span></label><input name="levander" class="datumkeuze" placeholder="naam leverancier" style="width:160px"></div>
+    <div class="pb-acties" style="margin-top:8px"><button type="button" class="knop vol" data-levmaak>✦ Opstellen</button><span class="hint" id="lev-stand"></span></div>
+    <div id="lev-uit" hidden><span class="lev-l">Onderwerp</span><input name="levond" class="ondinvoer" style="width:100%"><span class="lev-l">Tekst</span><textarea name="levtekst" class="toelinvoer" rows="12"></textarea>
+    <div class="pb-acties"><button type="button" class="linkknop" data-levnotitie title="Zet de tekst als interne notitie in het reactievak, zodat vastligt wat er naar de leverancier is gegaan">Als interne notitie vastleggen</button><span style="flex:1"></span><button type="button" class="knop vol" data-levkopie>Kopiëren</button></div></div></form>`;
+  d.showModal();
+}
+document.addEventListener('click', async e => {
+  if(e.target.closest('[data-levdicht]')){ $('#levdlg').close(); return; }
+  if(e.target.closest('[data-levmaak]')){ const f = $('#lev-form'), x = huidig && huidig.x, k = e.target.closest('[data-levmaak]'); if(!x) return;
+    const lev = (f.querySelector('[name=lev]:checked') || {}).value || f.levander.value.trim(); if(!lev){ $('#lev-stand').textContent = 'Kies of typ een leverancier.'; return; }
+    k.disabled = true; $('#lev-stand').textContent = 'AI schrijft de overdracht…';
+    try{ const dertig = Date.now() - 30 * DAG, n = vergelijkbaarGescoord(x, 20).filter(y => +y.aangemaakt > dertig).length;
+      const j = await aiApi({soort: 'leverancier', leverancier: lev, melding: {...aiMelding(x), sinds: x.aangemaakt ? fmtDatum(x.aangemaakt) : '', locatie: locVan(x), aantal: n}});
+      f.levond.value = j.onderwerp || ''; f.levtekst.value = j.tekst || ''; $('#lev-uit').hidden = false; $('#lev-stand').textContent = 'Klaar. Lees het na voor je het verstuurt.'; }
+    catch(err){ $('#lev-stand').textContent = 'Lukte niet: ' + err.message; } finally{ k.disabled = false; } return; }
+  if(e.target.closest('[data-levkopie]')){ const f = $('#lev-form'); try{ await navigator.clipboard.writeText(f.levond.value + '\n\n' + f.levtekst.value); toast('Gekopieerd: onderwerp en tekst'); }catch(err){ f.levtekst.select(); document.execCommand('copy'); toast('Gekopieerd'); } return; }
+  if(e.target.closest('[data-levnotitie]')){ const f = $('#lev-form'), t = $('#tekst'), n = $('#notitie'); if(!t) return;
+    if(n && !n.checked){ n.checked = true; n.dispatchEvent(new Event('change', {bubbles: true})); }
+    t.value = `Overgedragen aan leverancier (${(f.querySelector('[name=lev]:checked') || {}).value || f.levander.value}): ${f.levond.value}\n\n${f.levtekst.value}`; pasHoogteAan(t); $('#detail').dataset.gewijzigd = '1'; mailVooraf(); $('#levdlg').close(); toast('Staat als interne notitie in het reactievak: klik op Opslaan'); }
+});
+
+// ---- meelezen: tips over spelling, toon en duidelijkheid, 2 seconden nadat je stopt met typen ----
+const TIP = {timer: null, laatst: '', bezig: false, l: [], open: false};
+const TIP_LABEL = {spelling: 'Spelling', toon: 'Toon', duidelijkheid: 'Duidelijkheid', info: 'Ontbreekt'};
+function tipsTeken(){
+  const el = $('#ai-tips'), t = $('#tekst'); if(!el || !t) return;
+  TIP.l = TIP.l.filter(p => !p.van || t.value.includes(p.van));
+  if(TIP.bezig && !TIP.l.length){ el.hidden = false; el.innerHTML = '<span class="ai-tips-knop bezig">✦ nakijken…</span>'; return; }
+  if(!TIP.l.length){ el.hidden = true; el.innerHTML = ''; return; }
+  el.hidden = false;
+  el.innerHTML = `<button type="button" class="ai-tips-knop" data-tipsopen aria-expanded="${TIP.open}">✦ ${TIP.l.length} tip${TIP.l.length === 1 ? '' : 's'}${TIP.bezig ? ' · nakijken…' : ''}</button>${TIP.open ? `<div class="ai-tips-lijst">${TIP.l.map((p, i) => `<div class="ai-tip"><span class="ai-tip-s ${p.soort}">${TIP_LABEL[p.soort] || p.soort}</span><span class="ai-tip-u">${esc(p.uitleg)}${p.van && p.naar ? ` <span class="ai-tip-w"><s>${esc(p.van)}</s> → <b>${esc(p.naar)}</b></span>` : ''}</span>${p.van && p.naar ? `<button type="button" class="linkknop" data-tipdoe="${i}">Toepassen</button>` : ''}<button type="button" class="weg" data-tipweg="${i}" aria-label="Negeren" title="Negeren">×</button></div>`).join('')}</div>` : ''}`;
+}
+async function tipsCheck(){
+  const x = huidig && huidig.x, t = $('#tekst'); if(!x || !t) return;
+  const tekst = t.value.trim(), notitie = !!($('#notitie') && $('#notitie').checked);
+  if(tekst.length < 20 || tekst === TIP.laatst || AI_INST.meelezen === 'uit' || (notitie && AI_INST.meelezenNotitie === 'uit') || t.classList.contains('voorstel')) return;
+  TIP.laatst = tekst; TIP.bezig = true; tipsTeken();
+  try{ const j = await aiApi({soort: 'tips', tekst: anoniem(tekst, x), onderwerp: anoniem(x.onderwerp, x), notitie});
+    if(!huidig || huidig.x !== x) return;
+    const nu = $('#tekst').value; TIP.l = (j.tips || []).filter(p => !p.van || nu.includes(p.van)); }
+  catch(e){ TIP.l = []; }
+  finally{ TIP.bezig = false; tipsTeken(); }
+}
+document.addEventListener('input', e => { if(e.target.id !== 'tekst' || !huidig) return;
+  clearTimeout(TIP.timer); tipsTeken(); TIP.timer = setTimeout(tipsCheck, 2000); });
+document.addEventListener('click', e => {
+  if(e.target.closest('[data-tipsopen]')){ TIP.open = !TIP.open; tipsTeken(); return; }
+  const w = e.target.closest('[data-tipweg]'); if(w){ TIP.l.splice(+w.dataset.tipweg, 1); tipsTeken(); return; }
+  const d = e.target.closest('[data-tipdoe]'); if(d){ const p = TIP.l[+d.dataset.tipdoe], t = $('#tekst'); if(!p || !t || !t.value.includes(p.van)) return;
+    t.value = t.value.replace(p.van, p.naar); TIP.laatst = t.value.trim(); TIP.l.splice(+d.dataset.tipdoe, 1); pasHoogteAan(t); $('#detail').dataset.gewijzigd = '1'; mailVooraf(); tipsTeken(); }
+});
+const tipsReset = () => { clearTimeout(TIP.timer); TIP.l = []; TIP.laatst = ''; TIP.bezig = false; TIP.open = false; };
+
+// ---- mogelijke storing herkennen: meerdere meldingen kort na elkaar over hetzelfde ----
+const STORING = {laatst: '', bezig: false};
+async function storingCheck(){
+  if(STORING.bezig || !profiel || !items.length) return;
+  const grens = Date.now() - 3 * 36e5, kand = items.filter(x => !x.afgesloten && !x.inuit && !x.kritiek && +x.aangemaakt > grens);
+  if(kand.length < 3) return;
+  const tel = new Map(); kand.forEach(x => woordenVan(x.onderwerp + ' ' + String(toelCache.get(String(x.nr)) || '').slice(0, 200)).forEach(w => tel.set(w, (tel.get(w) || 0) + 1)));
+  const vaak = new Set([...tel].filter(([, n]) => n >= 3).map(([w]) => w)); if(!vaak.size) return;
+  const sel = kand.filter(x => woordenVan(x.onderwerp + ' ' + String(toelCache.get(String(x.nr)) || '').slice(0, 200)).some(w => vaak.has(w))).slice(0, 25);
+  const sleutel = sel.map(x => x.nr).sort().join(','); if(sel.length < 3 || sleutel === STORING.laatst) return;
+  STORING.laatst = sleutel; STORING.bezig = true;
+  try{ const j = await aiApi({soort: 'cluster', meldingen: sel.map(x => ({id: String(x.nr), onderwerp: anoniem(x.onderwerp, x), toelichting: anoniem(String(toelCache.get(String(x.nr)) || ''), x).slice(0, 300), locatie: locVan(x)}))});
+    const weg = new Set(sessie.get('mict-storing-weg') || []);
+    (j.groepen || []).forEach(g => { const k = g.ids.slice().sort().join(','); if(!weg.has(k)) toonStoring(g, k); }); }
+  catch(e){} finally{ STORING.bezig = false; }
+}
+function toonStoring(g, k){
+  let box = $('#herinnerbox'); if(!box){ document.body.insertAdjacentHTML('beforeend', '<div id="herinnerbox" aria-live="polite"></div>'); box = $('#herinnerbox'); }
+  if(box.querySelector(`[data-storing="${CSS.escape(k)}"]`)) return;
+  const l = g.ids.map(id => items.find(x => String(x.nr) === id)).filter(Boolean);
+  box.insertAdjacentHTML('beforeend', `<div class="kritiekkaart herinnerkaart storingkaart" data-storing="${esc(k)}" role="status">
+    <div class="kk-kop">${ico('<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>')}<b>✦ Mogelijke storing</b></div>
+    <p class="hk-soort"><b>${esc(g.titel)}</b>: ${l.length} meldingen in de laatste uren. ${esc(g.waarom || '')}</p>
+    <div class="hk-lijst">${l.slice(0, 4).map(x => `<button type="button" class="hk-rij" data-stnr="${esc(x.nr)}"><b>${esc(nrT(x))}</b><span>${esc(x.onderwerp)}${locVan(x) ? ' · ' + esc(locVan(x)) : ''}</span></button>`).join('')}</div>
+    <p class="hk-soort" style="margin-top:2px">Klopt het? Markeer ze als <b>kritieke storing</b> en koppel ze aan elkaar.</p>
+    <div class="kk-knoppen"><button type="button" class="knop" data-stweg>Negeren</button><button type="button" class="knop vol" data-stopen>Bekijken</button></div></div>`);
+}
+document.addEventListener('click', e => {
+  const k = e.target.closest && e.target.closest('.storingkaart'); if(!k) return;
+  const ids = k.dataset.storing.split(',');
+  if(e.target.closest('[data-stweg]')){ sessie.set('mict-storing-weg', [...(sessie.get('mict-storing-weg') || []), k.dataset.storing]); k.remove(); return; }
+  const r = e.target.closest('[data-stnr]'), nr = r ? r.dataset.stnr : e.target.closest('[data-stopen]') ? ids[0] : null;
+  if(nr){ navLijst = ids; openDetail(nr); }
+});
+setTimeout(() => { storingCheck(); setInterval(storingCheck, 5 * 60e3); }, 25e3);
+// ---- kennisbank-gaten (Beheer): vaak gestelde vragen zonder instructie ----
+const KB_GENERIEK = new Set('toegang account aanvraag nieuwe nieuw laptop computer telefoon systeem storing fout error inloggen'.split(' '));
+async function kbGaten(){
+  let d = $('#kbgdlg'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="kbgdlg" aria-label="Kennisbank-gaten"></dialog>'); d = $('#kbgdlg'); }
+  const kop = `<div class="dlg-kop"><div><small>✦ AI · Beheer</small><h2>Kennisbank-gaten</h2></div><button type="button" class="sluit" data-kbgdicht aria-label="Sluiten">×</button></div>`;
+  d.innerHTML = `<div class="dlg-in">${kop}<p class="hint">Onderwerpen die de laatste 90 dagen vaak terugkwamen en waar nog geen instructie voor lijkt te zijn.</p><p id="kbg-stand" class="hint"></p><div id="kbg-uit"></div></div>`; d.showModal();
+  const stand = t => { const e = $('#kbg-stand'); if(e) e.innerHTML = `<span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>${t}`; };
+  try{
+    stand('Afgehandelde meldingen groeperen…'); if(!alleGeladen) await Promise.resolve(laadRestOpAchtergrond()).catch(() => {});
+    const grens = Date.now() - 90 * DAG, dicht = items.filter(x => x.afgesloten && !x.inuit && +(x.statusDatum || x.aangemaakt) > grens);
+    const tel = new Map(); dicht.forEach(x => woordenVan(x.onderwerp).filter(w => !KB_GENERIEK.has(w)).forEach(w => { if(!tel.has(w)) tel.set(w, []); tel.get(w).push(x); }));
+    const groepen = [...tel].filter(([, l]) => l.length >= 4).sort((a, b) => b[1].length - a[1].length).slice(0, 15);
+    if(!groepen.length){ $('#kbg-stand').textContent = 'Geen onderwerpen die vaak genoeg terugkomen (minimaal 4×).'; return; }
+    let namen = []; const kbAan = DEMO || opslag.get(KB.sleutel()) || msOpgeslagen();
+    if(kbAan) for(const [i, [w]] of groepen.entries()){ stand(`Kennisbank doorzoeken (${i + 1} van ${groepen.length})…`); try{ namen.push(...(await kbZoek(w)).map(f => String(f.name || '').replace(/\.(docx?|pdf)$/i, ''))); }catch(e){} }
+    namen = [...new Set(namen)];
+    stand('AI beoordeelt welke onderwerpen een instructie verdienen…');
+    const j = await aiApi({soort: 'kbgaten', instructies: namen, groepen: groepen.map(([w, l]) => ({id: w, aantal: l.length, onderwerpen: l.slice(0, 4).map(y => anoniem(y.onderwerp, y))}))});
+    const per = new Map(groepen);
+    $('#kbg-stand').textContent = kbAan ? '' : 'Let op: de kennisbank is niet gekoppeld, dus AI weet niet welke instructies er al zijn.';
+    $('#kbg-uit').innerHTML = (j.gaten || []).length ? `<div class="kbg-lijst">${j.gaten.map(g => { const l = (per.get(g.id) || []).sort((a, b) => +(b.statusDatum || 0) - +(a.statusDatum || 0));
+      return `<div class="kbg-rij"><div><b>${esc(g.titel)}</b><small>${l.length}× gemeld · ${esc(g.waarom)}</small></div>${l[0] ? `<button type="button" class="knop" data-kbgopen="${esc(l[0].nr)}" data-kbglijst="${esc(l.map(y => y.nr).join(','))}" title="Open de meest recente melding; daar maak je met ✦ Instructie maken de instructie">Voorbeeld openen</button>` : ''}</div>`; }).join('')}</div>
+      <p class="hint" style="margin-top:8px">Open een voorbeeld en klik daar op <b>✦ Instructie maken</b>.</p>` : '<p class="leeg">✓ Voor de onderwerpen die vaak terugkomen lijkt al een instructie te bestaan.</p>';
+  }catch(e){ $('#kbg-stand').innerHTML = `<span class="fout">Lukte niet: ${esc(e.message)}</span>`; }
+}
+document.addEventListener('click', e => {
+  if(e.target.closest('[data-kbgdicht]')){ $('#kbgdlg').close(); return; }
+  const o = e.target.closest('[data-kbgopen]'); if(o){ $('#kbgdlg').close(); navLijst = o.dataset.kbglijst.split(','); openDetail(o.dataset.kbgopen); }
+  if(e.target.closest('[data-ikm="kbgaten"]')) kbGaten();
+});
+
+/* ================= Rapportage: aantallen, trends en een AI-analyse ================= */
+const RAP = {periode: opslag.get('mict-rap-periode') || 'maand', ai: null, aiBezig: false};
+const RAP_PERIODES = [['week', 'Deze week'], ['vweek', 'Vorige week'], ['maand', 'Deze maand'], ['vmaand', 'Vorige maand'], ['d30', 'Laatste 30 dagen'], ['d90', 'Laatste 90 dagen']];
+function rapBereik(p){
+  const nu = new Date(), d0 = new Date(nu); d0.setHours(0, 0, 0, 0);
+  const maandag = new Date(d0); maandag.setDate(d0.getDate() - ((d0.getDay() + 6) % 7));
+  let van, tot = new Date(nu);
+  if(p === 'week') van = maandag;
+  else if(p === 'vweek'){ van = new Date(maandag); van.setDate(van.getDate() - 7); tot = maandag; }
+  else if(p === 'maand') van = new Date(nu.getFullYear(), nu.getMonth(), 1);
+  else if(p === 'vmaand'){ van = new Date(nu.getFullYear(), nu.getMonth() - 1, 1); tot = new Date(nu.getFullYear(), nu.getMonth(), 1); }
+  else van = new Date(+d0 - ((p === 'd90' ? 90 : 30) - 1) * DAG);
+  const lengte = +tot - +van, vVan = new Date(+van - lengte);
+  return {van, tot, vVan, vTot: van, label: (RAP_PERIODES.find(x => x[0] === p) || [, p])[1], volledig: +vVan >= Date.now() - 90 * DAG};
+}
+function rapCijfers(b){
+  const alle = items.filter(x => !x.inuit), inR = (t, a, z) => t && +t >= +a && +t < +z;
+  const bin = alle.filter(x => inR(x.aangemaakt, b.van, b.tot)), vBin = alle.filter(x => inR(x.aangemaakt, b.vVan, b.vTot));
+  const af = alle.filter(x => x.afgesloten && inR(x.statusDatum, b.van, b.tot)), vAf = alle.filter(x => x.afgesloten && inR(x.statusDatum, b.vVan, b.vTot));
+  const doorloop = l => { const d = l.filter(x => x.aangemaakt && x.statusDatum).map(x => (+x.statusDatum - +x.aangemaakt) / DAG).sort((a, c) => a - c); return d.length ? Math.round(d[Math.floor(d.length / 2)] * 10) / 10 : null; };
+  const groep = (l, f) => { const m = new Map(); l.forEach(x => { const k = String(f(x) || 'Onbekend').trim() || 'Onbekend'; m.set(k, (m.get(k) || 0) + 1); }); return m; };
+  const verdeling = f => { const nu = groep(bin, f), vo = groep(vBin, f); return [...nu].sort((a, c) => c[1] - a[1]).slice(0, 8).map(([k, n]) => [k, n, vo.get(k) || 0]); };
+  const woorden = new Map(); bin.forEach(x => woordenVan(x.onderwerp).forEach(w => woorden.set(w, (woorden.get(w) || 0) + 1)));
+  // tijdlijn: per dag (tot 31 dagen) of per week
+  const dagen = Math.round((+b.tot - +b.van) / DAG), stap = dagen > 31 ? 7 : 1, emmers = [];
+  for(let t = +b.van; t < +b.tot; t += stap * DAG) emmers.push({van: t, tot: Math.min(+b.tot, t + stap * DAG)});
+  emmers.forEach(e => { e.bin = bin.filter(x => inR(x.aangemaakt, e.van, e.tot)).length; e.af = af.filter(x => inR(x.statusDatum, e.van, e.tot)).length; });
+  return {bin, vBin, af, vAf, open: alle.filter(x => !x.afgesloten).length, kritiek: bin.filter(x => x.kritiek).length, vKritiek: vBin.filter(x => x.kritiek).length,
+    doorloop: doorloop(af), vDoorloop: doorloop(vAf), perType: verdeling(x => x.type), perLoc: verdeling(x => locVan(x)), perAfd: verdeling(x => x.afdeling),
+    woorden: [...woorden].sort((a, c) => c[1] - a[1]).slice(0, 12), emmers, stap};
+}
+const rapPct = (nu, vo) => !vo ? (nu ? 'nieuw' : '–') : `${nu >= vo ? '+' : ''}${Math.round((nu - vo) / vo * 100)}%`;
+function rapStaven(rijen, max){ return `<div class="rap-staven">${rijen.map(([k, n, vo]) => `<div class="rap-staaf" title="${esc(k)}: ${n} (vorige periode ${vo})"><span class="rap-sl">${esc(k)}</span><span class="rap-sb"><i style="width:${Math.max(2, n / max * 100)}%"></i></span><b>${n}</b><small class="${n > vo ? 'op' : n < vo ? 'af' : ''}">${n > vo ? '▲' : n < vo ? '▼' : '='}</small></div>`).join('')}</div>`; }
+function rapTijdlijn(c){
+  const W = 640, H = 150, m = {l: 28, r: 8, t: 10, b: 22}, n = c.emmers.length, max = Math.max(1, ...c.emmers.map(e => Math.max(e.bin, e.af)));
+  const bw = (W - m.l - m.r) / n, y = v => m.t + (H - m.t - m.b) * (1 - v / max), stapY = Math.max(1, Math.ceil(max / 4));
+  const assen = Array.from({length: Math.floor(max / stapY) + 1}, (_, i) => i * stapY).map(v => `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}" class="rap-as"/><text x="${m.l - 6}" y="${y(v) + 3}" text-anchor="end" class="rap-at">${v}</text>`).join('');
+  const label = e => { const d = new Date(e.van); return c.stap === 7 ? `${d.getDate()}/${d.getMonth() + 1}` : String(d.getDate()); };
+  const elke = Math.ceil(n / 12);
+  const staven = c.emmers.map((e, i) => { const x = m.l + i * bw, w = Math.max(2, bw / 2 - 2);
+    return `<rect x="${x + 1}" y="${y(e.bin)}" width="${w}" height="${y(0) - y(e.bin)}" rx="2" class="rap-b1"><title>${fmtDatum(new Date(e.van))}${c.stap === 7 ? ' (week)' : ''}: ${e.bin} binnengekomen</title></rect><rect x="${x + 1 + w + 1}" y="${y(e.af)}" width="${w}" height="${y(0) - y(e.af)}" rx="2" class="rap-b2"><title>${fmtDatum(new Date(e.van))}: ${e.af} afgehandeld</title></rect>${i % elke === 0 ? `<text x="${x + bw / 2}" y="${H - 6}" text-anchor="middle" class="rap-at">${label(e)}</text>` : ''}`; }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" class="rap-svg" role="img" aria-label="Binnengekomen en afgehandeld per ${c.stap === 7 ? 'week' : 'dag'}">${assen}${staven}</svg><p class="rap-leg"><i class="rap-b1"></i>binnengekomen <i class="rap-b2"></i>afgehandeld · per ${c.stap === 7 ? 'week' : 'dag'}</p>`;
+}
+function tekenRapport(){
+  $('#lijst-titel').textContent = 'Rapportage'; $('#lijst-n').hidden = true; $('#titel').textContent = ''; $('#subtitel').textContent = ''; $('#lijst-sub').textContent = ''; $('#lijst-kol').innerHTML = '';
+  ['#f-mijn', '#f-mijalles', '#f-soort', '#f-changes', '#f-weergave', '#f-zoom'].forEach(sel => { const e = $(sel); if(e) e.hidden = true; });
+  if(!alleGeladen) laadRestOpAchtergrond();
+  const b = rapBereik(RAP.periode), c = rapCijfers(b);
+  const tegel = (t, nu, vo, extra = '', omgekeerd) => `<div class="rap-tegel"><span>${t}</span><b>${nu ?? '–'}</b>${vo !== undefined && b.volledig ? `<small class="${nu == null || vo == null || nu === vo ? '' : (nu > vo) !== !!omgekeerd ? 'op' : 'af'}">${rapPct(nu || 0, vo || 0)} t.o.v. vorige periode</small>` : `<small>${extra}</small>`}</div>`;
+  const maxV = l => Math.max(1, ...l.map(r => r[1]));
+  $('#lijst').innerHTML = `<div class="rap">
+    <div class="rap-kop"><div class="rap-periodes" role="group" aria-label="Periode">${RAP_PERIODES.map(([k, t]) => `<button type="button" class="chipknop2" data-rapper="${k}" aria-pressed="${RAP.periode === k}">${t}</button>`).join('')}</div>
+      <span class="hint">${fmtDatum(b.van)} t/m ${fmtDatum(new Date(+b.tot - 1))}${alleGeladen ? '' : ' · gesloten meldingen worden nog geladen'}</span></div>
+    <div class="rap-tegels">${tegel('Binnengekomen', c.bin.length, c.vBin.length)}${tegel('Afgehandeld', c.af.length, c.vAf.length, '', true)}${tegel('Nu open', c.open, undefined, 'alle open meldingen')}${tegel('Doorlooptijd', c.doorloop == null ? null : c.doorloop + ' d', undefined, c.vDoorloop == null ? 'mediaan, afgehandeld' : `mediaan · vorige periode ${c.vDoorloop} d`)}${tegel('Kritieke storingen', c.kritiek, c.vKritiek)}</div>
+    ${b.volledig ? '' : '<p class="hint">De vergelijking met de vorige periode is niet compleet: SubmIT haalt gesloten meldingen van de laatste 90 dagen op.</p>'}
+    <div class="rap-raster"><div class="rap-kaart rap-breed"><h3>Verloop</h3>${rapTijdlijn(c)}</div>
+      <div class="rap-kaart"><h3>Per type</h3>${c.perType.length ? rapStaven(c.perType, maxV(c.perType)) : '<p class="hint">Geen meldingen.</p>'}</div>
+      <div class="rap-kaart"><h3>Per locatie</h3>${c.perLoc.length ? rapStaven(c.perLoc, maxV(c.perLoc)) : '<p class="hint">Geen meldingen.</p>'}</div>
+      <div class="rap-kaart"><h3>Per afdeling</h3>${c.perAfd.length ? rapStaven(c.perAfd, maxV(c.perAfd)) : '<p class="hint">Geen meldingen.</p>'}</div>
+      <div class="rap-kaart"><h3>Veel gemeld</h3>${c.woorden.length ? `<div class="rap-woorden">${c.woorden.map(([w, n]) => `<span class="chip">${esc(w)} <b>${n}</b></span>`).join('')}</div>` : '<p class="hint">–</p>'}</div>
+      <div class="rap-kaart rap-breed rap-ai"><div class="rap-ai-kop"><h3>✦ Trends en analyse</h3><span style="flex:1"></span>${RAP.ai && RAP.ai.periode === RAP.periode ? '<button type="button" class="linkknop" data-rapkopie>Kopiëren</button><button type="button" class="knop" data-rapword>Word</button>' : ''}<button type="button" class="knop vol" data-rapai ${RAP.aiBezig ? 'disabled' : ''}>${RAP.aiBezig ? 'AI analyseert…' : RAP.ai && RAP.ai.periode === RAP.periode ? 'Opnieuw' : '✦ Analyseren'}</button></div>
+        ${RAP.ai && RAP.ai.periode === RAP.periode ? `<div class="rap-md">${mdHtml(RAP.ai.tekst)}</div><p class="hint">Door AI op basis van de cijfers hierboven · lees na voor je het deelt.</p>` : `<p class="hint">AI zet de cijfers van ${esc(b.label.toLowerCase())} naast de vorige periode en beschrijft trends, uitschieters en aandachtspunten. Er gaan alleen aantallen en losse woorden naar de AI, geen meldingen of namen.</p>`}</div></div></div>`;
+}
+const mdHtml = md => { let uit = '', lijst = false; String(md || '').split('\n').forEach(r => { const t = r.trim(); const inl = s => mdOpmaak(esc(s));
+  if(/^[-*•]\s+/.test(t) || /^\d+[.)]\s+/.test(t)){ if(!lijst){ uit += '<ul>'; lijst = true; } uit += `<li>${inl(t.replace(/^([-*•]|\d+[.)])\s+/, ''))}</li>`; return; }
+  if(lijst){ uit += '</ul>'; lijst = false; } if(!t) return;
+  if(/^#{1,4}\s/.test(t)) uit += `<h4>${inl(t.replace(/^#+\s*/, ''))}</h4>`; else uit += `<p>${inl(t)}</p>`; }); return uit + (lijst ? '</ul>' : ''); };
+async function rapAnalyse(){
+  const b = rapBereik(RAP.periode), c = rapCijfers(b); RAP.aiBezig = true; if(tab === 'rapport') tekenRapport();
+  try{ const j = await aiApi({soort: 'verslag', periode: `${b.label.toLowerCase()} (${fmtDatum(b.van)} t/m ${fmtDatum(new Date(+b.tot - 1))})`,
+      cijfers: {binnengekomen: {nu: c.bin.length, vorige: b.volledig ? c.vBin.length : null}, afgehandeld: {nu: c.af.length, vorige: b.volledig ? c.vAf.length : null}, open: c.open,
+        doorlooptijdDagen: c.doorloop, vorigeDoorlooptijdDagen: c.vDoorloop, kritiekeStoringen: {nu: c.kritiek, vorige: c.vKritiek},
+        perType: c.perType.map(([k, n, v]) => ({type: k, nu: n, vorige: v})), perLocatie: c.perLoc.map(([k, n, v]) => ({locatie: k, nu: n, vorige: v})), perAfdeling: c.perAfd.map(([k, n, v]) => ({afdeling: k, nu: n, vorige: v})),
+        verloop: c.emmers.map(e => ({vanaf: fmtDatum(new Date(e.van)), binnengekomen: e.bin, afgehandeld: e.af}))},
+      onderwerpen: c.woorden.map(([w, n]) => `${w} (${n}×)`)});
+    RAP.ai = {periode: RAP.periode, tekst: j.tekst || '', label: b.label, van: b.van, tot: b.tot, c}; }
+  catch(e){ toast('Analyse lukte niet: ' + e.message, true); }
+  finally{ RAP.aiBezig = false; if(tab === 'rapport') tekenRapport(); }
+}
+document.addEventListener('click', async e => {
+  const p = e.target.closest('[data-rapper]'); if(p){ RAP.periode = p.dataset.rapper; opslag.set('mict-rap-periode', RAP.periode); tekenRapport(); return; }
+  if(e.target.closest('[data-rapai]')){ rapAnalyse(); return; }
+  if(e.target.closest('[data-rapkopie]') && RAP.ai){ try{ await navigator.clipboard.writeText(RAP.ai.tekst.replace(/\*\*/g, '')); toast('Analyse gekopieerd'); }catch(err){ toast('Kopiëren lukte niet', true); } return; }
+  if(e.target.closest('[data-rapword]') && RAP.ai){ const a = RAP.ai, c = a.c, per = `${fmtDatum(a.van)} t/m ${fmtDatum(new Date(+a.tot - 1))}`;
+    downloadBlob(dcDocx({kicker: 'Rapportage ICT-servicedesk', titel: `${a.label} (${per})`, bron: `Gemaakt met SubmIT · ${fmtDatum(new Date())} · ${profiel ? profiel.naam : ''} · analyse door AI, cijfers uit AFAS`, inhoud: h =>
+      h.tabel(['Binnengekomen', 'Afgehandeld', 'Nu open', 'Doorlooptijd (mediaan)', 'Kritieke storingen'], [[String(c.bin.length), String(c.af.length), String(c.open), c.doorloop == null ? '–' : c.doorloop + ' dagen', String(c.kritiek)]], [1, 1, 1, 1.4, 1.2])
+      + mdNaarDocx(h, a.tekst)
+      + h.kop2('Per type') + h.tabel(['Type', 'Aantal', 'Vorige periode'], c.perType.map(([k, n, v]) => [k, String(n), String(v)]), [3, 1, 1.2])
+      + h.kop2('Per locatie') + h.tabel(['Locatie', 'Aantal', 'Vorige periode'], c.perLoc.map(([k, n, v]) => [k, String(n), String(v)]), [3, 1, 1.2])}), `Rapportage ICT ${a.label} ${fmtDatum(new Date())}.docx`); }
+});
+
+/* ================= NEN 7510-verslag van de periodieke beoordelingen ================= */
+async function pbAudit(){
+  let d = $('#auditdlg'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="auditdlg" aria-label="NEN 7510-verslag"></dialog>'); d = $('#auditdlg'); }
+  const jaar = new Date().getFullYear();
+  d.innerHTML = `<div class="dlg-in"><div class="dlg-kop"><div><small>✦ AI · Periodieke beoordelingen</small><h2>NEN 7510-verslag</h2></div><button type="button" class="sluit" data-auditdicht aria-label="Sluiten">×</button></div>
+    <p class="hint">Een Word-verslag voor de audit: per beoordeling wanneer hij is uitgevoerd, door wie, de uitkomst en de bevindingen, met een samenvatting en aandachtspunten. Namen gaan niet naar de AI; die zet SubmIT zelf in het verslag.</p>
+    <div class="pb-acties"><label class="hint">Jaar <select id="audit-jaar" class="afdkeuze" style="width:100px">${[jaar, jaar - 1].map(j => `<option>${j}</option>`).join('')}</select></label><span style="flex:1"></span><button type="button" class="knop vol" data-auditmaak>✦ Verslag maken</button></div>
+    <p class="hint" id="audit-stand"></p></div>`;
+  d.showModal();
+}
+async function pbAuditMaak(k){
+  const jaar = +$('#audit-jaar').value, stand = t => { $('#audit-stand').innerHTML = `<span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>${t}`; };
+  k.disabled = true;
+  try{ if(!PB.defs) await pbLaad(true);
+    const defs = (PB.defs || []), rijen = []; let n = 0, totaal = 0;
+    const perDef = defs.map(def => { const st = PB.status[def.id] || {}, bekend = new Map(pbMeldingen(def).map(x => [String(x.sbid || ''), x]));
+      const l = pbMeldingen(def).filter(x => (x.gepland || x.aangemaakt) && new Date(x.gepland || x.aangemaakt).getFullYear() === jaar).map(x => ({x, sbid: x.sbid, verval: x.gepland ? tdIso(x.gepland) : ''}));
+      (st.historie || []).filter(h => String(h.verval || h.aangemaakt || '').startsWith(String(jaar)) && h.sbid && !l.some(r => String(r.sbid) === String(h.sbid))).forEach(h => l.push({x: bekend.get(String(h.sbid)) || null, sbid: h.sbid, verval: h.verval}));
+      totaal += l.length; return {def, l}; });
+    for(const p of perDef) for(const u of p.l){
+      stand(`Resultaten ophalen (${++n} van ${totaal})…`);
+      let res = null;
+      try{ const y = u.x || {sbid: u.sbid, nr: 'sb' + u.sbid}; if(u.x && !DEMO) await zorgSbId(u.x);
+        const l = DEMO ? ((wachtReactie.get(String(y.nr)) || [])) : await haalReacties(y);
+        res = [...l].reverse().find(r => /^\s*Resultaat periodieke beoordeling:/i.test(r.tekst || '')); }catch(e){}
+      const t = res ? res.tekst : '', uitkomst = /in orde/i.test(t.split('\n')[0]) ? 'In orde' : /afwijking/i.test(t.split('\n')[0]) ? 'Afwijking gevonden' : res ? 'Vastgelegd' : u.x && u.x.afgesloten ? 'Afgehandeld, geen resultaat vastgelegd' : u.x ? 'Loopt nog' : 'Onbekend';
+      const bev = (t.split(/\n\s*Bevindingen:\s*\n/i)[1] || '').split(/\n\s*Rapport\/bewijs:/i)[0].trim();
+      const gecontroleerd = (t.match(/Gecontroleerd \((\d+) van (\d+)\)/) || []).slice(1).join(' van ');
+      u.r = {verval: u.verval ? pbDatum(u.verval) : '–', uitgevoerd: res && res.t ? fmtDatum(res.t) : u.x && u.x.afgesloten && u.x.statusDatum ? fmtDatum(u.x.statusDatum) : '–', door: res ? res.wie || '' : '', uitkomst, gecontroleerd, bevindingen: bev, melding: u.x ? nrT(u.x) : 'dossieritem ' + u.sbid}; }
+    stand('AI schrijft de samenvatting…');
+    const j = await aiApi({soort: 'audit', jaar, beoordelingen: perDef.map(({def, l}) => ({id: def.id, titel: def.titel, interval: pbElke(def), actief: !!def.actief, achter: pbAchter().includes(def),
+      uitvoeringen: l.map(u => ({gepland: u.r.verval, uitgevoerd: u.r.uitgevoerd, uitkomst: u.r.uitkomst, gecontroleerd: u.r.gecontroleerd, bevindingen: anoniem(u.r.bevindingen, {}).slice(0, 500)}))}))});
+    downloadBlob(dcDocx({kicker: 'NEN 7510 · Periodieke beoordelingen', titel: `Verslag ${jaar}`, bron: `Gemaakt met SubmIT · ${fmtDatum(new Date())} · ${profiel ? profiel.naam : ''} · samenvatting door AI, gegevens uit AFAS · nalezen vóór gebruik`, inhoud: h =>
+      h.tekst(j.inleiding || '') + h.klein(`${perDef.length} beoordelingen · ${totaal} keer aan de beurt in ${jaar}`)
+      + perDef.map(({def, l}) => h.kop2(def.titel) + h.klein(`${pbElke(def)} · ${def.afdeling || ''}${def.actief ? '' : ' · staat uit'}`) + (j.per && j.per[def.id] ? h.tekst(j.per[def.id]) : '')
+        + (l.length ? h.tabel(['Gepland', 'Uitgevoerd', 'Door', 'Uitkomst', 'Bevindingen'], l.map(u => [u.r.verval, u.r.uitgevoerd, u.r.door || '–', u.r.uitkomst + (u.r.gecontroleerd ? ` (${u.r.gecontroleerd})` : ''), u.r.bevindingen || '–']), [1, 1, 1.4, 1.5, 3]) : h.klein('Niet aan de beurt geweest in ' + jaar + '.'))).join('')
+      + h.kop2('Conclusie') + h.tekst(j.conclusie || '') + ((j.aandachtspunten || []).length ? h.kop2('Aandachtspunten') + h.bullets(j.aandachtspunten) : '')}), `NEN 7510 - Periodieke beoordelingen ${jaar}.docx`);
+    $('#audit-stand').textContent = 'Verslag gedownload. Lees het na voor je het deelt.'; }
+  catch(e){ $('#audit-stand').innerHTML = `<span class="fout">Lukte niet: ${esc(e.message)}</span>`; }
+  finally{ k.disabled = false; }
+}
+document.addEventListener('click', e => {
+  if(e.target.closest('[data-pbaudit]')){ pbAudit(); return; }
+  if(e.target.closest('[data-auditdicht]')){ $('#auditdlg').close(); return; }
+  const k = e.target.closest('[data-auditmaak]'); if(k) pbAuditMaak(k);
+});
+
+
 async function maakConcept(){
   const x = huidig && huidig.x, t = $('#tekst'), k = $('#k-concept'); if(!x || !t || !k) return;
   const oud = k.textContent; k.disabled = true; k.textContent = '✦ Bezig…'; const N = DEMO ? 2 : 3;
@@ -7211,49 +7585,42 @@ function anoniem(t, x){
 /* Word-instructie in de DC-huisstijl, met dezelfde opzet als het A4-template van de huisstijlskill:
    kopblok als 'D' met blauw verloop (onderwerp + handeling + korte uitleg), genummerde stappen met kleine 'D'-cijfers,
    een paars vangnetblok 'Lukt het niet?', en onderaan de url links en het logo rechts. Alles blijft bewerkbaar in Word. */
-function instructieDocx(titel, waar, stappen, bron){
-  const EMU = 36000, mm = v => Math.round(v * EMU), tw = v => Math.round(v * 56.6929);   // mm -> EMU / twips
-  const BREED = 210 - 2 * 16;   // tekstbreedte in mm (marges 16 mm)
-  const [systeem, ...rest] = String(titel).split(' - '), handeling = rest.join(' - ') || systeem;
+/* Word-documenten in de DC-huisstijl (compact): smalle kopband als 'D' met blauw verloop, daaronder de inhoud,
+   onderaan dcklinieken.nl links en het logo rechts. Gedeeld door Instructie maken, de rapportage en het NEN 7510-verslag. */
+function dcDocx({kicker, titel, inhoud, bron}){
+  const EMU = 36000, mm = v => Math.round(v * EMU), tw = v => Math.round(v * 56.6929), BREED = 210 - 2 * 16;
   const run = (t, rpr = '') => `<w:r><w:rPr>${rpr}</w:rPr><w:t xml:space="preserve">${xmlEsc(t)}</w:t></w:r>`;
-  const rp = ({b, kleur, pt, caps, sp}) => `${b ? '<w:b/>' : ''}${caps ? '<w:caps/>' : ''}${kleur ? `<w:color w:val="${kleur}"/>` : ''}${sp ? `<w:spacing w:val="${sp}"/>` : ''}${pt ? `<w:sz w:val="${Math.round(pt * 2)}"/>` : ''}`;
+  const rp = ({b, i, kleur, pt, caps, sp}) => `${b ? '<w:b/>' : ''}${i ? '<w:i/>' : ''}${caps ? '<w:caps/>' : ''}${kleur ? `<w:color w:val="${kleur}"/>` : ''}${sp ? `<w:spacing w:val="${sp}"/>` : ''}${pt ? `<w:sz w:val="${Math.round(pt * 2)}"/>` : ''}`;
   const par = (runs, ppr = '') => `<w:p><w:pPr>${ppr}</w:pPr>${runs}</w:p>`;
   const sp = (voor, na, regel) => `<w:spacing w:before="${voor || 0}" w:after="${na || 0}"${regel ? ` w:line="${regel}" w:lineRule="auto"` : ''}/>`;
-  // 'D'-vorm: rechthoek met alleen de rechterkant volledig rond (straal = halve hoogte), met verloop van links naar rechts
+  // **vet** in een tekst als vette runs
+  const mdRuns = (t, o = {}) => String(t ?? '').split(/(\*\*[^*]+\*\*)/).filter(Boolean).map(d => /^\*\*.+\*\*$/.test(d) ? run(d.slice(2, -2), rp({...o, b: 1})) : run(d, rp(o))).join('');
   let id = 10;
-  const dVorm = (wMm, hMm, kleuren, inhoud, ins, vast) => { const W = mm(wMm), H = mm(hMm), r = Math.round(H / 2); id++;
+  const dVorm = (wMm, hMm, kleuren, xml, ins, vast) => { const W = mm(wMm), H = mm(hMm), r = Math.round(H / 2); id++;
     const gs = kleuren.map(([pos, k]) => `<a:gs pos="${pos * 1000}"><a:srgbClr val="${k}"/></a:gs>`).join('');
     return `<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${W}" cy="${H}"/><wp:docPr id="${id}" name="D ${id}"/><a:graphic><a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"><wps:wsp><wps:cNvSpPr/><wps:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${W}" cy="${H}"/></a:xfrm>`
       + `<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/><a:rect l="0" t="0" r="r" b="b"/><a:pathLst><a:path w="${W}" h="${H}"><a:moveTo><a:pt x="0" y="0"/></a:moveTo><a:lnTo><a:pt x="${Math.max(0, W - r)}" y="0"/></a:lnTo><a:arcTo wR="${r}" hR="${r}" stAng="16200000" swAng="10800000"/><a:lnTo><a:pt x="0" y="${H}"/></a:lnTo><a:close/></a:path></a:pathLst></a:custGeom>`
       + `<a:gradFill rotWithShape="1"><a:gsLst>${gs}</a:gsLst><a:lin ang="600000" scaled="0"/></a:gradFill><a:ln><a:noFill/></a:ln></wps:spPr>`
-      + `<wps:txbx><w:txbxContent>${inhoud}</w:txbxContent></wps:txbx><wps:bodyPr rot="0" vert="horz" wrap="square" lIns="${mm(ins[3])}" tIns="${mm(ins[0])}" rIns="${mm(ins[1])}" bIns="${mm(ins[2])}" anchor="ctr" anchorCtr="0">${vast ? '<a:noAutofit/>' : '<a:spAutoFit/>'}</wps:bodyPr></wps:wsp></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>`; };
+      + `<wps:txbx><w:txbxContent>${xml}</w:txbxContent></wps:txbx><wps:bodyPr rot="0" vert="horz" wrap="square" lIns="${mm(ins[3])}" tIns="${mm(ins[0])}" rIns="${mm(ins[1])}" bIns="${mm(ins[2])}" anchor="ctr" anchorCtr="0">${vast ? '<a:noAutofit/>' : '<a:spAutoFit/>'}</wps:bodyPr></wps:wsp></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>`; };
   const BLAUW = [[0, '053787'], [45, '2E5FB0'], [100, 'B5D0FF']], PAARS = [[0, 'B284B2'], [55, 'E6D3DD'], [100, 'F5EBE1']];
-  // compact: smalle kopband (alleen soort + handeling), uitleg eronder als gewone tekst, kleine stapcijfers, vangnet op één regel
-  const kortWaar = String(waar || '').trim().replace(/\s+/g, ' ');
-  const kopB = BREED * 0.92, kopTitel = handeling.charAt(0).toUpperCase() + handeling.slice(1);
-  const kopRegels = Math.max(1, Math.ceil(kopTitel.length / Math.floor((kopB - 8 - 16) * 0.33)));
-  const kopH = 3.6 + 3.6 + kopRegels * 6.6 + 3.6;
-  const kopInhoud = par(run(`Instructie · ${systeem}`, rp({b: 1, caps: 1, kleur: 'FFFFFF', pt: 7.5, sp: 14})), sp(0, 20))
-    + par(run(kopTitel, rp({b: 1, kleur: 'FFFFFF', pt: 16})), sp(0, 0, 228));
-  const kop = par(dVorm(kopB, kopH, BLAUW, kopInhoud, [3.6, 16, 3.6, 8]), sp(0, 140));
-  const extraWaar = kortWaar ? par(run(kortWaar.length > 700 ? kortWaar.slice(0, 700).replace(/\s+\S*$/, '') + '…' : kortWaar, rp({kleur: '1B3F80', pt: 10})), sp(0, 160, 276)) : '';
-  // stappen: kleine 'D'-cijfers (6 mm), tekst ernaast; 'Kop: uitleg' wordt vet + gewone tekst op dezelfde regel
-  const tinten = ['053787', '2A5AAA', '3D6CBB', '4E7BC4', '5A86CC'];
-  const stapRij = (t, i) => { const m = t.match(/^(.{3,60}?):\s+(.+)$/), cijfer = par(run(String(i + 1), rp({b: 1, kleur: 'FFFFFF', pt: 8.5})), '<w:jc w:val="center"/>' + sp(0, 0));
-    const tekst = par(m ? run(m[1] + ': ', rp({b: 1, kleur: '053787', pt: 10})) + run(m[2].charAt(0).toUpperCase() + m[2].slice(1), rp({kleur: '1B3F80', pt: 10})) : run(t, rp({kleur: '1B3F80', pt: 10})), sp(10, 0, 264));
-    return `<w:tr><w:trPr><w:cantSplit/></w:trPr><w:tc><w:tcPr><w:tcW w:w="${tw(9)}" w:type="dxa"/></w:tcPr>${par(dVorm(6, 6, [[0, '053787'], [100, tinten[Math.min(i, tinten.length - 1)]]], cijfer, [0, 0.4, 0, 0], true), sp(0, 0))}</w:tc><w:tc><w:tcPr><w:tcW w:w="${tw(BREED - 9)}" w:type="dxa"/></w:tcPr>${tekst}</w:tc></w:tr>`; };
   const geenRand = '<w:tblBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/><w:insideH w:val="nil"/><w:insideV w:val="nil"/></w:tblBorders>';
-  const lijst = stappen.length ? stappen : ['Beschrijf hier de stappen.'];
-  const stappenBlok = par(run(`Zo doe je het`, rp({b: 1, kleur: '053787', pt: 11})), sp(0, 100))
-    + `<w:tbl><w:tblPr><w:tblW w:w="${tw(BREED)}" w:type="dxa"/>${geenRand}<w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="0" w:type="dxa"/><w:left w:w="0" w:type="dxa"/><w:bottom w:w="90" w:type="dxa"/><w:right w:w="60" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid><w:gridCol w:w="${tw(9)}"/><w:gridCol w:w="${tw(BREED - 9)}"/></w:tblGrid>${lijst.map(stapRij).join('')}</w:tbl>`;
-  // vangnet: compacte paarse 'D', titel en tekst in één alinea
-  const vangTekst = 'Maak een melding bij ICT via de ICT Assistent of de ticketpagina in InSite en vermeld wat je al hebt geprobeerd.';
-  const vangB = BREED * 0.96, vangH = 2.8 + Math.ceil((vangTekst.length + 16) / Math.floor((vangB - 20) * 0.6)) * 4.4 + 2.8;
-  const vang = par(dVorm(vangB, vangH, PAARS, par(run('Lukt het niet? ', rp({b: 1, kleur: '3A1F45', pt: 9.6})) + run(vangTekst, rp({kleur: '3A1F45', pt: 9.2})), sp(0, 0, 264)), [2.8, 14, 2.8, 6]), sp(200, 0));
-  const body = kop + extraWaar + stappenBlok + vang + par(run(bron, rp({kleur: '8B97B2', pt: 7})), sp(120, 0));
+  const h = {run, rp, par, sp, mdRuns, dVorm, BLAUW, PAARS, BREED, tw, geenRand,
+    kop2: t => par(run(t, rp({b: 1, kleur: '053787', pt: 11})), '<w:keepNext/>' + sp(200, 80)),
+    tekst: (t, o = {}) => par(mdRuns(t, {kleur: '1B3F80', pt: 10, ...o}), sp(0, 100, 276)),
+    klein: t => par(run(t, rp({kleur: '6B7899', pt: 8.5})), sp(0, 60, 252)),
+    bullets: l => l.map(t => par(run('•', rp({b: 1, kleur: '053787', pt: 10})) + '<w:r><w:tab/></w:r>' + mdRuns(t, {kleur: '1B3F80', pt: 10}), `<w:tabs><w:tab w:val="left" w:pos="${tw(5)}"/></w:tabs><w:ind w:left="${tw(5)}" w:hanging="${tw(5)}"/>` + sp(0, 60, 264))).join(''),
+    // tabel met lichtblauwe kopregel en dunne lijntjes
+    tabel: (kop, rijen, breedtes) => { const totaal = breedtes.reduce((a, b) => a + b, 0), w = breedtes.map(b => Math.round(b / totaal * BREED));
+      const cel = (t, i, isKop) => `<w:tc><w:tcPr><w:tcW w:w="${tw(w[i])}" w:type="dxa"/>${isKop ? '<w:shd w:val="clear" w:color="auto" w:fill="E7EFFF"/>' : ''}</w:tcPr>${par(mdRuns(t, {kleur: isKop ? '053787' : '1B3F80', pt: isKop ? 8.5 : 9, b: isKop}), sp(0, 0, 252))}</w:tc>`;
+      const lijn = '<w:tblBorders><w:top w:val="single" w:sz="4" w:color="D7E4FA"/><w:bottom w:val="single" w:sz="4" w:color="D7E4FA"/><w:insideH w:val="single" w:sz="4" w:color="D7E4FA"/><w:left w:val="nil"/><w:right w:val="nil"/><w:insideV w:val="nil"/></w:tblBorders>';
+      return `<w:tbl><w:tblPr><w:tblW w:w="${tw(BREED)}" w:type="dxa"/>${lijn}<w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="50" w:type="dxa"/><w:left w:w="80" w:type="dxa"/><w:bottom w:w="50" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${w.map(x => `<w:gridCol w:w="${tw(x)}"/>`).join('')}</w:tblGrid>`
+        + `<w:tr><w:trPr><w:tblHeader/></w:trPr>${kop.map((t, i) => cel(t, i, true)).join('')}</w:tr>` + rijen.map(r => `<w:tr><w:trPr><w:cantSplit/></w:trPr>${r.map((t, i) => cel(t, i, false)).join('')}</w:tr>`).join('') + '</w:tbl>' + par('', sp(0, 60)); }};
+  // kopband
+  const kopB = BREED * 0.92, kopRegels = Math.max(1, Math.ceil(String(titel).length / Math.floor((kopB - 24) * 0.33)));
+  const kop = par(dVorm(kopB, 3.6 + 3.6 + kopRegels * 6.6 + 3.6, BLAUW, par(run(kicker, rp({b: 1, caps: 1, kleur: 'FFFFFF', pt: 7.5, sp: 14})), sp(0, 20)) + par(run(titel, rp({b: 1, kleur: 'FFFFFF', pt: 16})), sp(0, 0, 228)), [3.6, 16, 3.6, 8]), sp(0, 140));
+  const body = kop + inhoud(h) + (bron ? par(run(bron, rp({kleur: '8B97B2', pt: 7})), sp(160, 0)) : '');
   const NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="wps"';
   const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${NS}><w:body>${body}<w:sectPr><w:footerReference w:type="default" r:id="rIdVoet"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="${tw(12)}" w:right="${tw(16)}" w:bottom="${tw(20)}" w:left="${tw(16)}" w:header="${tw(8)}" w:footer="${tw(9)}" w:gutter="0"/></w:sectPr></w:body></w:document>`;
-  // voet: url links, logo rechts op dezelfde regel (6,5 mm hoog)
   const ly = mm(6.5), lx = Math.round(ly * 600 / 73);
   const logo = `<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${lx}" cy="${ly}"/><wp:docPr id="1" name="DC Klinieken"/><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="1" name="logo.png"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rIdLogo"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${lx}" cy="${ly}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>`;
   const voet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr ${NS}><w:p><w:pPr><w:tabs><w:tab w:val="right" w:pos="${tw(BREED)}"/></w:tabs>${sp(0, 0)}</w:pPr><w:hyperlink r:id="rIdUrl">${run('dcklinieken.nl', rp({b: 1, kleur: '053787', pt: 9}))}</w:hyperlink><w:r><w:tab/></w:r>${logo}</w:p></w:ftr>`;
@@ -7269,6 +7636,34 @@ function instructieDocx(titel, waar, stappen, bron){
     {naam: 'word/document.xml', data: doc}, {naam: 'word/styles.xml', data: stijlen},
     {naam: 'word/footer1.xml', data: voet}, {naam: 'word/media/logo.png', data: png}]);
 }
+// markdown (## kop, - bullet, gewone alinea) uit de AI naar Word-blokken
+const mdNaarDocx = (h, md) => { const uit = []; let lijst = [];
+  const flush = () => { if(lijst.length){ uit.push(h.bullets(lijst)); lijst = []; } };
+  String(md || '').split('\n').forEach(r => { const t = r.trim(); if(!t){ flush(); return; }
+    if(/^#{1,4}\s/.test(t)){ flush(); uit.push(h.kop2(t.replace(/^#+\s*/, '').replace(/\*\*/g, ''))); }
+    else if(/^[-*•]\s+/.test(t)) lijst.push(t.replace(/^[-*•]\s+/, ''));
+    else if(/^\d+[.)]\s+/.test(t)) lijst.push(t);
+    else { flush(); uit.push(h.tekst(t)); } });
+  flush(); return uit.join(''); };
+function instructieDocx(titel, waar, stappen, bron){
+  const [systeem, ...rest] = String(titel).split(' - '), handeling = rest.join(' - ') || systeem;
+  return dcDocx({kicker: `Instructie · ${systeem}`, titel: handeling.charAt(0).toUpperCase() + handeling.slice(1), bron, inhoud: h => {
+    const {run, rp, par, sp, dVorm, PAARS, BREED, tw, geenRand} = h;
+    const kortWaar = String(waar || '').trim().replace(/\s+/g, ' ');
+    const intro = kortWaar ? h.tekst(kortWaar.length > 700 ? kortWaar.slice(0, 700).replace(/\s+\S*$/, '') + '…' : kortWaar) : '';
+    const tinten = ['053787', '2A5AAA', '3D6CBB', '4E7BC4', '5A86CC'];
+    const stapRij = (t, i) => { const m = t.match(/^(.{3,60}?):\s+(.+)$/), cijfer = par(run(String(i + 1), rp({b: 1, kleur: 'FFFFFF', pt: 8.5})), '<w:jc w:val="center"/>' + sp(0, 0));
+      const tekst = par(m ? run(m[1] + ': ', rp({b: 1, kleur: '053787', pt: 10})) + run(m[2].charAt(0).toUpperCase() + m[2].slice(1), rp({kleur: '1B3F80', pt: 10})) : run(t, rp({kleur: '1B3F80', pt: 10})), sp(10, 0, 264));
+      return `<w:tr><w:trPr><w:cantSplit/></w:trPr><w:tc><w:tcPr><w:tcW w:w="${tw(9)}" w:type="dxa"/></w:tcPr>${par(dVorm(6, 6, [[0, '053787'], [100, tinten[Math.min(i, tinten.length - 1)]]], cijfer, [0, 0.4, 0, 0], true), sp(0, 0))}</w:tc><w:tc><w:tcPr><w:tcW w:w="${tw(BREED - 9)}" w:type="dxa"/></w:tcPr>${tekst}</w:tc></w:tr>`; };
+    const lijst = stappen.length ? stappen : ['Beschrijf hier de stappen.'];
+    const stappenBlok = par(run('Zo doe je het', rp({b: 1, kleur: '053787', pt: 11})), sp(60, 100))
+      + `<w:tbl><w:tblPr><w:tblW w:w="${tw(BREED)}" w:type="dxa"/>${geenRand}<w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="0" w:type="dxa"/><w:left w:w="0" w:type="dxa"/><w:bottom w:w="90" w:type="dxa"/><w:right w:w="60" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid><w:gridCol w:w="${tw(9)}"/><w:gridCol w:w="${tw(BREED - 9)}"/></w:tblGrid>${lijst.map(stapRij).join('')}</w:tbl>`;
+    const vangTekst = 'Maak een melding bij ICT via de ICT Assistent of de ticketpagina in InSite en vermeld wat je al hebt geprobeerd.';
+    const vangB = BREED * 0.96, vangH = 2.8 + Math.ceil((vangTekst.length + 16) / Math.floor((vangB - 20) * 0.6)) * 4.4 + 2.8;
+    const vang = par(dVorm(vangB, vangH, PAARS, par(run('Lukt het niet? ', rp({b: 1, kleur: '3A1F45', pt: 9.6})) + run(vangTekst, rp({kleur: '3A1F45', pt: 9.2})), sp(0, 0, 264)), [2.8, 14, 2.8, 6]), sp(200, 0));
+    return intro + stappenBlok + vang; }});
+}
+const downloadBlob = (blob, naam) => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = String(naam).replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120); document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); };
 async function maakInstructie(){
   const x = huidig && huidig.x, k = $('#k-instructie'); if(!x || !k) return;
   const oud = k.textContent; k.disabled = true; k.textContent = '✦ Bezig…'; const N = DEMO ? 2 : 3;
@@ -7603,6 +7998,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.53', d: '22-10-2026', groot: true, p: ['Nieuw in de balk links: Rapportage. Aantallen, verloop, verdeling per type, locatie en afdeling, en met één klik een AI-analyse van de trends (ook als Word).', 'In een melding onder ✦ Meer: vraag ontbrekende info, samenvatting, en een nette overdracht aan een leverancier (KroonCo, Timeff, AFAS).', 'AI leest mee terwijl je een reactie typt en geeft tips over spelling, toon en duidelijkheid. Jij kiest wat je overneemt.', 'SubmIT waarschuwt als meerdere meldingen kort na elkaar over hetzelfde lijken te gaan (mogelijke storing).', 'Beheerder: kennisbank-gaten (wat wordt vaak gevraagd zonder instructie) en een NEN 7510-verslag van de periodieke beoordelingen in Word.']},
   {v: 'v7.52', d: '22-10-2026', p: ['Instructies in Word zijn compacter: smalle kopband, kleine stapcijfers en een vangnet op één regel, zodat er meer ruimte is voor de inhoud.']},
   {v: 'v7.51', d: '22-10-2026', p: ['✦ Instructie maken levert een Word-document in de vaste DC-opzet: blauw kopblok, genummerde stappen, een vangnetblok "Lukt het niet?" en onderaan de url en het logo.']},
   {v: 'v7.50', d: '22-10-2026', p: ['Beheerder: alles wat alleen jij doet staat nu onder Beheer (in het menu links en onder je profielfoto): Controle, Periodieke beoordelingen, Standaardteksten, AI-instellingen en Connectoren & velden.', 'Periodieke beoordelingen: rustiger pagina met één knop voor een nieuwe beoordeling.']},
