@@ -846,8 +846,10 @@ select.voorstel,input.voorstel,textarea.voorstel,.linkveld.voorstel,.kaart2 sele
 .chipknop:hover .chip{filter:brightness(.95);box-shadow:0 0 0 2px var(--lichtblauw)}
 #detail textarea#d-toel,#detail .linkveld[data-voor="d-toel"]{max-height:200px;overflow-y:auto}
 #detail.groot textarea#d-toel,#detail.groot .linkveld[data-voor="d-toel"]{max-height:320px}
-.sjai{border:1.5px solid var(--lijn);background:transparent;color:var(--grijs);border-radius:999px;width:28px;height:28px;font-size:13px;cursor:default;margin-right:-6px}
-.sjai[aria-pressed="true"]{background:var(--blauw);border-color:var(--blauw);color:#fff}.sjai.bezig{animation:aiPuls 1s ease-in-out infinite}
+.sjgroep{display:inline-flex;align-items:center;border:1.5px solid var(--lijn);background:var(--vlak);border-radius:999px;padding-left:2px}
+.sjgroep .sjabloonkeuze{border:0;background-color:transparent;padding-left:4px}
+.sjai{border:0;background:transparent;width:22px;height:22px;border-radius:50%;font-size:12px;line-height:1;cursor:default;color:var(--grijs);opacity:.45;display:grid;place-items:center;transition:opacity .15s,color .15s}
+.sjai:hover{opacity:1;background:var(--blauw-licht,rgba(5,55,135,.07))}.sjai[aria-pressed="true"]{color:var(--blauw);opacity:1}.sjai.bezig{animation:aiPuls 1s ease-in-out infinite}
 .sjabloonkeuze{border:1.5px solid var(--lijn);background:var(--vlak);color:var(--blauw);border-radius:999px;padding:4px 10px;font:inherit;font-size:12.5px;cursor:default}
 .oog{display:inline-grid;place-items:center;color:var(--blauw-2);margin-right:6px;vertical-align:-3px;cursor:default}
 .oog svg{width:15px;height:15px}
@@ -1570,7 +1572,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.59', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.60', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3737,7 +3739,7 @@ async function sjPersoonlijk(x, delen, brief){
   finally{ if(k) k.classList.remove('bezig'); }
 }
 document.addEventListener('click', e => {
-  const k = e.target.closest('#k-sjai'); if(k){ const aan = !sjAiAan(); opslag.set('mict-sj-ai', aan); k.setAttribute('aria-pressed', aan); toast(aan ? '✦ Standaardteksten worden persoonlijk gemaakt met AI' : 'Standaardteksten blijven precies zoals ze zijn'); return; }
+  const k = e.target.closest('#k-sjai'); if(k){ const aan = !sjAiAan(); opslag.set('mict-sj-ai', aan); k.setAttribute('aria-pressed', aan); k.title = aan ? 'AI maakt standaardteksten persoonlijk: staat aan (klik om uit te zetten)' : 'AI maakt standaardteksten persoonlijk: staat uit (klik om aan te zetten)'; toast(aan ? '✦ Standaardteksten worden persoonlijk gemaakt met AI' : 'Standaardteksten blijven precies zoals ze zijn'); return; }
   if(e.target.closest('[data-persweg]')){ const t = $('#tekst'); if(t && t._sjOrig){ if(huidig && huidig.autoTekst === t.value) huidig.autoTekst = t._sjOrig; t.value = t._sjOrig; pasHoogteAan(t); mailVooraf(); } const l = $('#vst-pers'); if(l) l.remove(); }
 });
 
@@ -4181,7 +4183,7 @@ function openDetail(nr){
       <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
       <div class="klaarzet" id="klaar-reactie"></div><div class="ai-tips" id="ai-tips" hidden></div>
       <div class="onder"><button type="button" class="linkknop paperclip" id="k-clip" title="Bestand meesturen met deze reactie. Je kunt ook een bestand op het reactievak slepen of een schermafbeelding plakken met Ctrl+V.">${CLIP}Bijlage</button><input type="file" id="f-reactie" multiple hidden><label class="vink notitie" data-uitleg="Alleen zichtbaar voor de afdeling ICT. De melder ziet deze notitie niet en krijgt geen mail."><input type="checkbox" id="notitie"> Interne notitie</label>
-        <button type="button" class="sjai" id="k-sjai" aria-pressed="${sjAiAan()}" title="✦ AI maakt standaardteksten net iets persoonlijker en gericht op deze melding (klik om aan/uit te zetten)">✦</button><select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select>${x.afgesloten ? '' : `<button type="button" class="linkknop conceptknop" id="k-concept" title="Concept-antwoord op basis van hoe een vergelijkbare melding is opgelost, met een instructie uit de kennisbank als die er is">✦ Concept-antwoord</button><span class="ai-wrap"><button type="button" class="linkknop conceptknop" id="k-aimeer" aria-haspopup="menu" aria-expanded="false" title="Meer hulp van AI bij deze melding">✦ Meer ▾</button><div class="ai-menu" id="ai-menu" role="menu" hidden>
+        <span class="sjgroep"><button type="button" class="sjai" id="k-sjai" aria-pressed="${sjAiAan()}" title="${sjAiAan() ? 'AI maakt standaardteksten persoonlijk: staat aan (klik om uit te zetten)' : 'AI maakt standaardteksten persoonlijk: staat uit (klik om aan te zetten)'}" aria-label="Standaardteksten persoonlijk maken met AI">✦</button><select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select></span>${x.afgesloten ? '' : `<button type="button" class="linkknop conceptknop" id="k-concept" title="Concept-antwoord op basis van hoe een vergelijkbare melding is opgelost, met een instructie uit de kennisbank als die er is">✦ Concept-antwoord</button><span class="ai-wrap"><button type="button" class="linkknop conceptknop" id="k-aimeer" aria-haspopup="menu" aria-expanded="false" title="Meer hulp van AI bij deze melding">✦ Meer ▾</button><div class="ai-menu" id="ai-menu" role="menu" hidden>
           <button type="button" role="menuitem" id="k-vragen"><b>Vraag ontbrekende info</b><small>1-2 gerichte vragen aan de melder</small></button>
           <button type="button" role="menuitem" id="k-samenvat"><b>Samenvatting</b><small>probleem, wat er al gedaan is, volgende stap</small></button>
           <button type="button" role="menuitem" id="k-leverancier"><b>Overdracht aan leverancier</b><small>zakelijke tekst voor KroonCo, Timeff, AFAS…</small></button></div></span>`}
@@ -8036,6 +8038,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.60', d: '22-10-2026', p: ['Het ✦-knopje voor persoonlijke standaardteksten zit nu klein in de keuzelijst zelf.']},
   {v: 'v7.59', d: '22-10-2026', p: ['Een lange toelichting wordt niet meer schermvullend: maximaal ongeveer 8 regels, daarna scroll je (of sleep je het vak groter).']},
   {v: 'v7.58', d: '22-10-2026', p: ['✦ Persoonlijk maken laat zien dat hij bezig is, en zegt het als het niet lukt.']},
   {v: 'v7.57', d: '22-10-2026', p: ['✦ naast Standaardtekst…: AI maakt standaardteksten net iets persoonlijker en gericht op de melding. De gewone tekst staat er meteen; × bij "✦ Persoonlijk" zet hem terug. Klik op ✦ om het aan of uit te zetten.']},
