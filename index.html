@@ -1341,7 +1341,17 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 .pb-legenda{margin:8px 0 0;font-size:11.5px;color:var(--grijs);display:flex;gap:6px 14px;align-items:center;flex-wrap:wrap}.pb-legenda .pb-stip{position:static;display:inline-block;margin:0 2px -1px 0;width:10px;height:10px}
 .pb-tabel tbody tr{cursor:pointer}.pb-tabel a{color:var(--blauw)}
 .chip{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--lichtblauw-2);color:var(--blauw)}.chip.rood{background:color-mix(in srgb,var(--rood) 12%,transparent);color:var(--rood)}.chip.groen{background:color-mix(in srgb,var(--groen) 14%,transparent);color:var(--groen)}.chip.oranje{background:color-mix(in srgb,var(--oranje) 14%,transparent);color:var(--oranje)}
-.pb-leeg{border:1px dashed var(--lijn);border-radius:14px;padding:22px;text-align:center;color:var(--grijs);margin-top:12px}.pb-leeg b{color:var(--inkt)}
+.pb-leeg{border:1px dashed var(--lijn);border-radius:14px;padding:22px;text-align:center;color:var(--grijs);margin-top:12px;white-space:normal}.pb-leeg p{margin:4px auto;max-width:620px}
+.pb-knoppen{margin-left:auto}
+.bh-terug{margin:0 0 4px;padding:0 26px}.bh-terug .linkknop{font-size:13px}
+.bh-kop{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--grijs);margin:18px 26px 8px}
+.bh-raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;padding:0 26px}
+.bh-tegel{display:flex;align-items:center;gap:14px;text-align:left;padding:14px 16px;border:1px solid var(--lijn);border-radius:14px;background:var(--vlak,transparent);color:var(--inkt);font:inherit;cursor:default;transition:border-color .15s,box-shadow .15s}
+.bh-tegel:hover{border-color:var(--lichtblauw);box-shadow:0 4px 14px rgba(5,55,135,.08)}
+.bh-ico{flex:none;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:var(--blauw-licht,rgba(5,55,135,.08));color:var(--blauw)}.bh-ico svg{width:20px;height:20px}
+.bh-tekst{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}.bh-tekst b{font-size:14px}.bh-tekst small{color:var(--grijs);font-size:12.5px}
+.bh-stand{font-size:12px;color:var(--groen,#2e7d32);margin-top:2px}.bh-stand.rood{color:var(--rood)}.bh-pijl{color:var(--grijs);font-size:20px}
+.ikteller{margin-left:auto;background:var(--rood);color:#fff;border-radius:999px;padding:0 7px;font-size:11px;line-height:18px}.pb-leeg b{color:var(--inkt)}
 #pbdlg{width:min(860px,calc(100vw - 32px))}
 .pb-elke{display:flex;gap:8px;align-items:center;font-weight:400;white-space:nowrap}
 .kaart2 .pb-elke input.pb-num{width:64px;padding-right:6px;text-align:left}.kaart2 .pb-elke select.pb-eenh{width:116px}
@@ -1523,7 +1533,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.49', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.51', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2600,7 +2610,7 @@ $('#detail').addEventListener('close', () => { const p = $('#kbpaneel'); if(p &&
 function tekenNav(){
   const mini = id => `<span class="minischak" role="group" aria-label="Mij of alles">${['mij','alles'].map(v => `<span role="button" tabindex="0" data-mijalles="${id}" data-v="${v}" aria-pressed="${(v === 'mij') === schuifAan(id)}" title="${v === 'mij' ? 'Alleen mijn meldingen en wat bij niemand ligt' : 'Alle meldingen'}">${v === 'mij' ? 'Mij' : 'Alle'}</span>`).join('')}</span>`;
   const it = (id, t, n, o = {}) => { const ong = o.ongelezen ? open().filter(x => (x._sg || []).some(s => s.code === 'ongelezen')).length : 0;
-    return `<button type="button" class="it${o.cls ? ' ' + o.cls : ''}${o.rood && n ? ' rinkel' : ''}${(o.stuiter && n && profiel && profiel.rol === 'servicedesk') || ong ? ' stuiter' : ''}" data-weergave="${esc(id)}" aria-pressed="${tab === id}" ${o.titel ? `title="${esc(o.titel)}" ` : ''}${ong ? `title="${ong} melding${ong === 1 ? '' : 's'} met iets nieuws voor jou"` : ''}>${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${o.mini || ''}${n == null ? (ong ? '<b class="stip leeg"></b>' : '') : `<b class="${o.rood && n ? 'rood' : ''}${ong ? ' stip' : ''}">${n}</b>`}</button>`; };
+    return `<button type="button" class="it${o.cls ? ' ' + o.cls : ''}${o.rood && n ? ' rinkel' : ''}${(o.stuiter && n && profiel && profiel.rol === 'servicedesk') || ong ? ' stuiter' : ''}" data-weergave="${esc(id)}" aria-pressed="${tab === id || (id === 'beheer' && ['controle', 'beoordelingen', 'connectoren'].includes(tab))}" ${o.titel ? `title="${esc(o.titel)}" ` : ''}${ong ? `title="${ong} melding${ong === 1 ? '' : 's'} met iets nieuws voor jou"` : ''}>${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${o.mini || ''}${n == null ? (ong ? '<b class="stip leeg"></b>' : '') : `<b class="${o.rood && n ? 'rood' : ''}${ong ? ' stip' : ''}">${n}</b>`}</button>`; };
   const fav = favorieten(), isFav = a => fav.some(x => norm(x) === norm(a));
   const afd = afdelingen();
   const rijA = ([a, n]) => `<div class="afdrij"><button type="button" class="favknop ${isFav(a) ? 'aan' : ''}" data-fav="${esc(a)}" title="${isFav(a) ? 'Uit favorieten halen' : 'Als favoriet bovenaan zetten'}">★</button>${it('afd:' + a, a, zichtbaar('afd:' + a, weergave('afd:' + a).lijst).length)}</div>`;
@@ -2629,7 +2639,7 @@ function tekenNav(){
     ${favL.map(rijA).join('') || '<p class="favhint"><b style="color:var(--inkt);font-weight:500">Geen afdeling geselecteerd</b><br>Zet een ★ bij een afdeling om hem hier te tonen.</p>'}
     <h4><button type="button" id="k-overige" aria-expanded="${restOpen}">${ico('<path d="M6 9l6 6 6-6"/>')}Andere afdelingen (${rest.length})</button></h4>
     ${restOpen ? rest.map(rijA).join('') : ''}
-    <h4>Overig</h4>${[ALLE, ...ONDER].map(v => v.id === 'alle' ? it(v.id, v.t, alleTelling(), {...v, titel: alleUitleg()}) : it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}${it(hist.id, hist.t, null, hist)}${isBeheerder() ? it('controle', 'Controle', CTRL.ict ? controleBevindingen().length : null, {ico: CTRL_ICO, titel: 'Staat elke open melding bij een ICT-collega? (alleen voor de beheerder)'}) : ''}${isBeheerder() ? it('beoordelingen', 'Beoordelingen', PB.defs ? (pbAchter().length || null) : null, {ico: PB_ICO, titel: 'Periodieke beoordelingen klaarzetten en volgen (alleen voor de beheerder)'}) : ''}`;
+    <h4>Overig</h4>${[ALLE, ...ONDER].map(v => v.id === 'alle' ? it(v.id, v.t, alleTelling(), {...v, titel: alleUitleg()}) : it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}${it(hist.id, hist.t, null, hist)}${isBeheerder() ? it('beheer', 'Beheer', beheerAandacht() || null, {ico: BH_ICO, titel: 'Alles wat alleen de beheerder doet: controle, beoordelingen, standaardteksten, AI-instellingen, connectoren'}) : ''}`;
 }
 
 /* ================= Overzicht: rustig voorblad met persoonlijke cijfers (zoals in Mijn changes) ================= */
@@ -2760,6 +2770,7 @@ async function vulLocaties(l){
 }
 function tekenLijst(){
   if(tab === 'historie') return tekenHistorie();
+  if(tab === 'beheer'){ if(isBeheerder()) return tekenBeheer(); tab = 'mij'; return teken(); }
   if(tab === 'controle'){ if(isBeheerder()) return tekenControle(); tab = 'mij'; return teken(); }
   if(tab === 'beoordelingen'){ if(isBeheerder()) return tekenBeoordelingen(); tab = 'mij'; return teken(); }
   if(tab === 'projecten') return tekenProjLijst();
@@ -3714,6 +3725,27 @@ document.addEventListener('visibilitychange', () => { if(!document.hidden) check
    Eén regel: de verantwoordelijke moet in de ICT-lijst staan, dezelfde lijst als bij het kiezen van een verantwoordelijke
    (ICT-collega's uit de AFAS-connector / organigram Laag 4). Leeg, uit dienst of geen ICT-collega = niet in orde. */
 const isBeheerder = () => !!profiel && !!INST.beheerder && benIk(INST.beheerder);
+/* ================= Beheer: alles wat alleen de beheerder doet, op één plek ================= */
+const BH_ICO = '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>';
+const beheerAandacht = () => { try{ return (CTRL.ict ? controleBevindingen().length : 0) + (PB.defs ? pbAchter().length : 0); }catch(e){ return 0; } };
+const beheerTerug = () => '<p class="bh-terug"><button type="button" class="linkknop" data-weergave="beheer">‹ Beheer</button></p>';
+function tekenBeheer(){
+  if(!PB.defs && !PB.bezig && !PB.fout) pbLaad(true);
+  if(!CTRL.ict && !CTRL.bezig) haalAlleTaken();
+  $('#lijst-titel').textContent = 'Beheer'; $('#lijst-n').hidden = true; $('#titel').textContent = ''; $('#subtitel').textContent = ''; $('#lijst-sub').textContent = ''; $('#lijst-kol').innerHTML = '';
+  ['#f-mijn', '#f-mijalles', '#f-soort', '#f-changes', '#f-weergave', '#f-zoom'].forEach(sel => { const e = $(sel); if(e) e.hidden = true; });
+  const nC = CTRL.ict ? controleBevindingen().length : null, nP = PB.defs ? pbAchter().length : null, nA = PB.defs ? PB.defs.filter(d => d.actief).length : null;
+  const sjAangepast = Object.keys(SJ_STD).filter(k => SJ[k] !== SJ_STD[k]).length, sjEigen = Object.keys(SJ_EIGEN).length;
+  const tegel = (actie, ico, t, uitleg, stand, rood) => `<button type="button" class="bh-tegel" ${actie}><span class="bh-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ico}</svg></span><span class="bh-tekst"><b>${t}</b><small>${uitleg}</small>${stand ? `<span class="bh-stand${rood ? ' rood' : ''}">${stand}</span>` : ''}</span><span class="bh-pijl">›</span></button>`;
+  $('#lijst').innerHTML = `<p class="ctrl-uitleg" style="margin-top:4px">Alles wat alleen jij als beheerder ziet en instelt. Wijzigingen gelden voor alle ICT-collega’s.</p>
+  <h3 class="bh-kop">Bewaken</h3><div class="bh-raster">
+    ${tegel('data-weergave="controle"', CTRL_ICO, 'Controle', 'Staat elke open melding bij een ICT-collega?', nC == null ? 'Bezig met controleren…' : nC ? `${nC} bevinding${nC === 1 ? '' : 'en'}` : '✓ Alles in orde', !!nC)}
+    ${tegel('data-weergave="beoordelingen"', PB_ICO, 'Periodieke beoordelingen', 'Controles die met vaste tussenpozen terugkomen (NEN 7510)', nA == null ? (PB.fout ? 'Ophalen lukte niet' : 'Ophalen…') : `${nA} actief` + (nP ? ` · ${nP} achter` : ''), !!nP)}</div>
+  <h3 class="bh-kop">Instellen</h3><div class="bh-raster">
+    ${tegel('data-ikm="sjab"', '<path d="M4 5h16M4 10h16M4 15h10"/><path d="M17 14l3 3-5 5h-3v-3z"/>', 'Standaardteksten', 'Teksten in de keuzelijst onder het reactievak', [sjAangepast && `${sjAangepast} aangepast`, sjEigen && `${sjEigen} eigen`].filter(Boolean).join(' · '))}
+    ${tegel('data-ikm="ai"', '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>', 'AI-instellingen', 'Aanspreekvorm, lengte en aanwijzingen voor ✦ Concept-antwoord en ✦ Instructie', '')}
+    ${tegel('data-ikm="conn"', '<path d="M8 3v4M16 3v4M6 7h12v4a6 6 0 0 1-12 0zM12 17v4"/>', 'Connectoren &amp; velden', 'Welke AFAS-connectoren en velden SubmIT gebruikt, en of ze werken', '')}</div>`;
+}
 const CTRL_ICO = '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>';
 const CTRL = {ict: null, t: 0, bezig: false, fout: ''};
 const CTRL_GROEP = {
@@ -3771,7 +3803,7 @@ function tekenControle(){
   ['#f-mijn', '#f-mijalles', '#f-soort', '#f-changes', '#f-weergave', '#f-zoom'].forEach(sel => { const e = $(sel); if(e) e.hidden = true; });
   const groepen = Object.keys(CTRL_GROEP).map(code => [code, l.filter(b => b._code === code)]).filter(([, g]) => g.length);
   const stand = CTRL.bezig ? 'ICT-lijst ophalen…' : CTRL.fout ? 'Controleren lukte niet: ' + CTRL.fout : CTRL.ict ? `Vergeleken met de ICT-lijst (${CTRL.ict.size} collega’s) · ${fmtTijd(new Date(CTRL.t))}` : '';
-  const kop = `<p class="ctrl-uitleg" style="margin-top:4px">Elke open melding hoort een verantwoordelijke uit de ICT-lijst te hebben (dezelfde lijst als bij het kiezen van een verantwoordelijke). Klik op een melding om hem meteen goed te zetten.</p>
+  const kop = beheerTerug() + `<p class="ctrl-uitleg" style="margin-top:4px">Elke open melding hoort een verantwoordelijke uit de ICT-lijst te hebben (dezelfde lijst als bij het kiezen van een verantwoordelijke). Klik op een melding om hem meteen goed te zetten.</p>
     <div class="ctrl-kop"><span>${esc(stand)}</span><button type="button" class="linkknop" id="ctrl-opnieuw"${CTRL.bezig ? ' disabled' : ''}>Opnieuw controleren</button></div>`;
   $('#lijst').innerHTML = kop + (!groepen.length ? `<p class="leeg">${CTRL.ict ? '✓ Elke open melding staat bij een ICT-collega.' : 'Bezig met controleren…'}</p>`
     : groepen.map(([c, g]) => `<h3 class="subkop ${CTRL_GROEP[c].e >= 3 ? 'rood' : 'oranje'}">${esc(CTRL_GROEP[c].t)} <b>${g.length}</b></h3><p class="ctrl-uitleg">${esc(CTRL_GROEP[c].w)} <b>Wat te doen:</b> ${esc(CTRL_GROEP[c].d)}</p>` + ctrlBundels(c, g)).join(''));
@@ -3825,7 +3857,7 @@ function tekenBeoordelingen(){
   $('#lijst-titel').textContent = 'Periodieke beoordelingen'; $('#lijst-n').hidden = !PB.defs; $('#lijst-n').textContent = (PB.defs || []).filter(d => d.actief).length;
   $('#titel').textContent = ''; $('#subtitel').textContent = ''; $('#lijst-sub').textContent = ''; $('#lijst-kol').innerHTML = '';
   ['#f-mijn', '#f-mijalles', '#f-soort', '#f-changes', '#f-weergave', '#f-zoom'].forEach(sel => { const e = $(sel); if(e) e.hidden = true; });
-  const uitleg = `<p class="ctrl-uitleg" style="margin-top:4px">Controles die met vaste tussenpozen terugkomen (NEN 7510: <i>met geplande tussenpozen beoordelen</i>). Op tijd komt er vanzelf een melding met de instructie en de hulpmiddelen, type <b>${PB_TYPE}</b>: als <b>Nieuw</b> bij de afdeling (de servicedesk wijst hem toe) of direct bij een vaste verantwoordelijke. Staat de vorige keer nog open, dan komt er geen nieuwe en zie je hem hier als <b>achter</b>.</p>`;
+  const uitleg = beheerTerug() + `<p class="ctrl-uitleg" style="margin-top:4px">Controles die met vaste tussenpozen terugkomen (NEN 7510). Op tijd komt er vanzelf een melding met de instructie en de hulpmiddelen, als <b>Nieuw</b> bij de afdeling of bij een vaste verantwoordelijke.</p>`;
   const knoppen = `<div class="ctrl-kop"><span>${PB.bezig ? 'Ophalen…' : PB.fout ? '<span class="fout">' + esc(PB.fout) + '</span>' : PB.t ? 'Bijgewerkt ' + fmtTijd(new Date(PB.t)) : ''}</span><span class="pb-knoppen"><button type="button" class="linkknop" data-pbplan title="Doet wat de dagelijkse planner om 6 uur doet, nu meteen">Planner nu draaien</button><button type="button" class="knop vol klein" data-pbnieuw>+ Nieuwe beoordeling</button></span></div>`;
   if(!PB.defs){ $('#lijst').innerHTML = uitleg + knoppen + `<p class="leeg">${PB.bezig ? 'Beoordelingen ophalen…' : PB.fout ? 'Ophalen lukte niet.' : ''}</p>`; return; }
   const nu = tdIso(new Date()), over30 = tdIso(new Date(Date.now() + 30 * DAG)), jaar = String(new Date().getFullYear());
@@ -3851,7 +3883,7 @@ function tekenBeoordelingen(){
   const lijst = PB.defs.length ? `<div class="tw"><table class="tabel pb-tabel"><thead><tr><th>Beoordeling</th><th>Afdeling</th><th>Verantwoordelijke</th><th>Interval</th><th>Volgende</th><th>Laatste melding</th><th>Status</th></tr></thead><tbody>${PB.defs.map(d => {
       const st = PB.status[d.id] || {}, l = pbMeldingen(d)[0], isAchter = achter.includes(d);
       const stat = !d.actief ? '<span class="chip">uit</span>' : isAchter ? '<span class="chip rood">achter</span>' : st.fout ? `<span class="chip rood" title="${esc(st.fout)}">fout bij aanmaken</span>` : l && !l.afgesloten ? '<span class="chip oranje">loopt</span>' : '<span class="chip groen">op schema</span>';
-      return `<tr data-pbbewerk="${esc(d.id)}"><td><b>${esc(d.titel)}</b></td><td>${esc(d.afdeling || '')}</td><td>${d.verantwNaam ? esc(d.verantwNaam) : '<span class="zacht">Nieuw, servicedesk wijst toe</span>'}</td><td>${esc(pbElke(d))}</td><td>${esc(pbDatum(pbVolgende(d)))}</td><td>${l ? `<a href="#" data-pbmelding="${esc(l.nr)}">${esc(nrT(l))}</a> · ${l.afgesloten ? 'afgehandeld' : 'open'}` : st.open ? 'dossieritem ' + esc(st.open) : '–'}</td><td>${stat}</td></tr>`; }).join('')}</tbody></table></div>` : `<div class="pb-leeg"><p><b>Nog geen periodieke beoordelingen.</b></p><p>Denk aan: toegangsrechten per systeem nalopen, een back-up terugzetten, uitdiensttreders controleren, leveranciers evalueren, certificaten en licenties nalopen.</p><button type="button" class="knop vol" data-pbnieuw>+ Eerste beoordeling klaarzetten</button></div>`;
+      return `<tr data-pbbewerk="${esc(d.id)}"><td><b>${esc(d.titel)}</b></td><td>${esc(d.afdeling || '')}</td><td>${d.verantwNaam ? esc(d.verantwNaam) : '<span class="zacht">Nieuw, servicedesk wijst toe</span>'}</td><td>${esc(pbElke(d))}</td><td>${esc(pbDatum(pbVolgende(d)))}</td><td>${l ? `<a href="#" data-pbmelding="${esc(l.nr)}">${esc(nrT(l))}</a> · ${l.afgesloten ? 'afgehandeld' : 'open'}` : st.open ? 'dossieritem ' + esc(st.open) : '–'}</td><td>${stat}</td></tr>`; }).join('')}</tbody></table></div>` : `<div class="pb-leeg"><p><b>Nog geen periodieke beoordelingen.</b></p><p>Denk aan: toegangsrechten per systeem nalopen, een back-up terugzetten, uitdiensttreders controleren, leveranciers evalueren, certificaten en licenties nalopen.</p></div>`;
   $('#lijst').innerHTML = uitleg + knoppen + (PB.defs.length ? `<div class="pb-blok">${tegels + tijdlijn}</div>` : `<div class="pb-blok">${lijst}</div>`) + (PB.defs.length ? lijst : '');
 }
 // melding-tekst: instructie + checklist (regels die met "- " beginnen worden ☐) + vervaldatum
@@ -5648,7 +5680,7 @@ async function controleerConnectoren(){
 }
 function tekenConnectoren(){
   if(tab !== 'connectoren') return;
-  $('#titel').textContent = 'Connectoren & velden'; $('#subtitel').textContent = '';
+  $('#titel').textContent = 'Connectoren & velden'; $('#subtitel').innerHTML = isBeheerder() ? beheerTerug() : '';
   const kaart = CONN_KAART(), c = connCheck, gebruikt = new Set(kaart.map(k => norm(k.conn)));
   const veldMatch = (veld, lijst) => lijst.find(f => veld.match.test(f.id) || veld.match.test(norm(f.label).replace(/ /g, '_')) || veld.match.test(norm(f.label)));
   const NODIG = {ja: 'Verplicht', opt: 'Optioneel', filter: 'Filter', reserve: 'Reserve'};
@@ -5807,16 +5839,17 @@ function ikMenu(){
     ${rij('feedback', '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v4M12 14h.01"/>', 'Feedback of fout melden')}
     ${rij('nieuws', '<path d="M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z"/>', 'Wat is er nieuw')}
     ${rij('tour', '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>', 'Rondleiding')}
-    ${rij('conn', '<path d="M8 3v4M16 3v4M6 7h12v4a6 6 0 0 1-12 0zM12 17v4"/>', 'Connectoren &amp; velden')}${isBeheerder() ? rij('sjab', '<path d="M4 5h16M4 10h16M4 15h10"/><path d="M17 14l3 3-5 5h-3v-3z"/>', 'Standaardteksten') + rij('ai', '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>', 'AI-instellingen') : ''}<hr>
+    ${isBeheerder() ? rij('beheer', BH_ICO, 'Beheer' + (beheerAandacht() ? ` <b class="ikteller">${beheerAandacht()}</b>` : '')) : rij('conn', '<path d="M8 3v4M16 3v4M6 7h12v4a6 6 0 0 1-12 0zM12 17v4"/>', 'Connectoren &amp; velden')}${false ? rij('sjab', '<path d="M4 5h16M4 10h16M4 15h10"/><path d="M17 14l3 3-5 5h-3v-3z"/>', 'Standaardteksten') + rij('ai', '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>', 'AI-instellingen') : ''}<hr>
     <div class="ikvoet">${rij('uit', '<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11"/>', 'Uitloggen')}<span class="ikversie">v${VERSIE.slice(1)}</span></div>`;
   m.hidden = !m.hidden;
 }
 document.addEventListener('click', e => {
   const on = e.target.closest('[data-onlnr]'); if(on){ if($('#ikmenu')) $('#ikmenu').hidden = true; if($('#teampaneel')) $('#teampaneel').hidden = true; const x = items.find(y => String(y.nr) === on.dataset.onlnr); if(x){ navLijst = []; openDetail(x.nr); } else toast('Melding ' + on.dataset.onlnr + ' staat (nog) niet in de lijst.'); return; }
-  const im = e.target.closest('[data-ikm]'); if(im){ $('#ikmenu').hidden = true; const k = im.dataset.ikm;
+  const im = e.target.closest('[data-ikm]'); if(im){ if($('#ikmenu')) $('#ikmenu').hidden = true; const k = im.dataset.ikm;
     if(k === 'win'){ wisselWindows(); return; }
     if(k === 'sjab'){ sjBeheer(); return; }
     if(k === 'ai'){ aiBeheer(); return; }
+    if(k === 'beheer'){ tab = 'beheer'; filt.zoek = ''; $('#f-zoek').value = ''; teken(); scrollTo(0, 0); return; }
     if(k === 'rust'){ rustAan = !rustAan; opslag.set('mict-rustscherm', rustAan); rustReset(); toast(rustAan ? 'Rustscherm staat aan: na 2 minuten zonder muis zie je je overzicht' : 'Rustscherm staat uit'); return; }
     if(k === 'stil'){ nietStoren = !nietStoren; opslag.set('mict-nietstoren', nietStoren); zetIkAvatar(); seinAanwezig(); toast(nietStoren ? 'Niet storen staat aan: collega’s zien dat aan je foto; wat er gebeurt zie je in Team' : 'Niet storen staat uit'); return; }
     if(k === 'feedback'){ feedback(); return; }
@@ -7175,35 +7208,69 @@ function anoniem(t, x){
   return u.replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '[e-mailadres]').replace(/(\+31|0)[\d\s-]{8,12}\d/g, '[telefoonnummer]').replace(/\b\d{7,}\b/g, '[nummer]')
     .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '$1 ($2)').replace(/(de gebruiker)(\s+de gebruiker)+/gi, '$1');
 }
+/* Word-instructie in de DC-huisstijl, met dezelfde opzet als het A4-template van de huisstijlskill:
+   kopblok als 'D' met blauw verloop (onderwerp + handeling + korte uitleg), genummerde stappen met kleine 'D'-cijfers,
+   een paars vangnetblok 'Lukt het niet?', en onderaan de url links en het logo rechts. Alles blijft bewerkbaar in Word. */
 function instructieDocx(titel, waar, stappen, bron){
-  const run = (t, extra = '') => `<w:r><w:rPr>${extra}</w:rPr><w:t xml:space="preserve">${xmlEsc(t)}</w:t></w:r>`;
-  const p = (t, stijl, extra = '') => `<w:p><w:pPr>${stijl ? `<w:pStyle w:val="${stijl}"/>` : ''}${extra}</w:pPr>${run(t)}</w:p>`;
-  const stap = t => `<w:p><w:pPr><w:pStyle w:val="Lijstalinea"/><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr></w:pPr>${run(t)}</w:p>`;
-  const body = [p(titel, 'Titel'),
-    p('Waar gaat dit over?', 'Kop1'), ...waar.split(/\n{2,}/).map(t => p(t.replace(/\n/g, ' '), '')),
-    p('Zo los je het op', 'Kop1'), ...(stappen.length ? stappen.map(stap) : [p('Beschrijf hier de stappen.', '')]),
-    p('Lukt het niet?', 'Kop1'), p('Maak een melding bij ICT via de ICT Assistent of de ticketpagina in InSite. Vermeld wat je al hebt geprobeerd.', '')].join('');
-  const cx = 1620000, cy = Math.round(cx * 73 / 600);
-  const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>${body}<w:sectPr><w:headerReference w:type="default" r:id="rIdKop"/><w:footerReference w:type="default" r:id="rIdVoet"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1701" w:right="1418" w:bottom="1418" w:left="1418" w:header="567" w:footer="567" w:gutter="0"/></w:sectPr></w:body></w:document>`;
-  const kop = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:hdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="1" name="DC Klinieken"/><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="1" name="logo.png"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rIdLogo"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p></w:hdr>`;
-  const voet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p><w:pPr><w:pStyle w:val="Voettekst"/></w:pPr>${run(bron)}</w:p></w:ftr>`;
+  const EMU = 36000, mm = v => Math.round(v * EMU), tw = v => Math.round(v * 56.6929);   // mm -> EMU / twips
+  const BREED = 210 - 2 * 16;   // tekstbreedte in mm (marges 16 mm)
+  const [systeem, ...rest] = String(titel).split(' - '), handeling = rest.join(' - ') || systeem;
+  const run = (t, rpr = '') => `<w:r><w:rPr>${rpr}</w:rPr><w:t xml:space="preserve">${xmlEsc(t)}</w:t></w:r>`;
+  const rp = ({b, kleur, pt, caps, sp}) => `${b ? '<w:b/>' : ''}${caps ? '<w:caps/>' : ''}${kleur ? `<w:color w:val="${kleur}"/>` : ''}${sp ? `<w:spacing w:val="${sp}"/>` : ''}${pt ? `<w:sz w:val="${Math.round(pt * 2)}"/>` : ''}`;
+  const par = (runs, ppr = '') => `<w:p><w:pPr>${ppr}</w:pPr>${runs}</w:p>`;
+  const sp = (voor, na, regel) => `<w:spacing w:before="${voor || 0}" w:after="${na || 0}"${regel ? ` w:line="${regel}" w:lineRule="auto"` : ''}/>`;
+  // 'D'-vorm: rechthoek met alleen de rechterkant volledig rond (straal = halve hoogte), met verloop van links naar rechts
+  let id = 10;
+  const dVorm = (wMm, hMm, kleuren, inhoud, ins, vast) => { const W = mm(wMm), H = mm(hMm), r = Math.round(H / 2); id++;
+    const gs = kleuren.map(([pos, k]) => `<a:gs pos="${pos * 1000}"><a:srgbClr val="${k}"/></a:gs>`).join('');
+    return `<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${W}" cy="${H}"/><wp:docPr id="${id}" name="D ${id}"/><a:graphic><a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"><wps:wsp><wps:cNvSpPr/><wps:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${W}" cy="${H}"/></a:xfrm>`
+      + `<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/><a:rect l="0" t="0" r="r" b="b"/><a:pathLst><a:path w="${W}" h="${H}"><a:moveTo><a:pt x="0" y="0"/></a:moveTo><a:lnTo><a:pt x="${Math.max(0, W - r)}" y="0"/></a:lnTo><a:arcTo wR="${r}" hR="${r}" stAng="16200000" swAng="10800000"/><a:lnTo><a:pt x="0" y="${H}"/></a:lnTo><a:close/></a:path></a:pathLst></a:custGeom>`
+      + `<a:gradFill rotWithShape="1"><a:gsLst>${gs}</a:gsLst><a:lin ang="600000" scaled="0"/></a:gradFill><a:ln><a:noFill/></a:ln></wps:spPr>`
+      + `<wps:txbx><w:txbxContent>${inhoud}</w:txbxContent></wps:txbx><wps:bodyPr rot="0" vert="horz" wrap="square" lIns="${mm(ins[3])}" tIns="${mm(ins[0])}" rIns="${mm(ins[1])}" bIns="${mm(ins[2])}" anchor="ctr" anchorCtr="0">${vast ? '<a:noAutofit/>' : '<a:spAutoFit/>'}</wps:bodyPr></wps:wsp></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>`; };
+  const BLAUW = [[0, '053787'], [45, '2E5FB0'], [100, 'B5D0FF']], PAARS = [[0, 'B284B2'], [55, 'E6D3DD'], [100, 'F5EBE1']];
+  // kopblok: hoogte schatten uit de tekstlengte (Word past een tekstvak niet vanzelf aan)
+  const kortWaar = String(waar || '').trim().replace(/\s+/g, ' '), inKop = kortWaar.length <= 240 ? kortWaar : '';
+  const kopB = BREED * 0.96, tekstB = kopB - 11 - 30;
+  const regels = (t, perMm) => Math.max(1, Math.ceil(String(t).length / Math.floor(tekstB * perMm)));
+  const titelRegels = regels(systeem + ':', 0.23) + regels(handeling, 0.23), introRegels = inKop ? regels(inKop, 0.56) : 0;
+  const kopH = 7 + 5 + titelRegels * 9.6 + (introRegels ? 3 + introRegels * 5.4 : 0) + 7;
+  const kopInhoud = par(run(`Instructie · ${systeem}`, rp({b: 1, caps: 1, kleur: 'FFFFFF', pt: 8.4, sp: 18})), sp(0, 60))
+    + par(run(systeem + ':', rp({b: 1, kleur: 'FFFFFF', pt: 22})), sp(0, 0, 240))
+    + par(run(handeling.charAt(0).toUpperCase() + handeling.slice(1), rp({b: 1, kleur: 'B5D0FF', pt: 22})), sp(0, 0, 240))
+    + (inKop ? par(run(inKop, rp({kleur: 'FFFFFF', pt: 10})), sp(140, 0, 276)) : '');
+  const kop = par(dVorm(kopB, kopH, BLAUW, kopInhoud, [7, 30, 7, 11]), sp(0, 240));
+  const extraWaar = !inKop && kortWaar ? par(run('Waar gaat dit over?', rp({b: 1, kleur: '053787', pt: 12.5})), sp(0, 80)) + kortWaar.split(/(?<=[.!?])\s+(?=[A-Z])/).reduce((a, z) => { const l = a[a.length - 1]; if(l && (l + ' ' + z).length < 420) a[a.length - 1] = l + ' ' + z; else a.push(z); return a; }, []).map(t => par(run(t, rp({kleur: '1B3F80', pt: 10})), sp(0, 120, 288))).join('') : '';
+  // stappen: kleine 'D' met het cijfer, verloop wordt per stap iets lichter (zoals in het template)
+  const tinten = ['053787', '2A5AAA', '3D6CBB', '4E7BC4', '5A86CC'];
+  const stapRij = (t, i) => { const m = t.match(/^(.{3,60}?):\s+(.+)$/), cijfer = par(run(String(i + 1), rp({b: 1, kleur: 'FFFFFF', pt: 12})), '<w:jc w:val="center"/>' + sp(0, 0));
+    const tekst = m ? par(run(m[1], rp({b: 1, kleur: '053787', pt: 11})), sp(0, 40)) + par(run(m[2].charAt(0).toUpperCase() + m[2].slice(1), rp({kleur: '1B3F80', pt: 10})), sp(0, 0, 288)) : par(run(t, rp({kleur: '1B3F80', pt: 10.5})), sp(40, 0, 288));
+    return `<w:tr><w:trPr><w:cantSplit/></w:trPr><w:tc><w:tcPr><w:tcW w:w="${tw(14)}" w:type="dxa"/></w:tcPr>${par(dVorm(9, 9, [[0, '053787'], [100, tinten[Math.min(i, tinten.length - 1)]]], cijfer, [0, 0.5, 0, 0], true), sp(0, 0))}</w:tc><w:tc><w:tcPr><w:tcW w:w="${tw(BREED - 14)}" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>${tekst}</w:tc></w:tr>`; };
+  const geenRand = '<w:tblBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/><w:insideH w:val="nil"/><w:insideV w:val="nil"/></w:tblBorders>';
+  const lijst = stappen.length ? stappen : ['Beschrijf hier de stappen.'];
+  const stappenBlok = par(run(`Zo doe je het in ${lijst.length} stap${lijst.length === 1 ? '' : 'pen'}`, rp({b: 1, kleur: '053787', pt: 12.5})), sp(120, 160))
+    + `<w:tbl><w:tblPr><w:tblW w:w="${tw(BREED)}" w:type="dxa"/>${geenRand}<w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="60" w:type="dxa"/><w:left w:w="0" w:type="dxa"/><w:bottom w:w="140" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid><w:gridCol w:w="${tw(14)}"/><w:gridCol w:w="${tw(BREED - 14)}"/></w:tblGrid>${lijst.map(stapRij).join('')}</w:tbl>`;
+  // vangnet: paars verloop, donkere tekst (wit op paars is te licht)
+  const vangTekst = 'Maak een melding bij ICT via de ICT Assistent of de ticketpagina in InSite. Vermeld wat je al hebt geprobeerd, dan kunnen we je sneller helpen.';
+  const vangH = 5 + 7 + Math.ceil(vangTekst.length / Math.floor((BREED * 0.99 - 30) * 0.6)) * 5 + 5;
+  const vang = par(dVorm(BREED * 0.99, vangH, PAARS, par(run('!  ', rp({b: 1, kleur: '053787', pt: 12})) + run('Lukt het niet?', rp({b: 1, kleur: '3A1F45', pt: 11.5})), sp(0, 60)) + par(run(vangTekst, rp({kleur: '3A1F45', pt: 9.6})), sp(0, 0, 276)), [5, 22, 5, 8]), sp(280, 0));
+  const body = kop + extraWaar + stappenBlok + vang + par(run(bron, rp({kleur: '8B97B2', pt: 7.5})), sp(200, 0));
+  const NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="wps"';
+  const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${NS}><w:body>${body}<w:sectPr><w:footerReference w:type="default" r:id="rIdVoet"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="${tw(14)}" w:right="${tw(16)}" w:bottom="${tw(22)}" w:left="${tw(16)}" w:header="${tw(8)}" w:footer="${tw(9)}" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+  // voet: url links, logo rechts op dezelfde regel (6,5 mm hoog)
+  const ly = mm(6.5), lx = Math.round(ly * 600 / 73);
+  const logo = `<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${lx}" cy="${ly}"/><wp:docPr id="1" name="DC Klinieken"/><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="1" name="logo.png"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rIdLogo"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${lx}" cy="${ly}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>`;
+  const voet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr ${NS}><w:p><w:pPr><w:tabs><w:tab w:val="right" w:pos="${tw(BREED)}"/></w:tabs>${sp(0, 0)}</w:pPr><w:hyperlink r:id="rIdUrl">${run('dcklinieken.nl', rp({b: 1, kleur: '053787', pt: 9}))}</w:hyperlink><w:r><w:tab/></w:r>${logo}</w:p></w:ftr>`;
   const f = 'w:ascii="Helvetica" w:hAnsi="Helvetica" w:cs="Helvetica" w:eastAsia="Helvetica"';
-  const stijlen = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts ${f}/><w:color w:val="16213E"/><w:sz w:val="21"/><w:lang w:val="nl-NL"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="288" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>
-<w:style w:type="paragraph" w:default="1" w:styleId="Standaard"><w:name w:val="Normal"/></w:style>
-<w:style w:type="paragraph" w:styleId="Titel"><w:name w:val="Title"/><w:basedOn w:val="Standaard"/><w:pPr><w:spacing w:after="240"/></w:pPr><w:rPr><w:b/><w:color w:val="053787"/><w:sz w:val="40"/></w:rPr></w:style>
-<w:style w:type="paragraph" w:styleId="Kop1"><w:name w:val="heading 1"/><w:basedOn w:val="Standaard"/><w:next w:val="Standaard"/><w:pPr><w:keepNext/><w:spacing w:before="280" w:after="100"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:color w:val="053787"/><w:sz w:val="26"/></w:rPr></w:style>
-<w:style w:type="paragraph" w:styleId="Lijstalinea"><w:name w:val="List Paragraph"/><w:basedOn w:val="Standaard"/><w:pPr><w:spacing w:after="80"/><w:ind w:left="425" w:hanging="425"/></w:pPr></w:style>
-<w:style w:type="paragraph" w:styleId="Voettekst"><w:name w:val="footer"/><w:basedOn w:val="Standaard"/><w:rPr><w:color w:val="6B7899"/><w:sz w:val="16"/></w:rPr></w:style></w:styles>`;
-  const nummering = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:abstractNum w:abstractNumId="0"><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="425" w:hanging="425"/></w:pPr><w:rPr><w:b/><w:color w:val="053787"/></w:rPr></w:lvl></w:abstractNum><w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num></w:numbering>`;
+  const stijlen = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts ${f}/><w:color w:val="053787"/><w:sz w:val="20"/><w:lang w:val="nl-NL"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="0" w:line="264" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Standaard"><w:name w:val="Normal"/></w:style></w:styles>`;
   const R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
   const png = Uint8Array.from(atob(DC_LOGO_PNG), c => c.charCodeAt(0));
   return maakZip([
-    {naam: '[Content_Types].xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/><Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/></Types>`},
+    {naam: '[Content_Types].xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/></Types>`},
     {naam: '_rels/.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${R}/officeDocument" Target="word/document.xml"/></Relationships>`},
-    {naam: 'word/_rels/document.xml.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdStijl" Type="${R}/styles" Target="styles.xml"/><Relationship Id="rIdNum" Type="${R}/numbering" Target="numbering.xml"/><Relationship Id="rIdKop" Type="${R}/header" Target="header1.xml"/><Relationship Id="rIdVoet" Type="${R}/footer" Target="footer1.xml"/></Relationships>`},
-    {naam: 'word/_rels/header1.xml.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdLogo" Type="${R}/image" Target="media/logo.png"/></Relationships>`},
-    {naam: 'word/document.xml', data: doc}, {naam: 'word/styles.xml', data: stijlen}, {naam: 'word/numbering.xml', data: nummering},
-    {naam: 'word/header1.xml', data: kop}, {naam: 'word/footer1.xml', data: voet}, {naam: 'word/media/logo.png', data: png}]);
+    {naam: 'word/_rels/document.xml.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdStijl" Type="${R}/styles" Target="styles.xml"/><Relationship Id="rIdVoet" Type="${R}/footer" Target="footer1.xml"/></Relationships>`},
+    {naam: 'word/_rels/footer1.xml.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdLogo" Type="${R}/image" Target="media/logo.png"/><Relationship Id="rIdUrl" Type="${R}/hyperlink" Target="https://www.dcklinieken.nl" TargetMode="External"/></Relationships>`},
+    {naam: 'word/document.xml', data: doc}, {naam: 'word/styles.xml', data: stijlen},
+    {naam: 'word/footer1.xml', data: voet}, {naam: 'word/media/logo.png', data: png}]);
 }
 async function maakInstructie(){
   const x = huidig && huidig.x, k = $('#k-instructie'); if(!x || !k) return;
@@ -7539,6 +7606,8 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.51', d: '22-10-2026', p: ['✦ Instructie maken levert een Word-document in de vaste DC-opzet: blauw kopblok, genummerde stappen, een vangnetblok "Lukt het niet?" en onderaan de url en het logo.']},
+  {v: 'v7.50', d: '22-10-2026', p: ['Beheerder: alles wat alleen jij doet staat nu onder Beheer (in het menu links en onder je profielfoto): Controle, Periodieke beoordelingen, Standaardteksten, AI-instellingen en Connectoren & velden.', 'Periodieke beoordelingen: rustiger pagina met één knop voor een nieuwe beoordeling.']},
   {v: 'v7.49', d: '22-10-2026', p: ['Lukt het ophalen van gesloten meldingen even niet (storing bij AFAS), dan probeert SubmIT het vanzelf opnieuw.']},
   {v: 'v7.48', d: '22-10-2026', p: ['Geeft de AFAS-koppeling bij het inloggen een storing, dan zie je een duidelijke melding in plaats van een technische foutpagina.']},
   {v: 'v7.47', d: '22-10-2026', p: ['Vet en cursief uit AFAS zie je nu ook in SubmIT, in de toelichting en in de reacties.', 'Zelf opmaken kan ook: selecteer tekst en druk op Ctrl+B (vet) of Ctrl+I (cursief). In AFAS komt het net zo binnen.']},
