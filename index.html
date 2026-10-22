@@ -1343,7 +1343,13 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 .chip{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--lichtblauw-2);color:var(--blauw)}.chip.rood{background:color-mix(in srgb,var(--rood) 12%,transparent);color:var(--rood)}.chip.groen{background:color-mix(in srgb,var(--groen) 14%,transparent);color:var(--groen)}.chip.oranje{background:color-mix(in srgb,var(--oranje) 14%,transparent);color:var(--oranje)}
 .pb-leeg{border:1px dashed var(--lijn);border-radius:14px;padding:22px;text-align:center;color:var(--grijs);margin-top:12px}.pb-leeg b{color:var(--inkt)}
 #pbdlg{width:min(860px,calc(100vw - 32px))}
-.pb-elke{display:flex;gap:8px;align-items:center}.pb-elke input{width:70px}
+.pb-elke{display:flex;gap:8px;align-items:center;font-weight:400;white-space:nowrap}
+.kaart2 .pb-elke input.pb-num{width:64px;padding-right:6px;text-align:left}.kaart2 .pb-elke select.pb-eenh{width:116px}
+#pbdlg label.vink{flex-direction:row;font-weight:400;color:var(--inkt)}#pbdlg label.vink input[type=checkbox]{width:auto;margin:0;accent-color:var(--blauw)}
+.pb-wanneer input,.pb-wanneer select{padding-top:3px!important;padding-bottom:3px!important;font-size:13.5px}
+.pb-wanneer > span{align-self:center}.pb-wanneer > b{display:flex;align-items:center;min-height:28px}
+.pb-wanneer .pb-aan{white-space:nowrap}
+.pb-keren{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px;padding-top:10px;border-top:1px solid var(--lijn)}.pb-keren small{color:var(--grijs);font-size:12px;margin-right:2px}.pb-keren:empty{display:none}
 .pb-kop3{font-size:13px;color:var(--blauw);margin:16px 0 6px}.pb-kop3 small{font-weight:400;margin-left:6px}
 .pb-hulp{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border:1px dashed var(--lijn);border-radius:10px;min-height:44px}.pb-hulp.sleep{border-color:var(--blauw);background:var(--blauw-licht,rgba(5,55,135,.06))}
 .pbres{border:1px solid var(--lijn);border-left:3px solid var(--blauw);border-radius:12px;padding:12px 14px;margin:4px 0 12px;display:flex;flex-direction:column;gap:10px}
@@ -1513,7 +1519,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.41', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.42', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3821,12 +3827,12 @@ async function pbBewerk(id){
   const opt = (l, v) => l.map(x => `<option ${norm(x) === norm(v) ? 'selected' : ''}>${esc(x)}</option>`).join('');
   const extra = m.extra.map(x => `<span>${esc(x.label)}</span><b>${keuze(x, 'pbx_' + x.code, (def.extra || {})[x.code]).replace('<select ', '<select class="afdkeuze" ').replace('<input ', '<input class="datumkeuze" ')}</b>`).join('');
   d.innerHTML = `<form class="dlg-in nform" id="pb-form" onsubmit="return false"><div class="dlg-kop"><div><small>${PB_TYPE}</small><h2><input name="titel" class="ondinvoer" maxlength="56" required placeholder="Bijv. Toegangsrechten Emma nalopen" value="${esc(def.titel)}" aria-label="Titel"></h2></div><button type="button" class="sluit" data-pbdicht aria-label="Sluiten">×</button></div>
-    <div class="kaarten"><div class="kaart2"><h3>Wanneer</h3>
-      <span>Elke</span><b class="pb-elke"><input name="aantal" type="number" min="1" max="999" class="datumkeuze" value="${esc(def.aantal)}" aria-label="Aantal"><select name="eenheid" class="afdkeuze"><option value="dagen" ${def.eenheid === 'dagen' ? 'selected' : ''}>dagen</option><option value="maanden" ${def.eenheid !== 'dagen' ? 'selected' : ''}>maanden</option></select></b>
+    <div class="kaarten"><div class="kaart2 pb-wanneer"><h3>Wanneer</h3>
+      <span>Herhalen</span><b class="pb-elke">elke <input name="aantal" type="number" min="1" max="999" class="datumkeuze pb-num" value="${esc(def.aantal)}" aria-label="Aantal"><select name="eenheid" class="afdkeuze pb-eenh" aria-label="Eenheid"><option value="dagen" ${def.eenheid === 'dagen' ? 'selected' : ''}>dagen</option><option value="maanden" ${def.eenheid !== 'dagen' ? 'selected' : ''}>maanden</option></select></b>
       <span>Eerste keer</span><b><input name="start" type="date" class="datumkeuze" value="${esc(oud ? pbVolgende(oud) : def.start)}" required></b>
-      <span>Melding</span><b class="pb-elke"><input name="vooraf" type="number" min="0" max="120" class="datumkeuze" value="${esc(def.vooraf)}"> dagen van tevoren</b>
-      <span>Actief</span><b><label class="vink"><input type="checkbox" name="actief" ${def.actief ? 'checked' : ''}> komt automatisch terug</label></b>
-      <span></span><b><small class="hint" id="pb-keren"></small></b></div>
+      <span>Melding maken</span><b class="pb-elke"><input name="vooraf" type="number" min="0" max="120" class="datumkeuze pb-num" value="${esc(def.vooraf)}" aria-label="Dagen van tevoren"> dagen van tevoren</b>
+      <span>Actief</span><b><label class="vink pb-aan"><input type="checkbox" name="actief" ${def.actief ? 'checked' : ''}> Komt automatisch terug</label></b>
+      <div class="pb-keren" id="pb-keren"></div></div>
     <div class="kaart2"><h3>Melding</h3>
       <span>Afdeling</span><b><select name="afdeling" class="afdkeuze">${opt(afd, def.afdeling)}</select></b>
       <span>Verantwoordelijke</span><b><select name="verantw" class="afdkeuze"><option value="" title="De melding komt binnen als Nieuw; de servicedesk wijst hem toe">Niemand (Nieuw)</option>${ict.map(c => `<option value="${esc(c.code)}" ${norm(c.code) === norm(def.verantwCode) || norm(c.naam) === norm(def.verantwNaam) ? 'selected' : ''}>${esc(c.naam)}</option>`).join('')}</select></b>
@@ -3837,7 +3843,7 @@ async function pbBewerk(id){
     <div class="pb-hulp" id="pb-hulp" title="Sleep bestanden hierheen of klik op Bestand toevoegen"><span id="pb-hulplijst" class="bijlrij"></span><button type="button" class="linkknop paperclip" data-pbhulp>${CLIP}Bestand toevoegen</button><input type="file" id="pb-hulpf" multiple hidden></div>
     <p class="fout" id="pb-fout"></p>
     <div class="pb-acties">${oud ? '<button type="button" class="linkknop rood" data-pbweg>Verwijderen</button><button type="button" class="knop" data-pbnu title="Nu meteen een melding aanmaken (testen of een extra keer)">Nu aanmaken</button>' : ''}<span style="flex:1"></span><button type="button" class="knop" data-pbdicht>Annuleren</button><button type="button" class="knop vol" data-pbbewaar>Opslaan</button></div></form>`;
-  const f = $('#pb-form'), keren = () => { const t = {aantal: f.aantal.value, eenheid: f.eenheid.value, start: f.start.value}, l = f.start.value ? [pbDatum(f.start.value), ...[1, 2, 3].map(k => pbDatum(pbKeer(t, k)))] : []; $('#pb-keren').textContent = l.length ? 'Volgende keren: ' + l.join(', ') + ' …' : ''; };
+  const f = $('#pb-form'), keren = () => { const t = {aantal: f.aantal.value, eenheid: f.eenheid.value, start: f.start.value}, l = f.start.value ? [pbDatum(f.start.value), ...[1, 2, 3].map(k => pbDatum(pbKeer(t, k)))] : []; $('#pb-keren').innerHTML = l.length ? '<small>Komende keren</small>' + l.map(d => `<span class="chip">${d}</span>`).join('') + '<small>…</small>' : ''; };
   f.addEventListener('input', keren); keren(); f._def = def; f._oud = oud; f._nieuw = [];
   pbTekenHulp();
   const zone = $('#pb-hulp'), voeg = files => { const te = []; [...files].forEach(x => { if(x.size > 10 * 1048576) te.push(x.name); else if(!f._nieuw.some(y => y.name === x.name && y.size === x.size)) f._nieuw.push(x); }); if(te.length) $('#pb-fout').textContent = `Te groot (max. 10 MB): ${te.join(', ')}. Zet grote bestanden in de kennisbank en link ernaar in de instructie.`; pbTekenHulp(); };
@@ -7119,7 +7125,7 @@ document.addEventListener('click', e => { if(e.target.closest('#k-instructie')) 
    op basis van vergelijkbare meldingen (woorden in het onderwerp, zeldzame woorden tellen zwaarder) en eerdere meldingen van dezelfde melder.
    Alleen als er genoeg steun is: minstens 2 vergelijkbare meldingen en meer dan de helft van het gewicht. */
 function zoekVoorstellen(x){
-  const pool = items.filter(y => y !== x && !y.inuit && String(y.nr) !== String(x.nr) && String(y.verantw || '').trim());
+  const pool = items.filter(y => y !== x && !y.inuit && !pbIs(y) && String(y.nr) !== String(x.nr));
   const scored = scoorVergelijkbaar(x, pool, y => x.melder && norm(y.melder) === norm(x.melder) ? 1 : 0).slice(0, 15);
   if(scored.length < 2) return null;
   const stem = (veld, l = scored, ok = () => true) => { const m = new Map(); let tot = 0;
@@ -7128,17 +7134,15 @@ function zoekVoorstellen(x){
     const steun = best ? l.filter(r => norm(r.y[veld]) === norm(best)) : [];
     return best && tot && w / tot > 0.5 && steun.length >= 2 ? {waarde: best, steun: steun.map(r => r.y)} : null; };
   const afd = !String(x.afdeling || '').trim() ? stem('afdeling') : null;
-  const doelAfd = x.afdeling || (afd && afd.waarde), inAfd = doelAfd ? scored.filter(r => norm(r.y.afdeling) === norm(doelAfd)) : [];
-  return {afd, type: !String(x.type || '').trim() ? stem('type') : null,
-    verantw: stem('verantw', inAfd.length >= 2 ? inAfd : scored, v => isIctStrikt(v) || inIctLijst(v))};
+  // alleen velden die leeg zijn; nooit een verantwoordelijke voorstellen (dat is een keuze van het team, geen patroon)
+  return {afd, type: !String(x.type || '').trim() ? stem('type') : null};
 }
 const voorstelUitleg = s => `Voorstel op basis van ${s.steun.length} vergelijkbare meldingen, o.a. ${s.steun.slice(0, 3).map(y => nrT(y)).join(', ')}`;
 function stelVoorBijBinnenkomst(x){
-  if(!huidig || huidig.x !== x || x.afgesloten || x.inuit || String(x.verantw || '').trim() || !$('#detail').open) return;
+  if(!huidig || huidig.x !== x || x.afgesloten || x.inuit || pbIs(x) || String(x.verantw || '').trim() || !$('#detail').open) return;
   const v = zoekVoorstellen(x); if(!v) return;
   if(v.afd) zetVeldVoorstel($('#d-afd'), v.afd.waarde, voorstelUitleg(v.afd));
   if(v.type) zetVeldVoorstel($('#d-type'), v.type.waarde, voorstelUitleg(v.type));
-  if(v.verantw) zetVeldVoorstel($('#d-verantw'), v.verantw.waarde, voorstelUitleg(v.verantw));
   zetKnoppen(); mailVooraf();
 }
 function toonContext(x){
@@ -7424,6 +7428,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.42', d: '22-10-2026', p: ['Voorstellen bij binnenkomst gaan alleen nog over afdeling en type, op basis van vergelijkbare meldingen. Een verantwoordelijke wordt nooit meer voorgesteld.', 'Periodieke beoordeling klaarzetten: het blok Wanneer is overzichtelijker.']},
   {v: 'v7.41', d: '22-10-2026', groot: true, p: ['Periodieke beoordelingen: een melding kan nu als Nieuw bij de servicedesk binnenkomen, zonder vaste verantwoordelijke.', 'Hulpmiddelen (bijv. een script of rapportsjabloon) kun je bij een beoordeling zetten; ze komen als bijlage bij elke melding.', 'In een beoordelingsmelding leg je het resultaat vast: afvinklijst, uitkomst, bevindingen en het rapport als bijlage, in één keer als reactie.']},
   {v: 'v7.40', d: '22-10-2026', p: ['Word-bijlagen (.docx) zie je nu als leesbare voorvertoning in plaats van rare tekens; de bestandsgrootte klopt.', 'Standaardteksten worden centraal beheerd: de beheerder kan ze aanpassen, toevoegen en verwijderen, en ze gelden meteen voor iedereen.']},
   {v: 'v7.39', d: '22-10-2026', p: ['Afhandelen en Opslaan staan nu onder het reactieveld: eerst schrijven, dan opslaan.', 'Snel van de ene naar de andere melding gaan werkt betrouwbaarder.', 'Periodieke beoordelingen (alleen voor de beheerder): controles die met vaste tussenpozen terugkomen klaarzetten, met instructie, tijdlijn en overzicht. De melding komt vanzelf op tijd.']},
