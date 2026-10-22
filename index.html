@@ -1352,6 +1352,10 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 .kaart2 .pb-keren{font-weight:400;color:var(--grijs);font-size:13px;flex-wrap:wrap;gap:0 4px;line-height:1.5}
 .pb-kop3{font-size:13px;color:var(--blauw);margin:16px 0 6px}.pb-kop3 small{font-weight:400;margin-left:6px}
 .pb-hulp{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border:1px dashed var(--lijn);border-radius:10px;min-height:44px}.pb-hulp.sleep{border-color:var(--blauw);background:var(--blauw-licht,rgba(5,55,135,.06))}
+#aidlg{width:min(860px,94vw)}.ai-regels{font-weight:400;color:var(--grijs);font-size:13px;line-height:1.5}
+.ai-vg{display:inline-flex;flex-direction:column;gap:3px;font-size:12px;color:var(--blauw);min-width:220px;max-width:340px}.ai-vg-t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ai-vg-b{display:block;height:3px;border-radius:2px;background:var(--lijn);overflow:hidden}.ai-vg-b>i{display:block;height:100%;width:0;background:var(--blauw);border-radius:2px;transition:width .4s ease;animation:aiPuls 1.2s ease-in-out infinite}
+@keyframes aiPuls{50%{opacity:.45}}
 .pbres{border:1px solid var(--lijn);border-left:3px solid var(--blauw);border-radius:12px;padding:12px 14px;margin:4px 0 12px;display:flex;flex-direction:column;gap:10px}
 .pbres h3{margin:0;font-size:13px;color:var(--blauw)}.pbres h3 small{font-weight:400;margin-left:6px}
 .pbres-check{display:flex;flex-direction:column;gap:6px}.pbres-uit{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.pbres-uit>span{font-size:12.5px;color:var(--zacht,#667)}
@@ -1519,7 +1523,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.44', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.46', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3362,7 +3366,13 @@ async function toonReacties(x){
     if(wacht.length || (!berichtUit && mails.some(m => m.onderweg || (!m.afas && !m.nietGevonden && m.aan !== 'GEEN mail' && Date.now() - m.t < 15 * 6e4))))
       volgReacties = setTimeout(() => { if(huidig && huidig.x === x && $('#detail').open){ reactieVoor.delete(nr); berichtCache.delete(nr); toonReacties(x); } }, 8000);
     if(INST.connBerichten && !berichtUit && !((berichtCache.get(String(x.nr)) || {}).t > Date.now() - 2 * 6e4)) haalBerichten(x, l).then(() => { if(huidig && huidig.x === x) toonReacties(x); }).catch(e => { console.warn('Mailcontrole', e); if(huidig && huidig.x === x) toonReacties(x); });
-  }catch(e){ el.innerHTML = `<h3>Reacties</h3><p class="hint">Reacties ophalen lukte niet: ${esc(e.message)} Laat GetConnector ${esc(INST.connReacties)} koppelen aan de app connector van Mijn ICT-Omgeving.</p>`; }
+  }catch(e){
+    // een verversing die mislukt (AFAS geeft soms even HTTP 500) mag de reacties die al op het scherm staan niet weghalen: laten staan en zo nog eens proberen
+    if(huidig && huidig.x === x && huidig.reacties && el.querySelector('.bericht, .mailregel, .mailgroep')){
+      if(!el.querySelector('.reactie-oud')) el.querySelector('h3').insertAdjacentHTML('beforeend', ' <small class="hint reactie-oud" title="' + esc(e.message) + '">· verversen lukte even niet, opnieuw over 1 minuut</small>');
+      clearTimeout(volgReacties); volgReacties = setTimeout(() => { if(huidig && huidig.x === x && $('#detail').open){ reactieVoor.delete(String(x.nr)); toonReacties(x); } }, 60e3); return; }
+    el.innerHTML = `<h3>Reacties</h3><p class="hint">Reacties ophalen lukte niet: ${esc(e.message)} <button type="button" class="linkknop" data-reactieopnieuw>Opnieuw proberen</button></p>`;
+    const k = el.querySelector('[data-reactieopnieuw]'); if(k) k.onclick = () => { el.innerHTML = '<h3>Reacties</h3><p class="hint">Reacties ophalen…</p>'; reactieVoor.delete(String(x.nr)); toonReacties(x); }; }
 }
 let huidig = null;
 const STAPPEN = ['Open', 'Actief', 'Afgehandeld'];
@@ -3482,6 +3492,39 @@ async function sjBewaar(data){
   const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(r.status === 404 ? 'de Azure-functie ict-beoordelingen is (nog) niet gepubliceerd' : (j.error || 'HTTP ' + r.status));
   opslag.set('mict-sjablonen', data); pasSjablonenToe(data);
 }
+/* AI-instellingen (alleen de beheerder, geldt voor iedereen): aanspreekvorm, lengte en extra aanwijzingen voor ✦ Concept-antwoord en ✦ Instructie maken.
+   Opslag via ict-beoordelingen ?soort=ai; de functie ai-concept leest ze zelf in (niet via de browser van de gebruiker). */
+const aiInstUrl = () => pbUrl() + (pbUrl().includes('?') ? '&' : '?') + 'soort=ai';
+const AI_STD = {vorm: 'je', woorden: 120, concept: '', instructie: ''};
+async function aiBeheer(){
+  let d = $('#aidlg'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="aidlg" aria-label="AI-instellingen"></dialog>'); d = $('#aidlg'); }
+  d.innerHTML = '<div class="dlg-in"><p class="leeg">Instellingen ophalen…</p></div>'; d.showModal();
+  let w = {...AI_STD};
+  try{ if(DEMO) w = {...w, ...(opslag.get('mict-demo-ai') || {})};
+    else { const r = await fetch(aiInstUrl(), {headers: {Authorization: 'Bearer ' + await geldigToken()}}); const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(r.status === 404 ? 'de Azure-functie ict-beoordelingen is (nog) niet bijgewerkt' : (j.error || 'HTTP ' + r.status)); w = {...w, ...(j.data || {})}; } }
+  catch(e){ d.innerHTML = `<div class="dlg-in"><div class="dlg-kop"><h2>AI-instellingen</h2><button class="sluit" data-aidicht aria-label="Sluiten">×</button></div><p class="fout">Ophalen lukte niet: ${esc(e.message)}</p></div>`; return; }
+  const opt = (v, l, nu) => `<option value="${v}" ${String(v) === String(nu) ? 'selected' : ''}>${l}</option>`;
+  d.innerHTML = `<form class="dlg-in nform" id="ai-form" onsubmit="return false"><div class="dlg-kop"><div><small>Alleen voor de beheerder · geldt voor iedereen</small><h2>AI-instellingen</h2></div><button type="button" class="sluit" data-aidicht aria-label="Sluiten">×</button></div>
+    <div class="kaarten"><div class="kaart2"><h3>Schrijfstijl</h3>
+      <span>Aanspreekvorm</span><b><select name="vorm" class="afdkeuze">${opt('je', 'Je-vorm', w.vorm)}${opt('u', 'U-vorm', w.vorm)}</select></b>
+      <span>Lengte antwoord</span><b><select name="woorden" class="afdkeuze">${opt(70, 'Kort (± 70 woorden)', w.woorden)}${opt(120, 'Normaal (± 120 woorden)', w.woorden)}${opt(200, 'Uitgebreid (± 200 woorden)', w.woorden)}</select></b></div>
+    <div class="kaart2"><h3>Vaste regels</h3><span></span><b class="ai-regels">Verzint niets, noemt geen namen, stelt een vraag als informatie ontbreekt. Aanhef en groet zet SubmIT er zelf omheen. Namen, mailadressen en nummers gaan niet naar de AI.</b></div></div>
+    <h3 class="pb-kop3">Extra aanwijzingen voor ✦ Concept-antwoord</h3>
+    <textarea name="concept" class="toelinvoer" rows="5" placeholder="Bijv.: Verwijs bij wachtwoordvragen altijd naar de selfservice (aka.ms/sspr). Noem bij storingen dat de melder een reactie krijgt zodra het is opgelost. Gebruik geen uitroeptekens.">${esc(w.concept || '')}</textarea>
+    <h3 class="pb-kop3">Extra aanwijzingen voor ✦ Instructie maken</h3>
+    <textarea name="instructie" class="toelinvoer" rows="4" placeholder="Bijv.: Schrijf voor medewerkers zonder ICT-kennis. Noem knoppen en menu's tussen aanhalingstekens, precies zoals ze op het scherm staan.">${esc(w.instructie || '')}</textarea>
+    <p class="fout" id="ai-fout"></p>
+    <div class="pb-acties"><span style="flex:1"></span><button type="button" class="knop" data-aidicht>Annuleren</button><button type="button" class="knop vol" data-aibewaar>Opslaan</button></div></form>`;
+}
+async function aiBewaar(){
+  const f = $('#ai-form'), k = f.querySelector('[data-aibewaar]'), data = {vorm: f.vorm.value, woorden: +f.woorden.value, concept: f.concept.value.trim().slice(0, 2000), instructie: f.instructie.value.trim().slice(0, 2000)};
+  k.disabled = true; k.textContent = 'Opslaan…';
+  try{ if(DEMO) opslag.set('mict-demo-ai', data);
+    else { const r = await fetch(aiInstUrl(), {method: 'PUT', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await geldigToken()}, body: JSON.stringify({data})}); const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(j.error || 'HTTP ' + r.status); }
+    $('#aidlg').close(); toast('AI-instellingen opgeslagen: gelden binnen 2 minuten voor iedereen'); }
+  catch(e){ $('#ai-fout').textContent = 'Opslaan lukte niet: ' + e.message; } finally{ k.disabled = false; k.textContent = 'Opslaan'; }
+}
+document.addEventListener('click', e => { if(e.target.closest('[data-aidicht]')){ $('#aidlg').close(); return; } if(e.target.closest('[data-aibewaar]')) aiBewaar(); });
 function sjBeheer(){
   let d = $('#sjdlg'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="sjdlg" aria-label="Standaardteksten"></dialog>'); d = $('#sjdlg'); }
   const inLijst = new Set(SJABLOON_LIJST.map(([k]) => k));
@@ -5744,7 +5787,7 @@ function ikMenu(){
     ${rij('feedback', '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v4M12 14h.01"/>', 'Feedback of fout melden')}
     ${rij('nieuws', '<path d="M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z"/>', 'Wat is er nieuw')}
     ${rij('tour', '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>', 'Rondleiding')}
-    ${rij('conn', '<path d="M8 3v4M16 3v4M6 7h12v4a6 6 0 0 1-12 0zM12 17v4"/>', 'Connectoren &amp; velden')}${isBeheerder() ? rij('sjab', '<path d="M4 5h16M4 10h16M4 15h10"/><path d="M17 14l3 3-5 5h-3v-3z"/>', 'Standaardteksten') : ''}<hr>
+    ${rij('conn', '<path d="M8 3v4M16 3v4M6 7h12v4a6 6 0 0 1-12 0zM12 17v4"/>', 'Connectoren &amp; velden')}${isBeheerder() ? rij('sjab', '<path d="M4 5h16M4 10h16M4 15h10"/><path d="M17 14l3 3-5 5h-3v-3z"/>', 'Standaardteksten') + rij('ai', '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>', 'AI-instellingen') : ''}<hr>
     <div class="ikvoet">${rij('uit', '<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11"/>', 'Uitloggen')}<span class="ikversie">v${VERSIE.slice(1)}</span></div>`;
   m.hidden = !m.hidden;
 }
@@ -5753,6 +5796,7 @@ document.addEventListener('click', e => {
   const im = e.target.closest('[data-ikm]'); if(im){ $('#ikmenu').hidden = true; const k = im.dataset.ikm;
     if(k === 'win'){ wisselWindows(); return; }
     if(k === 'sjab'){ sjBeheer(); return; }
+    if(k === 'ai'){ aiBeheer(); return; }
     if(k === 'rust'){ rustAan = !rustAan; opslag.set('mict-rustscherm', rustAan); rustReset(); toast(rustAan ? 'Rustscherm staat aan: na 2 minuten zonder muis zie je je overzicht' : 'Rustscherm staat uit'); return; }
     if(k === 'stil'){ nietStoren = !nietStoren; opslag.set('mict-nietstoren', nietStoren); zetIkAvatar(); seinAanwezig(); toast(nietStoren ? 'Niet storen staat aan: collega’s zien dat aan je foto; wat er gebeurt zie je in Team' : 'Niet storen staat uit'); return; }
     if(k === 'feedback'){ feedback(); return; }
@@ -7035,23 +7079,31 @@ async function aiApi(body){
   const r = await fetch(aiUrl(), {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await geldigToken()}, body: JSON.stringify(body)});
   const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(j.error || 'HTTP ' + r.status); return j;
 }
+// voortgang bij AI-knoppen: stap x van y met uitleg en een balkje, zodat je ziet waar je op wacht
+function aiVoortgang(knop, stap, totaal, tekst){
+  let v = $('#ai-vg'); if(!v){ knop.insertAdjacentHTML('afterend', '<span class="ai-vg" id="ai-vg" role="status" aria-live="polite"><span class="ai-vg-t"></span><i class="ai-vg-b"><i></i></i></span>'); v = $('#ai-vg'); }
+  v.querySelector('.ai-vg-t').textContent = `${stap}/${totaal} · ${tekst}`; v.querySelector('.ai-vg-b > i').style.width = Math.round((stap - 0.5) / totaal * 100) + '%';
+}
+const aiVoortgangWeg = () => { const v = $('#ai-vg'); if(v) v.remove(); };
 async function maakConcept(){
   const x = huidig && huidig.x, t = $('#tekst'), k = $('#k-concept'); if(!x || !t || !k) return;
-  const oud = k.textContent; k.disabled = true; k.textContent = '✦ Zoeken…';
+  const oud = k.textContent; k.disabled = true; k.textContent = '✦ Bezig…'; const N = DEMO ? 2 : 3;
   try{
+    aiVoortgang(k, 1, N, 'vergelijkbare opgeloste meldingen zoeken');
     if(!alleDichtGeladen) await Promise.resolve(laadAlleGesloten()).catch(() => {});
-    let bron = null, oplossing = ''; const voorbeelden = [];
-    for(const y of vergelijkbaarGescoord(x)){
+    let bron = null, oplossing = ''; const voorbeelden = [], kand = vergelijkbaarGescoord(x);
+    for(const [i, y] of kand.entries()){
+      aiVoortgang(k, 1, N, `vergelijkbare meldingen bekijken (${i + 1} van ${kand.length})`);
       try{ if(!DEMO) await zorgSbId(y); const l = await haalReacties(y);
         const r = [...l].reverse().find(r => r.tekst && !r.intern && norm(r.wie) !== norm(y.melder)); const o = r && kaleOplossing(r.tekst);
         if(o && o.length > 15){ voorbeelden.push({y, o}); if(!bron){ bron = y; oplossing = o; } } }catch(e){}
     }
-    let kb = null;
+    let kb = null; aiVoortgang(k, 2, N, 'kennisbank doorzoeken');
     if(opslag.get(KB.sleutel()) || msOpgeslagen() || DEMO){ try{
       const w = woordenVan(x.onderwerp).slice(0, 3); if(w.length){ const l = await kbZoek(w.join(' ')); kb = l[0] || (w.length > 1 ? (await kbZoek(w[0]))[0] : null); } }catch(e){} }
     // eerst AI: schrijft een antwoord op basis van de melding, de vergelijkbare oplossingen en de instructie (namen en nummers eruit)
     let ai = '';
-    if(!DEMO){ k.textContent = '✦ Schrijven…';
+    if(!DEMO){ aiVoortgang(k, 3, N, `AI schrijft het antwoord${voorbeelden.length ? ` (o.b.v. ${voorbeelden.length} vergelijkbare melding${voorbeelden.length === 1 ? '' : 'en'}${kb ? ' en een instructie' : ''})` : ''}`);
       try{ const l = huidig.reacties || [];
         const j = await aiApi({soort: 'concept', melding: {onderwerp: anoniem(x.onderwerp, x), toelichting: anoniem(kaal(x.toelichting || toelCache.get(String(x.nr)) || ''), x),
             reacties: l.filter(r => r.tekst && !r.intern).slice(-6).map(r => ({van: norm(r.wie) === norm(x.melder) ? 'melder' : 'ict', tekst: anoniem(kaleOplossing(r.tekst), x)}))},
@@ -7070,7 +7122,7 @@ async function maakConcept(){
     let l = $('#vst-tekst'); if(l) l.remove();
     k.insertAdjacentHTML('afterend', `<span class="vstel" id="vst-tekst" data-vstel="tekst"><span class="vst-l" title="Concept op basis van ${esc(uitleg)}. Lees het na en pas aan; × haalt het weer weg.">✦ ${ai ? 'AI-concept' : 'Concept' + (bron ? ' o.b.v. ' + esc(nrT(bron)) : '')}</span><button type="button" class="vst-ok" data-vstok aria-label="Concept overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Concept weghalen" title="Weghalen">×</button></span>`);
     t.focus();
-  }finally{ k.disabled = false; k.textContent = oud; }
+  }finally{ aiVoortgangWeg(); k.disabled = false; k.textContent = oud; }
 }
 document.addEventListener('click', e => { if(e.target.closest('#k-concept')) maakConcept(); });
 document.addEventListener('input', e => { if(e.isTrusted && (e.target.id === 'tekst' || (e.target.dataset && e.target.dataset.voor === 'tekst'))){ const l = $('#vst-tekst'); if(l){ l.remove(); $('#tekst').classList.remove('voorstel'); if(huidig) huidig.autoTekst = null; } } });
@@ -7135,25 +7187,27 @@ function instructieDocx(titel, waar, stappen, bron){
 }
 async function maakInstructie(){
   const x = huidig && huidig.x, k = $('#k-instructie'); if(!x || !k) return;
-  const oud = k.textContent; k.disabled = true; k.textContent = '✦ Maken…';
+  const oud = k.textContent; k.disabled = true; k.textContent = '✦ Bezig…'; const N = DEMO ? 2 : 3;
   try{
+    aiVoortgang(k, 1, N, 'oplossing uit de reacties halen');
     let l = huidig.reacties; if(!l){ if(!DEMO) await zorgSbId(x); l = await haalReacties(x); }
     const ict = l.filter(r => r.tekst && !r.intern && norm(r.wie) !== norm(x.melder) && !benIkNiet(r));
     const stappen = ict.flatMap(r => anoniem(kaleOplossing(r.tekst), x).split(/\n+/)).map(t => t.replace(/^\s*(\d+[.)]|[-•*])\s*/, '').trim()).filter(t => t.length > 3 && !/^(ik|wij|we) (heb|hebben|zal|zullen|kijk|kijken)\b/i.test(t));
     const waar = anoniem(kaal(x.toelichting || toelCache.get(String(x.nr)) || '') || x.onderwerp, x).split(/\n/).filter(r => !/^\s*(beste|hoi|hallo|goedemorgen|goedemiddag|groet|met vriendelijke|mvg)\b/i.test(r)).join('\n').trim().slice(0, 900);
     const systeem = (navAfd(x.afdeling) || x.afdeling || 'Overig').trim(); let handeling = String(x.onderwerp || 'Instructie').replace(/^\s*((re|fw|fwd|antw)\s*:\s*)+/i, '').replace(/[.!?\s]+$/, '').trim();
     // AI maakt er een nette instructie van (titel, waar gaat het over, stappen); anders de versie zonder AI
-    let ai = null; if(!DEMO){ k.textContent = '✦ Schrijven…';
+    let ai = null; if(!DEMO){ aiVoortgang(k, 2, N, 'AI schrijft de instructie');
       try{ ai = await aiApi({soort: 'instructie', melding: {onderwerp: anoniem(x.onderwerp, x), toelichting: waar}, oplossing: ict.map(r => anoniem(kaleOplossing(r.tekst), x)).slice(-8)});
         if(!ai || !(ai.stappen || []).length) ai = null; }catch(e){ console.warn('AI-instructie niet beschikbaar:', e.message); ai = null; } }
     if(ai && ai.handeling) handeling = ai.handeling;
     const titel = `${systeem} - ${handeling.charAt(0).toUpperCase() + handeling.slice(1)}`;
+    aiVoortgang(k, N, N, 'Word-bestand maken');
     const blob = instructieDocx(titel, ai ? ai.waar || waar : waar, ai ? ai.stappen : stappen.slice(0, 15), `${ai ? 'AI-concept' : 'Concept'} uit SubmIT · melding ${nrT(x)} · ${fmtDatum(new Date())} · ${profiel ? profiel.naam : ''} · nalezen vóór publicatie in de kennisbank`);
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = titel.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120) + '.docx';
     document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
     toast('Instructie gedownload: lees hem na en zet hem in de kennisbank (Instructies › ' + systeem + ')');
   }catch(e){ toast('Instructie maken lukte niet: ' + e.message, true); }
-  finally{ k.disabled = false; k.textContent = oud; }
+  finally{ aiVoortgangWeg(); k.disabled = false; k.textContent = oud; }
 }
 const benIkNiet = r => false;   // reacties van ICT (alle niet-melders) tellen mee, ook die van jezelf
 document.addEventListener('click', e => { if(e.target.closest('#k-instructie')) maakInstructie(); });
@@ -7465,6 +7519,8 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.46', d: '22-10-2026', p: ['Reacties verdwijnen niet meer als AFAS bij het verversen even een fout geeft; SubmIT probeert het een minuut later opnieuw. Lukt het ophalen echt niet, dan kun je het opnieuw proberen.']},
+  {v: 'v7.45', d: '22-10-2026', p: ['✦ Concept-antwoord en ✦ Instructie maken laten stap voor stap zien waar ze mee bezig zijn.', 'De AI zet geen eigen aanhef of namen meer in het concept; de aanhef komt altijd van de melder.', 'Beheerder: bij AI-instellingen (profielmenu) stel je aanspreekvorm, lengte en extra aanwijzingen voor de AI in.']},
   {v: 'v7.44', d: '22-10-2026', groot: true, p: ['✦ Concept-antwoord en ✦ Instructie maken gebruiken nu AI (Azure OpenAI, binnen de EU). Namen, mailadressen en nummers gaan er niet heen.', 'Het concept is beter afgestemd op de melding zelf; ontbreekt informatie, dan stelt het een gerichte vraag. Lees het altijd na.']},
   {v: 'v7.43', d: '22-10-2026', p: ['Periodieke beoordeling klaarzetten: Wanneer is eenvoudiger, met vaste keuzes voor herhalen (elke maand, kwartaal, halfjaar, jaar) en hoe vroeg de melding komt.']},
   {v: 'v7.42', d: '22-10-2026', p: ['Voorstellen bij binnenkomst gaan alleen nog over afdeling en type, op basis van vergelijkbare meldingen. Een verantwoordelijke wordt nooit meer voorgesteld.', 'Periodieke beoordeling klaarzetten: het blok Wanneer is overzichtelijker.']},
