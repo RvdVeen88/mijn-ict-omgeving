@@ -1568,7 +1568,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.57', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.58', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3723,13 +3723,16 @@ const sjAiAan = () => opslag.get('mict-sj-ai') !== false;
 async function sjPersoonlijk(x, delen, brief){
   const t = $('#tekst'); if(!sjAiAan() || !t || !x || t.value !== brief || ($('#notitie') && $('#notitie').checked)) return;
   const k = $('#k-sjai'); if(k) k.classList.add('bezig');
+  const lab = h => { const o = $('#vst-pers'); if(o) o.remove(); if(h) $('#d-sjabloon').insertAdjacentHTML('afterend', h); };
+  lab('<span class="vstel" id="vst-pers"><span class="vst-l">✦ persoonlijk maken…</span></span>');
   try{ const j = await aiApi({soort: 'persoonlijk', kern: delen.join('\n\n'), melding: aiMelding(x)});
-    if(!j.tekst || !huidig || huidig.x !== x || t.value !== brief) return;
-    const nieuw = await maakBrief(x, [j.tekst]); if(t.value !== brief) return;
+    if(!j.tekst || !huidig || huidig.x !== x || t.value !== brief){ lab(''); return; }
+    const nieuw = await maakBrief(x, [j.tekst]); if(t.value !== brief){ lab(''); return; }
     t._sjOrig = brief; t.value = nieuw; if(huidig.autoTekst === brief) huidig.autoTekst = nieuw; t.classList.add('voorstel'); pasHoogteAan(t); mailVooraf();
     const oud = $('#vst-pers'); if(oud) oud.remove();
     $('#d-sjabloon').insertAdjacentHTML('afterend', '<span class="vstel" id="vst-pers"><span class="vst-l" title="Standaardtekst, door AI iets persoonlijker gemaakt. × zet de originele tekst terug.">✦ Persoonlijk</span><button type="button" class="vst-weg" data-persweg aria-label="Originele tekst terug" title="Originele tekst terug">×</button></span>'); }
-  catch(e){} finally{ if(k) k.classList.remove('bezig'); }
+  catch(e){ lab(''); if(!sessie.get('mict-sjai-fout')){ sessie.set('mict-sjai-fout', '1'); toast('✦ Persoonlijk maken lukte niet: ' + (/onbekende soort/i.test(e.message) ? 'de Azure-functie ai-concept is nog niet bijgewerkt' : e.message), true); } }
+  finally{ if(k) k.classList.remove('bezig'); }
 }
 document.addEventListener('click', e => {
   const k = e.target.closest('#k-sjai'); if(k){ const aan = !sjAiAan(); opslag.set('mict-sj-ai', aan); k.setAttribute('aria-pressed', aan); toast(aan ? '✦ Standaardteksten worden persoonlijk gemaakt met AI' : 'Standaardteksten blijven precies zoals ze zijn'); return; }
@@ -8031,6 +8034,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.58', d: '22-10-2026', p: ['✦ Persoonlijk maken laat zien dat hij bezig is, en zegt het als het niet lukt.']},
   {v: 'v7.57', d: '22-10-2026', p: ['✦ naast Standaardtekst…: AI maakt standaardteksten net iets persoonlijker en gericht op de melding. De gewone tekst staat er meteen; × bij "✦ Persoonlijk" zet hem terug. Klik op ✦ om het aan of uit te zetten.']},
   {v: 'v7.56', d: '22-10-2026', p: ['Standaardteksten beheren: kies een tekst uit de keuzelijst en bewerk alleen die; niet meer alles onder elkaar.']},
   {v: 'v7.55', d: '22-10-2026', p: ['Beheer: meer ruimte onder de tegels.']},
