@@ -1523,7 +1523,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.47', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.49', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1587,7 +1587,10 @@ async function inloggen(){
 async function tokenFunctie(velden){
   const r = await fetch(INST.tokenFunctie, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(velden)});
   const t = await r.text(); let j = null; try{ j = JSON.parse(t); }catch(e){}
-  if(!r.ok || !j || !j.access_token) throw new Error((j && (j.error_description || j.error)) || `HTTP ${r.status}`);
+  if(!r.ok || !j || !j.access_token){ const m = (j && (j.error_description || j.error)) || '';
+    // AFAS geeft bij een storing een HTML-foutpagina (bv. 'HTTP Error 500.30'): geen HTML tonen, wel zeggen wat er aan de hand is
+    if(/<!doctype|<html|HTTP Error 5\d\d/i.test(m) || r.status >= 500) throw new Error(`De AFAS-koppeling (REST/OAuth van omgeving ${(INST.omgeving || '').toString() || 'AFAS'}) geeft nu een storing (HTTP ${r.status === 200 ? 500 : r.status}${(m.match(/HTTP Error (5[\d.]+)/) || [])[1] ? ' · ' + m.match(/HTTP Error (5[\d.]+)/)[1] : ''}). InSite kan gewoon werken; probeer het over een paar minuten opnieuw.`);
+    throw new Error(m || `HTTP ${r.status}`); }
   return j;
 }
 function zetToken(j){ tok = j.access_token; tokTot = Date.now() + (+j.expires_in || 3600) * 1000; if(j.refresh_token) opslag.set(RT, j.refresh_token); sub = claims(tok).sub || ''; }
@@ -2007,7 +2010,7 @@ async function verrijkMetTaken(){
   }catch(e){ takenKlaar = true; }
 }
 /* achtergrond 2: afgesloten meldingen van de laatste 90 dagen erbij halen, voortgang onderin */
-let weekGeladen = false;
+let weekGeladen = false, laadRestPoging = 0;
 function laadRestOpAchtergrond(){
   if(alleGeladen || achterBezig) return achterBezig;
   const el = $('#achter');
@@ -2030,7 +2033,11 @@ function laadRestOpAchtergrond(){
       alleGeladen = true; weekGeladen = true;
       vg.stop(); el.querySelector('span').textContent = 'Alle meldingen geladen'; setTimeout(() => el.hidden = true, 2500);
       if(!$('#detail').open) teken(); }
-    catch(e){ vg.stop(); el.querySelector('span').textContent = 'Gesloten meldingen ophalen mislukt'; }
+    catch(e){ vg.stop(); laadRestPoging = (laadRestPoging || 0) + 1;
+      // AFAS hapert soms (HTTP 500): vanzelf opnieuw proberen, steeds iets later; open meldingen werken intussen gewoon
+      const wacht = Math.min(10, laadRestPoging * 2);
+      el.querySelector('span').textContent = `Gesloten meldingen: AFAS reageert even niet, opnieuw over ${wacht} min`; el.title = e.message || '';
+      setTimeout(() => { achterBezig = null; laadRestOpAchtergrond(); }, wacht * 60e3); }
     achterBezig = null;
   })();
 }
@@ -7532,6 +7539,8 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.49', d: '22-10-2026', p: ['Lukt het ophalen van gesloten meldingen even niet (storing bij AFAS), dan probeert SubmIT het vanzelf opnieuw.']},
+  {v: 'v7.48', d: '22-10-2026', p: ['Geeft de AFAS-koppeling bij het inloggen een storing, dan zie je een duidelijke melding in plaats van een technische foutpagina.']},
   {v: 'v7.47', d: '22-10-2026', p: ['Vet en cursief uit AFAS zie je nu ook in SubmIT, in de toelichting en in de reacties.', 'Zelf opmaken kan ook: selecteer tekst en druk op Ctrl+B (vet) of Ctrl+I (cursief). In AFAS komt het net zo binnen.']},
   {v: 'v7.46', d: '22-10-2026', p: ['Reacties verdwijnen niet meer als AFAS bij het verversen even een fout geeft; SubmIT probeert het een minuut later opnieuw. Lukt het ophalen echt niet, dan kun je het opnieuw proberen.']},
   {v: 'v7.45', d: '22-10-2026', p: ['✦ Concept-antwoord en ✦ Instructie maken laten stap voor stap zien waar ze mee bezig zijn.', 'De AI zet geen eigen aanhef of namen meer in het concept; de aanhef komt altijd van de melder.', 'Beheerder: bij AI-instellingen (profielmenu) stel je aanspreekvorm, lengte en extra aanwijzingen voor de AI in.']},
