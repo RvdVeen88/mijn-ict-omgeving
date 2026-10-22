@@ -1346,6 +1346,20 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 .pb-elke{display:flex;gap:8px;align-items:center}.pb-elke input{width:70px}
 .pb-kop3{font-size:13px;color:var(--blauw);margin:16px 0 6px}
 .pb-acties{display:flex;gap:10px;align-items:center;margin-top:14px}.linkknop.rood{color:var(--rood)}
+
+.docx-voorbeeld{max-width:760px;margin:0 auto;padding:28px 34px;background:var(--vlak);color:var(--inkt);font-size:14px;line-height:1.55}
+.docx-voorbeeld h1{font-size:22px;color:var(--blauw);margin:0 0 14px}.docx-voorbeeld h2{font-size:16px;color:var(--blauw);margin:18px 0 6px}.docx-voorbeeld h3{font-size:14.5px;color:var(--blauw);margin:14px 0 4px}
+.docx-voorbeeld p{margin:0 0 8px}.docx-voorbeeld ol{margin:0 0 10px;padding-left:22px}.docx-voorbeeld table{border-collapse:collapse;margin:8px 0}.docx-voorbeeld td{border:1px solid var(--lijn);padding:4px 8px;vertical-align:top}
+.docx-noot{margin-top:20px!important;font-size:12px}
+.bekijkin:has(.docx-voorbeeld){align-items:flex-start;justify-content:center;overflow:auto;padding:24px 0}
+.bekijk-geen{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:48px 20px;color:var(--grijs)}.bekijk-geen>span svg,.bekijk-geen>span{font-size:40px}.bekijk-geen b{color:var(--inkt)}
+
+#sjdlg{width:min(860px,calc(100vw - 32px))}#sjdlg .dlg-in{max-height:calc(100vh - 60px);overflow:auto}
+.sj-kaart{border:1px solid var(--lijn);border-radius:12px;padding:10px 12px;margin:8px 0;background:var(--vlak)}
+.sj-kop{display:flex;align-items:center;gap:12px;margin-bottom:6px;font-size:13px}.sj-kop b{flex:1;color:var(--inkt);font-weight:600}.sj-kop .sj-naam{flex:1}
+.sj-kop .vink{font-size:12.5px;color:var(--grijs);display:inline-flex;gap:6px;align-items:center;font-weight:400}
+.sj-tekst{width:100%;box-sizing:border-box;border:1px solid var(--lijn);border-radius:10px;padding:8px 10px;font:inherit;font-size:13.5px;background:var(--achtergrond);color:var(--inkt);resize:vertical}
+#sjdlg code{background:var(--lichtblauw-2);color:var(--blauw);padding:0 5px;border-radius:5px;font-size:12px}
 </style>
 <script src="mijn-ict-config.js"></script>
 </head>
@@ -1492,7 +1506,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.39', VERSIE_DATUM = '21-10-2026';
+const VERSIE = 'v7.40', VERSIE_DATUM = '21-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3425,8 +3439,75 @@ const SJ = Object.assign({
   'sig:nieuw': 'We hebben je melding in goede orde ontvangen en gaan ermee aan de slag. We houden je op de hoogte.'
 }, INST.sjablonen || {});
 const SJABLOON_SIG = {opvolging:1, melder:1, leverancier:1, planning:1, nieuw:1};
-const SJABLOON_LIJST = [['ontvangen', 'Melding ontvangen'], ['In afwachting melder', 'Vraag aan melder'], ['In afwachting leverancier', 'Uitgezet bij leverancier'], ['Werkzaamheden gepland', 'Werkzaamheden gepland'],
+let SJABLOON_LIJST = [['ontvangen', 'Melding ontvangen'], ['In afwachting melder', 'Vraag aan melder'], ['In afwachting leverancier', 'Uitgezet bij leverancier'], ['Werkzaamheden gepland', 'Werkzaamheden gepland'],
   ['sig:opvolging', 'Excuses, nog mee bezig'], ['sig:melder', 'Herinnering aan melder'], ['sig:leverancier', 'Update leverancier'], ['sig:planning', 'Planning uitgelopen'], ['Afgehandeld', 'Opgelost / afgesloten']];
+/* ================= standaardteksten beheren (alleen beheerder; geldt voor iedereen) =================
+   Opgeslagen via Azure-functie ict-beoordelingen (?soort=sjablonen): lezen mag iedereen, wijzigen alleen de beheerder.
+   Systeemteksten (bij een actie of status) kun je aanpassen en terugzetten; eigen teksten kun je toevoegen en verwijderen. */
+const SJ_STD = {...SJ}, LIJST_STD = SJABLOON_LIJST.map(r => [...r]);
+const SJ_LABEL = {ontvangen: 'Melding ontvangen', afdeling: 'Doorgezet naar andere afdeling', verantwIk: 'Ik pak het op (jij wordt verantwoordelijke)', verantw: 'Andere verantwoordelijke',
+  'In behandeling ICT': 'Status: In behandeling', 'In afwachting melder': 'Status: In afwachting melder', 'In afwachting leverancier': 'Status: In afwachting leverancier',
+  'Werkzaamheden gepland': 'Status: Werkzaamheden gepland', 'In afwachting akkoord': 'Status: In afwachting akkoord', 'In interne release': 'Status: In interne release',
+  'In externe release': 'Status: In externe release', 'Afgehandeld': 'Status: Afgehandeld', gepland: 'Planning gewijzigd',
+  'sig:opvolging': 'Excuses, nog mee bezig', 'sig:melder': 'Herinnering aan melder', 'sig:leverancier': 'Update leverancier', 'sig:planning': 'Planning uitgelopen', 'sig:nieuw': 'Nieuwe melding opgepakt'};
+let SJ_EIGEN = {};   // {key: {naam, tekst}} eigen teksten
+function pasSjablonenToe(d){
+  if(!d || typeof d !== 'object') return;
+  Object.keys(SJ).forEach(k => { if(!(k in SJ_STD)) delete SJ[k]; }); Object.assign(SJ, SJ_STD, INST.sjablonen || {}, d.teksten || {});
+  SJ_EIGEN = d.eigen || {}; Object.entries(SJ_EIGEN).forEach(([k, e]) => { SJ[k] = e.tekst; });
+  if(Array.isArray(d.lijst) && d.lijst.length) SJABLOON_LIJST = d.lijst.filter(([k]) => k in SJ).map(([k, n]) => [k, n || SJ_LABEL[k] || (SJ_EIGEN[k] || {}).naam || k]);
+}
+const sjUrl = () => pbUrl() + (pbUrl().includes('?') ? '&' : '?') + 'soort=sjablonen';
+async function sjLaad(){
+  const c = opslag.get('mict-sjablonen'); if(c) pasSjablonenToe(c);
+  if(DEMO) return;
+  try{ const r = await fetch(sjUrl(), {headers: {Authorization: 'Bearer ' + await geldigToken()}}); if(!r.ok) return; const j = await r.json(); if(j && j.data){ opslag.set('mict-sjablonen', j.data); pasSjablonenToe(j.data); } }catch(e){}
+}
+async function sjBewaar(data){
+  if(DEMO){ opslag.set('mict-sjablonen', data); pasSjablonenToe(data); return; }
+  const r = await fetch(sjUrl(), {method: 'PUT', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await geldigToken()}, body: JSON.stringify({data})});
+  const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(r.status === 404 ? 'de Azure-functie ict-beoordelingen is (nog) niet gepubliceerd' : (j.error || 'HTTP ' + r.status));
+  opslag.set('mict-sjablonen', data); pasSjablonenToe(data);
+}
+function sjBeheer(){
+  let d = $('#sjdlg'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="sjdlg" aria-label="Standaardteksten"></dialog>'); d = $('#sjdlg'); }
+  const inLijst = new Set(SJABLOON_LIJST.map(([k]) => k));
+  const kaart = (k, naam, tekst, eigen) => `<div class="sj-kaart" data-sjk="${esc(k)}">
+    <div class="sj-kop">${eigen ? `<input class="sj-naam datumkeuze" value="${esc(naam)}" placeholder="Naam in de keuzelijst" aria-label="Naam">` : `<b>${esc(naam)}</b>`}
+      <label class="vink" title="Staat in de keuzelijst 'Standaardtekst…' onder het reactievak"><input type="checkbox" class="sj-lijst" ${inLijst.has(k) || eigen ? 'checked' : ''} ${eigen ? 'disabled' : ''}> in keuzelijst</label>
+      ${eigen ? '<button type="button" class="linkknop rood" data-sjweg>Verwijderen</button>' : `<button type="button" class="linkknop" data-sjstd ${tekst === SJ_STD[k] ? 'hidden' : ''}>Standaard terugzetten</button>`}</div>
+    <textarea class="toelinvoer sj-tekst" rows="3">${esc(tekst)}</textarea></div>`;
+  const systeem = Object.keys(SJ_STD).map(k => kaart(k, SJ_LABEL[k] || k, SJ[k], false)).join('');
+  const eigen = Object.entries(SJ_EIGEN).map(([k, e]) => kaart(k, e.naam, e.tekst, true)).join('');
+  d.innerHTML = `<div class="dlg-in"><div class="dlg-kop"><div><small>Alleen voor de beheerder · geldt voor iedereen</small><h2>Standaardteksten</h2></div><button class="sluit" data-sjdicht aria-label="Sluiten">×</button></div>
+    <p class="hint">De aanhef ("Beste …,") en je handtekening komen er vanzelf omheen. Gebruik <code>{naam}</code>, <code>{afdeling}</code> en <code>{datum}</code>; SubmIT vult die in. Zet <code>[vul aan]</code> waar de collega zelf iets moet invullen.</p>
+    <h3 class="pb-kop3">Eigen teksten</h3><div id="sj-eigen">${eigen || '<p class="hint" id="sj-geen">Nog geen eigen teksten.</p>'}</div><button type="button" class="linkknop" data-sjnieuw>+ Nieuwe standaardtekst</button>
+    <h3 class="pb-kop3">Bij een actie of status</h3><p class="hint" style="margin-top:-2px">Deze komen automatisch als voorstel in het reactievak, bijvoorbeeld bij het wijzigen van de status.</p>${systeem}
+    <p class="fout" id="sj-fout"></p><div class="pb-acties"><span style="flex:1"></span><button type="button" class="knop" data-sjdicht>Annuleren</button><button type="button" class="knop vol" data-sjbewaar>Opslaan</button></div></div>`;
+  d.showModal();
+}
+document.addEventListener('click', async e => {
+  if(e.target.closest('[data-sjdicht]')){ $('#sjdlg').close(); return; }
+  if(e.target.closest('[data-sjnieuw]')){ const g = $('#sj-geen'); if(g) g.remove(); const k = 'eigen:' + Date.now().toString(36);
+    $('#sj-eigen').insertAdjacentHTML('beforeend', `<div class="sj-kaart" data-sjk="${k}"><div class="sj-kop"><input class="sj-naam datumkeuze" placeholder="Naam in de keuzelijst" aria-label="Naam"><label class="vink"><input type="checkbox" class="sj-lijst" checked disabled> in keuzelijst</label><button type="button" class="linkknop rood" data-sjweg>Verwijderen</button></div><textarea class="toelinvoer sj-tekst" rows="3" placeholder="De tekst…"></textarea></div>`);
+    $('#sj-eigen .sj-kaart:last-child .sj-naam').focus(); return; }
+  const w = e.target.closest('[data-sjweg]'); if(w){ w.closest('.sj-kaart').remove(); return; }
+  const st = e.target.closest('[data-sjstd]'); if(st){ const kd = st.closest('.sj-kaart'); kd.querySelector('.sj-tekst').value = SJ_STD[kd.dataset.sjk]; st.hidden = true; return; }
+  const b = e.target.closest('[data-sjbewaar]'); if(b){
+    const teksten = {}, eigen = {}, lijst = []; let fout = '';
+    document.querySelectorAll('#sjdlg .sj-kaart').forEach(kd => { const k = kd.dataset.sjk, t = kd.querySelector('.sj-tekst').value.trim(), n = kd.querySelector('.sj-naam');
+      if(n){ if(!n.value.trim() || !t){ fout = 'Geef elke eigen tekst een naam en een tekst.'; return; } eigen[k] = {naam: n.value.trim(), tekst: t}; lijst.push([k, n.value.trim()]); }
+      else { if(t && t !== SJ_STD[k]) teksten[k] = t; if(kd.querySelector('.sj-lijst').checked) lijst.push([k, (LIJST_STD.find(([x]) => x === k) || [])[1] || SJ_LABEL[k] || k]); } });
+    if(fout){ $('#sj-fout').textContent = fout; return; }
+    // vaste volgorde: eerst de bekende teksten zoals altijd, dan andere systeemteksten, eigen teksten onderaan
+    const plek = k => { const i = LIJST_STD.findIndex(([x]) => x === k); return k in eigen ? 1000 : i >= 0 ? i : 500; };
+    lijst.sort((a, c) => plek(a[0]) - plek(c[0]));
+    b.disabled = true; b.textContent = 'Opslaan…';
+    try{ await sjBewaar({teksten, eigen, lijst}); $('#sjdlg').close(); toast('Standaardteksten opgeslagen: ze gelden meteen voor iedereen'); }
+    catch(err){ $('#sj-fout').textContent = 'Opslaan lukte niet: ' + err.message; }
+    finally{ b.disabled = false; b.textContent = 'Opslaan'; } }
+});
+document.addEventListener('input', e => { const t = e.target.closest && e.target.closest('#sjdlg .sj-tekst'); if(!t) return; const kd = t.closest('.sj-kaart'), s = kd.querySelector('[data-sjstd]'); if(s) s.hidden = t.value.trim() === SJ_STD[kd.dataset.sjk]; });
 const langeDatum = v => v ? new Date(v + 'T00:00:00').toLocaleDateString('nl-NL', {weekday: 'long', day: 'numeric', month: 'long'}) : '[datum]';
 let mijnHandtekening = null;
 async function handtekening(){
@@ -3942,7 +4023,8 @@ async function haalToelichting(x){
 /* ================= bijlagen: bekijken en toevoegen ================= */
 const CLIP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.1l-8.5 8.5a5.5 5.5 0 0 1-7.8-7.8l8.5-8.5a3.7 3.7 0 0 1 5.2 5.2l-8.5 8.5a1.8 1.8 0 0 1-2.6-2.6l7.8-7.8"/></svg>';
 const MAXB = () => (INST.maxBijlageMB || 75) * 1048576;
-const fmtGrootte = b => !b ? '' : b < 1024 ? b + ' B' : b < 1048576 ? Math.round(b / 1024) + ' kB' : (b / 1048576).toFixed(1).replace('.', ',') + ' MB';
+const fmtGrootte = b => { if(b && opslag.get('mict-bijl-kb')) b *= 1024; return fmtGrootteB(b); };
+const fmtGrootteB = b => !b ? '' : b < 1024 ? b + ' B' : b < 1048576 ? Math.round(b / 1024) + ' kB' : (b / 1048576).toFixed(1).replace('.', ',') + ' MB';
 const bestIcoon = n => /\.(png|jpe?g|gif|bmp|webp|heic|svg)$/i.test(n) ? '🖼️' : /\.pdf$/i.test(n) ? '📄' : /\.(xlsx?|csv)$/i.test(n) ? '📊' : /\.(docx?|rtf|odt)$/i.test(n) ? '📝' : /\.(txt|log|json|xml)$/i.test(n) ? '🧾' : /\.(msg|eml)$/i.test(n) ? '✉️' : /\.(zip|7z|rar)$/i.test(n) ? '🗜️' : '📎';
 const raadMime = n => ({png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', gif:'image/gif', bmp:'image/bmp', webp:'image/webp', svg:'image/svg+xml', pdf:'application/pdf', txt:'text/plain', log:'text/plain', csv:'text/csv', json:'application/json', xml:'text/xml'})[String(n).split('.').pop().toLowerCase()] || 'application/octet-stream';
 async function haalBijlagen(x){
@@ -3992,19 +4074,60 @@ async function haalBestand(b){
   return new Blob([u], {type: r.mimetype || raadMime(r.filename || b.naam)});
 }
 let bekijkUrl = null;
+/* Word-bestand (.docx) als leesbare voorvertoning: zip uitpakken in de browser (DecompressionStream), word/document.xml lezen.
+   Koppen, alinea's, opsommingen en tabellen; plaatjes en opmaak niet (daarvoor: Downloaden). */
+async function docxNaarHtml(blob){
+  const buf = new Uint8Array(await blob.arrayBuffer()), dv = new DataView(buf.buffer);
+  let e = buf.length - 22; while(e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--; if(e < 0) throw new Error('geen zip');
+  let p = dv.getUint32(e + 16, true); const n = dv.getUint16(e + 10, true); let doel = null;
+  for(let i = 0; i < n && dv.getUint32(p, true) === 0x02014b50; i++){
+    const nl = dv.getUint16(p + 28, true), el = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), naam = new TextDecoder().decode(buf.subarray(p + 46, p + 46 + nl));
+    if(naam === 'word/document.xml') doel = {methode: dv.getUint16(p + 10, true), grootte: dv.getUint32(p + 20, true), lokaal: dv.getUint32(p + 42, true)};
+    p += 46 + nl + el + cl; }
+  if(!doel) throw new Error('geen document.xml');
+  const l = doel.lokaal, start = l + 30 + dv.getUint16(l + 26, true) + dv.getUint16(l + 28, true), data = buf.subarray(start, start + doel.grootte);
+  const xml = doel.methode === 0 ? new TextDecoder().decode(data) : await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+  const doc = new DOMParser().parseFromString(xml, 'application/xml'), W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+  const kind = (el, tag) => [...el.childNodes].filter(c => c.localName === tag);
+  const tekst = el => { let u = ''; el.querySelectorAll('*').forEach(c => { if(c.localName === 't') u += esc(c.textContent); else if(c.localName === 'tab') u += ' '; else if(c.localName === 'br') u += '<br>'; }); return u; };
+  const body = doc.getElementsByTagNameNS(W, 'body')[0]; if(!body) throw new Error('leeg');
+  let uit = '', lijst = false;
+  for(const c of body.childNodes){
+    if(c.localName === 'p'){
+      const pPr = kind(c, 'pPr')[0], stijl = pPr ? (pPr.getElementsByTagNameNS(W, 'pStyle')[0]?.getAttributeNS(W, 'val') || '') : '', isLijst = (pPr && pPr.getElementsByTagNameNS(W, 'numPr').length) || /lijst|list/i.test(stijl);
+      const t = tekst(c).trim();
+      if(isLijst && t){ if(!lijst){ uit += '<ol>'; lijst = true; } uit += `<li>${t}</li>`; continue; }
+      if(lijst){ uit += '</ol>'; lijst = false; }
+      if(!t) continue;
+      uit += /^(titel|title)$/i.test(stijl) ? `<h1>${t}</h1>` : /^(kop|heading)\s*1$|^kop1$|^heading1$/i.test(stijl) ? `<h2>${t}</h2>` : /^(kop|heading)\s*\d|^kop\d|^heading\d/i.test(stijl) ? `<h3>${t}</h3>` : `<p>${t}</p>`;
+    } else if(c.localName === 'tbl'){
+      if(lijst){ uit += '</ol>'; lijst = false; }
+      uit += '<table>' + [...c.getElementsByTagNameNS(W, 'tr')].map(r => '<tr>' + kind(r, 'tc').map(td => `<td>${tekst(td)}</td>`).join('') + '</tr>').join('') + '</table>';
+    }
+  }
+  if(lijst) uit += '</ol>';
+  if(!uit) throw new Error('leeg');
+  return uit + '<p class="hint docx-noot">Voorvertoning zonder opmaak en afbeeldingen. Download het bestand voor het origineel.</p>';
+}
 async function toonBestand(b){
   const d = $('#bekijk');
-  const kop = extra => `<div class="bekijkkop"><span>${bestIcoon(b.naam)}</span><b title="${esc(b.naam)}">${esc(b.naam)}</b>${b.grootte ? `<small class="hint">${fmtGrootte(b.grootte)}</small>` : ''}${extra}<button type="button" class="sluit" data-bekijkdicht aria-label="Sluiten">×</button></div>`;
+  const kop = extra => `<div class="bekijkkop"><span>${bestIcoon(b.naam)}</span><b title="${esc(b.naam)}">${esc(b.naam)}</b>${b.grootte ? `<small class="hint">${b._echt ? fmtGrootteB(b.grootte) : fmtGrootte(b.grootte)}</small>` : ''}${extra}<button type="button" class="sluit" data-bekijkdicht aria-label="Sluiten">×</button></div>`;
   d.innerHTML = kop('') + '<div class="bekijkin"><span class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Bestand ophalen uit AFAS…</span></div>';
   if(!d.open) d.showModal();
   try{
     const blob = await haalBestand(b); if(!d.open) return;
     if(bekijkUrl) URL.revokeObjectURL(bekijkUrl); bekijkUrl = URL.createObjectURL(blob);
     const t = blob.type || raadMime(b.naam);
+    const isWord = /wordprocessingml/.test(t) || /\.docx$/i.test(b.naam), isOffice = /officedocument|ms-excel|msword|ms-powerpoint/.test(t) || /\.(xlsx?|pptx?|doc)$/i.test(b.naam);
+    let woord = ''; if(isWord){ try{ woord = await docxNaarHtml(blob); }catch(e){ woord = ''; } }
     const inhoud = /^image\//.test(t) ? `<img src="${bekijkUrl}" alt="${esc(b.naam)}">`
       : t === 'application/pdf' ? `<iframe src="${bekijkUrl}" title="${esc(b.naam)}"></iframe>`
-      : /^text\/|json|xml/.test(t) ? `<pre>${esc((await blob.text()).slice(0, 200000))}</pre>`
-      : `<p class="hint">Van dit bestandstype kan geen voorbeeld worden getoond. Download het om het te openen.</p>`;
+      : woord ? `<div class="docx-voorbeeld">${woord}</div>`
+      : !isOffice && /^text\/|^application\/(json|xml)$|\+(json|xml)$/.test(t) && !/officedocument/.test(t) ? `<pre>${esc((await blob.text()).slice(0, 200000))}</pre>`
+      : `<div class="bekijk-geen"><span>${bestIcoon(b.naam)}</span><p><b>${esc(b.naam)}</b><br>Van dit bestand kan geen voorbeeld worden getoond. Download het om het te openen${isOffice ? ' in Word of Excel' : ''}.</p><a class="knop vol" href="${bekijkUrl}" download="${esc(b.naam)}">Downloaden</a></div>`;
+    // grootte: AFAS geeft die soms in kB in plaats van bytes; vergelijk met het echte bestand en onthoud dat
+    if(b.grootte && blob.size > 2048){ const kb = blob.size / 1024; if(Math.abs(kb - b.grootte) <= Math.max(2, b.grootte * .15)) opslag.set('mict-bijl-kb', true); else if(Math.abs(blob.size - b.grootte) <= 64) opslag.set('mict-bijl-kb', false); }
+    b.grootte = blob.size; b._echt = true;
     d.innerHTML = kop(`<a class="knop vol klein" href="${bekijkUrl}" download="${esc(b.naam)}">Downloaden</a>`) + `<div class="bekijkin">${inhoud}</div>`;
   }catch(e){
     const uitleg = /404/.test(e.message) ? 'Het bestand is niet beschikbaar in AFAS, of je hebt er geen rechten op.'
@@ -5227,7 +5350,7 @@ function startInlog(fout){
   $('#k-in').onclick = () => inloggen();
 }
 function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken();
-  if(!toonApp.nieuws){ toonApp.nieuws = 1; setTimeout(() => nieuwsNaUpdate(), 3000); laadLocatiesNaLaden(); } }   // na een update één keer 'SubmIT is bijgewerkt'
+  if(!toonApp.nieuws){ toonApp.nieuws = 1; sjLaad(); setTimeout(() => nieuwsNaUpdate(), 3000); laadLocatiesNaLaden(); } }   // na een update één keer 'SubmIT is bijgewerkt'
 
 /* ================= Connectoren & velden: wat SubmIT per connector nodig heeft, live gecontroleerd ================= */
 // gebruik per connector in deze sessie (bijgehouden in afas())
@@ -5532,7 +5655,7 @@ function ikMenu(){
     ${rij('feedback', '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v4M12 14h.01"/>', 'Feedback of fout melden')}
     ${rij('nieuws', '<path d="M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z"/>', 'Wat is er nieuw')}
     ${rij('tour', '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>', 'Rondleiding')}
-    ${rij('conn', '<path d="M8 3v4M16 3v4M6 7h12v4a6 6 0 0 1-12 0zM12 17v4"/>', 'Connectoren &amp; velden')}<hr>
+    ${rij('conn', '<path d="M8 3v4M16 3v4M6 7h12v4a6 6 0 0 1-12 0zM12 17v4"/>', 'Connectoren &amp; velden')}${isBeheerder() ? rij('sjab', '<path d="M4 5h16M4 10h16M4 15h10"/><path d="M17 14l3 3-5 5h-3v-3z"/>', 'Standaardteksten') : ''}<hr>
     <div class="ikvoet">${rij('uit', '<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11"/>', 'Uitloggen')}<span class="ikversie">v${VERSIE.slice(1)}</span></div>`;
   m.hidden = !m.hidden;
 }
@@ -5540,6 +5663,7 @@ document.addEventListener('click', e => {
   const on = e.target.closest('[data-onlnr]'); if(on){ if($('#ikmenu')) $('#ikmenu').hidden = true; if($('#teampaneel')) $('#teampaneel').hidden = true; const x = items.find(y => String(y.nr) === on.dataset.onlnr); if(x){ navLijst = []; openDetail(x.nr); } else toast('Melding ' + on.dataset.onlnr + ' staat (nog) niet in de lijst.'); return; }
   const im = e.target.closest('[data-ikm]'); if(im){ $('#ikmenu').hidden = true; const k = im.dataset.ikm;
     if(k === 'win'){ wisselWindows(); return; }
+    if(k === 'sjab'){ sjBeheer(); return; }
     if(k === 'rust'){ rustAan = !rustAan; opslag.set('mict-rustscherm', rustAan); rustReset(); toast(rustAan ? 'Rustscherm staat aan: na 2 minuten zonder muis zie je je overzicht' : 'Rustscherm staat uit'); return; }
     if(k === 'stil'){ nietStoren = !nietStoren; opslag.set('mict-nietstoren', nietStoren); zetIkAvatar(); seinAanwezig(); toast(nietStoren ? 'Niet storen staat aan: collega’s zien dat aan je foto; wat er gebeurt zie je in Team' : 'Niet storen staat uit'); return; }
     if(k === 'feedback'){ feedback(); return; }
@@ -7232,6 +7356,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.40', d: '22-10-2026', p: ['Word-bijlagen (.docx) zie je nu als leesbare voorvertoning in plaats van rare tekens; de bestandsgrootte klopt.', 'Standaardteksten worden centraal beheerd: de beheerder kan ze aanpassen, toevoegen en verwijderen, en ze gelden meteen voor iedereen.']},
   {v: 'v7.39', d: '22-10-2026', p: ['Afhandelen en Opslaan staan nu onder het reactieveld: eerst schrijven, dan opslaan.', 'Snel van de ene naar de andere melding gaan werkt betrouwbaarder.', 'Periodieke beoordelingen (alleen voor de beheerder): controles die met vaste tussenpozen terugkomen klaarzetten, met instructie, tijdlijn en overzicht. De melding komt vanzelf op tijd.']},
   {v: 'v7.38', d: '22-10-2026', p: ['ICT-collega’s worden herkend aan hun kostenplaats ICT; bij Verantwoordelijke staan alle ICT-collega’s en via "Iemand buiten ICT…" iedereen met een AFAS-gebruiker.']},
   {v: 'v7.37', d: '21-10-2026', groot: true, p: ['Voorstel bij binnenkomst: bij een melding zonder verantwoordelijke stelt SubmIT afdeling, type en verantwoordelijke voor, op basis van vergelijkbare meldingen. Herkenbaar aan ✦ Voorstel: ✓ neemt over, × haalt weg.', 'Concept-antwoord: één klik onder het reactievak geeft een concept op basis van hoe een vergelijkbare melding is opgelost, met een instructie uit de kennisbank erbij.', 'Instructie maken: bij een afgehandelde melding maak je van de oplossing een Word-concept in DC-huisstijl voor de kennisbank.']},
