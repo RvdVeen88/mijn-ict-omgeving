@@ -1347,9 +1347,9 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 .kaart2 .pb-elke input.pb-num{width:64px;padding-right:6px;text-align:left}.kaart2 .pb-elke select.pb-eenh{width:116px}
 #pbdlg label.vink{flex-direction:row;font-weight:400;color:var(--inkt)}#pbdlg label.vink input[type=checkbox]{width:auto;margin:0;accent-color:var(--blauw)}
 .pb-wanneer input,.pb-wanneer select{padding-top:3px!important;padding-bottom:3px!important;font-size:13.5px}
-.pb-wanneer > span{align-self:center}.pb-wanneer > b{display:flex;align-items:center;min-height:28px}
+.pb-wanneer > span{align-self:center}.pb-wanneer > b{display:flex;align-items:center}
 .pb-wanneer .pb-aan{white-space:nowrap}
-.pb-keren{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px;padding-top:10px;border-top:1px solid var(--lijn)}.pb-keren small{color:var(--grijs);font-size:12px;margin-right:2px}.pb-keren:empty{display:none}
+.kaart2 .pb-keren{font-weight:400;color:var(--grijs);font-size:13px;flex-wrap:wrap;gap:0 4px;line-height:1.5}
 .pb-kop3{font-size:13px;color:var(--blauw);margin:16px 0 6px}.pb-kop3 small{font-weight:400;margin-left:6px}
 .pb-hulp{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border:1px dashed var(--lijn);border-radius:10px;min-height:44px}.pb-hulp.sleep{border-color:var(--blauw);background:var(--blauw-licht,rgba(5,55,135,.06))}
 .pbres{border:1px solid var(--lijn);border-left:3px solid var(--blauw);border-radius:12px;padding:12px 14px;margin:4px 0 12px;display:flex;flex-direction:column;gap:10px}
@@ -1519,7 +1519,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.42', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.43', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3814,6 +3814,17 @@ async function pbSjabloon(def){
   objecten.unshift({KnSubjectLink: {Element: {Fields: {SfTp: 17, SfId: isNaN(+melder) ? melder : +melder}}}});
   return {sjabloon: {KnSubject: {Element: {Fields: top, Objects: objecten}}}, geplandVeld: sm.gepland ? veldCode(sm.gepland) : ''};
 }
+// vaste keuzes voor het interval; een afwijkende waarde komt erbij als eigen optie, 'Anders…' toont aantal + eenheid
+const PB_INTERVALLEN = [['1|maanden', 'Elke maand'], ['3|maanden', 'Elke 3 maanden'], ['6|maanden', 'Elk halfjaar'], ['12|maanden', 'Elk jaar'], ['24|maanden', 'Elke 2 jaar']];
+function pbIntervalOpties(def){
+  const nu = `${Math.max(1, +def.aantal || 1)}|${def.eenheid === 'dagen' ? 'dagen' : 'maanden'}`, l = [...PB_INTERVALLEN];
+  if(!l.some(([v]) => v === nu)) l.push([nu, pbElke(def).replace(/^e/, 'E')]);
+  return l.map(([v, t]) => `<option value="${v}" ${v === nu ? 'selected' : ''}>${esc(t)}</option>`).join('') + '<option value="anders">Anders…</option>';
+}
+function pbVoorafOpties(n){
+  n = Math.max(0, +n || 0); const l = [0, 7, 14, 30]; if(!l.includes(n)) l.push(n); l.sort((a, b) => a - b);
+  return l.map(v => `<option value="${v}" ${v === n ? 'selected' : ''}>${v ? v + ' dagen van tevoren' : 'Op de dag zelf'}</option>`).join('');
+}
 async function pbBewerk(id){
   const oud = (PB.defs || []).find(d => d.id === id), def = oud ? {...oud} : {id: 'pb' + Date.now().toString(36), titel: '', instructie: '', afdeling: 'ICT', locatie: 'Planetarium', aantal: 180, eenheid: 'dagen', start: tdIso(new Date(Date.now() + 14 * DAG)), vooraf: 14, actief: true};
   let d = $('#pbdlg'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="pbdlg" aria-label="Periodieke beoordeling"></dialog>'); d = $('#pbdlg'); }
@@ -3828,11 +3839,12 @@ async function pbBewerk(id){
   const extra = m.extra.map(x => `<span>${esc(x.label)}</span><b>${keuze(x, 'pbx_' + x.code, (def.extra || {})[x.code]).replace('<select ', '<select class="afdkeuze" ').replace('<input ', '<input class="datumkeuze" ')}</b>`).join('');
   d.innerHTML = `<form class="dlg-in nform" id="pb-form" onsubmit="return false"><div class="dlg-kop"><div><small>${PB_TYPE}</small><h2><input name="titel" class="ondinvoer" maxlength="56" required placeholder="Bijv. Toegangsrechten Emma nalopen" value="${esc(def.titel)}" aria-label="Titel"></h2></div><button type="button" class="sluit" data-pbdicht aria-label="Sluiten">×</button></div>
     <div class="kaarten"><div class="kaart2 pb-wanneer"><h3>Wanneer</h3>
-      <span>Herhalen</span><b class="pb-elke">elke <input name="aantal" type="number" min="1" max="999" class="datumkeuze pb-num" value="${esc(def.aantal)}" aria-label="Aantal"><select name="eenheid" class="afdkeuze pb-eenh" aria-label="Eenheid"><option value="dagen" ${def.eenheid === 'dagen' ? 'selected' : ''}>dagen</option><option value="maanden" ${def.eenheid !== 'dagen' ? 'selected' : ''}>maanden</option></select></b>
+      <span>Herhalen</span><b><select name="interval" class="afdkeuze">${pbIntervalOpties(def)}</select></b>
+      <span class="pb-anders" hidden>Interval</span><b class="pb-anders pb-elke" hidden><input name="aantal" type="number" min="1" max="999" class="datumkeuze pb-num" value="${esc(def.aantal)}" aria-label="Aantal"><select name="eenheid" class="afdkeuze pb-eenh" aria-label="Eenheid"><option value="dagen" ${def.eenheid === 'dagen' ? 'selected' : ''}>dagen</option><option value="maanden" ${def.eenheid !== 'dagen' ? 'selected' : ''}>maanden</option></select></b>
       <span>Eerste keer</span><b><input name="start" type="date" class="datumkeuze" value="${esc(oud ? pbVolgende(oud) : def.start)}" required></b>
-      <span>Melding maken</span><b class="pb-elke"><input name="vooraf" type="number" min="0" max="120" class="datumkeuze pb-num" value="${esc(def.vooraf)}" aria-label="Dagen van tevoren"> dagen van tevoren</b>
+      <span>Melding komt</span><b><select name="vooraf" class="afdkeuze">${pbVoorafOpties(def.vooraf)}</select></b>
       <span>Actief</span><b><label class="vink pb-aan"><input type="checkbox" name="actief" ${def.actief ? 'checked' : ''}> Komt automatisch terug</label></b>
-      <div class="pb-keren" id="pb-keren"></div></div>
+      <span>Komende keren</span><b class="pb-keren" id="pb-keren"></b></div>
     <div class="kaart2"><h3>Melding</h3>
       <span>Afdeling</span><b><select name="afdeling" class="afdkeuze">${opt(afd, def.afdeling)}</select></b>
       <span>Verantwoordelijke</span><b><select name="verantw" class="afdkeuze"><option value="" title="De melding komt binnen als Nieuw; de servicedesk wijst hem toe">Niemand (Nieuw)</option>${ict.map(c => `<option value="${esc(c.code)}" ${norm(c.code) === norm(def.verantwCode) || norm(c.naam) === norm(def.verantwNaam) ? 'selected' : ''}>${esc(c.naam)}</option>`).join('')}</select></b>
@@ -3843,7 +3855,10 @@ async function pbBewerk(id){
     <div class="pb-hulp" id="pb-hulp" title="Sleep bestanden hierheen of klik op Bestand toevoegen"><span id="pb-hulplijst" class="bijlrij"></span><button type="button" class="linkknop paperclip" data-pbhulp>${CLIP}Bestand toevoegen</button><input type="file" id="pb-hulpf" multiple hidden></div>
     <p class="fout" id="pb-fout"></p>
     <div class="pb-acties">${oud ? '<button type="button" class="linkknop rood" data-pbweg>Verwijderen</button><button type="button" class="knop" data-pbnu title="Nu meteen een melding aanmaken (testen of een extra keer)">Nu aanmaken</button>' : ''}<span style="flex:1"></span><button type="button" class="knop" data-pbdicht>Annuleren</button><button type="button" class="knop vol" data-pbbewaar>Opslaan</button></div></form>`;
-  const f = $('#pb-form'), keren = () => { const t = {aantal: f.aantal.value, eenheid: f.eenheid.value, start: f.start.value}, l = f.start.value ? [pbDatum(f.start.value), ...[1, 2, 3].map(k => pbDatum(pbKeer(t, k)))] : []; $('#pb-keren').innerHTML = l.length ? '<small>Komende keren</small>' + l.map(d => `<span class="chip">${d}</span>`).join('') + '<small>…</small>' : ''; };
+  const f = $('#pb-form'), keren = () => { const t = {aantal: f.aantal.value, eenheid: f.eenheid.value, start: f.start.value}, l = f.start.value ? [pbDatum(f.start.value), ...[1, 2].map(k => pbDatum(pbKeer(t, k)))] : []; $('#pb-keren').innerHTML = l.length ? l.map(d => `<span style="white-space:nowrap">${d}</span>`).join(' · ') : '–'; };
+  const anders = () => { const v = f.interval.value, a = v === 'anders'; f.querySelectorAll('.pb-anders').forEach(e => e.hidden = !a);
+    if(!a){ const [n, e] = v.split('|'); f.aantal.value = n; f.eenheid.value = e; } keren(); };
+  f.interval.addEventListener('change', anders); anders();
   f.addEventListener('input', keren); keren(); f._def = def; f._oud = oud; f._nieuw = [];
   pbTekenHulp();
   const zone = $('#pb-hulp'), voeg = files => { const te = []; [...files].forEach(x => { if(x.size > 10 * 1048576) te.push(x.name); else if(!f._nieuw.some(y => y.name === x.name && y.size === x.size)) f._nieuw.push(x); }); if(te.length) $('#pb-fout').textContent = `Te groot (max. 10 MB): ${te.join(', ')}. Zet grote bestanden in de kennisbank en link ernaar in de instructie.`; pbTekenHulp(); };
@@ -7428,6 +7443,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.43', d: '22-10-2026', p: ['Periodieke beoordeling klaarzetten: Wanneer is eenvoudiger, met vaste keuzes voor herhalen (elke maand, kwartaal, halfjaar, jaar) en hoe vroeg de melding komt.']},
   {v: 'v7.42', d: '22-10-2026', p: ['Voorstellen bij binnenkomst gaan alleen nog over afdeling en type, op basis van vergelijkbare meldingen. Een verantwoordelijke wordt nooit meer voorgesteld.', 'Periodieke beoordeling klaarzetten: het blok Wanneer is overzichtelijker.']},
   {v: 'v7.41', d: '22-10-2026', groot: true, p: ['Periodieke beoordelingen: een melding kan nu als Nieuw bij de servicedesk binnenkomen, zonder vaste verantwoordelijke.', 'Hulpmiddelen (bijv. een script of rapportsjabloon) kun je bij een beoordeling zetten; ze komen als bijlage bij elke melding.', 'In een beoordelingsmelding leg je het resultaat vast: afvinklijst, uitkomst, bevindingen en het rapport als bijlage, in één keer als reactie.']},
   {v: 'v7.40', d: '22-10-2026', p: ['Word-bijlagen (.docx) zie je nu als leesbare voorvertoning in plaats van rare tekens; de bestandsgrootte klopt.', 'Standaardteksten worden centraal beheerd: de beheerder kan ze aanpassen, toevoegen en verwijderen, en ze gelden meteen voor iedereen.']},
