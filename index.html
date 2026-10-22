@@ -1316,6 +1316,36 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 #rustscherm .rs-hint{margin-top:40px;color:var(--grijs);font-size:13px;text-align:center;animation:rsPuls 3s ease-in-out infinite}
 @keyframes rsPuls{50%{opacity:.4}}
 @media (prefers-reduced-motion: reduce){#rustscherm{transition:none}#rustscherm .rs-hint,#rustscherm .rs-in,.rs-zen i{animation:none}.rs-zen b{display:none}}
+
+/* periodieke beoordelingen */
+.pb-knoppen{display:flex;gap:12px;align-items:center}.pb-blok{padding:0 26px}
+#pbdlg .linkveld,#pbdlg textarea.toelinvoer{display:block;width:100%;box-sizing:border-box;border:1px solid var(--lijn);border-radius:12px;padding:10px 12px;min-height:150px;background:var(--vlak)}
+#pbdlg .vink{font-weight:400;display:inline-flex;align-items:center;gap:8px}
+.pb-tabel{table-layout:auto;width:100%}.pb-tabel td:first-child{max-width:340px}.pb-tabel th:first-child{width:30%}.pb-elke{white-space:nowrap}
+.pb-tegels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0 18px}
+.pb-tegel{border:1px solid var(--lijn);border-radius:14px;padding:12px 14px;background:var(--vlak)}.pb-tegel b{display:block;font-size:30px;font-weight:300;color:var(--blauw);line-height:1.1}.pb-tegel span{font-size:12.5px;color:var(--grijs)}
+.pb-tegel.rood b{color:var(--rood)}.pb-tegel.groen b{color:var(--groen)}.pb-tegel.nul b{color:var(--lijn)}
+@media (max-width:760px){.pb-tegels{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pb-tijdlijn{border:1px solid var(--lijn);border-radius:14px;padding:10px 14px 8px;margin-bottom:18px;background:var(--vlak)}
+.pb-rij{display:grid;grid-template-columns:minmax(140px,220px) minmax(0,1fr);align-items:center;gap:12px;min-height:34px;border-top:1px solid var(--lijn)}
+.pb-rij.pb-kop{border-top:0;min-height:22px}.pb-rij.uit{opacity:.5}
+.pb-naam{all:unset;cursor:pointer;font-size:13px;font-weight:500;color:var(--inkt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;flex-direction:column}
+.pb-naam small{font-weight:400;font-size:11.5px;color:var(--grijs)}.pb-naam:hover{color:var(--blauw)}
+.pb-spoor{position:relative;height:30px;background:repeating-linear-gradient(90deg,transparent 0 calc(100%/12 - 1px),var(--lijn) calc(100%/12 - 1px) calc(100%/12))}
+.pb-kop .pb-spoor{height:20px;background:none}
+.pb-maand{position:absolute;top:2px;font-size:11px;color:var(--grijs);transform:translateX(4px);white-space:nowrap}
+.pb-vandaag{position:absolute;top:0;width:2px;height:9999px;background:var(--rood);opacity:.5;z-index:1;pointer-events:none}
+.pb-tijdlijn{overflow:hidden;position:relative}
+.pb-stip{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;border:2px solid var(--vlak);box-shadow:0 0 0 1px rgba(3,31,77,.12);z-index:2}
+.pb-stip.blauw{background:var(--blauw)}.pb-stip.groen{background:var(--groen)}.pb-stip.oranje{background:var(--oranje)}.pb-stip.rood{background:var(--rood);box-shadow:0 0 0 4px color-mix(in srgb,var(--rood) 22%,transparent)}
+.pb-legenda{margin:8px 0 0;font-size:11.5px;color:var(--grijs);display:flex;gap:6px 14px;align-items:center;flex-wrap:wrap}.pb-legenda .pb-stip{position:static;display:inline-block;margin:0 2px -1px 0;width:10px;height:10px}
+.pb-tabel tbody tr{cursor:pointer}.pb-tabel a{color:var(--blauw)}
+.chip{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--lichtblauw-2);color:var(--blauw)}.chip.rood{background:color-mix(in srgb,var(--rood) 12%,transparent);color:var(--rood)}.chip.groen{background:color-mix(in srgb,var(--groen) 14%,transparent);color:var(--groen)}.chip.oranje{background:color-mix(in srgb,var(--oranje) 14%,transparent);color:var(--oranje)}
+.pb-leeg{border:1px dashed var(--lijn);border-radius:14px;padding:22px;text-align:center;color:var(--grijs);margin-top:12px}.pb-leeg b{color:var(--inkt)}
+#pbdlg{width:min(860px,calc(100vw - 32px))}
+.pb-elke{display:flex;gap:8px;align-items:center}.pb-elke input{width:70px}
+.pb-kop3{font-size:13px;color:var(--blauw);margin:16px 0 6px}
+.pb-acties{display:flex;gap:10px;align-items:center;margin-top:14px}.linkknop.rood{color:var(--rood)}
 </style>
 <script src="mijn-ict-config.js"></script>
 </head>
@@ -1462,7 +1492,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.38', VERSIE_DATUM = '21-10-2026';
+const VERSIE = 'v7.39', VERSIE_DATUM = '21-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2561,7 +2591,7 @@ function tekenNav(){
     ${favL.map(rijA).join('') || '<p class="favhint"><b style="color:var(--inkt);font-weight:500">Geen afdeling geselecteerd</b><br>Zet een ★ bij een afdeling om hem hier te tonen.</p>'}
     <h4><button type="button" id="k-overige" aria-expanded="${restOpen}">${ico('<path d="M6 9l6 6 6-6"/>')}Andere afdelingen (${rest.length})</button></h4>
     ${restOpen ? rest.map(rijA).join('') : ''}
-    <h4>Overig</h4>${[ALLE, ...ONDER].map(v => v.id === 'alle' ? it(v.id, v.t, alleTelling(), {...v, titel: alleUitleg()}) : it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}${it(hist.id, hist.t, null, hist)}${isBeheerder() ? it('controle', 'Controle', CTRL.ict ? controleBevindingen().length : null, {ico: CTRL_ICO, titel: 'Staat elke open melding bij een ICT-collega? (alleen voor de beheerder)'}) : ''}`;
+    <h4>Overig</h4>${[ALLE, ...ONDER].map(v => v.id === 'alle' ? it(v.id, v.t, alleTelling(), {...v, titel: alleUitleg()}) : it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}${it(hist.id, hist.t, null, hist)}${isBeheerder() ? it('controle', 'Controle', CTRL.ict ? controleBevindingen().length : null, {ico: CTRL_ICO, titel: 'Staat elke open melding bij een ICT-collega? (alleen voor de beheerder)'}) : ''}${isBeheerder() ? it('beoordelingen', 'Beoordelingen', PB.defs ? (pbAchter().length || null) : null, {ico: PB_ICO, titel: 'Periodieke beoordelingen klaarzetten en volgen (alleen voor de beheerder)'}) : ''}`;
 }
 
 /* ================= Overzicht: rustig voorblad met persoonlijke cijfers (zoals in Mijn changes) ================= */
@@ -2693,6 +2723,7 @@ async function vulLocaties(l){
 function tekenLijst(){
   if(tab === 'historie') return tekenHistorie();
   if(tab === 'controle'){ if(isBeheerder()) return tekenControle(); tab = 'mij'; return teken(); }
+  if(tab === 'beoordelingen'){ if(isBeheerder()) return tekenBeoordelingen(); tab = 'mij'; return teken(); }
   if(tab === 'projecten') return tekenProjLijst();
   const v = weergave(tab), w = norm(filt.zoek), kanDicht = dichtVan(tab) !== null, dicht = kanDicht && toonDicht();
   const alles = alleAlles();
@@ -2855,7 +2886,7 @@ addEventListener('scroll', () => { if(isLijstTab(tab)) meldPlek.scroll = scrollY
    Rechtermuisklik op geselecteerde tekst (of Ctrl+K) maakt er een link van. AFAS bewaart alleen tekst: daar staat [naam](link).
    Het oorspronkelijke tekstvak blijft bestaan (verborgen) en houdt de tekst, zodat opslaan en alle andere functies hetzelfde werken. */
 const isTekstVeld = t => !!t && (t.id === 'tekst' || (t.dataset && t.dataset.voor === 'tekst'));   // het reactieveld (ook als bewerkveld met links)
-const LINKVELDEN = 'textarea#tekst, textarea#d-toel, #n-form textarea[name=tx], textarea#afh-tekst, textarea#sv-tekst, #projdlg textarea[name=tekst]';
+const LINKVELDEN = 'textarea#pb-instr, textarea#tekst, textarea#d-toel, #n-form textarea[name=tx], textarea#afh-tekst, textarea#sv-tekst, #projdlg textarea[name=tekst]';
 const LV_LINK = /\[([^\]\n]{1,200})\]\(((?:https?:\/\/|mailto:)[^)\s]+)\)|((?:https?:\/\/|mailto:)[^\s<>()]*[^\s<>().,;:!?'"])/gi;
 const taWaarde = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
 function lvNaarHtml(t){ t = String(t ?? ''); let uit = '', i = 0;
@@ -3589,6 +3620,173 @@ function tekenControle(){
     : groepen.map(([c, g]) => `<h3 class="subkop ${CTRL_GROEP[c].e >= 3 ? 'rood' : 'oranje'}">${esc(CTRL_GROEP[c].t)} <b>${g.length}</b></h3><p class="ctrl-uitleg">${esc(CTRL_GROEP[c].w)} <b>Wat te doen:</b> ${esc(CTRL_GROEP[c].d)}</p>` + ctrlBundels(c, g)).join(''));
   const k = $('#ctrl-opnieuw'); if(k) k.onclick = () => haalAlleTaken(true);
 }
+
+/* ================= periodieke beoordelingen (NEN 7510: 'met geplande tussenpozen beoordelen') =================
+   De beheerder zet beoordelingen klaar (instructie, afdeling, verantwoordelijke, elke x dagen/maanden). Azure-functie ict-beoordelingen-planner
+   maakt elke ochtend de melding aan in AFAS (type Periodieke beoordeling) als er een aan de beurt is; staat de vorige nog open, dan niet ('achter').
+   Opslag en aanmaken: Azure-functie ict-beoordelingen. Bij opslaan bouwt SubmIT het AFAS-sjabloon (veldcodes), zodat de functie alleen hoeft te posten. */
+const PB_ICO = '<rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/><path d="M8.5 14.5l2.3 2.3 4.7-4.6"/>';
+const PB_TYPE = 'Periodieke beoordeling', PB_PREFIX = 'Periodieke beoordeling: ';
+const PB = {defs: null, status: {}, fout: '', bezig: false, t: 0};
+const pbUrl = () => INST.beoordelingenUrl || String(INST.tokenFunctie || '').replace(/afas-token\/?$/, 'ict-beoordelingen');
+async function pbApi(methode, body){
+  if(DEMO){ const d = opslag.get('mict-demo-pb') || {defs: [], status: {}};
+    if(methode === 'PUT'){ d.defs = body.defs; (body.reset || []).forEach(id => { if(d.status[id]) delete d.status[id].volgende; }); }
+    if(methode === 'POST' && body.actie === 'nu'){ const def = d.defs.find(x => x.id === body.id), st = d.status[body.id] = d.status[body.id] || {}; const v = st.volgende || def.start;
+      st.open = String(900000 + Math.floor(Math.random() * 999)); st.laatst = tdIso(new Date()); st.laatsteVerval = v; (st.historie = st.historie || []).push({sbid: st.open, verval: v, aangemaakt: st.laatst}); if(!st.volgende){ let k = 1; while(pbKeer(def, k) <= v) k++; st.volgende = pbKeer(def, k); } }
+    opslag.set('mict-demo-pb', d); return {defs: d.defs, status: d.status, ok: true, uit: []}; }
+  const r = await fetch(pbUrl(), {method: methode, headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await geldigToken()}, body: body ? JSON.stringify(body) : undefined});
+  const j = await r.json().catch(() => ({}));
+  if(!r.ok) throw new Error(r.status === 404 ? 'de Azure-functie ict-beoordelingen is (nog) niet gepubliceerd' : (j.error || 'HTTP ' + r.status));
+  return j;
+}
+async function pbLaad(stil){
+  if(PB.bezig) return; PB.bezig = true; if(!stil && tab === 'beoordelingen') tekenBeoordelingen();
+  try{ const j = await pbApi('GET'); PB.defs = j.defs || []; PB.status = j.status || {}; PB.fout = ''; PB.t = Date.now(); }
+  catch(e){ PB.fout = e.message; if(!PB.defs) PB.defs = null; }
+  PB.bezig = false; if(tab === 'beoordelingen' && !$('#pbdlg')?.open) tekenBeoordelingen(); try{ tekenNav(); }catch(e){}
+}
+const pbPlus = (d, def) => { const n = Math.max(1, +def.aantal || 1), x = new Date(d + 'T12:00:00');
+  if(def.eenheid === 'dagen'){ x.setDate(x.getDate() + n); return tdIso(x); }
+  const dag = x.getDate(); x.setDate(1); x.setMonth(x.getMonth() + n); x.setDate(Math.min(dag, new Date(x.getFullYear(), x.getMonth() + 1, 0).getDate())); return tdIso(x); };
+const pbVolgende = def => (PB.status[def.id] || {}).volgende || def.start || '';
+const pbMeldingen = def => items.filter(x => norm(x.onderwerp) === norm(PB_PREFIX + def.titel)).sort((a, b) => (b.aangemaakt || 0) - (a.aangemaakt || 0));
+function pbAchter(){ return (PB.defs || []).filter(d => d.actief && ((PB.status[d.id] || {}).achter || pbMeldingen(d).some(x => !x.afgesloten && x.gepland && +x.gepland < +vandaagBegin()))); }
+const pbElke = d => `elke ${+d.aantal || 1} ${d.eenheid === 'dagen' ? ((+d.aantal || 1) === 1 ? 'dag' : 'dagen') : ((+d.aantal || 1) === 1 ? 'maand' : 'maanden')}`;
+const pbDatum = d => d ? fmtDatum(new Date(d + 'T00:00:00')) : '';
+// alle keren binnen een venster (voor de tijdlijn)
+// alle keren vanaf de eerstvolgende, geteld vanaf de startdatum (anker): 31 jan -> 28 feb -> 31 mrt
+const pbKeer = (def, k) => { const n = Math.max(1, +def.aantal || 1); return pbPlus(def.start, {aantal: k * n, eenheid: def.eenheid}); };
+function pbKeren(def, van, tot){ const uit = [], eerst = pbVolgende(def); if(!eerst || !def.start) return uit;
+  if(eerst >= van && eerst <= tot) uit.push(eerst);
+  for(let k = 1; k < 2000; k++){ const v = pbKeer(def, k); if(v > tot) break; if(v > eerst && v >= van) uit.push(v); } return uit; }
+function tekenBeoordelingen(){
+  if(!PB.defs && !PB.bezig && !PB.fout) pbLaad();
+  $('#lijst-titel').textContent = 'Periodieke beoordelingen'; $('#lijst-n').hidden = !PB.defs; $('#lijst-n').textContent = (PB.defs || []).filter(d => d.actief).length;
+  $('#titel').textContent = ''; $('#subtitel').textContent = ''; $('#lijst-sub').textContent = ''; $('#lijst-kol').innerHTML = '';
+  ['#f-mijn', '#f-mijalles', '#f-soort', '#f-changes', '#f-weergave', '#f-zoom'].forEach(sel => { const e = $(sel); if(e) e.hidden = true; });
+  const uitleg = `<p class="ctrl-uitleg" style="margin-top:4px">Controles die met vaste tussenpozen terugkomen (NEN 7510: <i>met geplande tussenpozen beoordelen</i>). Op tijd komt er vanzelf een melding met de instructie, type <b>${PB_TYPE}</b>, bij de verantwoordelijke. Staat de vorige keer nog open, dan komt er geen nieuwe en zie je hem hier als <b>achter</b>.</p>`;
+  const knoppen = `<div class="ctrl-kop"><span>${PB.bezig ? 'Ophalen…' : PB.fout ? '<span class="fout">' + esc(PB.fout) + '</span>' : PB.t ? 'Bijgewerkt ' + fmtTijd(new Date(PB.t)) : ''}</span><span class="pb-knoppen"><button type="button" class="linkknop" data-pbplan title="Doet wat de dagelijkse planner om 6 uur doet, nu meteen">Planner nu draaien</button><button type="button" class="knop vol klein" data-pbnieuw>+ Nieuwe beoordeling</button></span></div>`;
+  if(!PB.defs){ $('#lijst').innerHTML = uitleg + knoppen + `<p class="leeg">${PB.bezig ? 'Beoordelingen ophalen…' : PB.fout ? 'Ophalen lukte niet.' : ''}</p>`; return; }
+  const nu = tdIso(new Date()), over30 = tdIso(new Date(Date.now() + 30 * DAG)), jaar = String(new Date().getFullYear());
+  const actief = PB.defs.filter(d => d.actief), achter = pbAchter();
+  const komend = actief.filter(d => pbVolgende(d) && pbVolgende(d) <= over30);
+  const klaar = PB.defs.flatMap(pbMeldingen).filter(x => x.afgesloten && x.statusDatum && String(x.statusDatum.getFullYear()) === jaar);
+  const tegel = (n, t, kl, uitl) => `<div class="pb-tegel ${n ? kl : 'nul'}" title="${esc(uitl)}"><b>${n}</b><span>${t}</span></div>`;
+  const tegels = `<div class="pb-tegels">${tegel(actief.length, 'Actief', '', 'Beoordelingen die automatisch terugkomen')}${tegel(komend.length, 'Komende 30 dagen', 'blauw', 'Vervalt binnen 30 dagen')}${tegel(achter.length, 'Achter', 'rood', 'De vorige keer staat nog open of de planning is verlopen')}${tegel(klaar.length, 'Afgerond in ' + jaar, 'groen', 'Afgehandelde meldingen van dit jaar')}</div>`;
+  // tijdlijn: 12 maanden vanaf het begin van deze maand
+  const b0 = new Date(); b0.setDate(1); const van = tdIso(b0), eind = new Date(b0); eind.setMonth(eind.getMonth() + 12); const tot = tdIso(eind), span = eind - b0;
+  const pos = d => Math.max(0, Math.min(100, (new Date(d + 'T00:00:00') - b0) / span * 100));
+  const maanden = Array.from({length: 12}, (_, i) => { const m = new Date(b0); m.setMonth(m.getMonth() + i); return {l: pos(tdIso(m)), t: m.toLocaleDateString('nl-NL', {month: 'short'}) + (m.getMonth() === 0 || i === 0 ? ' ’' + String(m.getFullYear()).slice(2) : '')}; });
+  const rijen = PB.defs.slice().sort((a, b) => (pbVolgende(a) || '9').localeCompare(pbVolgende(b) || '9')).map(d => {
+    const st = PB.status[d.id] || {}, isAchter = achter.includes(d);
+    const gedaan = pbMeldingen(d).filter(x => x.aangemaakt && tdIso(x.aangemaakt) >= van).map(x => ({d: x.gepland ? tdIso(x.gepland) : tdIso(x.aangemaakt), x}));
+    const stip = (dt, kl, t) => `<i class="pb-stip ${kl}" style="left:${pos(dt)}%" title="${esc(t)}"></i>`;
+    const toekomst = d.actief ? pbKeren(d, van, tot).map((dt, i) => stip(dt, i === 0 && isAchter ? 'rood' : 'blauw', `${pbDatum(dt)}${i === 0 ? ' · volgende keer' : ''}`)).join('') : '';
+    const verleden = gedaan.map(g => stip(g.d, g.x.afgesloten ? 'groen' : 'oranje', `${pbDatum(g.d)} · melding ${nrT(g.x)} · ${g.x.afgesloten ? 'afgehandeld' : 'open'}`)).join('');
+    return `<div class="pb-rij${d.actief ? '' : ' uit'}" data-pbid="${esc(d.id)}"><button type="button" class="pb-naam" data-pbbewerk="${esc(d.id)}" title="${esc(d.titel)}">${esc(d.titel)}<small>${esc(pbElke(d))}${d.actief ? '' : ' · uit'}</small></button><div class="pb-spoor">${verleden}${toekomst}</div></div>`; }).join('');
+  const tijdlijn = PB.defs.length ? `<div class="pb-tijdlijn"><div class="pb-rij pb-kop"><span></span><div class="pb-spoor">${maanden.map(m => `<span class="pb-maand" style="left:${m.l}%">${m.t}</span>`).join('')}<i class="pb-vandaag" style="left:${pos(nu)}%" title="Vandaag"></i></div></div>${rijen}
+    <p class="pb-legenda"><i class="pb-stip blauw"></i>gepland <i class="pb-stip oranje"></i>melding open <i class="pb-stip groen"></i>afgehandeld <i class="pb-stip rood"></i>achter</p></div>` : '';
+  // lijst
+  const lijst = PB.defs.length ? `<div class="tw"><table class="tabel pb-tabel"><thead><tr><th>Beoordeling</th><th>Afdeling</th><th>Verantwoordelijke</th><th>Interval</th><th>Volgende</th><th>Laatste melding</th><th>Status</th></tr></thead><tbody>${PB.defs.map(d => {
+      const st = PB.status[d.id] || {}, l = pbMeldingen(d)[0], isAchter = achter.includes(d);
+      const stat = !d.actief ? '<span class="chip">uit</span>' : isAchter ? '<span class="chip rood">achter</span>' : st.fout ? `<span class="chip rood" title="${esc(st.fout)}">fout bij aanmaken</span>` : l && !l.afgesloten ? '<span class="chip oranje">loopt</span>' : '<span class="chip groen">op schema</span>';
+      return `<tr data-pbbewerk="${esc(d.id)}"><td><b>${esc(d.titel)}</b></td><td>${esc(d.afdeling || '')}</td><td>${esc(d.verantwNaam || '')}</td><td>${esc(pbElke(d))}</td><td>${esc(pbDatum(pbVolgende(d)))}</td><td>${l ? `<a href="#" data-pbmelding="${esc(l.nr)}">${esc(nrT(l))}</a> · ${l.afgesloten ? 'afgehandeld' : 'open'}` : st.open ? 'dossieritem ' + esc(st.open) : '–'}</td><td>${stat}</td></tr>`; }).join('')}</tbody></table></div>` : `<div class="pb-leeg"><p><b>Nog geen periodieke beoordelingen.</b></p><p>Denk aan: toegangsrechten per systeem nalopen, een back-up terugzetten, uitdiensttreders controleren, leveranciers evalueren, certificaten en licenties nalopen.</p><button type="button" class="knop vol" data-pbnieuw>+ Eerste beoordeling klaarzetten</button></div>`;
+  $('#lijst').innerHTML = uitleg + knoppen + (PB.defs.length ? `<div class="pb-blok">${tegels + tijdlijn}</div>` : `<div class="pb-blok">${lijst}</div>`) + (PB.defs.length ? lijst : '');
+}
+// melding-tekst: instructie + checklist (regels die met "- " beginnen worden ☐) + vervaldatum
+const pbToelichting = def => `${String(def.instructie || '').split('\n').map(r => /^\s*[-*•]\s+/.test(r) ? r.replace(/^\s*[-*•]\s+/, '☐ ') : r).join('\n').trim()}\n\nUiterlijk uitvoeren: {vervaldatum}. Leg in een reactie vast wat je hebt gecontroleerd en wat je hebt gevonden (bewijs voor de NEN 7510-audit).\n\nPeriodieke beoordeling · ${pbElke(def)}`;
+async function pbSjabloon(def){
+  const m = await laadNieuwMeta(), sm = await laadSubjMeta();
+  const w = {StId: isNaN(+m.stId) ? m.stId : +m.stId, Ds: (PB_PREFIX + def.titel).slice(0, 80), SbTx: pbToelichting(def)};
+  const zet = (veld, v) => { if(veld && v !== '' && v != null) w[veldCode(veld)] = veld.dataType === 'int' && !isNaN(+v) ? +v : v; };
+  if(!m.type) throw new Error('Het veld Type melding is niet gevonden in AFAS.');
+  const tp = waardenVan(m.type.values).find(x => norm(x.naam) === norm(PB_TYPE) || norm(x.code) === norm(PB_TYPE));
+  if(!tp) throw new Error(`Type melding "${PB_TYPE}" staat nog niet in de keuzelijst van AFAS. Vraag de AFAS-beheerder hem toe te voegen.`);
+  zet(m.type, tp.code);
+  if(m.afd){ const a = waardenVan(m.afd.values).find(x => norm(x.naam) === norm(def.afdeling)); if(!a) throw new Error(`Afdeling "${def.afdeling}" staat niet in de keuzelijst van AFAS.`); zet(m.afd, a.code); }
+  if(m.loc){ const l = waardenVan(m.loc.values).find(x => norm(x.naam) === norm(def.locatie) || x.code === def.locatie); if(!l) throw new Error('Kies een locatie.'); zet(m.loc, l.code); }
+  if(def.verantwCode){ if(!sm.verantw) throw new Error('Het veld Verantwoordelijke is niet gevonden in AFAS.'); w[veldCode(sm.verantw)] = def.verantwCode; }
+  m.extra.forEach((x, i) => zet(x, (def.extra || {})[x.code]));
+  const top = {}, obj = {};
+  Object.entries(w).forEach(([c, v]) => { const i = c.indexOf('/'); if(i > 0) (obj[c.slice(0, i)] = obj[c.slice(0, i)] || {})[c.slice(i + 1)] = v; else top[c] = v; });
+  const objecten = Object.entries(obj).map(([o, v]) => ({[o]: {Element: {Fields: v}}}));
+  // melder: de verantwoordelijke als medewerker, anders jijzelf
+  let melder = def.melderId; if(!melder){ try{ const mw = await laadMedewerkers(); const v = mw.find(x => (x.code && norm(x.code) === norm(def.verantwCode)) || zelfdePersoon(x.vol || x.naam, def.verantwNaam)); melder = v ? v.id : profiel.emId; }catch(e){ melder = profiel.emId; } }
+  if(!melder) throw new Error('Geen melder gevonden: vul eenmalig je medewerkernummer in bij Nieuwe melding, of kies een verantwoordelijke die in de medewerkerslijst staat.');
+  objecten.unshift({KnSubjectLink: {Element: {Fields: {SfTp: 17, SfId: isNaN(+melder) ? melder : +melder}}}});
+  return {sjabloon: {KnSubject: {Element: {Fields: top, Objects: objecten}}}, geplandVeld: sm.gepland ? veldCode(sm.gepland) : ''};
+}
+async function pbBewerk(id){
+  const oud = (PB.defs || []).find(d => d.id === id), def = oud ? {...oud} : {id: 'pb' + Date.now().toString(36), titel: '', instructie: '', afdeling: 'ICT', locatie: 'Planetarium', aantal: 180, eenheid: 'dagen', start: tdIso(new Date(Date.now() + 14 * DAG)), vooraf: 14, actief: true};
+  let d = $('#pbdlg'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="pbdlg" aria-label="Periodieke beoordeling"></dialog>'); d = $('#pbdlg'); }
+  d.innerHTML = `<div class="dlg-in"><div class="dlg-kop"><div><small>${PB_TYPE}</small><h2>${oud ? esc(oud.titel) : 'Nieuwe beoordeling'}</h2></div><button class="sluit" data-pbdicht aria-label="Sluiten">×</button></div><p class="leeg">Velden ophalen uit AFAS…</p></div>`;
+  d.showModal();
+  let afd = [], loc = [], ict = [], m;
+  try{ m = await laadNieuwMeta(); afd = (await afdelingKeuzes()).waarden.map(w => w.naam).sort((a, b) => a.localeCompare(b, 'nl')); loc = m.loc ? waardenVan(m.loc.values).map(w => w.naam).sort((a, b) => a.localeCompare(b, 'nl')) : []; ict = await ictCollegas(); }
+  catch(e){ d.querySelector('.leeg').outerHTML = `<p class="fout">${esc(e.message)}</p>`; return; }
+  const opt = (l, v) => l.map(x => `<option ${norm(x) === norm(v) ? 'selected' : ''}>${esc(x)}</option>`).join('');
+  const extra = m.extra.map(x => `<span>${esc(x.label)}</span><b>${keuze(x, 'pbx_' + x.code, (def.extra || {})[x.code]).replace('<select ', '<select class="afdkeuze" ').replace('<input ', '<input class="datumkeuze" ')}</b>`).join('');
+  d.innerHTML = `<form class="dlg-in nform" id="pb-form" onsubmit="return false"><div class="dlg-kop"><div><small>${PB_TYPE}</small><h2><input name="titel" class="ondinvoer" maxlength="56" required placeholder="Bijv. Toegangsrechten Emma nalopen" value="${esc(def.titel)}" aria-label="Titel"></h2></div><button type="button" class="sluit" data-pbdicht aria-label="Sluiten">×</button></div>
+    <div class="kaarten"><div class="kaart2"><h3>Wanneer</h3>
+      <span>Elke</span><b class="pb-elke"><input name="aantal" type="number" min="1" max="999" class="datumkeuze" value="${esc(def.aantal)}" aria-label="Aantal"><select name="eenheid" class="afdkeuze"><option value="dagen" ${def.eenheid === 'dagen' ? 'selected' : ''}>dagen</option><option value="maanden" ${def.eenheid !== 'dagen' ? 'selected' : ''}>maanden</option></select></b>
+      <span>Eerste keer</span><b><input name="start" type="date" class="datumkeuze" value="${esc(oud ? pbVolgende(oud) : def.start)}" required></b>
+      <span>Melding</span><b class="pb-elke"><input name="vooraf" type="number" min="0" max="120" class="datumkeuze" value="${esc(def.vooraf)}"> dagen van tevoren</b>
+      <span>Actief</span><b><label class="vink"><input type="checkbox" name="actief" ${def.actief ? 'checked' : ''}> komt automatisch terug</label></b>
+      <span></span><b><small class="hint" id="pb-keren"></small></b></div>
+    <div class="kaart2"><h3>Melding</h3>
+      <span>Afdeling</span><b><select name="afdeling" class="afdkeuze">${opt(afd, def.afdeling)}</select></b>
+      <span>Verantwoordelijke</span><b><select name="verantw" class="afdkeuze"><option value="">Kies…</option>${ict.map(c => `<option value="${esc(c.code)}" ${norm(c.code) === norm(def.verantwCode) || norm(c.naam) === norm(def.verantwNaam) ? 'selected' : ''}>${esc(c.naam)}</option>`).join('')}</select></b>
+      <span>Locatie</span><b><select name="locatie" class="afdkeuze">${opt(loc, def.locatie)}</select></b>${extra}</div></div>
+    <h3 class="pb-kop3">Instructie</h3><textarea id="pb-instr" name="instructie" class="toelinvoer" rows="8" placeholder="Wat moet er gebeuren en hoe? Zet elke stap op een regel die begint met '- ', dan wordt het een afvinklijst. Links kun je plakken of met Ctrl+K maken.">${esc(def.instructie)}</textarea>
+    <p class="hint">In de melding komt deze instructie, met de vervaldatum en de vraag om vast te leggen wat er is gecontroleerd (bewijs voor de audit).</p>
+    <p class="fout" id="pb-fout"></p>
+    <div class="pb-acties">${oud ? '<button type="button" class="linkknop rood" data-pbweg>Verwijderen</button><button type="button" class="knop" data-pbnu title="Nu meteen een melding aanmaken (testen of een extra keer)">Nu aanmaken</button>' : ''}<span style="flex:1"></span><button type="button" class="knop" data-pbdicht>Annuleren</button><button type="button" class="knop vol" data-pbbewaar>Opslaan</button></div></form>`;
+  const f = $('#pb-form'), keren = () => { const t = {aantal: f.aantal.value, eenheid: f.eenheid.value, start: f.start.value}, l = f.start.value ? [pbDatum(f.start.value), ...[1, 2, 3].map(k => pbDatum(pbKeer(t, k)))] : []; $('#pb-keren').textContent = l.length ? 'Volgende keren: ' + l.join(', ') + ' …' : ''; };
+  f.addEventListener('input', keren); keren(); f._def = def; f._oud = oud;
+}
+async function pbBewaar(){
+  const f = $('#pb-form'), fout = $('#pb-fout'), oud = f._oud, def = {...f._def};
+  def.titel = f.titel.value.trim(); def.instructie = f.instructie.value.trim(); def.aantal = Math.max(1, +f.aantal.value || 1); def.eenheid = f.eenheid.value;
+  def.vooraf = Math.max(0, +f.vooraf.value || 0); def.actief = f.actief.checked; def.afdeling = f.afdeling.value; def.locatie = f.locatie.value;
+  def.verantwCode = f.verantw.value; def.verantwNaam = f.verantw.value ? f.verantw.options[f.verantw.selectedIndex].textContent : ''; def.start = f.start.value;
+  def.extra = Object.fromEntries([...f.querySelectorAll('[name^="pbx_"]')].map(e => [e.name.slice(4), e.value]));
+  if(!def.titel){ fout.textContent = 'Geef de beoordeling een titel.'; f.titel.focus(); return; }
+  if((PB.defs || []).some(d => d.id !== def.id && norm(d.titel) === norm(def.titel))){ fout.textContent = 'Er is al een beoordeling met deze titel.'; return; }
+  if(!def.start){ fout.textContent = 'Kies de eerste datum.'; return; }
+  if(!def.verantwCode){ fout.textContent = 'Kies een verantwoordelijke.'; f.verantw.focus(); return; }
+  if(!def.instructie){ fout.textContent = 'Schrijf een instructie: wat moet er gebeuren?'; f.instructie.focus(); return; }
+  const k = f.querySelector('[data-pbbewaar]'); k.disabled = true; k.textContent = 'Opslaan…'; fout.textContent = '';
+  try{
+    if(!DEMO) Object.assign(def, await pbSjabloon(def));
+    const defs = [...(PB.defs || []).filter(d => d.id !== def.id), def];
+    const reset = !oud || oud.start !== def.start || oud.aantal !== def.aantal || oud.eenheid !== def.eenheid || def.start !== pbVolgende(oud) ? [def.id] : [];
+    const j = await pbApi('PUT', {defs, reset}); PB.defs = defs; if(j.status) PB.status = j.status;
+    if(reset.length && PB.status[def.id]) delete PB.status[def.id].volgende;
+    $('#pbdlg').close(); toast(oud ? 'Beoordeling opgeslagen' : `Beoordeling klaargezet: de eerste melding komt rond ${pbDatum(pbMin(def.start, def.vooraf))}`); tekenBeoordelingen(); try{ tekenNav(); }catch(e){}
+  }catch(e){ fout.textContent = 'Opslaan lukte niet: ' + e.message; }
+  finally{ k.disabled = false; k.textContent = 'Opslaan'; }
+}
+const pbMin = (d, n) => { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() - (+n || 0)); const v = tdIso(x), nu = tdIso(new Date()); return v < nu ? nu : v; };
+document.addEventListener('click', async e => {
+  if(e.target.closest('[data-pbnieuw]')){ pbBewerk(null); return; }
+  const b = e.target.closest('[data-pbbewerk]'); if(b && !e.target.closest('[data-pbmelding]')){ pbBewerk(b.dataset.pbbewerk); return; }
+  const ml = e.target.closest('[data-pbmelding]'); if(ml){ e.preventDefault(); navLijst = []; openDetail(ml.dataset.pbmelding); return; }
+  if(e.target.closest('[data-pbdicht]')){ const d = $('#pbdlg'); if(d) d.close(); return; }
+  if(e.target.closest('[data-pbbewaar]')){ pbBewaar(); return; }
+  if(e.target.closest('[data-pbweg]')){ const f = $('#pb-form'), def = f._oud; if(!(await vraag('Beoordeling verwijderen?', `"${def.titel}" komt dan niet meer terug. Meldingen die al zijn aangemaakt blijven gewoon bestaan.`, 'Verwijderen', 'Annuleren', true))) return;
+    try{ const defs = PB.defs.filter(d => d.id !== def.id); await pbApi('PUT', {defs}); PB.defs = defs; delete PB.status[def.id]; $('#pbdlg').close(); toast('Beoordeling verwijderd'); tekenBeoordelingen(); }catch(err){ $('#pb-fout').textContent = 'Verwijderen lukte niet: ' + err.message; } return; }
+  if(e.target.closest('[data-pbnu]')){ const f = $('#pb-form'), def = f._oud, k = e.target.closest('[data-pbnu]');
+    if(!(await vraag('Nu een melding aanmaken?', `Er komt meteen een melding "${PB_PREFIX}${def.titel}" bij ${def.verantwNaam || 'de verantwoordelijke'}. Sla eerst op als je iets hebt gewijzigd.`, 'Aanmaken', 'Annuleren'))) return;
+    k.disabled = true; k.textContent = 'Aanmaken…';
+    try{ const j = await pbApi('POST', {actie: 'nu', id: def.id}); if(j.status) PB.status = j.status; const u = (j.uit || [])[0]; if(u && u.actie === 'fout') throw new Error(u.fout);
+      $('#pbdlg').close(); toast('Melding aangemaakt'); if(!DEMO){ await laadGegevens('open', true); } tekenBeoordelingen(); }
+    catch(err){ $('#pb-fout').textContent = 'Aanmaken lukte niet: ' + err.message; k.disabled = false; k.textContent = 'Nu aanmaken'; } return; }
+  if(e.target.closest('[data-pbplan]')){ const k = e.target.closest('[data-pbplan]'); k.disabled = true;
+    try{ const j = await pbApi('POST', {actie: 'plan'}); if(j.status) PB.status = j.status; const n = (j.uit || []).filter(u => u.actie === 'aangemaakt').length, a = (j.uit || []).filter(u => u.actie === 'achter').length;
+      toast(n ? `${n} melding${n === 1 ? '' : 'en'} aangemaakt` + (a ? `, ${a} achter` : '') : a ? `${a} beoordeling${a === 1 ? '' : 'en'} achter, niets nieuws aangemaakt` : 'Niets aan de beurt'); if(n && !DEMO) await laadGegevens('open', true); tekenBeoordelingen(); }
+    catch(err){ toast('Planner draaien lukte niet: ' + err.message, true); } finally{ k.disabled = false; } }
+});
 /* ---- historie: de laatste 10 meldingen waarin jij iets hebt gewijzigd (per gebruiker, in deze browser) ---- */
 const histSleutel = () => 'mict-historie-' + (sub || 'demo');
 function logHistorie(x, wat){
@@ -3639,10 +3837,6 @@ function openDetail(nr){
       <span class="opslaanknoppen"><button type="button" class="knop" id="k-instructie" title="Maak van de oplossing een instructie voor de kennisbank (Word-concept in DC-huisstijl)">✦ Instructie maken</button><button type="button" class="knop" id="k-heropen" disabled title="Workflow ophalen…">Heropenen</button><button type="button" class="knop vol" id="k-opslaan" disabled title="Er is nog niets om op te slaan">Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
     <p class="fout" id="d-fout"></p>
     <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3></div>` : `
-    <div class="onderbalk"><div class="actiebalk" id="actiebalk">${st === 0 ? '<button class="knop" data-snel="oppak" title="Kan meteen: wacht zo nodig even op de workflow uit AFAS">Toewijzen aan mij</button>' : ''}</div>
-      <span class="mailvooraf" id="mailvooraf" hidden></span>
-      <span class="opslaanknoppen"><button type="button" class="knop" id="k-afhandel" data-afhandel title="Status op Afgehandeld; je reactie (als je die schreef) gaat mee naar de melder">Afhandelen</button><button type="button" class="knop vol" id="k-opslaan" title="Alles doorvoeren; de melding blijft open (Ctrl+Enter). Naar de vorige of volgende melding ga je met de pijltjes."><span class="opslaanmail" hidden>✉ </span>Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
-    <p class="fout" id="d-fout"></p>
     <div class="composer">
       <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
       <div class="klaarzet" id="klaar-reactie"></div>
@@ -3650,6 +3844,10 @@ function openDetail(nr){
         <select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select>${x.afgesloten ? '' : '<button type="button" class="linkknop conceptknop" id="k-concept" title="Concept-antwoord op basis van hoe een vergelijkbare melding is opgelost, met een instructie uit de kennisbank als die er is">✦ Concept-antwoord</button>'}
         <span class="hint" id="notitie-uitleg"></span></div>
     </div>
+    <div class="onderbalk"><div class="actiebalk" id="actiebalk">${st === 0 ? '<button class="knop" data-snel="oppak" title="Kan meteen: wacht zo nodig even op de workflow uit AFAS">Toewijzen aan mij</button>' : ''}</div>
+      <span class="mailvooraf" id="mailvooraf" hidden></span>
+      <span class="opslaanknoppen"><button type="button" class="knop" id="k-afhandel" data-afhandel title="Status op Afgehandeld; je reactie (als je die schreef) gaat mee naar de melder">Afhandelen</button><button type="button" class="knop vol" id="k-opslaan" title="Alles doorvoeren; de melding blijft open (Ctrl+Enter). Naar de vorige of volgende melding ga je met de pijltjes."><span class="opslaanmail" hidden>✉ </span>Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
+    <p class="fout" id="d-fout"></p>
     <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>`}`;
   if(x.iu){   // in- en uitdienst: alleen wat bij dit type hoort, zoals in AFAS
     ['#d-inst', '#d-type', '#d-extern', '#d-tel', '#d-loc', '#d-afd', '#d-gepland', '#d-cc', '#d-kritiek', '#d-opgelost'].forEach(sel => { const el = $(sel); const b = el && el.closest('b'); if(b){ const sp = b.previousElementSibling; if(sp && sp.tagName === 'SPAN') sp.remove(); b.remove(); } });
@@ -5522,7 +5720,8 @@ document.addEventListener('input', e => {
 // pijltjes: eigen klik-afhandeling, zodat niets anders de klik kan opvangen
 $('#nav-vorige').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); gaNaar(-1); });
 $('#nav-volgende').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); gaNaar(1); });
-$('#detail').addEventListener('close', () => { huidig = null; navPush(); setTimeout(seinAanwezig, 50); if(tekenNaSluiten){ tekenNaSluiten = false; teken(); } });
+$('#detail').addEventListener('close', () => { if($('#detail').open) return;   // het sluit-signaal komt pas na een tik: is er intussen alweer een melding geopend, dan niets wissen
+  huidig = null; navPush(); setTimeout(seinAanwezig, 50); if(tekenNaSluiten){ tekenNaSluiten = false; teken(); } });
 /* vensters sluiten: klik naast het venster, Esc, × of Annuleren; met niet-opgeslagen wijzigingen eerst vragen */
 /* eigen bevestigingsvenster midden in beeld (i.p.v. de browsermelding met het webadres erin) */
 function vraag(titel, tekst, ja = 'OK', nee = 'Annuleren', gevaar = false){
@@ -7033,6 +7232,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.39', d: '22-10-2026', p: ['Afhandelen en Opslaan staan nu onder het reactieveld: eerst schrijven, dan opslaan.', 'Snel van de ene naar de andere melding gaan werkt betrouwbaarder.', 'Periodieke beoordelingen (alleen voor de beheerder): controles die met vaste tussenpozen terugkomen klaarzetten, met instructie, tijdlijn en overzicht. De melding komt vanzelf op tijd.']},
   {v: 'v7.38', d: '22-10-2026', p: ['ICT-collega’s worden herkend aan hun kostenplaats ICT; bij Verantwoordelijke staan alle ICT-collega’s en via "Iemand buiten ICT…" iedereen met een AFAS-gebruiker.']},
   {v: 'v7.37', d: '21-10-2026', groot: true, p: ['Voorstel bij binnenkomst: bij een melding zonder verantwoordelijke stelt SubmIT afdeling, type en verantwoordelijke voor, op basis van vergelijkbare meldingen. Herkenbaar aan ✦ Voorstel: ✓ neemt over, × haalt weg.', 'Concept-antwoord: één klik onder het reactievak geeft een concept op basis van hoe een vergelijkbare melding is opgelost, met een instructie uit de kennisbank erbij.', 'Instructie maken: bij een afgehandelde melding maak je van de oplossing een Word-concept in DC-huisstijl voor de kennisbank.']},
   {v: 'v7.36', d: '21-10-2026', p: ['To-do op het overzicht: rustigere kopjes, het aantal als label.']},
