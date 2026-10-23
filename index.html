@@ -1364,6 +1364,8 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 .pb-wanneer .pb-aan{white-space:nowrap}
 .kaart2 .pb-keren{font-weight:400;color:var(--grijs);font-size:13px;flex-wrap:wrap;gap:0 4px;line-height:1.5}
 .pb-kop3{font-size:13px;color:var(--blauw);margin:16px 0 6px}.pb-kop3 small{font-weight:400;margin-left:6px}
+.audit-taken{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto;border:1px solid var(--lijn);border-radius:10px;padding:8px 12px}
+.audit-taken .vink{color:inherit;font-size:13.5px}
 .sj-auto{margin:0 0 10px;border:1px solid var(--lijn);border-radius:12px;padding:8px 12px}.sj-auto summary{cursor:default;font-size:13px;color:var(--blauw);font-weight:600}.sj-auto[open] summary{margin-bottom:6px}.sj-auto select{width:min(420px,100%)!important;margin-top:4px}
 .sj-kies{display:flex;align-items:center;gap:14px;margin:12px 0 10px}.sj-kies select{width:min(420px,100%)!important;padding:6px 26px 6px 8px!important;font-size:14px}.sj-kaart[hidden]{display:none}
 .pb-hulp{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border:1px dashed var(--lijn);border-radius:10px;min-height:44px}.pb-hulp.sleep{border-color:var(--blauw);background:var(--blauw-licht,rgba(5,55,135,.06))}
@@ -1421,6 +1423,9 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 .sj-kaart{border:1px solid var(--lijn);border-radius:12px;padding:10px 12px;margin:8px 0;background:var(--vlak)}
 .sj-kop{display:flex;align-items:center;gap:12px;margin-bottom:6px;font-size:13px}.sj-kop b{flex:1;color:var(--inkt);font-weight:600}.sj-kop .sj-naam{flex:1}
 .sj-kop .vink{font-size:12.5px;color:var(--grijs);display:inline-flex;gap:6px;align-items:center;font-weight:400}
+.sj-varknop{font-size:12.5px;margin-top:4px}.sj-vars{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}.sj-vars[hidden]{display:none}
+.sj-chip{border:1px solid var(--lijn);background:var(--achtergrond);border-radius:999px;padding:3px 10px 3px 4px;font:inherit;font-size:12px;color:var(--grijs);cursor:default}.sj-chip:hover{border-color:var(--blauw);color:var(--inkt)}
+.sj-veldlab{display:block;font-size:12.5px;font-weight:600;color:var(--inkt);margin:10px 0 4px}
 .sj-tekst{width:100%;box-sizing:border-box;border:1px solid var(--lijn);border-radius:10px;padding:8px 10px;font:inherit;font-size:13.5px;background:var(--achtergrond);color:var(--inkt);resize:vertical}
 #sjdlg code{background:var(--lichtblauw-2);color:var(--blauw);padding:0 5px;border-radius:5px;font-size:12px}
 </style>
@@ -1570,7 +1575,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.65', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.67', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3564,8 +3569,16 @@ const SJ_LABEL = {ontvangen: 'Melding ontvangen', afdeling: 'Doorgezet naar ande
   'In externe release': 'Status: In externe release', 'Afgehandeld': 'Status: Afgehandeld', gepland: 'Planning gewijzigd',
   'sig:opvolging': 'Excuses, nog mee bezig', 'sig:melder': 'Herinnering aan melder', 'sig:leverancier': 'Update leverancier', 'sig:planning': 'Planning uitgelopen', 'sig:nieuw': 'Nieuwe melding opgepakt'};
 let SJ_EIGEN = {};   // {key: {naam, tekst}} eigen teksten
+// opening en afsluiting: één keer algemeen ingesteld, komen om elke tekst heen (standaardtekst, AI-concept, persoonlijk maken)
+const BRIEF_STD = {opening: 'Beste {voornaam},', afsluiting: 'Met vriendelijke groet,\n{naam}\n{functie}\n' + (INST.handtekeningAfdeling || 'Afdeling ICT')}, BRIEF = {...BRIEF_STD};
+// variabelen per soort tekstveld (knop { } Variabelen in Beheer → Standaardteksten)
+const SJ_VARS = {opening: [['{voornaam}', 'roepnaam van de melder']], afsluiting: [['{naam}', 'jouw naam'], ['{functie}', 'jouw functie (uit AFAS)']],
+  tekst: [['{afdeling}', 'afdeling van de melding of waarheen hij is doorgezet'], ['{naam}', 'naam van de nieuwe verantwoordelijke'], ['{datum}', 'geplande datum'], ['[vul aan]', 'hier vult de collega zelf iets in']]};
+const sjVarKnop = soort => `<button type="button" class="linkknop sj-varknop" data-sjvar="${soort}" aria-expanded="false">{ } Variabelen</button>`;
+const sjVarRij = soort => `<div class="sj-vars" hidden>${SJ_VARS[soort].map(([v, u]) => `<button type="button" class="sj-chip" data-sjins="${esc(v)}" title="${esc(u)}"><code>${esc(v)}</code> ${esc(u)}</button>`).join('')}</div>`;
 function pasSjablonenToe(d){
   if(!d || typeof d !== 'object') return;
+  BRIEF.opening = typeof d.opening === 'string' ? d.opening : BRIEF_STD.opening; BRIEF.afsluiting = typeof d.afsluiting === 'string' ? d.afsluiting : BRIEF_STD.afsluiting;
   Object.keys(SJ).forEach(k => { if(!(k in SJ_STD)) delete SJ[k]; }); Object.assign(SJ, SJ_STD, INST.sjablonen || {}, d.teksten || {});
   SJ_EIGEN = d.eigen || {}; Object.entries(SJ_EIGEN).forEach(([k, e]) => { SJ[k] = e.tekst; });
   if(Array.isArray(d.lijst) && d.lijst.length) SJABLOON_LIJST = d.lijst.filter(([k]) => k in SJ).map(([k, n]) => [k, n || SJ_LABEL[k] || (SJ_EIGEN[k] || {}).naam || k]);
@@ -3626,7 +3639,12 @@ function sjBeheer(){
     <div class="sj-kop">${eigen ? `<input class="sj-naam datumkeuze" value="${esc(naam)}" placeholder="Naam in de keuzelijst" aria-label="Naam">` : `<b>${esc(naam)}</b>`}
       <label class="vink" title="Staat in de keuzelijst 'Standaardtekst…' onder het reactievak"><input type="checkbox" class="sj-lijst" ${inLijst.has(k) || eigen ? 'checked' : ''} ${eigen ? 'disabled' : ''}> in keuzelijst</label>
       ${eigen ? '<button type="button" class="linkknop rood" data-sjweg>Verwijderen</button>' : `<button type="button" class="linkknop" data-sjstd ${tekst === SJ_STD[k] ? 'hidden' : ''}>Standaard terugzetten</button>`}</div>
-    <textarea class="toelinvoer sj-tekst" rows="6">${esc(tekst)}</textarea></div>`;
+    <textarea class="toelinvoer sj-tekst" rows="6">${esc(tekst)}</textarea>${sjVarKnop('tekst')}${sjVarRij('tekst')}</div>`;
+  const briefKaart = `<div class="sj-kaart" data-sjk="_brief">
+    <div class="sj-kop"><b>Opening en afsluiting</b><button type="button" class="linkknop" data-sjbriefstd ${BRIEF.opening === BRIEF_STD.opening && BRIEF.afsluiting === BRIEF_STD.afsluiting ? 'hidden' : ''}>Standaard terugzetten</button></div>
+    <p class="hint" style="margin:0 0 8px">Geldt voor alle teksten: standaardteksten, AI-concepten en persoonlijk maken.</p>
+    <label class="sj-veldlab">Opening</label><textarea class="toelinvoer sj-tekst sj-brief" data-veld="opening" rows="2">${esc(BRIEF.opening)}</textarea>${sjVarKnop('opening')}${sjVarRij('opening')}
+    <label class="sj-veldlab">Afsluiting</label><textarea class="toelinvoer sj-tekst sj-brief" data-veld="afsluiting" rows="5">${esc(BRIEF.afsluiting)}</textarea>${sjVarKnop('afsluiting')}${sjVarRij('afsluiting')}</div>`;
   // één tekst tegelijk. Bovenaan precies de keuzelijst uit de melding (zelfde namen en volgorde) met je eigen teksten;
   // de automatische voorstellen bij een status of actie staan apart, ingeklapt
   const naamIn = new Map(SJABLOON_LIJST.map(([k, n]) => [k, n])), aangepast = k => SJ_STD[k] !== undefined && SJ[k] !== SJ_STD[k] ? ' · aangepast' : '';
@@ -3637,13 +3655,13 @@ function sjBeheer(){
   const optE = Object.entries(SJ_EIGEN).map(([k, e]) => `<option value="${esc(k)}">${esc(e.naam)}</option>`).join('');
   const optA = autoK.map(k => `<option value="${esc(k)}">${esc(SJ_LABEL[k] || k)}${aangepast(k)}</option>`).join('');
   d.innerHTML = `<div class="dlg-in"><div class="dlg-kop"><div><small>Alleen voor de beheerder · geldt voor iedereen</small><h2>Standaardteksten</h2></div><button class="sluit" data-sjdicht aria-label="Sluiten">×</button></div>
-    <p class="hint">De aanhef ("Beste …,") en je handtekening komen er vanzelf omheen. Gebruik <code>{naam}</code>, <code>{afdeling}</code> en <code>{datum}</code>; SubmIT vult die in. Zet <code>[vul aan]</code> waar de collega zelf iets moet invullen.</p>
-    <div class="sj-kies"><select id="sj-keuze" class="afdkeuze" aria-label="Kies een standaardtekst"><option value="" disabled hidden>Kies een tekst…</option><optgroup label="Keuzelijst in de melding">${optL}</optgroup><optgroup label="Eigen teksten" id="sj-opt-eigen">${optE}</optgroup></select>
+    <p class="hint">Opening en afsluiting stel je één keer in (bovenaan de keuzelijst); ze komen vanzelf om elke tekst heen. Variabelen voeg je toe met <b>{ } Variabelen</b> onder het tekstvak.</p>
+    <div class="sj-kies"><select id="sj-keuze" class="afdkeuze" aria-label="Kies een standaardtekst"><option value="" disabled hidden>Kies een tekst…</option><optgroup label="Algemeen"><option value="_brief">Opening en afsluiting</option></optgroup><optgroup label="Keuzelijst in de melding">${optL}</optgroup><optgroup label="Eigen teksten" id="sj-opt-eigen">${optE}</optgroup></select>
       <button type="button" class="linkknop" data-sjnieuw>+ Nieuwe standaardtekst</button></div>
     ${autoK.length ? `<details class="sj-auto"><summary>Automatische voorstellen bij een status of actie (${autoK.length})</summary><p class="hint">Deze komen vanzelf als voorstel in het reactievak, bijvoorbeeld als je de status wijzigt. Ze staan niet in de keuzelijst; zet "in keuzelijst" aan om er een toe te voegen.</p><select id="sj-keuze-auto" class="afdkeuze" aria-label="Kies een automatisch voorstel"><option value="">Kies een voorstel…</option>${optA}</select></details>` : ''}
-    <div id="sj-eigen">${eigen}</div><div id="sj-systeem">${systeem}</div>
+    ${briefKaart}<div id="sj-eigen">${eigen}</div><div id="sj-systeem">${systeem}</div>
     <p class="fout" id="sj-fout"></p><div class="pb-acties"><span style="flex:1"></span><button type="button" class="knop" data-sjdicht>Annuleren</button><button type="button" class="knop vol" data-sjbewaar>Opslaan</button></div></div>`;
-  d.showModal(); sjToon(lijstK[0] || Object.keys(SJ_EIGEN)[0] || autoK[0]);
+  d.showModal(); sjToon('_brief');
 }
 function sjToon(k){ const sel = $('#sj-keuze'), auto = $('#sj-keuze-auto'); if(!sel) return;
   if(k === undefined) k = sel.value;
@@ -3654,14 +3672,20 @@ document.addEventListener('change', e => { if(e.target.id === 'sj-keuze') sjToon
 document.addEventListener('click', async e => {
   if(e.target.closest('[data-sjdicht]')){ $('#sjdlg').close(); return; }
   if(e.target.closest('[data-sjnieuw]')){ const k = 'eigen:' + Date.now().toString(36);
-    $('#sj-eigen').insertAdjacentHTML('beforeend', `<div class="sj-kaart" data-sjk="${k}"><div class="sj-kop"><input class="sj-naam datumkeuze" placeholder="Naam in de keuzelijst" aria-label="Naam"><label class="vink"><input type="checkbox" class="sj-lijst" checked disabled> in keuzelijst</label><button type="button" class="linkknop rood" data-sjweg>Verwijderen</button></div><textarea class="toelinvoer sj-tekst" rows="6" placeholder="De tekst…"></textarea></div>`);
+    $('#sj-eigen').insertAdjacentHTML('beforeend', `<div class="sj-kaart" data-sjk="${k}"><div class="sj-kop"><input class="sj-naam datumkeuze" placeholder="Naam in de keuzelijst" aria-label="Naam"><label class="vink"><input type="checkbox" class="sj-lijst" checked disabled> in keuzelijst</label><button type="button" class="linkknop rood" data-sjweg>Verwijderen</button></div><textarea class="toelinvoer sj-tekst" rows="6" placeholder="De tekst…"></textarea>${sjVarKnop('tekst')}${sjVarRij('tekst')}</div>`);
     $('#sj-opt-eigen').insertAdjacentHTML('beforeend', `<option value="${k}">Nieuwe tekst</option>`); sjToon(k);
     $('#sj-eigen .sj-kaart:last-child .sj-naam').focus(); return; }
   const w = e.target.closest('[data-sjweg]'); if(w){ const kd = w.closest('.sj-kaart'), o = $('#sj-keuze').querySelector(`option[value="${CSS.escape(kd.dataset.sjk)}"]`); kd.remove(); if(o) o.remove(); const eerste = [...$('#sj-keuze').options].find(x => x.value); sjToon(eerste ? eerste.value : ''); return; }
+  const vk = e.target.closest('[data-sjvar]'); if(vk){ const r = vk.nextElementSibling, open = r.hidden; r.hidden = !open; vk.setAttribute('aria-expanded', open); return; }
+  const ins = e.target.closest('[data-sjins]'); if(ins){ const t = ins.closest('.sj-vars').previousElementSibling.previousElementSibling, v = ins.dataset.sjins;
+    const a = t.selectionStart ?? t.value.length, z = t.selectionEnd ?? a; t.value = t.value.slice(0, a) + v + t.value.slice(z); t.focus(); t.setSelectionRange(a + v.length, a + v.length);
+    t.dispatchEvent(new Event('input', {bubbles: true})); return; }
+  if(e.target.closest('[data-sjbriefstd]')){ document.querySelectorAll('#sjdlg .sj-brief').forEach(t => { t.value = BRIEF_STD[t.dataset.veld]; }); e.target.closest('[data-sjbriefstd]').hidden = true; return; }
   const st = e.target.closest('[data-sjstd]'); if(st){ const kd = st.closest('.sj-kaart'); kd.querySelector('.sj-tekst').value = SJ_STD[kd.dataset.sjk]; st.hidden = true; return; }
   const b = e.target.closest('[data-sjbewaar]'); if(b){
     const teksten = {}, eigen = {}, lijst = []; let fout = '';
-    document.querySelectorAll('#sjdlg .sj-kaart').forEach(kd => { const k = kd.dataset.sjk, t = kd.querySelector('.sj-tekst').value.trim(), n = kd.querySelector('.sj-naam');
+    const brief = {}; document.querySelectorAll('#sjdlg .sj-brief').forEach(t => { const v = t.value.replace(/\s+$/, ''); if(v !== BRIEF_STD[t.dataset.veld]) brief[t.dataset.veld] = v; });
+    document.querySelectorAll('#sjdlg .sj-kaart:not([data-sjk="_brief"])').forEach(kd => { const k = kd.dataset.sjk, t = kd.querySelector('.sj-tekst').value.trim(), n = kd.querySelector('.sj-naam');
       if(n){ if(!n.value.trim() || !t){ fout = 'Geef elke eigen tekst een naam en een tekst.'; return; } eigen[k] = {naam: n.value.trim(), tekst: t}; lijst.push([k, n.value.trim()]); }
       else { if(t && t !== SJ_STD[k]) teksten[k] = t; if(kd.querySelector('.sj-lijst').checked) lijst.push([k, (LIJST_STD.find(([x]) => x === k) || [])[1] || SJ_LABEL[k] || k]); } });
     if(fout){ $('#sj-fout').textContent = fout; return; }
@@ -3669,25 +3693,29 @@ document.addEventListener('click', async e => {
     const plek = k => { const i = LIJST_STD.findIndex(([x]) => x === k); return k in eigen ? 1000 : i >= 0 ? i : 500; };
     lijst.sort((a, c) => plek(a[0]) - plek(c[0]));
     b.disabled = true; b.textContent = 'Opslaan…';
-    try{ await sjBewaar({teksten, eigen, lijst}); $('#sjdlg').close(); toast('Standaardteksten opgeslagen: ze gelden meteen voor iedereen'); }
+    try{ await sjBewaar({teksten, eigen, lijst, ...brief}); $('#sjdlg').close(); toast('Standaardteksten opgeslagen: ze gelden meteen voor iedereen'); }
     catch(err){ $('#sj-fout').textContent = 'Opslaan lukte niet: ' + err.message; }
     finally{ b.disabled = false; b.textContent = 'Opslaan'; } }
 });
 document.addEventListener('input', e => { const n = e.target.closest && e.target.closest('#sjdlg .sj-naam'); if(n){ const o = $('#sj-keuze').querySelector(`option[value="${CSS.escape(n.closest('.sj-kaart').dataset.sjk)}"]`); if(o) o.textContent = n.value.trim() || 'Nieuwe tekst'; return; }
+  const bt = e.target.closest && e.target.closest('#sjdlg .sj-brief'); if(bt){ const s = $('[data-sjbriefstd]'); if(s) s.hidden = [...document.querySelectorAll('#sjdlg .sj-brief')].every(x => x.value.replace(/\s+$/, '') === BRIEF_STD[x.dataset.veld]); return; }
   const t = e.target.closest && e.target.closest('#sjdlg .sj-tekst'); if(!t) return; const kd = t.closest('.sj-kaart'), s = kd.querySelector('[data-sjstd]'); if(s) s.hidden = t.value.trim() === SJ_STD[kd.dataset.sjk]; });
 const langeDatum = v => v ? new Date(v + 'T00:00:00').toLocaleDateString('nl-NL', {weekday: 'long', day: 'numeric', month: 'long'}) : '[datum]';
-let mijnHandtekening = null;
-async function handtekening(){
-  if(mijnHandtekening) return mijnHandtekening;
+let mijnFunctieW = null;
+async function mijnFunctie(){
+  if(mijnFunctieW !== null) return mijnFunctieW;
   let functie = profiel.functie || '';
   if(!functie){ try{ const l = await laadMedewerkers(); const m = (profiel.emId && l.find(y => y.id === String(profiel.emId))) || l.find(y => benIk(y.vol)); if(m && m.functie) functie = m.functie; }catch(e){} }
-  return mijnHandtekening = [profiel.naam, functie, INST.handtekeningAfdeling || 'Afdeling Digitale Zorg & ICT'].filter(Boolean).join('\n');
+  return mijnFunctieW = functie;
 }
+// variabele invullen; een regel die alleen uit een lege variabele bestond (bv. geen functie bekend) valt weg
+const vulBrief = (t, w) => String(t || '').split('\n').map(r => { const leeg = /\{\w+\}/.test(r) && r.replace(/\{(\w+)\}/g, (m, k) => w[k] ?? m).trim() === ''; return leeg ? null : vulIn(r, w); }).filter(r => r !== null).join('\n').trim();
 async function maakBrief(x, delen){
   // roepnaam uit de medewerkerslijst (AFAS geeft bij de melder de officiële voornaam)
   let voornaam = String(x.melder || '').trim().split(/\s+/)[0] || '';
   try{ const m = await zoekMedewerker(x.melder); if(m && m.roep) voornaam = m.roep; }catch(e){}
-  return `Beste ${voornaam || 'collega'},\n\n${delen.join('\n\n')}\n\nMet vriendelijke groet,\n${await handtekening()}`;
+  const open = vulBrief(BRIEF.opening, {voornaam: voornaam || 'collega'}), af = vulBrief(BRIEF.afsluiting, {naam: profiel.naam || '', functie: await mijnFunctie()});
+  return [open, ...delen, af].filter(Boolean).join('\n\n');
 }
 const vulIn = (t, w) => String(t || '').replace(/\{(\w+)\}/g, (m, k) => w[k] ?? m);
 // tekst in het reactievak zetten: alleen als het leeg is of nog een eerder voorstel bevat; bij een expliciete keuze eerst vragen
@@ -3843,7 +3871,7 @@ function tekenBeheer(){
   $('#lijst').innerHTML = `<p class="ctrl-uitleg" style="margin-top:4px">Alles wat alleen jij als beheerder ziet en instelt. Wijzigingen gelden voor alle ICT-collega’s.</p>
   <h3 class="bh-kop">Bewaken</h3><div class="bh-raster">
     ${tegel('data-weergave="controle"', CTRL_ICO, 'Controle', 'Staat elke open melding bij een ICT-collega?', nC == null ? 'Bezig met controleren…' : nC ? `${nC} bevinding${nC === 1 ? '' : 'en'}` : '✓ Alles in orde', !!nC)}
-    ${tegel('data-weergave="beoordelingen"', PB_ICO, 'Periodieke beoordelingen', 'Controles die met vaste tussenpozen terugkomen (NEN 7510)', nA == null ? (PB.fout ? 'Ophalen lukte niet' : 'Ophalen…') : `${nA} actief` + (nP ? ` · ${nP} achter` : ''), !!nP)}</div>
+    ${tegel('data-weergave="beoordelingen"', PB_ICO, 'Periodieke taken', 'Controles en onderhoud die vast terugkomen, zoals een NEN 7510-beoordeling of een SSL-certificaat', nA == null ? (PB.fout ? 'Ophalen lukte niet' : 'Ophalen…') : `${nA} actief` + (nP ? ` · ${nP} achter` : ''), !!nP)}</div>
   <h3 class="bh-kop">Instellen</h3><div class="bh-raster">
     ${tegel('data-ikm="sjab"', '<path d="M4 5h16M4 10h16M4 15h10"/><path d="M17 14l3 3-5 5h-3v-3z"/>', 'Standaardteksten', 'Teksten in de keuzelijst onder het reactievak', [sjAangepast && `${sjAangepast} aangepast`, sjEigen && `${sjEigen} eigen`].filter(Boolean).join(' · '))}
     ${tegel('data-ikm="kbgaten"', '<path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5z"/><path d="M9 8h5M9 12h3"/><circle cx="17" cy="16" r="3"/><path d="M19.2 18.2 21 20"/>', '✦ Kennisbank-gaten', 'Wat wordt vaak gevraagd, maar staat nog niet in de kennisbank?', '')}
@@ -3916,10 +3944,11 @@ function tekenControle(){
 
 /* ================= periodieke beoordelingen (NEN 7510: 'met geplande tussenpozen beoordelen') =================
    De beheerder zet beoordelingen klaar (instructie, afdeling, verantwoordelijke, elke x dagen/maanden). Azure-functie ict-beoordelingen-planner
-   maakt elke ochtend de melding aan in AFAS (type Periodieke beoordeling) als er een aan de beurt is; staat de vorige nog open, dan niet ('achter').
+   maakt elke ochtend de melding aan in AFAS (type Periodieke taak; oud: Periodieke beoordeling) als er een aan de beurt is; staat de vorige nog open, dan niet ('achter').
    Opslag en aanmaken: Azure-functie ict-beoordelingen. Bij opslaan bouwt SubmIT het AFAS-sjabloon (veldcodes), zodat de functie alleen hoeft te posten. */
 const PB_ICO = '<rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/><path d="M8.5 14.5l2.3 2.3 4.7-4.6"/>';
-const PB_TYPE = 'Periodieke beoordeling', PB_PREFIX = 'Periodieke beoordeling: ';
+// 'Periodieke taak' (nieuw) en 'Periodieke beoordeling' (oud): SubmIT herkent beide, zodat oude meldingen bij hun taak blijven horen
+const PB_TYPE = 'Periodieke taak', PB_PREFIX = 'Periodieke taak: ', PB_TYPES = ['Periodieke taak', 'Periodieke beoordeling'], PB_PREFIXEN = ['Periodieke taak: ', 'Periodieke beoordeling: '];
 const PB = {defs: null, status: {}, fout: '', bezig: false, t: 0};
 const pbUrl = () => INST.beoordelingenUrl || String(INST.tokenFunctie || '').replace(/afas-token\/?$/, 'ict-beoordelingen');
 async function pbApi(methode, body){
@@ -3946,7 +3975,7 @@ const pbPlus = (d, def) => { const n = Math.max(1, +def.aantal || 1), x = new Da
   if(def.eenheid === 'dagen'){ x.setDate(x.getDate() + n); return tdIso(x); }
   const dag = x.getDate(); x.setDate(1); x.setMonth(x.getMonth() + n); x.setDate(Math.min(dag, new Date(x.getFullYear(), x.getMonth() + 1, 0).getDate())); return tdIso(x); };
 const pbVolgende = def => (PB.status[def.id] || {}).volgende || def.start || '';
-const pbMeldingen = def => items.filter(x => norm(x.onderwerp) === norm(PB_PREFIX + def.titel)).sort((a, b) => (b.aangemaakt || 0) - (a.aangemaakt || 0));
+const pbMeldingen = def => items.filter(x => PB_PREFIXEN.some(p => norm(x.onderwerp) === norm(p + def.titel))).sort((a, b) => (b.aangemaakt || 0) - (a.aangemaakt || 0));
 function pbAchter(){ return (PB.defs || []).filter(d => d.actief && ((PB.status[d.id] || {}).achter || pbMeldingen(d).some(x => !x.afgesloten && x.gepland && +x.gepland < +vandaagBegin()))); }
 const pbElke = d => `elke ${+d.aantal || 1} ${d.eenheid === 'dagen' ? ((+d.aantal || 1) === 1 ? 'dag' : 'dagen') : ((+d.aantal || 1) === 1 ? 'maand' : 'maanden')}`;
 const pbDatum = d => d ? fmtDatum(new Date(d + 'T00:00:00')) : '';
@@ -3958,18 +3987,18 @@ function pbKeren(def, van, tot){ const uit = [], eerst = pbVolgende(def); if(!ee
   for(let k = 1; k < 2000; k++){ const v = pbKeer(def, k); if(v > tot) break; if(v > eerst && v >= van) uit.push(v); } return uit; }
 function tekenBeoordelingen(){
   if(!PB.defs && !PB.bezig && !PB.fout) pbLaad();
-  $('#lijst-titel').textContent = 'Periodieke beoordelingen'; $('#lijst-n').hidden = !PB.defs; $('#lijst-n').textContent = (PB.defs || []).filter(d => d.actief).length;
+  $('#lijst-titel').textContent = 'Periodieke taken'; $('#lijst-n').hidden = !PB.defs; $('#lijst-n').textContent = (PB.defs || []).filter(d => d.actief).length;
   $('#titel').textContent = ''; $('#subtitel').textContent = ''; $('#lijst-sub').textContent = ''; $('#lijst-kol').innerHTML = '';
   ['#f-mijn', '#f-mijalles', '#f-soort', '#f-changes', '#f-weergave', '#f-zoom'].forEach(sel => { const e = $(sel); if(e) e.hidden = true; });
-  const uitleg = beheerTerug() + `<p class="ctrl-uitleg" style="margin-top:4px">Controles die met vaste tussenpozen terugkomen (NEN 7510). Op tijd komt er vanzelf een melding met de instructie en de hulpmiddelen, als <b>Nieuw</b> bij de afdeling of bij een vaste verantwoordelijke.</p>`;
-  const knoppen = `<div class="ctrl-kop"><span>${PB.bezig ? 'Ophalen…' : PB.fout ? '<span class="fout">' + esc(PB.fout) + '</span>' : PB.t ? 'Bijgewerkt ' + fmtTijd(new Date(PB.t)) : ''}</span><span class="pb-knoppen"><button type="button" class="linkknop" data-pbaudit title="Word-verslag voor de NEN 7510-audit, met samenvatting door AI">✦ NEN 7510-verslag</button><button type="button" class="linkknop" data-pbplan title="Doet wat de dagelijkse planner om 6 uur doet, nu meteen">Planner nu draaien</button><button type="button" class="knop vol klein" data-pbnieuw>+ Nieuwe beoordeling</button></span></div>`;
-  if(!PB.defs){ $('#lijst').innerHTML = uitleg + knoppen + `<p class="leeg">${PB.bezig ? 'Beoordelingen ophalen…' : PB.fout ? 'Ophalen lukte niet.' : ''}</p>`; return; }
+  const uitleg = beheerTerug() + `<p class="ctrl-uitleg" style="margin-top:4px">Taken die vast terugkomen: controles (NEN 7510: <i>met geplande tussenpozen beoordelen</i>) en onderhoud, zoals een SSL-certificaat of licentie. Op tijd komt er vanzelf een melding met de instructie en de hulpmiddelen, als <b>Nieuw</b> bij de afdeling of bij een vaste verantwoordelijke.</p>`;
+  const knoppen = `<div class="ctrl-kop"><span>${PB.bezig ? 'Ophalen…' : PB.fout ? '<span class="fout">' + esc(PB.fout) + '</span>' : PB.t ? 'Bijgewerkt ' + fmtTijd(new Date(PB.t)) : ''}</span><span class="pb-knoppen"><button type="button" class="linkknop" data-pbaudit title="Word-verslag voor de NEN 7510-audit, met samenvatting door AI">✦ NEN 7510-verslag</button><button type="button" class="linkknop" data-pbplan title="Doet wat de dagelijkse planner om 6 uur doet, nu meteen">Planner nu draaien</button><button type="button" class="knop vol klein" data-pbnieuw>+ Nieuwe taak</button></span></div>`;
+  if(!PB.defs){ $('#lijst').innerHTML = uitleg + knoppen + `<p class="leeg">${PB.bezig ? 'Periodieke taken ophalen…' : PB.fout ? 'Ophalen lukte niet.' : ''}</p>`; return; }
   const nu = tdIso(new Date()), over30 = tdIso(new Date(Date.now() + 30 * DAG)), jaar = String(new Date().getFullYear());
   const actief = PB.defs.filter(d => d.actief), achter = pbAchter();
   const komend = actief.filter(d => pbVolgende(d) && pbVolgende(d) <= over30);
   const klaar = PB.defs.flatMap(pbMeldingen).filter(x => x.afgesloten && x.statusDatum && String(x.statusDatum.getFullYear()) === jaar);
   const tegel = (n, t, kl, uitl) => `<div class="pb-tegel ${n ? kl : 'nul'}" title="${esc(uitl)}"><b>${n}</b><span>${t}</span></div>`;
-  const tegels = `<div class="pb-tegels">${tegel(actief.length, 'Actief', '', 'Beoordelingen die automatisch terugkomen')}${tegel(komend.length, 'Komende 30 dagen', 'blauw', 'Vervalt binnen 30 dagen')}${tegel(achter.length, 'Achter', 'rood', 'De vorige keer staat nog open of de planning is verlopen')}${tegel(klaar.length, 'Afgerond in ' + jaar, 'groen', 'Afgehandelde meldingen van dit jaar')}</div>`;
+  const tegels = `<div class="pb-tegels">${tegel(actief.length, 'Actief', '', 'Taken die automatisch terugkomen')}${tegel(komend.length, 'Komende 30 dagen', 'blauw', 'Vervalt binnen 30 dagen')}${tegel(achter.length, 'Achter', 'rood', 'De vorige keer staat nog open of de planning is verlopen')}${tegel(klaar.length, 'Afgerond in ' + jaar, 'groen', 'Afgehandelde meldingen van dit jaar')}</div>`;
   // tijdlijn: 12 maanden vanaf het begin van deze maand
   const b0 = new Date(); b0.setDate(1); const van = tdIso(b0), eind = new Date(b0); eind.setMonth(eind.getMonth() + 12); const tot = tdIso(eind), span = eind - b0;
   const pos = d => Math.max(0, Math.min(100, (new Date(d + 'T00:00:00') - b0) / span * 100));
@@ -3984,10 +4013,10 @@ function tekenBeoordelingen(){
   const tijdlijn = PB.defs.length ? `<div class="pb-tijdlijn"><div class="pb-rij pb-kop"><span></span><div class="pb-spoor">${maanden.map(m => `<span class="pb-maand" style="left:${m.l}%">${m.t}</span>`).join('')}<i class="pb-vandaag" style="left:${pos(nu)}%" title="Vandaag"></i></div></div>${rijen}
     <p class="pb-legenda"><i class="pb-stip blauw"></i>gepland <i class="pb-stip oranje"></i>melding open <i class="pb-stip groen"></i>afgehandeld <i class="pb-stip rood"></i>achter</p></div>` : '';
   // lijst
-  const lijst = PB.defs.length ? `<div class="tw"><table class="tabel pb-tabel"><thead><tr><th>Beoordeling</th><th>Afdeling</th><th>Verantwoordelijke</th><th>Interval</th><th>Volgende</th><th>Laatste melding</th><th>Status</th></tr></thead><tbody>${PB.defs.map(d => {
+  const lijst = PB.defs.length ? `<div class="tw"><table class="tabel pb-tabel"><thead><tr><th>Taak</th><th>Afdeling</th><th>Verantwoordelijke</th><th>Interval</th><th>Volgende</th><th>Laatste melding</th><th>Status</th></tr></thead><tbody>${PB.defs.map(d => {
       const st = PB.status[d.id] || {}, l = pbMeldingen(d)[0], isAchter = achter.includes(d);
       const stat = !d.actief ? '<span class="chip">uit</span>' : isAchter ? '<span class="chip rood">achter</span>' : st.fout ? `<span class="chip rood" title="${esc(st.fout)}">fout bij aanmaken</span>` : l && !l.afgesloten ? '<span class="chip oranje">loopt</span>' : '<span class="chip groen">op schema</span>';
-      return `<tr data-pbbewerk="${esc(d.id)}"><td><b>${esc(d.titel)}</b></td><td>${esc(d.afdeling || '')}</td><td>${d.verantwNaam ? esc(d.verantwNaam) : '<span class="zacht">Nieuw, servicedesk wijst toe</span>'}</td><td>${esc(pbElke(d))}</td><td>${esc(pbDatum(pbVolgende(d)))}</td><td>${l ? `<a href="#" data-pbmelding="${esc(l.nr)}">${esc(nrT(l))}</a> · ${l.afgesloten ? 'afgehandeld' : 'open'}` : st.open ? 'dossieritem ' + esc(st.open) : '–'}</td><td>${stat}</td></tr>`; }).join('')}</tbody></table></div>` : `<div class="pb-leeg"><p><b>Nog geen periodieke beoordelingen.</b></p><p>Denk aan: toegangsrechten per systeem nalopen, een back-up terugzetten, uitdiensttreders controleren, leveranciers evalueren, certificaten en licenties nalopen.</p></div>`;
+      return `<tr data-pbbewerk="${esc(d.id)}"><td><b>${esc(d.titel)}</b></td><td>${esc(d.afdeling || '')}</td><td>${d.verantwNaam ? esc(d.verantwNaam) : '<span class="zacht">Nieuw, servicedesk wijst toe</span>'}</td><td>${esc(pbElke(d))}</td><td>${esc(pbDatum(pbVolgende(d)))}</td><td>${l ? `<a href="#" data-pbmelding="${esc(l.nr)}">${esc(nrT(l))}</a> · ${l.afgesloten ? 'afgehandeld' : 'open'}` : st.open ? 'dossieritem ' + esc(st.open) : '–'}</td><td>${stat}</td></tr>`; }).join('')}</tbody></table></div>` : `<div class="pb-leeg"><p><b>Nog geen periodieke taken.</b></p><p>Denk aan: toegangsrechten per systeem nalopen, een back-up terugzetten, uitdiensttreders controleren, leveranciers evalueren, certificaten en licenties nalopen.</p></div>`;
   $('#lijst').innerHTML = uitleg + knoppen + (PB.defs.length ? `<div class="pb-blok">${tegels + tijdlijn}</div>` : `<div class="pb-blok">${lijst}</div>`) + (PB.defs.length ? lijst : '');
 }
 // melding-tekst: instructie + checklist (regels die met "- " beginnen worden ☐) + vervaldatum
@@ -3997,7 +4026,7 @@ async function pbSjabloon(def){
   const w = {StId: isNaN(+m.stId) ? m.stId : +m.stId, Ds: (PB_PREFIX + def.titel).slice(0, 80), SbTx: pbToelichting(def)};
   const zet = (veld, v) => { if(veld && v !== '' && v != null) w[veldCode(veld)] = veld.dataType === 'int' && !isNaN(+v) ? +v : v; };
   if(!m.type) throw new Error('Het veld Type melding is niet gevonden in AFAS.');
-  const tp = waardenVan(m.type.values).find(x => norm(x.naam) === norm(PB_TYPE) || norm(x.code) === norm(PB_TYPE));
+  const tw = waardenVan(m.type.values), tp = PB_TYPES.map(t => tw.find(x => norm(x.naam) === norm(t) || norm(x.code) === norm(t))).find(Boolean);   // eerst 'Periodieke taak', anders nog de oude naam
   if(!tp) throw new Error(`Type melding "${PB_TYPE}" staat nog niet in de keuzelijst van AFAS. Vraag de AFAS-beheerder hem toe te voegen.`);
   zet(m.type, tp.code);
   if(m.afd){ const a = waardenVan(m.afd.values).find(x => norm(x.naam) === norm(def.afdeling)); if(!a) throw new Error(`Afdeling "${def.afdeling}" staat niet in de keuzelijst van AFAS.`); zet(m.afd, a.code); }
@@ -4026,8 +4055,8 @@ function pbVoorafOpties(n){
 }
 async function pbBewerk(id){
   const oud = (PB.defs || []).find(d => d.id === id), def = oud ? {...oud} : {id: 'pb' + Date.now().toString(36), titel: '', instructie: '', afdeling: 'ICT', locatie: 'Planetarium', aantal: 180, eenheid: 'dagen', start: tdIso(new Date(Date.now() + 14 * DAG)), vooraf: 14, actief: true};
-  let d = $('#pbdlg'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="pbdlg" aria-label="Periodieke beoordeling"></dialog>'); d = $('#pbdlg'); }
-  d.innerHTML = `<div class="dlg-in"><div class="dlg-kop"><div><small>${PB_TYPE}</small><h2>${oud ? esc(oud.titel) : 'Nieuwe beoordeling'}</h2></div><button class="sluit" data-pbdicht aria-label="Sluiten">×</button></div><p class="leeg">Velden ophalen uit AFAS…</p></div>`;
+  let d = $('#pbdlg'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="pbdlg" aria-label="Periodieke taak"></dialog>'); d = $('#pbdlg'); }
+  d.innerHTML = `<div class="dlg-in"><div class="dlg-kop"><div><small>${PB_TYPE}</small><h2>${oud ? esc(oud.titel) : 'Nieuwe taak'}</h2></div><button class="sluit" data-pbdicht aria-label="Sluiten">×</button></div><p class="leeg">Velden ophalen uit AFAS…</p></div>`;
   d.showModal();
   let afd = [], loc = [], ict = [], m;
   try{ m = await laadNieuwMeta(); afd = (await afdelingKeuzes()).waarden.map(w => w.naam).sort((a, b) => a.localeCompare(b, 'nl')); loc = m.loc ? waardenVan(m.loc.values).map(w => w.naam).sort((a, b) => a.localeCompare(b, 'nl')) : []; ict = await ictCollegas(); }
@@ -4076,8 +4105,8 @@ async function pbBewaar(){
   def.vooraf = Math.max(0, +f.vooraf.value || 0); def.actief = f.actief.checked; def.afdeling = f.afdeling.value; def.locatie = f.locatie.value;
   def.verantwCode = f.verantw.value; def.verantwNaam = f.verantw.value ? f.verantw.options[f.verantw.selectedIndex].textContent : ''; def.start = f.start.value;
   def.extra = Object.fromEntries([...f.querySelectorAll('[name^="pbx_"]')].map(e => [e.name.slice(4), e.value]));
-  if(!def.titel){ fout.textContent = 'Geef de beoordeling een titel.'; f.titel.focus(); return; }
-  if((PB.defs || []).some(d => d.id !== def.id && norm(d.titel) === norm(def.titel))){ fout.textContent = 'Er is al een beoordeling met deze titel.'; return; }
+  if(!def.titel){ fout.textContent = 'Geef de taak een titel.'; f.titel.focus(); return; }
+  if((PB.defs || []).some(d => d.id !== def.id && norm(d.titel) === norm(def.titel))){ fout.textContent = 'Er is al een periodieke taak met deze titel.'; return; }
   if(!def.start){ fout.textContent = 'Kies de eerste datum.'; return; }
   if(!def.instructie){ fout.textContent = 'Schrijf een instructie: wat moet er gebeuren?'; f.instructie.focus(); return; }
   const k = f.querySelector('[data-pbbewaar]'); k.disabled = true; k.textContent = 'Opslaan…'; fout.textContent = '';
@@ -4090,14 +4119,14 @@ async function pbBewaar(){
     const reset = !oud || oud.start !== def.start || oud.aantal !== def.aantal || oud.eenheid !== def.eenheid || def.start !== pbVolgende(oud) ? [def.id] : [];
     const j = await pbApi('PUT', {defs, reset}); PB.defs = defs; if(j.status) PB.status = j.status;
     if(reset.length && PB.status[def.id]) delete PB.status[def.id].volgende;
-    $('#pbdlg').close(); toast(oud ? 'Beoordeling opgeslagen' : `Beoordeling klaargezet: de eerste melding komt rond ${pbDatum(pbMin(def.start, def.vooraf))}`); tekenBeoordelingen(); try{ tekenNav(); }catch(e){}
+    $('#pbdlg').close(); toast(oud ? 'Periodieke taak opgeslagen' : `Periodieke taak klaargezet: de eerste melding komt rond ${pbDatum(pbMin(def.start, def.vooraf))}`); tekenBeoordelingen(); try{ tekenNav(); }catch(e){}
   }catch(e){ fout.textContent = 'Opslaan lukte niet: ' + e.message; }
   finally{ k.disabled = false; k.textContent = 'Opslaan'; }
 }
 /* ---- resultaat van een periodieke beoordeling vastleggen (in de melding zelf) ----
    Afvinklijst uit de instructie (☐-regels), uitkomst, bevindingen en het rapport als bijlage. Alles komt als één reactie
    in het reactievak (met de bestanden erbij), zodat het met Opslaan of Afhandelen als bewijs in de melding staat. */
-const pbIs = x => !!x && (norm(x.type) === norm(PB_TYPE) || String(x.onderwerp || '').startsWith(PB_PREFIX));
+const pbIs = x => !!x && (PB_TYPES.some(t => norm(x.type) === norm(t)) || PB_PREFIXEN.some(p => String(x.onderwerp || '').startsWith(p)));
 function pbResInit(x){
   const el = $('#d-pbres'); if(!el || !huidig || huidig.x !== x) return;
   const stappen = String(($('#d-toel') || {}).value || x.toelichting || '').split('\n').map(r => r.trim()).filter(r => /^[☐☑]/.test(r)).map(r => r.replace(/^[☐☑]\s*/, ''));
@@ -4119,14 +4148,14 @@ function pbResSync(){
   const p = huidig.pbres, uit = (el.querySelector('[name="pbuit"]:checked') || {}).value, bev = $('#pbres-tekst').value.trim();
   const vink = [...el.querySelectorAll('[data-pbstap]')], gedaan = vink.filter(v => v.checked).length;
   const iets = uit || bev || gedaan || (huidig.klaar.reactie || []).length;
-  const tekst = !iets ? '' : [`Resultaat periodieke beoordeling: ${uit === 'ok' ? 'in orde ✓' : uit === 'afw' ? 'afwijking gevonden ⚠' : '(uitkomst nog kiezen)'}`,
+  const tekst = !iets ? '' : [`Resultaat periodieke taak: ${uit === 'ok' ? 'in orde ✓' : uit === 'afw' ? 'afwijking gevonden ⚠' : '(uitkomst nog kiezen)'}`,
     `Uitgevoerd op ${fmtDatum(new Date())} door ${profiel.naam || 'ICT'}.`,
     vink.length ? '\nGecontroleerd (' + gedaan + ' van ' + vink.length + '):\n' + vink.map((v, i) => (v.checked ? '☑ ' : '☐ ') + p.stappen[i]).join('\n') : '',
     bev ? '\nBevindingen:\n' + bev : '',
     (huidig.klaar.reactie || []).length ? '\nRapport/bewijs: zie bijlage' + ((huidig.klaar.reactie || []).length === 1 ? '' : 'n') + ' bij deze reactie.' : ''].filter(Boolean).join('\n');
   if(t.value.trim() && t.value !== p.gen){ $('#pbres-hint').textContent = 'Je hebt het reactievak zelf aangepast; het resultaat wordt daar niet meer overschreven.'; return; }
   t.value = tekst; p.gen = tekst; pasHoogteAan(t); $('#detail').dataset.gewijzigd = '1';
-  $('#pbres-hint').innerHTML = !iets ? '' : uit === 'afw' ? 'Staat in het reactievak hieronder. Maak voor de vervolgactie een aparte melding of to-do, en handel deze beoordeling daarna af.' : !uit ? 'Kies nog de uitkomst.' : 'Staat in het reactievak hieronder. Klik op <b>Afhandelen</b> als je klaar bent.';
+  $('#pbres-hint').innerHTML = !iets ? '' : uit === 'afw' ? 'Staat in het reactievak hieronder. Maak voor de vervolgactie een aparte melding of to-do, en handel deze taak daarna af.' : !uit ? 'Kies nog de uitkomst.' : 'Staat in het reactievak hieronder. Klik op <b>Afhandelen</b> als je klaar bent.';
   mailVooraf();
 }
 document.addEventListener('click', e => { if(e.target.closest('[data-pbresbestand]')) $('#pbres-f').click(); });
@@ -4142,8 +4171,8 @@ document.addEventListener('click', async e => {
   const hn = e.target.closest('[data-pbhulpnieuw]'); if(hn){ const f = $('#pb-form'); f._nieuw.splice(+hn.dataset.pbhulpnieuw, 1); pbTekenHulp(); return; }
   const hg = e.target.closest('[data-pbhulpget]'); if(hg){ try{ const j = await pbApi('GET', {bid: hg.dataset.pbhulpget}); const bin = atob(j.data), u8 = new Uint8Array(bin.length); for(let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([u8])); a.download = j.naam || 'bestand'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }catch(err){ $('#pb-fout').textContent = 'Downloaden lukte niet: ' + err.message; } return; }
-  if(e.target.closest('[data-pbweg]')){ const f = $('#pb-form'), def = f._oud; if(!(await vraag('Beoordeling verwijderen?', `"${def.titel}" komt dan niet meer terug. Meldingen die al zijn aangemaakt blijven gewoon bestaan.`, 'Verwijderen', 'Annuleren', true))) return;
-    try{ const defs = PB.defs.filter(d => d.id !== def.id); await pbApi('PUT', {defs}); PB.defs = defs; delete PB.status[def.id]; $('#pbdlg').close(); toast('Beoordeling verwijderd'); tekenBeoordelingen(); }catch(err){ $('#pb-fout').textContent = 'Verwijderen lukte niet: ' + err.message; } return; }
+  if(e.target.closest('[data-pbweg]')){ const f = $('#pb-form'), def = f._oud; if(!(await vraag('Periodieke taak verwijderen?', `"${def.titel}" komt dan niet meer terug. Meldingen die al zijn aangemaakt blijven gewoon bestaan.`, 'Verwijderen', 'Annuleren', true))) return;
+    try{ const defs = PB.defs.filter(d => d.id !== def.id); await pbApi('PUT', {defs}); PB.defs = defs; delete PB.status[def.id]; $('#pbdlg').close(); toast('Periodieke taak verwijderd'); tekenBeoordelingen(); }catch(err){ $('#pb-fout').textContent = 'Verwijderen lukte niet: ' + err.message; } return; }
   if(e.target.closest('[data-pbnu]')){ const f = $('#pb-form'), def = f._oud, k = e.target.closest('[data-pbnu]');
     if(!(await vraag('Nu een melding aanmaken?', `Er komt meteen een melding "${PB_PREFIX}${def.titel}" ${def.verantwNaam ? 'bij ' + def.verantwNaam : 'als Nieuw bij ' + (def.afdeling || 'de afdeling')}. Sla eerst op als je iets hebt gewijzigd.`, 'Aanmaken', 'Annuleren'))) return;
     k.disabled = true; k.textContent = 'Aanmaken…';
@@ -7267,7 +7296,7 @@ const AI_DEMO = {
   cluster: b => { const l = b.meldingen || []; return {groepen: l.length >= 3 ? [{ids: l.slice(0, 3).map(m => m.id), titel: 'Mogelijke storing (demo)', waarom: 'Drie meldingen kort na elkaar over hetzelfde probleem.'}] : []}; },
   kbgaten: b => ({gaten: (b.groepen || []).slice(0, 3).map(g => ({id: g.id, titel: 'Instructie: ' + g.id, waarom: 'Komt vaak terug en is met een instructie zelf op te lossen.'}))}),
   verslag: b => ({tekst: `## In het kort\n- **${b.cijfers.binnengekomen.nu}** meldingen binnengekomen (vorige periode ${b.cijfers.binnengekomen.vorige}).\n- **${b.cijfers.afgehandeld.nu}** afgehandeld; nu ${b.cijfers.open} open.\n- Gemiddelde doorlooptijd ${b.cijfers.doorlooptijdDagen} dagen.\n\n## Trends\n- Dit is een voorbeeld van de AI-analyse in de demo.\n\n## Opvallend\n- Veel meldingen over ${(b.onderwerpen || ['–'])[0]}.\n\n## Aandachtspunten\n- Overweeg een instructie voor het meest gemelde onderwerp.`}),
-  audit: b => ({inleiding: 'Dit verslag laat zien welke periodieke beoordelingen de afdeling ICT heeft uitgevoerd (demo).', conclusie: 'De beoordelingen zijn grotendeels volgens plan uitgevoerd.', aandachtspunten: ['Leg bij elke beoordeling het resultaat vast.'], per: Object.fromEntries((b.beoordelingen || []).map(d => [d.id, 'Uitgevoerd volgens planning (demo).']))})
+  audit: b => ({inleiding: 'Dit verslag laat zien welke periodieke taken de afdeling ICT heeft uitgevoerd (demo).', conclusie: 'De taken zijn grotendeels volgens plan uitgevoerd.', aandachtspunten: ['Leg bij elke taak het resultaat vast.'], per: Object.fromEntries((b.beoordelingen || []).map(d => [d.id, 'Uitgevoerd volgens planning (demo).']))})
 };
 const aiMelding = x => ({onderwerp: anoniem(x.onderwerp, x), toelichting: anoniem(kaal(x.toelichting || toelCache.get(String(x.nr)) || ''), x),
   reacties: ((huidig && huidig.x === x && huidig.reacties) || []).filter(r => r.tekst).slice(-12).map(r => ({van: r.intern ? 'intern' : norm(r.wie) === norm(x.melder) ? 'melder' : 'ict', tekst: anoniem(kaleOplossing(r.tekst), x)}))});
@@ -7531,12 +7560,17 @@ document.addEventListener('click', async e => {
       + h.kop2('Per locatie') + h.tabel(['Locatie', 'Aantal', 'Vorige periode'], c.perLoc.map(([k, n, v]) => [k, String(n), String(v)]), [3, 1, 1.2])}), `Rapportage ICT ${a.label} ${fmtDatum(new Date())}.docx`); }
 });
 
-/* ================= NEN 7510-verslag van de periodieke beoordelingen ================= */
+/* ================= NEN 7510-verslag van de periodieke taken ================= */
+const auditKeuze = t => { const k = opslag.get('mict-audit-taken'); return k && t.id in k ? !!k[t.id] : /beoordel|controle|nen ?7510/i.test(t.titel || ''); };
 async function pbAudit(){
+  if(!PB.defs) await pbLaad(true);
   let d = $('#auditdlg'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="auditdlg" aria-label="NEN 7510-verslag"></dialog>'); d = $('#auditdlg'); }
   const jaar = new Date().getFullYear();
-  d.innerHTML = `<div class="dlg-in"><div class="dlg-kop"><div><small>✦ AI · Periodieke beoordelingen</small><h2>NEN 7510-verslag</h2></div><button type="button" class="sluit" data-auditdicht aria-label="Sluiten">×</button></div>
-    <p class="hint">Een Word-verslag voor de audit: per beoordeling wanneer hij is uitgevoerd, door wie, de uitkomst en de bevindingen, met een samenvatting en aandachtspunten. Namen gaan niet naar de AI; die zet SubmIT zelf in het verslag.</p>
+  d.innerHTML = `<div class="dlg-in"><div class="dlg-kop"><div><small>✦ AI · Periodieke taken</small><h2>NEN 7510-verslag</h2></div><button type="button" class="sluit" data-auditdicht aria-label="Sluiten">×</button></div>
+    <p class="hint">Een Word-verslag voor de audit: per taak wanneer hij is uitgevoerd, door wie, de uitkomst en de bevindingen, met een samenvatting en aandachtspunten. Namen gaan niet naar de AI; die zet SubmIT zelf in het verslag.</p>
+    <h3 class="pb-kop3">Welke taken komen in het verslag?</h3>
+    <div class="audit-taken">${(PB.defs || []).map(t => `<label class="vink"><input type="checkbox" data-audittaak="${esc(t.id)}" ${auditKeuze(t) ? 'checked' : ''}> ${esc(t.titel)}</label>`).join('') || '<p class="hint">Nog geen periodieke taken.</p>'}</div>
+    <p class="hint">Taken met "beoordeling" of "controle" in de titel staan standaard aangevinkt; je keuze wordt onthouden.</p>
     <div class="pb-acties"><label class="hint">Jaar <select id="audit-jaar" class="afdkeuze" style="width:100px">${[jaar, jaar - 1].map(j => `<option>${j}</option>`).join('')}</select></label><span style="flex:1"></span><button type="button" class="knop vol" data-auditmaak>✦ Verslag maken</button></div>
     <p class="hint" id="audit-stand"></p></div>`;
   d.showModal();
@@ -7545,7 +7579,9 @@ async function pbAuditMaak(k){
   const jaar = +$('#audit-jaar').value, stand = t => { $('#audit-stand').innerHTML = `<span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>${t}`; };
   k.disabled = true;
   try{ if(!PB.defs) await pbLaad(true);
-    const defs = (PB.defs || []), rijen = []; let n = 0, totaal = 0;
+    const keuze = Object.fromEntries([...document.querySelectorAll('[data-audittaak]')].map(c => [c.dataset.audittaak, c.checked])); opslag.set('mict-audit-taken', {...(opslag.get('mict-audit-taken') || {}), ...keuze});
+    const defs = (PB.defs || []).filter(t => keuze[t.id]), rijen = []; let n = 0, totaal = 0;
+    if(!defs.length) throw new Error('vink minstens één taak aan');
     const perDef = defs.map(def => { const st = PB.status[def.id] || {}, bekend = new Map(pbMeldingen(def).map(x => [String(x.sbid || ''), x]));
       const l = pbMeldingen(def).filter(x => (x.gepland || x.aangemaakt) && new Date(x.gepland || x.aangemaakt).getFullYear() === jaar).map(x => ({x, sbid: x.sbid, verval: x.gepland ? tdIso(x.gepland) : ''}));
       (st.historie || []).filter(h => String(h.verval || h.aangemaakt || '').startsWith(String(jaar)) && h.sbid && !l.some(r => String(r.sbid) === String(h.sbid))).forEach(h => l.push({x: bekend.get(String(h.sbid)) || null, sbid: h.sbid, verval: h.verval}));
@@ -7555,7 +7591,7 @@ async function pbAuditMaak(k){
       let res = null;
       try{ const y = u.x || {sbid: u.sbid, nr: 'sb' + u.sbid}; if(u.x && !DEMO) await zorgSbId(u.x);
         const l = DEMO ? ((wachtReactie.get(String(y.nr)) || [])) : await haalReacties(y);
-        res = [...l].reverse().find(r => /^\s*Resultaat periodieke beoordeling:/i.test(r.tekst || '')); }catch(e){}
+        res = [...l].reverse().find(r => /^\s*Resultaat periodieke (taak|beoordeling):/i.test(r.tekst || '')); }catch(e){}
       const t = res ? res.tekst : '', uitkomst = /in orde/i.test(t.split('\n')[0]) ? 'In orde' : /afwijking/i.test(t.split('\n')[0]) ? 'Afwijking gevonden' : res ? 'Vastgelegd' : u.x && u.x.afgesloten ? 'Afgehandeld, geen resultaat vastgelegd' : u.x ? 'Loopt nog' : 'Onbekend';
       const bev = (t.split(/\n\s*Bevindingen:\s*\n/i)[1] || '').split(/\n\s*Rapport\/bewijs:/i)[0].trim();
       const gecontroleerd = (t.match(/Gecontroleerd \((\d+) van (\d+)\)/) || []).slice(1).join(' van ');
@@ -7563,11 +7599,11 @@ async function pbAuditMaak(k){
     stand('AI schrijft de samenvatting…');
     const j = await aiApi({soort: 'audit', jaar, beoordelingen: perDef.map(({def, l}) => ({id: def.id, titel: def.titel, interval: pbElke(def), actief: !!def.actief, achter: pbAchter().includes(def),
       uitvoeringen: l.map(u => ({gepland: u.r.verval, uitgevoerd: u.r.uitgevoerd, uitkomst: u.r.uitkomst, gecontroleerd: u.r.gecontroleerd, bevindingen: anoniem(u.r.bevindingen, {}).slice(0, 500)}))}))});
-    downloadBlob(dcDocx({kicker: 'NEN 7510 · Periodieke beoordelingen', titel: `Verslag ${jaar}`, bron: `Gemaakt met SubmIT · ${fmtDatum(new Date())} · ${profiel ? profiel.naam : ''} · samenvatting door AI, gegevens uit AFAS · nalezen vóór gebruik`, inhoud: h =>
-      h.tekst(j.inleiding || '') + h.klein(`${perDef.length} beoordelingen · ${totaal} keer aan de beurt in ${jaar}`)
+    downloadBlob(dcDocx({kicker: 'NEN 7510 · Periodieke taken', titel: `Verslag ${jaar}`, bron: `Gemaakt met SubmIT · ${fmtDatum(new Date())} · ${profiel ? profiel.naam : ''} · samenvatting door AI, gegevens uit AFAS · nalezen vóór gebruik`, inhoud: h =>
+      h.tekst(j.inleiding || '') + h.klein(`${perDef.length} taken · ${totaal} keer aan de beurt in ${jaar}`)
       + perDef.map(({def, l}) => h.kop2(def.titel) + h.klein(`${pbElke(def)} · ${def.afdeling || ''}${def.actief ? '' : ' · staat uit'}`) + (j.per && j.per[def.id] ? h.tekst(j.per[def.id]) : '')
         + (l.length ? h.tabel(['Gepland', 'Uitgevoerd', 'Door', 'Uitkomst', 'Bevindingen'], l.map(u => [u.r.verval, u.r.uitgevoerd, u.r.door || '–', u.r.uitkomst + (u.r.gecontroleerd ? ` (${u.r.gecontroleerd})` : ''), u.r.bevindingen || '–']), [1, 1, 1.4, 1.5, 3]) : h.klein('Niet aan de beurt geweest in ' + jaar + '.'))).join('')
-      + h.kop2('Conclusie') + h.tekst(j.conclusie || '') + ((j.aandachtspunten || []).length ? h.kop2('Aandachtspunten') + h.bullets(j.aandachtspunten) : '')}), `NEN 7510 - Periodieke beoordelingen ${jaar}.docx`);
+      + h.kop2('Conclusie') + h.tekst(j.conclusie || '') + ((j.aandachtspunten || []).length ? h.kop2('Aandachtspunten') + h.bullets(j.aandachtspunten) : '')}), `NEN 7510 - Periodieke taken ${jaar}.docx`);
     $('#audit-stand').textContent = 'Verslag gedownload. Lees het na voor je het deelt.'; }
   catch(e){ $('#audit-stand').innerHTML = `<span class="fout">Lukte niet: ${esc(e.message)}</span>`; }
   finally{ k.disabled = false; }
@@ -8065,6 +8101,8 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.67', d: '23-10-2026', p: ['Standaardteksten: opening en afsluiting stel je één keer algemeen in (Beheer → Standaardteksten → Opening en afsluiting). Ze gelden voor alle teksten, ook AI-concepten. De afsluiting noemt nu Afdeling ICT.', 'Onder elk tekstvak: knop { } Variabelen om ze snel te bekijken en in te voegen.']},
+  {v: 'v7.66', d: '23-10-2026', p: ['Periodieke beoordelingen heten nu Periodieke taken: naast controles ook onderhoud, zoals een SSL-certificaat. Nieuwe meldingen krijgen het type "Periodieke taak"; oude meldingen blijven bij hun taak horen.', 'NEN 7510-verslag: je kiest met vinkjes welke taken erin komen.']},
   {v: 'v7.65', d: '23-10-2026', p: ['Standaardteksten beheren: de keuzelijst is nu precies die uit de melding (zelfde namen en volgorde). De automatische voorstellen bij een status staan apart, ingeklapt.']},
   {v: 'v7.64', d: '23-10-2026', groot: true, p: ['Aandacht nodig telt nu precies hetzelfde als het SLA-dashboard op de schermen: dezelfde statussen, opvolging na 4 werkdagen, werkdag vanaf 07:30, en niet meetellen: Zorgadministratie, Power BI, changes en verbeteracties.', 'Een melding blijft nieuw tot alle stappen gezet zijn: verantwoordelijke, afdeling, locatie en een reactie aan de melder.']},
   {v: 'v7.62', d: '23-10-2026', p: ['Meldingen rechtsonder (update, herinnering, kritiek, mogelijke storing) hebben dezelfde rustige stijl als de balk links: wit met een zachte schaduw.']},
@@ -8090,7 +8128,7 @@ const RELEASES = [
   {v: 'v7.42', d: '22-10-2026', p: ['Voorstellen bij binnenkomst gaan alleen nog over afdeling en type, op basis van vergelijkbare meldingen. Een verantwoordelijke wordt nooit meer voorgesteld.', 'Periodieke beoordeling klaarzetten: het blok Wanneer is overzichtelijker.']},
   {v: 'v7.41', d: '22-10-2026', groot: true, p: ['Periodieke beoordelingen: een melding kan nu als Nieuw bij de servicedesk binnenkomen, zonder vaste verantwoordelijke.', 'Hulpmiddelen (bijv. een script of rapportsjabloon) kun je bij een beoordeling zetten; ze komen als bijlage bij elke melding.', 'In een beoordelingsmelding leg je het resultaat vast: afvinklijst, uitkomst, bevindingen en het rapport als bijlage, in één keer als reactie.']},
   {v: 'v7.40', d: '22-10-2026', p: ['Word-bijlagen (.docx) zie je nu als leesbare voorvertoning in plaats van rare tekens; de bestandsgrootte klopt.', 'Standaardteksten worden centraal beheerd: de beheerder kan ze aanpassen, toevoegen en verwijderen, en ze gelden meteen voor iedereen.']},
-  {v: 'v7.39', d: '22-10-2026', p: ['Afhandelen en Opslaan staan nu onder het reactieveld: eerst schrijven, dan opslaan.', 'Snel van de ene naar de andere melding gaan werkt betrouwbaarder.', 'Periodieke beoordelingen (alleen voor de beheerder): controles die met vaste tussenpozen terugkomen klaarzetten, met instructie, tijdlijn en overzicht. De melding komt vanzelf op tijd.']},
+  {v: 'v7.39', d: '22-10-2026', p: ['Afhandelen en Opslaan staan nu onder het reactieveld: eerst schrijven, dan opslaan.', 'Snel van de ene naar de andere melding gaan werkt betrouwbaarder.', 'Periodieke taken (alleen voor de beheerder): controles die met vaste tussenpozen terugkomen klaarzetten, met instructie, tijdlijn en overzicht. De melding komt vanzelf op tijd.']},
   {v: 'v7.38', d: '22-10-2026', p: ['ICT-collega’s worden herkend aan hun kostenplaats ICT; bij Verantwoordelijke staan alle ICT-collega’s en via "Iemand buiten ICT…" iedereen met een AFAS-gebruiker.']},
   {v: 'v7.37', d: '21-10-2026', groot: true, p: ['Voorstel bij binnenkomst: bij een melding zonder verantwoordelijke stelt SubmIT afdeling, type en verantwoordelijke voor, op basis van vergelijkbare meldingen. Herkenbaar aan ✦ Voorstel: ✓ neemt over, × haalt weg.', 'Concept-antwoord: één klik onder het reactievak geeft een concept op basis van hoe een vergelijkbare melding is opgelost, met een instructie uit de kennisbank erbij.', 'Instructie maken: bij een afgehandelde melding maak je van de oplossing een Word-concept in DC-huisstijl voor de kennisbank.']},
   {v: 'v7.36', d: '21-10-2026', p: ['To-do op het overzicht: rustigere kopjes, het aantal als label.']},
