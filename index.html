@@ -849,7 +849,9 @@ select.voorstel,input.voorstel,textarea.voorstel,.linkveld.voorstel,.kaart2 sele
 .sjgroep{display:inline-flex;align-items:center;border:1.5px solid var(--lijn);background:var(--vlak);border-radius:999px;padding-left:2px}
 .sjgroep .sjabloonkeuze{border:0;background-color:transparent;padding-left:4px}
 .sjai{border:0;background:transparent;width:22px;height:22px;border-radius:50%;font-size:12px;line-height:1;cursor:default;color:var(--grijs);opacity:.45;display:grid;place-items:center;transition:opacity .15s,color .15s}
-.sjai:hover{opacity:1;background:var(--blauw-licht,rgba(5,55,135,.07))}.sjai[aria-pressed="true"]{color:var(--blauw);opacity:1}.sjai.bezig{animation:aiPuls 1s ease-in-out infinite}
+.sjai:hover{opacity:1;background:#f4eeff}.sjai[aria-pressed="true"]{color:var(--blauw);opacity:.9}
+.ai-ico{display:inline-block;vertical-align:-2px;margin-right:5px;flex:none}.ai2 .ai-ico{margin-right:0}
+.sjai .ai-ico{margin:0;display:block;transition:filter .15s}.sjai[aria-pressed="false"] .ai-ico{filter:grayscale(1)}.sjai[aria-pressed="false"]:hover .ai-ico{filter:none}.sjai.bezig{animation:aiPuls 1s ease-in-out infinite}
 .sjabloonkeuze{border:1.5px solid var(--lijn);background:var(--vlak);color:var(--blauw);border-radius:999px;padding:4px 10px;font:inherit;font-size:12.5px;cursor:default}
 .oog{display:inline-grid;place-items:center;color:var(--blauw-2);margin-right:6px;vertical-align:-3px;cursor:default}
 .oog svg{width:15px;height:15px}
@@ -3493,7 +3495,7 @@ async function toonReacties(x){
     const reactiesT = [...l, ...wacht].filter(r => r.t), bij = m => { const r = reactiesT.filter(r => Math.abs(+r.t - +m.t) < 10 * 6e4).sort((a, b) => Math.abs(+a.t - +m.t) - Math.abs(+b.t - +m.t))[0]; return r ? +r.t - 1 : +m.t || 0; };
     mails.forEach(m => { m._s = bij(m); });   // een mail staat direct onder de reactie waar hij bij hoort, ook als AFAS hem een paar seconden eerder/later stempelt
     const alles = [...l, ...wacht, ...mails].sort((a, b) => (a._s ?? (+a.t || 0)) - (b._s ?? (+b.t || 0)));
-    el.innerHTML = `<h3>Reacties (${l.length + wacht.length})${mails.length ? ` · ✉ ${mails.length} mail${mails.length === 1 ? '' : 's'}` : ''} <small class="hint">nieuwste bovenaan</small>${l.length >= 5 && !$('#ai-samen') ? ' <button type="button" class="linkknop conceptknop" data-aisamen title="AI vat de melding en de reacties samen">✦ Samenvatten</button>' : ''}</h3>` + (alles.length ? bundelMails([...alles].reverse()).map(r => r.groep ? mailGroep(r.groep) : r.mail ? mailRegel(r) : `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''} ${r.intern ? 'intern' : ''} ${r.wacht ? 'wacht' : ''}"${r.rid ? ` data-rid="${esc(r.rid)}"` : ''}>${avatar(r.wie)}
+    el.innerHTML = `<h3>Reacties (${l.length + wacht.length})${mails.length ? ` · ✉ ${mails.length} mail${mails.length === 1 ? '' : 's'}` : ''} <small class="hint">nieuwste bovenaan</small>${l.length >= 5 && !$('#ai-samen') ? ' <button type="button" class="linkknop conceptknop" data-aisamen title="AI vat de melding en de reacties samen">' + AI_ICO(13) + 'Samenvatten</button>' : ''}</h3>` + (alles.length ? bundelMails([...alles].reverse()).map(r => r.groep ? mailGroep(r.groep) : r.mail ? mailRegel(r) : `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''} ${r.intern ? 'intern' : ''} ${r.wacht ? 'wacht' : ''}"${r.rid ? ` data-rid="${esc(r.rid)}"` : ''}>${avatar(r.wie)}
       <div class="wolk"><div class="kopje"><b>${esc(r.wie || 'Onbekend')}</b><span>${r.t ? fmtDatum(r.t) + ' ' + fmtTijd(r.t) : ''}</span>${r.wacht ? '<span class="hint">wordt verwerkt…</span>' : ''}${r.intern ? '<span class="internlabel">Intern</span>' : ''}</div><div class="tekst">${metLinks(r.tekst)}</div></div></div>`).join('') : `<p class="hint">Nog geen reacties.</p>${DEMO ? '' : `<p class="hint" style="font-size:11.5px;opacity:.7">${esc(reactieDiag)}</p>`}`);
     if(!DEMO && reactieKol && !reactieKol.zicht) el.insertAdjacentHTML('beforeend', `<p class="hint" style="font-size:11.5px">Of een reactie intern is, staat niet in ${esc(INST.connReacties)}; alleen jouw eigen interne notities zijn herkend. Laat het veld "Reactie zichtbaar" aan die GetConnector toevoegen.</p>`);
     el.scrollTop = 0;   // nieuwste reactie bovenaan, ouder = naar beneden scrollen
@@ -3637,7 +3639,7 @@ async function sjBewaar(data){
   const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(r.status === 404 ? 'de Azure-functie ict-beoordelingen is (nog) niet gepubliceerd' : (j.error || 'HTTP ' + r.status));
   opslag.set('mict-sjablonen', data); pasSjablonenToe(data);
 }
-/* AI-instellingen (alleen de beheerder, geldt voor iedereen): aanspreekvorm, lengte en extra aanwijzingen voor ✦ Concept-antwoord en ✦ Instructie maken.
+/* AI-instellingen (alleen de beheerder, geldt voor iedereen): aanspreekvorm, lengte en extra aanwijzingen voor de AI-knop en Instructie maken.
    Opslag via ict-beoordelingen ?soort=ai; de functie ai-concept leest ze zelf in (niet via de browser van de gebruiker). */
 const aiInstUrl = () => pbUrl() + (pbUrl().includes('?') ? '&' : '?') + 'soort=ai';
 const AI_STD = {vorm: 'je', woorden: 120, concept: '', instructie: '', chat: '', meelezen: 'aan', meelezenNotitie: 'spelling', leveranciers: ''};
@@ -3658,11 +3660,11 @@ async function aiBeheer(){
       <span>Bij interne notities</span><b><select name="meelezenNotitie" class="afdkeuze">${opt('spelling', 'Alleen spelling', w.meelezenNotitie || 'spelling')}${opt('alles', 'Alles', w.meelezenNotitie || 'spelling')}${opt('uit', 'Uit', w.meelezenNotitie || 'spelling')}</select></b>
       <span>Leveranciers</span><b><input name="leveranciers" class="datumkeuze" style="width:230px" placeholder="extra, met komma's" value="${esc(w.leveranciers || '')}" title="KroonCo, Timeff en AFAS staan er altijd in"></b></div>
     <div class="kaart2"><h3>Vaste regels</h3><span></span><b class="ai-regels">Verzint niets, noemt geen namen, stelt een vraag als informatie ontbreekt. Aanhef en groet zet SubmIT er zelf omheen. Namen, mailadressen en nummers gaan niet naar de AI.</b></div></div>
-    <h3 class="pb-kop3">Extra aanwijzingen voor ✦ Concept-antwoord</h3>
+    <h3 class="pb-kop3">Extra aanwijzingen voor ${AI_ICO(13)}Antwoord voorstellen</h3>
     <textarea name="concept" class="toelinvoer" rows="5" placeholder="Bijv.: Verwijs bij wachtwoordvragen altijd naar de selfservice (aka.ms/sspr). Noem bij storingen dat de melder een reactie krijgt zodra het is opgelost. Gebruik geen uitroeptekens.">${esc(w.concept || '')}</textarea>
-    <h3 class="pb-kop3">Extra aanwijzingen voor ✦ Instructie maken</h3>
+    <h3 class="pb-kop3">Extra aanwijzingen voor ${AI_ICO(13)}Instructie maken</h3>
     <textarea name="instructie" class="toelinvoer" rows="4" placeholder="Bijv.: Schrijf voor medewerkers zonder ICT-kennis. Noem knoppen en menu's tussen aanhalingstekens, precies zoals ze op het scherm staan.">${esc(w.instructie || '')}</textarea>
-    <h3 class="pb-kop3">Extra aanwijzingen voor ✦ Vraag het SubmIT</h3>
+    <h3 class="pb-kop3">Extra aanwijzingen voor ${AI_ICO(13)}Eerder opgelost (AI-knop in een melding)</h3>
     <textarea name="chat" class="toelinvoer" rows="3" placeholder="Bijv.: Noem bij hardware altijd dat KroonCo de leverancier is. Verwijs bij Emma-vragen ook naar de functioneel beheerder.">${esc(w.chat || '')}</textarea>
     <p class="fout" id="ai-fout"></p>
     <div class="pb-acties"><span style="flex:1"></span><button type="button" class="knop" data-aidicht>Annuleren</button><button type="button" class="knop vol" data-aibewaar>Opslaan</button></div></form>`;
@@ -3827,18 +3829,18 @@ async function sjPersoonlijk(x, delen, brief){
   const t = $('#tekst'); if(!sjAiAan() || !t || !x || t.value !== brief || ($('#notitie') && $('#notitie').checked)) return;
   const k = $('#k-sjai'); if(k) k.classList.add('bezig');
   const lab = h => { const o = $('#vst-pers'); if(o) o.remove(); if(h) $('#d-sjabloon').insertAdjacentHTML('afterend', h); };
-  lab('<span class="vstel" id="vst-pers"><span class="vst-l">✦ persoonlijk maken…</span></span>');
+  lab('<span class="vstel" id="vst-pers"><span class="vst-l">' + AI_ICO(13) + 'persoonlijk maken…</span></span>');
   try{ const j = await aiApi({soort: 'persoonlijk', kern: delen.join('\n\n'), melding: aiMelding(x)});
     if(!j.tekst || !huidig || huidig.x !== x || t.value !== brief){ lab(''); return; }
     const nieuw = await maakBrief(x, [j.tekst]); if(t.value !== brief){ lab(''); return; }
     t._sjOrig = brief; t.value = nieuw; if(huidig.autoTekst === brief) huidig.autoTekst = nieuw; t.classList.add('voorstel'); pasHoogteAan(t); mailVooraf();
     const oud = $('#vst-pers'); if(oud) oud.remove();
-    $('#d-sjabloon').insertAdjacentHTML('afterend', '<span class="vstel" id="vst-pers"><span class="vst-l" title="Standaardtekst, door AI iets persoonlijker gemaakt. × zet de originele tekst terug.">✦ Persoonlijk</span><button type="button" class="vst-weg" data-persweg aria-label="Originele tekst terug" title="Originele tekst terug">×</button></span>'); }
-  catch(e){ lab(''); if(!sessie.get('mict-sjai-fout')){ sessie.set('mict-sjai-fout', '1'); toast('✦ Persoonlijk maken lukte niet: ' + (/onbekende soort/i.test(e.message) ? 'de Azure-functie ai-concept is nog niet bijgewerkt' : e.message), true); } }
+    $('#d-sjabloon').insertAdjacentHTML('afterend', '<span class="vstel" id="vst-pers"><span class="vst-l" title="Standaardtekst, door AI iets persoonlijker gemaakt. × zet de originele tekst terug.">' + AI_ICO(13) + 'Persoonlijk</span><button type="button" class="vst-weg" data-persweg aria-label="Originele tekst terug" title="Originele tekst terug">×</button></span>'); }
+  catch(e){ lab(''); if(!sessie.get('mict-sjai-fout')){ sessie.set('mict-sjai-fout', '1'); toast('Persoonlijk maken lukte niet: ' + (/onbekende soort/i.test(e.message) ? 'de Azure-functie ai-concept is nog niet bijgewerkt' : e.message), true); } }
   finally{ if(k) k.classList.remove('bezig'); }
 }
 document.addEventListener('click', e => {
-  const k = e.target.closest('#k-sjai'); if(k){ const aan = !sjAiAan(); opslag.set('mict-sj-ai', aan); k.setAttribute('aria-pressed', aan); k.title = aan ? 'AI maakt standaardteksten persoonlijk: staat aan (klik om uit te zetten)' : 'AI maakt standaardteksten persoonlijk: staat uit (klik om aan te zetten)'; toast(aan ? '✦ Standaardteksten worden persoonlijk gemaakt met AI' : 'Standaardteksten blijven precies zoals ze zijn'); return; }
+  const k = e.target.closest('#k-sjai'); if(k){ const aan = !sjAiAan(); opslag.set('mict-sj-ai', aan); k.setAttribute('aria-pressed', aan); k.title = aan ? 'AI maakt standaardteksten persoonlijk: staat aan (klik om uit te zetten)' : 'AI maakt standaardteksten persoonlijk: staat uit (klik om aan te zetten)'; toast(aan ? 'Standaardteksten worden persoonlijk gemaakt met AI' : 'Standaardteksten blijven precies zoals ze zijn'); return; }
   if(e.target.closest('[data-persweg]')){ const t = $('#tekst'); if(t && t._sjOrig){ if(huidig && huidig.autoTekst === t.value) huidig.autoTekst = t._sjOrig; t.value = t._sjOrig; pasHoogteAan(t); mailVooraf(); } const l = $('#vst-pers'); if(l) l.remove(); }
 });
 
@@ -3918,8 +3920,8 @@ function tekenBeheer(){
     ${tegel('data-weergave="beoordelingen"', PB_ICO, 'Periodieke taken', 'Controles en onderhoud die vast terugkomen, zoals een NEN 7510-beoordeling of een SSL-certificaat', nA == null ? (PB.fout ? 'Ophalen lukte niet' : 'Ophalen…') : `${nA} actief` + (nP ? ` · ${nP} achter` : ''), !!nP)}</div>
   <h3 class="bh-kop">Instellen</h3><div class="bh-raster">
     ${tegel('data-ikm="sjab"', '<path d="M4 5h16M4 10h16M4 15h10"/><path d="M17 14l3 3-5 5h-3v-3z"/>', 'Standaardteksten', 'Teksten in de keuzelijst onder het reactievak', [sjAangepast && `${sjAangepast} aangepast`, sjEigen && `${sjEigen} eigen`].filter(Boolean).join(' · '))}
-    ${tegel('data-ikm="kbgaten"', '<path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5z"/><path d="M9 8h5M9 12h3"/><circle cx="17" cy="16" r="3"/><path d="M19.2 18.2 21 20"/>', '✦ Kennisbank-gaten', 'Wat wordt vaak gevraagd, maar staat nog niet in de kennisbank?', '')}
-    ${tegel('data-ikm="ai"', '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>', 'AI-instellingen', 'Aanspreekvorm, lengte en aanwijzingen voor ✦ Concept-antwoord en ✦ Instructie', '')}
+    ${tegel('data-ikm="kbgaten"', '<path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5z"/><path d="M9 8h5M9 12h3"/><circle cx="17" cy="16" r="3"/><path d="M19.2 18.2 21 20"/>', AI_ICO(14) + 'Kennisbank-gaten', 'Wat wordt vaak gevraagd, maar staat nog niet in de kennisbank?', '')}
+    ${tegel('data-ikm="ai"', '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>', 'AI-instellingen', 'Aanspreekvorm, lengte en aanwijzingen voor de AI-knop en Instructie maken', '')}
     ${tegel('data-ikm="conn"', '<path d="M8 3v4M16 3v4M6 7h12v4a6 6 0 0 1-12 0zM12 17v4"/>', 'Connectoren &amp; velden', 'Welke AFAS-connectoren en velden SubmIT gebruikt, en of ze werken', '')}</div>`;
 }
 const CTRL_ICO = '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>';
@@ -4035,7 +4037,7 @@ function tekenBeoordelingen(){
   $('#titel').textContent = ''; $('#subtitel').textContent = ''; $('#lijst-sub').textContent = ''; $('#lijst-kol').innerHTML = '';
   ['#f-mijn', '#f-mijalles', '#f-soort', '#f-changes', '#f-weergave', '#f-zoom'].forEach(sel => { const e = $(sel); if(e) e.hidden = true; });
   const uitleg = beheerTerug() + `<p class="ctrl-uitleg" style="margin-top:4px">Taken die vast terugkomen: controles (NEN 7510: <i>met geplande tussenpozen beoordelen</i>) en onderhoud, zoals een SSL-certificaat of licentie. Op tijd komt er vanzelf een melding met de instructie en de hulpmiddelen, als <b>Nieuw</b> bij de afdeling of bij een vaste verantwoordelijke.</p>`;
-  const knoppen = `<div class="ctrl-kop"><span>${PB.bezig ? 'Ophalen…' : PB.fout ? '<span class="fout">' + esc(PB.fout) + '</span>' : PB.t ? 'Bijgewerkt ' + fmtTijd(new Date(PB.t)) : ''}</span><span class="pb-knoppen"><button type="button" class="linkknop" data-pbaudit title="Word-verslag voor de NEN 7510-audit, met samenvatting door AI">✦ NEN 7510-verslag</button><button type="button" class="linkknop" data-pbplan title="Doet wat de dagelijkse planner om 6 uur doet, nu meteen">Planner nu draaien</button><button type="button" class="knop vol klein" data-pbnieuw>+ Nieuwe taak</button></span></div>`;
+  const knoppen = `<div class="ctrl-kop"><span>${PB.bezig ? 'Ophalen…' : PB.fout ? '<span class="fout">' + esc(PB.fout) + '</span>' : PB.t ? 'Bijgewerkt ' + fmtTijd(new Date(PB.t)) : ''}</span><span class="pb-knoppen"><button type="button" class="linkknop" data-pbaudit title="Word-verslag voor de NEN 7510-audit, met samenvatting door AI">${AI_ICO(13)}NEN 7510-verslag</button><button type="button" class="linkknop" data-pbplan title="Doet wat de dagelijkse planner om 6 uur doet, nu meteen">Planner nu draaien</button><button type="button" class="knop vol klein" data-pbnieuw>+ Nieuwe taak</button></span></div>`;
   if(!PB.defs){ $('#lijst').innerHTML = uitleg + knoppen + `<p class="leeg">${PB.bezig ? 'Periodieke taken ophalen…' : PB.fout ? 'Ophalen lukte niet.' : ''}</p>`; return; }
   const nu = tdIso(new Date()), over30 = tdIso(new Date(Date.now() + 30 * DAG)), jaar = String(new Date().getFullYear());
   const actief = PB.defs.filter(d => d.actief), achter = pbAchter();
@@ -4276,7 +4278,7 @@ function openDetail(nr){
       ${x.afgesloten ? '' : '<input type="file" id="f-ticket" multiple hidden>'}</div>
     
     ${x.afgesloten ? `<div class="onderbalk"><div class="actiebalk" id="actiebalk"><span class="hint">Deze melding is afgehandeld.</span></div>
-      <span class="opslaanknoppen"><button type="button" class="knop" id="k-instructie" title="Maak van de oplossing een instructie voor de kennisbank (Word-concept in DC-huisstijl)">✦ Instructie maken</button><button type="button" class="knop" id="k-heropen" disabled title="Workflow ophalen…">Heropenen</button><button type="button" class="knop vol" id="k-opslaan" disabled title="Er is nog niets om op te slaan">Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
+      <span class="opslaanknoppen"><button type="button" class="knop" id="k-instructie" title="Maak van de oplossing een instructie voor de kennisbank (Word-concept in DC-huisstijl)">${AI_ICO(13)}Instructie maken</button><button type="button" class="knop" id="k-heropen" disabled title="Workflow ophalen…">Heropenen</button><button type="button" class="knop vol" id="k-opslaan" disabled title="Er is nog niets om op te slaan">Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
     <p class="fout" id="d-fout"></p>
     <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3></div>` : `
     ${pbIs(x) ? '<div class="pbres" id="d-pbres"><h3>Resultaat vastleggen</h3><p class="hint">Ophalen…</p></div>' : ''}
@@ -4284,7 +4286,7 @@ function openDetail(nr){
       <div class="tekstvak"><textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea><button type="button" class="clipin" id="k-clip" title="Bijlage toevoegen (je kunt ook een bestand op het reactievak slepen of een schermafbeelding plakken met Ctrl+V)" aria-label="Bijlage toevoegen">${CLIP}</button></div>
       <div class="klaarzet" id="klaar-reactie"></div><div class="ai-tips" id="ai-tips" hidden></div>
       <div class="onder"><input type="file" id="f-reactie" multiple hidden><label class="vink notitie" data-uitleg="Alleen zichtbaar voor de afdeling ICT. De melder ziet deze notitie niet en krijgt geen mail."><input type="checkbox" id="notitie"> Interne notitie</label>
-        <span class="sjgroep"><button type="button" class="sjai" id="k-sjai" aria-pressed="${sjAiAan()}" title="${sjAiAan() ? 'AI maakt standaardteksten persoonlijk: staat aan (klik om uit te zetten)' : 'AI maakt standaardteksten persoonlijk: staat uit (klik om aan te zetten)'}" aria-label="Standaardteksten persoonlijk maken met AI">✦</button><select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select></span>${x.afgesloten ? '' : `<span class="ai-wrap"><button type="button" class="ai2" id="k-aimeer" aria-haspopup="menu" aria-expanded="false" title="AI-hulp bij deze melding">${AI_ICO(16)}AI<span class="ai-stip" hidden></span></button><div class="ai-menu" id="ai-menu" role="menu" hidden>
+        <span class="sjgroep"><button type="button" class="sjai" id="k-sjai" aria-pressed="${sjAiAan()}" title="${sjAiAan() ? 'AI maakt standaardteksten persoonlijk: staat aan (klik om uit te zetten)' : 'AI maakt standaardteksten persoonlijk: staat uit (klik om aan te zetten)'}" aria-label="Standaardteksten persoonlijk maken met AI">${AI_ICO(14)}</button><select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select></span>${x.afgesloten ? '' : `<span class="ai-wrap"><button type="button" class="ai2" id="k-aimeer" aria-haspopup="menu" aria-expanded="false" title="AI-hulp bij deze melding">${AI_ICO(16)}AI<span class="ai-stip" hidden></span></button><div class="ai-menu" id="ai-menu" role="menu" hidden>
           <button type="button" role="menuitem" id="k-concept"><b>Antwoord voorstellen</b><small>concept op basis van vergelijkbare meldingen</small></button>
           <button type="button" role="menuitem" id="k-vragen"><b>Vraag ontbrekende info</b><small>1-2 gerichte vragen aan de melder</small></button>
           <button type="button" role="menuitem" id="k-samenvat"><b>Samenvatting</b><small>probleem, wat er al gedaan is, volgende stap</small></button>
@@ -7290,7 +7292,7 @@ function zetVeldVoorstel(sel, waarde, uitleg){
   sel.value = o.value; sel._vorige = o.value; sel.classList.add('voorstel', 'gewijzigd'); sel.classList.remove('mist');
   sel.title = uitleg + '\nWordt opgeslagen met Opslaan, tenzij je op × klikt.';
   let l = document.getElementById('vst-' + sel.id);
-  if(!l){ sel.insertAdjacentHTML('afterend', `<span class="vstel" id="vst-${sel.id}" data-vstel="${sel.id}"><span class="vst-l">✦ Voorstel</span><button type="button" class="vst-ok" data-vstok aria-label="Voorstel overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Voorstel weghalen" title="Weghalen: de oude waarde terug">×</button></span>`); l = document.getElementById('vst-' + sel.id); }
+  if(!l){ sel.insertAdjacentHTML('afterend', `<span class="vstel" id="vst-${sel.id}" data-vstel="${sel.id}"><span class="vst-l">${AI_ICO(13)}Voorstel</span><button type="button" class="vst-ok" data-vstok aria-label="Voorstel overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Voorstel weghalen" title="Weghalen: de oude waarde terug">×</button></span>`); l = document.getElementById('vst-' + sel.id); }
   l.querySelector('.vst-l').title = sel.title;
   return true;
 }
@@ -7382,7 +7384,7 @@ async function aiVragen(){
     const j = await aiApi({soort: 'vragen', melding: aiMelding(x)}); if(!j.tekst) throw new Error('geen antwoord');
     t._vstelVoor = t.value; await zetVoorstel(await maakBrief(x, [j.tekst]), true); if(!t.classList.contains('voorstel')) return;
     let l = $('#vst-tekst'); if(l) l.remove();
-    $('.ai-wrap').insertAdjacentHTML('afterend', `<span class="vstel" id="vst-tekst" data-vstel="tekst"><span class="vst-l" title="Vragen om ontbrekende informatie, opgesteld door AI. Lees het na; × haalt het weg.">✦ AI-vragen</span><button type="button" class="vst-ok" data-vstok aria-label="Overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Weghalen" title="Weghalen">×</button></span>`);
+    $('.ai-wrap').insertAdjacentHTML('afterend', `<span class="vstel" id="vst-tekst" data-vstel="tekst"><span class="vst-l" title="Vragen om ontbrekende informatie, opgesteld door AI. Lees het na; × haalt het weg.">${AI_ICO(13)}AI-vragen</span><button type="button" class="vst-ok" data-vstok aria-label="Overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Weghalen" title="Weghalen">×</button></span>`);
     t.focus(); }
   catch(e){ toast('Vragen opstellen lukte niet: ' + e.message, true); }
   finally{ aiVoortgangWeg(); anker.disabled = false; }
@@ -7393,14 +7395,14 @@ const aiSamenCache = new Map();
 async function aiSamenvatting(){
   const x = huidig && huidig.x, tl = $('#tijdlijn'); if(!x || !tl) return;
   let b = $('#ai-samen'); if(!b){ tl.insertAdjacentHTML('beforebegin', '<div class="ai-samen" id="ai-samen" role="status"></div>'); b = $('#ai-samen'); }
-  const toon = j => { b.innerHTML = `<div class="ai-samen-kop"><b>✦ Samenvatting</b><small class="hint">door AI · lees na</small><button type="button" class="sluit" data-aisamenweg aria-label="Sluiten">×</button></div>
+  const toon = j => { b.innerHTML = `<div class="ai-samen-kop"><b>${AI_ICO(13)}Samenvatting</b><small class="hint">door AI · lees na</small><button type="button" class="sluit" data-aisamenweg aria-label="Sluiten">×</button></div>
     <dl><dt>Probleem</dt><dd>${esc(j.probleem)}</dd><dt>Al gedaan</dt><dd>${esc(j.geprobeerd)}</dd><dt>Volgende stap</dt><dd>${esc(j.volgende)}</dd></dl>`; };
   const c = aiSamenCache.get(String(x.nr)); if(c && c.n === (huidig.reacties || []).length){ toon(c.j); return; }
-  b.innerHTML = '<div class="ai-samen-kop"><b>✦ Samenvatting</b><small class="hint">AI leest de melding en de reacties…</small></div><i class="ai-vg-b"><i style="width:60%"></i></i>';
+  b.innerHTML = '<div class="ai-samen-kop"><b>' + AI_ICO(13) + 'Samenvatting</b><small class="hint">AI leest de melding en de reacties…</small></div><i class="ai-vg-b"><i style="width:60%"></i></i>';
   try{ if(!huidig.reacties && !DEMO){ await zorgSbId(x); huidig.reacties = await haalReacties(x); }
     const j = await aiApi({soort: 'samenvatting', melding: aiMelding(x)}); if(!huidig || huidig.x !== x) return;
     aiSamenCache.set(String(x.nr), {n: (huidig.reacties || []).length, j}); toon(j); }
-  catch(e){ b.innerHTML = `<div class="ai-samen-kop"><b>✦ Samenvatting</b><small class="fout">lukte niet: ${esc(e.message)}</small><button type="button" class="sluit" data-aisamenweg aria-label="Sluiten">×</button></div>`; }
+  catch(e){ b.innerHTML = `<div class="ai-samen-kop"><b>${AI_ICO(13)}Samenvatting</b><small class="fout">lukte niet: ${esc(e.message)}</small><button type="button" class="sluit" data-aisamenweg aria-label="Sluiten">×</button></div>`; }
 }
 
 // ---- overdracht aan een leverancier ----
@@ -7409,10 +7411,10 @@ function aiLeverancier(){
   const x = huidig && huidig.x; if(!x) return;
   let d = $('#levdlg'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="levdlg" aria-label="Overdracht aan leverancier"></dialog>'); d = $('#levdlg'); }
   const lijst = [...LEVERANCIERS, ...String(AI_INST.leveranciers || '').split(/[,\n]/).map(s => s.trim()).filter(Boolean)].filter((v, i, a) => a.indexOf(v) === i);
-  d.innerHTML = `<form class="dlg-in nform" id="lev-form" onsubmit="return false"><div class="dlg-kop"><div><small>✦ AI · melding ${esc(nrT(x))}</small><h2>Overdracht aan leverancier</h2></div><button type="button" class="sluit" data-levdicht aria-label="Sluiten">×</button></div>
+  d.innerHTML = `<form class="dlg-in nform" id="lev-form" onsubmit="return false"><div class="dlg-kop"><div><small>${AI_ICO(13)}AI · melding ${esc(nrT(x))}</small><h2>Overdracht aan leverancier</h2></div><button type="button" class="sluit" data-levdicht aria-label="Sluiten">×</button></div>
     <p class="hint">AI zet het probleem, de impact, sinds wanneer, wat er al geprobeerd is en het verzoek zakelijk op een rij. Zonder namen. Lees na en kopieer het naar de mail of de ticketportal van de leverancier.</p>
     <div class="lev-keuze">${lijst.map((l, i) => `<label class="chipkeuze"><input type="radio" name="lev" value="${esc(l)}" ${i === 0 ? 'checked' : ''}><span>${esc(l)}</span></label>`).join('')}<label class="chipkeuze"><input type="radio" name="lev" value=""><span>Anders:</span></label><input name="levander" class="datumkeuze" placeholder="naam leverancier" style="width:160px"></div>
-    <div class="pb-acties" style="margin-top:8px"><button type="button" class="knop vol" data-levmaak>✦ Opstellen</button><span class="hint" id="lev-stand"></span></div>
+    <div class="pb-acties" style="margin-top:8px"><button type="button" class="knop vol" data-levmaak>${AI_ICO(13)}Opstellen</button><span class="hint" id="lev-stand"></span></div>
     <div id="lev-uit" hidden><span class="lev-l">Onderwerp</span><input name="levond" class="ondinvoer" style="width:100%"><span class="lev-l">Tekst</span><textarea name="levtekst" class="toelinvoer" rows="12"></textarea>
     <div class="pb-acties"><button type="button" class="linkknop" data-levnotitie title="Zet de tekst als interne notitie in het reactievak, zodat vastligt wat er naar de leverancier is gegaan">Als interne notitie vastleggen</button><span style="flex:1"></span><button type="button" class="knop vol" data-levkopie>Kopiëren</button></div></div></form>`;
   d.showModal();
@@ -7438,10 +7440,10 @@ const TIP_LABEL = {spelling: 'Spelling', toon: 'Toon', duidelijkheid: 'Duidelijk
 function tipsTeken(){
   const el = $('#ai-tips'), t = $('#tekst'); if(!el || !t) return;
   TIP.l = TIP.l.filter(p => !p.van || t.value.includes(p.van));
-  if(TIP.bezig && !TIP.l.length){ el.hidden = false; el.innerHTML = '<span class="ai-tips-knop bezig">✦ nakijken…</span>'; return; }
+  if(TIP.bezig && !TIP.l.length){ el.hidden = false; el.innerHTML = '<span class="ai-tips-knop bezig">' + AI_ICO(13) + 'nakijken…</span>'; return; }
   if(!TIP.l.length){ el.hidden = true; el.innerHTML = ''; return; }
   el.hidden = false;
-  el.innerHTML = `<button type="button" class="ai-tips-knop" data-tipsopen aria-expanded="${TIP.open}">✦ ${TIP.l.length} tip${TIP.l.length === 1 ? '' : 's'}${TIP.bezig ? ' · nakijken…' : ''}</button>${TIP.open ? `<div class="ai-tips-lijst">${TIP.l.map((p, i) => `<div class="ai-tip"><span class="ai-tip-s ${esc(p.soort)}">${esc(TIP_LABEL[p.soort] || p.soort)}</span><span class="ai-tip-u">${esc(p.uitleg)}${p.van && p.naar ? ` <span class="ai-tip-w"><s>${esc(p.van)}</s> → <b>${esc(p.naar)}</b></span>` : ''}</span>${p.van && p.naar ? `<button type="button" class="linkknop" data-tipdoe="${i}">Toepassen</button>` : ''}<button type="button" class="weg" data-tipweg="${i}" aria-label="Negeren" title="Negeren">×</button></div>`).join('')}</div>` : ''}`;
+  el.innerHTML = `<button type="button" class="ai-tips-knop" data-tipsopen aria-expanded="${TIP.open}">${AI_ICO(13)}${TIP.l.length} tip${TIP.l.length === 1 ? '' : 's'}${TIP.bezig ? ' · nakijken…' : ''}</button>${TIP.open ? `<div class="ai-tips-lijst">${TIP.l.map((p, i) => `<div class="ai-tip"><span class="ai-tip-s ${esc(p.soort)}">${esc(TIP_LABEL[p.soort] || p.soort)}</span><span class="ai-tip-u">${esc(p.uitleg)}${p.van && p.naar ? ` <span class="ai-tip-w"><s>${esc(p.van)}</s> → <b>${esc(p.naar)}</b></span>` : ''}</span>${p.van && p.naar ? `<button type="button" class="linkknop" data-tipdoe="${i}">Toepassen</button>` : ''}<button type="button" class="weg" data-tipweg="${i}" aria-label="Negeren" title="Negeren">×</button></div>`).join('')}</div>` : ''}`;
 }
 async function tipsCheck(){
   const x = huidig && huidig.x, t = $('#tekst'); if(!x || !t) return;
@@ -7552,7 +7554,7 @@ async function kiConcept(){
   t._vstelVoor = t.value; await zetVoorstel(await maakBrief(x, [m.bericht]), true); if(!t.classList.contains('voorstel')) return;
   const nrs = (m.bronnen || []).filter(b => b.gebruikt).map(b => b.bron === 'kb' ? 'kennisbank "' + b.titel + '"' : 'melding ' + ((b.meta || {}).nr || b.id)).join(', ');
   let l = $('#vst-tekst'); if(l) l.remove();
-  $('.ai-wrap').insertAdjacentHTML('afterend', `<span class="vstel" id="vst-tekst" data-vstel="tekst"><span class="vst-l" title="AI-concept op basis van ${esc(nrs || 'eerdere oplossingen')}. Lees het na en pas aan; × haalt het weer weg.">✦ AI-concept</span><button type="button" class="vst-ok" data-vstok aria-label="Concept overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Concept weghalen" title="Weghalen">×</button></span>`);
+  $('.ai-wrap').insertAdjacentHTML('afterend', `<span class="vstel" id="vst-tekst" data-vstel="tekst"><span class="vst-l" title="AI-concept op basis van ${esc(nrs || 'eerdere oplossingen')}. Lees het na en pas aan; × haalt het weer weg.">${AI_ICO(13)}AI-concept</span><button type="button" class="vst-ok" data-vstok aria-label="Concept overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Concept weghalen" title="Weghalen">×</button></span>`);
   t.focus();
 }
 function kiBronOpen(i, n){
@@ -7643,7 +7645,7 @@ function toonStoring(g, k){
   if(box.querySelector(`[data-storing="${CSS.escape(k)}"]`)) return;
   const l = g.ids.map(id => items.find(x => String(x.nr) === id)).filter(Boolean);
   box.insertAdjacentHTML('beforeend', `<div class="kritiekkaart herinnerkaart storingkaart" data-storing="${esc(k)}" role="status">
-    <div class="kk-kop">${ico('<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>')}<b>✦ Mogelijke storing</b></div>
+    <div class="kk-kop">${ico('<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>')}<b>${AI_ICO(13)}Mogelijke storing</b></div>
     <p class="hk-soort"><b>${esc(g.titel)}</b>: ${l.length} meldingen in de laatste uren. ${esc(g.waarom || '')}</p>
     <div class="hk-lijst">${l.slice(0, 4).map(x => `<button type="button" class="hk-rij" data-stnr="${esc(x.nr)}"><b>${esc(nrT(x))}</b><span>${esc(x.onderwerp)}${locVan(x) ? ' · ' + esc(locVan(x)) : ''}</span></button>`).join('')}</div>
     <p class="hk-soort" style="margin-top:2px">Klopt het? Markeer ze als <b>kritieke storing</b> en koppel ze aan elkaar.</p>
@@ -7661,7 +7663,7 @@ setTimeout(() => { storingCheck(); setInterval(storingCheck, 5 * 60e3); }, 25e3)
 const KB_GENERIEK = new Set('toegang account aanvraag nieuwe nieuw laptop computer telefoon systeem storing fout error inloggen'.split(' '));
 async function kbGaten(){
   let d = $('#kbgdlg'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="kbgdlg" aria-label="Kennisbank-gaten"></dialog>'); d = $('#kbgdlg'); }
-  const kop = `<div class="dlg-kop"><div><small>✦ AI · Beheer</small><h2>Kennisbank-gaten</h2></div><button type="button" class="sluit" data-kbgdicht aria-label="Sluiten">×</button></div>`;
+  const kop = `<div class="dlg-kop"><div><small>${AI_ICO(13)}AI · Beheer</small><h2>Kennisbank-gaten</h2></div><button type="button" class="sluit" data-kbgdicht aria-label="Sluiten">×</button></div>`;
   d.innerHTML = `<div class="dlg-in">${kop}<p class="hint">Onderwerpen die de laatste 90 dagen vaak terugkwamen en waar nog geen instructie voor lijkt te zijn.</p><p id="kbg-stand" class="hint"></p><div id="kbg-uit"></div></div>`; d.showModal();
   const stand = t => { const e = $('#kbg-stand'); if(e) e.innerHTML = `<span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>${t}`; };
   try{
@@ -7678,8 +7680,8 @@ async function kbGaten(){
     const per = new Map(groepen);
     $('#kbg-stand').textContent = kbAan ? '' : 'Let op: de kennisbank is niet gekoppeld, dus AI weet niet welke instructies er al zijn.';
     $('#kbg-uit').innerHTML = (j.gaten || []).length ? `<div class="kbg-lijst">${j.gaten.map(g => { const l = (per.get(g.id) || []).sort((a, b) => +(b.statusDatum || 0) - +(a.statusDatum || 0));
-      return `<div class="kbg-rij"><div><b>${esc(g.titel)}</b><small>${l.length}× gemeld · ${esc(g.waarom)}</small></div>${l[0] ? `<button type="button" class="knop" data-kbgopen="${esc(l[0].nr)}" data-kbglijst="${esc(l.map(y => y.nr).join(','))}" title="Open de meest recente melding; daar maak je met ✦ Instructie maken de instructie">Voorbeeld openen</button>` : ''}</div>`; }).join('')}</div>
-      <p class="hint" style="margin-top:8px">Open een voorbeeld en klik daar op <b>✦ Instructie maken</b>.</p>` : '<p class="leeg">✓ Voor de onderwerpen die vaak terugkomen lijkt al een instructie te bestaan.</p>';
+      return `<div class="kbg-rij"><div><b>${esc(g.titel)}</b><small>${l.length}× gemeld · ${esc(g.waarom)}</small></div>${l[0] ? `<button type="button" class="knop" data-kbgopen="${esc(l[0].nr)}" data-kbglijst="${esc(l.map(y => y.nr).join(','))}" title="Open de meest recente melding; daar maak je met Instructie maken de instructie">Voorbeeld openen</button>` : ''}</div>`; }).join('')}</div>
+      <p class="hint" style="margin-top:8px">Open een voorbeeld en klik daar op <b>${AI_ICO(13)}Instructie maken</b>.</p>` : '<p class="leeg">✓ Voor de onderwerpen die vaak terugkomen lijkt al een instructie te bestaan.</p>';
   }catch(e){ $('#kbg-stand').innerHTML = `<span class="fout">Lukte niet: ${esc(e.message)}</span>`; }
 }
 document.addEventListener('click', e => {
@@ -7748,7 +7750,7 @@ function tekenRapport(){
       <div class="rap-kaart"><h3>Per locatie</h3>${c.perLoc.length ? rapStaven(c.perLoc, maxV(c.perLoc)) : '<p class="hint">Geen meldingen.</p>'}</div>
       <div class="rap-kaart"><h3>Per afdeling</h3>${c.perAfd.length ? rapStaven(c.perAfd, maxV(c.perAfd)) : '<p class="hint">Geen meldingen.</p>'}</div>
       <div class="rap-kaart"><h3>Veel gemeld</h3>${c.woorden.length ? `<div class="rap-woorden">${c.woorden.map(([w, n]) => `<span class="chip">${esc(w)} <b>${n}</b></span>`).join('')}</div>` : '<p class="hint">–</p>'}</div>
-      <div class="rap-kaart rap-breed rap-ai"><div class="rap-ai-kop"><h3>✦ Trends en analyse</h3><span style="flex:1"></span>${RAP.ai && RAP.ai.periode === RAP.periode ? '<button type="button" class="linkknop" data-rapkopie>Kopiëren</button><button type="button" class="knop" data-rapword>Word</button>' : ''}<button type="button" class="knop vol" data-rapai ${RAP.aiBezig ? 'disabled' : ''}>${RAP.aiBezig ? 'AI analyseert…' : RAP.ai && RAP.ai.periode === RAP.periode ? 'Opnieuw' : '✦ Analyseren'}</button></div>
+      <div class="rap-kaart rap-breed rap-ai"><div class="rap-ai-kop"><h3>${AI_ICO(15)}Trends en analyse</h3><span style="flex:1"></span>${RAP.ai && RAP.ai.periode === RAP.periode ? '<button type="button" class="linkknop" data-rapkopie>Kopiëren</button><button type="button" class="knop" data-rapword>Word</button>' : ''}<button type="button" class="knop vol" data-rapai ${RAP.aiBezig ? 'disabled' : ''}>${RAP.aiBezig ? 'AI analyseert…' : RAP.ai && RAP.ai.periode === RAP.periode ? 'Opnieuw' : AI_ICO(13) + 'Analyseren'}</button></div>
         ${RAP.ai && RAP.ai.periode === RAP.periode ? `<div class="rap-md">${mdHtml(RAP.ai.tekst)}</div><p class="hint">Door AI op basis van de cijfers hierboven · lees na voor je het deelt.</p>` : `<p class="hint">AI zet de cijfers van ${esc(b.label.toLowerCase())} naast de vorige periode en beschrijft trends, uitschieters en aandachtspunten. Er gaan alleen aantallen en losse woorden naar de AI, geen meldingen of namen.</p>`}</div></div></div>`;
 }
 const mdHtml = md => { let uit = '', lijst = false; String(md || '').split('\n').forEach(r => { const t = r.trim(); const inl = s => mdOpmaak(esc(s));
@@ -7785,12 +7787,12 @@ async function pbAudit(){
   if(!PB.defs) await pbLaad(true);
   let d = $('#auditdlg'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="auditdlg" aria-label="NEN 7510-verslag"></dialog>'); d = $('#auditdlg'); }
   const jaar = new Date().getFullYear();
-  d.innerHTML = `<div class="dlg-in"><div class="dlg-kop"><div><small>✦ AI · Periodieke taken</small><h2>NEN 7510-verslag</h2></div><button type="button" class="sluit" data-auditdicht aria-label="Sluiten">×</button></div>
+  d.innerHTML = `<div class="dlg-in"><div class="dlg-kop"><div><small>${AI_ICO(13)}AI · Periodieke taken</small><h2>NEN 7510-verslag</h2></div><button type="button" class="sluit" data-auditdicht aria-label="Sluiten">×</button></div>
     <p class="hint">Een Word-verslag voor de audit: per taak wanneer hij is uitgevoerd, door wie, de uitkomst en de bevindingen, met een samenvatting en aandachtspunten. Namen gaan niet naar de AI; die zet SubmIT zelf in het verslag.</p>
     <h3 class="pb-kop3">Welke taken komen in het verslag?</h3>
     <div class="audit-taken">${(PB.defs || []).map(t => `<label class="vink"><input type="checkbox" data-audittaak="${esc(t.id)}" ${auditKeuze(t) ? 'checked' : ''}> ${esc(t.titel)}</label>`).join('') || '<p class="hint">Nog geen periodieke taken.</p>'}</div>
     <p class="hint">Taken met "beoordeling" of "controle" in de titel staan standaard aangevinkt; je keuze wordt onthouden.</p>
-    <div class="pb-acties"><label class="hint">Jaar <select id="audit-jaar" class="afdkeuze" style="width:100px">${[jaar, jaar - 1].map(j => `<option>${j}</option>`).join('')}</select></label><span style="flex:1"></span><button type="button" class="knop vol" data-auditmaak>✦ Verslag maken</button></div>
+    <div class="pb-acties"><label class="hint">Jaar <select id="audit-jaar" class="afdkeuze" style="width:100px">${[jaar, jaar - 1].map(j => `<option>${j}</option>`).join('')}</select></label><span style="flex:1"></span><button type="button" class="knop vol" data-auditmaak>${AI_ICO(13)}Verslag maken</button></div>
     <p class="hint" id="audit-stand"></p></div>`;
   d.showModal();
 }
@@ -7869,7 +7871,7 @@ async function maakConcept(){
     if(!t.classList.contains('voorstel')) return;   // niet vervangen (jij koos Annuleren)
     const uitleg = (ai ? 'AI, op basis van de melding' + (voorbeelden.length ? ' en ' : '') : '') + [voorbeelden.length && (ai ? voorbeelden.map(v => nrT(v.y)).join(', ') : `oplossing van melding ${nrT(bron)} (${bron.onderwerp})`), kb && `instructie "${kb.name}" uit de kennisbank`].filter(Boolean).join(' en ');
     let l = $('#vst-tekst'); if(l) l.remove();
-    $('.ai-wrap').insertAdjacentHTML('afterend', `<span class="vstel" id="vst-tekst" data-vstel="tekst"><span class="vst-l" title="Concept op basis van ${esc(uitleg)}. Lees het na en pas aan; × haalt het weer weg.">✦ ${ai ? 'AI-concept' : 'Concept' + (bron ? ' o.b.v. ' + esc(nrT(bron)) : '')}</span><button type="button" class="vst-ok" data-vstok aria-label="Concept overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Concept weghalen" title="Weghalen">×</button></span>`);
+    $('.ai-wrap').insertAdjacentHTML('afterend', `<span class="vstel" id="vst-tekst" data-vstel="tekst"><span class="vst-l" title="Concept op basis van ${esc(uitleg)}. Lees het na en pas aan; × haalt het weer weg.">${AI_ICO(13)}${ai ? 'AI-concept' : 'Concept' + (bron ? ' o.b.v. ' + esc(nrT(bron)) : '')}</span><button type="button" class="vst-ok" data-vstok aria-label="Concept overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Concept weghalen" title="Weghalen">×</button></span>`);
     t.focus();
   }finally{ aiVoortgangWeg(); k.disabled = false; }
 }
@@ -7988,7 +7990,7 @@ function instructieDocx(titel, waar, stappen, bron){
 const downloadBlob = (blob, naam) => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = String(naam).replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120); document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); };
 async function maakInstructie(){
   const x = huidig && huidig.x, k = $('#k-instructie'); if(!x || !k) return;
-  const oud = k.textContent; k.disabled = true; k.textContent = '✦ Bezig…'; const N = DEMO ? 2 : 3;
+  const oud = k.innerHTML; k.disabled = true; k.innerHTML = AI_ICO(13) + 'Bezig…'; const N = DEMO ? 2 : 3;
   try{
     aiVoortgang(k, 1, N, 'oplossing uit de reacties halen');
     let l = huidig.reacties; if(!l){ if(!DEMO) await zorgSbId(x); l = await haalReacties(x); }
@@ -8008,7 +8010,7 @@ async function maakInstructie(){
     document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
     toast('Instructie gedownload: lees hem na en zet hem in de kennisbank (Instructies › ' + systeem + ')');
   }catch(e){ toast('Instructie maken lukte niet: ' + e.message, true); }
-  finally{ aiVoortgangWeg(); k.disabled = false; k.textContent = oud; }
+  finally{ aiVoortgangWeg(); k.disabled = false; k.innerHTML = oud; }
 }
 const benIkNiet = r => false;   // reacties van ICT (alle niet-melders) tellen mee, ook die van jezelf
 document.addEventListener('click', e => { if(e.target.closest('#k-instructie')) maakInstructie(); });
@@ -8321,7 +8323,7 @@ async function wisselWindows(){
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
   {v: 'v7.73', d: '23-10-2026', p: ['Beveiliging: HTML uit mails (.eml) en uit AFAS wordt nu zo gelezen dat er nooit code in kan meedraaien. Met dank aan een collega die dit vond.', 'Extra vangnet: SubmIT mag alleen nog verbinding maken met AFAS, Microsoft en de eigen Azure-functies.']},
-  {v: 'v7.72', d: '23-10-2026', groot: true, p: ['In een melding: één AI-knop voor alles. Is dit eerder opgelost (oude meldingen of de kennisbank), dan pulseert hij. Bovenaan het menu staat dan het antwoord op basis van die oplossingen: advies voor jou met de bronnen, een concept voor de melder met één klik, en ruimte voor een vervolgvraag.', 'De losse chat in de balk links is weg. De status van de AI-index staat bij Beheer → Connectoren & velden.', 'Gesloten meldingen laden blijft niet meer hangen: stokt AFAS, dan probeert SubmIT het na een minuut zelf opnieuw.', 'Bijlage toevoegen is nu het paperclipje links onderin het reactievak. Annuleren in het bestandsvenster vraagt niet meer of je de melding wilt sluiten.']},
+  {v: 'v7.72', d: '23-10-2026', groot: true, p: ['In een melding: één AI-knop voor alles. Is dit eerder opgelost (oude meldingen of de kennisbank), dan pulseert hij. Bovenaan het menu staat dan het antwoord op basis van die oplossingen: advies voor jou met de bronnen, een concept voor de melder met één klik, en ruimte voor een vervolgvraag.', 'De losse chat in de balk links is weg. De status van de AI-index staat bij Beheer → Connectoren & velden.', 'Gesloten meldingen laden blijft niet meer hangen: stokt AFAS, dan probeert SubmIT het na een minuut zelf opnieuw.', 'Overal hetzelfde AI-icoon als op de AI-knop, ook naast Standaardtekst (grijs als het uit staat), bij voorstellen, samenvatting, tips en instructies.', 'Bijlage toevoegen is nu het paperclipje links onderin het reactievak. Annuleren in het bestandsvenster vraagt niet meer of je de melding wilt sluiten.']},
   {v: 'v7.71', d: '23-10-2026', p: ['Sneller compleet na het inloggen: afgehandelde meldingen van de laatste 7 dagen komen meteen na de open meldingen, zodat Afgehandeld deze week direct klopt. Daarna eerst de laatste 14 dagen, dan de rest tot 90 dagen.', 'Meldingen over de index van Vraag het SubmIT staan nu in gewone taal bij Beheer → Connectoren & velden, niet meer onder de chat.']},
   {v: 'v7.70', d: '23-10-2026', p: ['Vraag het SubmIT: alle meldingen uit AFAS ophalen gebeurt \'s nachts, zodat SubmIT overdag niet trager laadt. Index nu bijwerken haalt overdag alleen wat nieuw is en gaat na een storing zelf verder.', 'De ICT-mailbox doet niet meer mee; de chat zoekt in meldingen met reacties en in de kennisbank.']},
   {v: 'v7.69', d: '23-10-2026', p: ['Vraag het SubmIT: de beheerder kan de index nu meteen laten vullen met de knop Index nu bijwerken (onderin het chatpaneel). De automatische ronde is lichter voor AFAS: overdag alleen wat nieuw is, \'s nachts alles.']},
