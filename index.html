@@ -579,8 +579,12 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .tw-voet{position:sticky;bottom:var(--voet-h,0px);z-index:4}
 /* vastgezet onderin (lange lijst): zelfde onderkant als een kaart, met ronde hoeken op de achtergrond van de pagina */
 .tw-voet.vast{background:linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 45%,var(--bg3) 100%) fixed}
-.tw-voet-in{background:var(--vlak)}.tw-voet.vast .tw-voet-in{border-radius:0 0 30px 30px;padding-bottom:16px}
-.tw-balk{position:relative;z-index:4;overflow-x:auto;overflow-y:hidden;height:17px;background:var(--vlak);border-top:1px solid var(--lijn)}
+.tw-voet-in{background:var(--vlak);border-top:1px solid var(--lijn);padding:6px 28px 14px}.tw-voet.vast .tw-voet-in{border-radius:0 0 30px 30px}
+.blok:has(.tw-voet){padding-bottom:0}   /* onderkant met schuifbalk: altijd even hoog, vastgezet of niet */
+.tw-balk{position:relative;z-index:4;overflow-x:auto;overflow-y:hidden;height:10px;background:transparent}
+@supports not selector(::-webkit-scrollbar){.tw-balk{scrollbar-width:thin;scrollbar-color:var(--lijn) transparent}}
+.tw-balk::-webkit-scrollbar{height:8px}.tw-balk::-webkit-scrollbar-track{background:transparent}.tw-balk::-webkit-scrollbar-button{display:none;width:0;height:0}
+.tw-balk::-webkit-scrollbar-thumb{background:var(--lijn);border-radius:999px}.tw-balk:hover::-webkit-scrollbar-thumb{background:#B8C2D6}
 .tw-balk>div{height:1px}
 .voet .achter{display:inline-flex;align-items:center;gap:8px;margin-right:14px}
 .voet .achter i{display:block;width:120px;height:4px;border-radius:2px;background:var(--lijn);overflow:hidden}
