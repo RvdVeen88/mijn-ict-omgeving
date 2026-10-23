@@ -1364,6 +1364,7 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 .pb-wanneer .pb-aan{white-space:nowrap}
 .kaart2 .pb-keren{font-weight:400;color:var(--grijs);font-size:13px;flex-wrap:wrap;gap:0 4px;line-height:1.5}
 .pb-kop3{font-size:13px;color:var(--blauw);margin:16px 0 6px}.pb-kop3 small{font-weight:400;margin-left:6px}
+.sj-auto{margin:0 0 10px;border:1px solid var(--lijn);border-radius:12px;padding:8px 12px}.sj-auto summary{cursor:default;font-size:13px;color:var(--blauw);font-weight:600}.sj-auto[open] summary{margin-bottom:6px}.sj-auto select{width:min(420px,100%)!important;margin-top:4px}
 .sj-kies{display:flex;align-items:center;gap:14px;margin:12px 0 10px}.sj-kies select{width:min(420px,100%)!important;padding:6px 26px 6px 8px!important;font-size:14px}.sj-kaart[hidden]{display:none}
 .pb-hulp{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border:1px dashed var(--lijn);border-radius:10px;min-height:44px}.pb-hulp.sleep{border-color:var(--blauw);background:var(--blauw-licht,rgba(5,55,135,.06))}
 #aidlg{width:min(860px,94vw)}.ai-regels{font-weight:400;color:var(--grijs);font-size:13px;line-height:1.5}
@@ -1569,7 +1570,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.64', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.65', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3626,29 +3627,37 @@ function sjBeheer(){
       <label class="vink" title="Staat in de keuzelijst 'Standaardtekst…' onder het reactievak"><input type="checkbox" class="sj-lijst" ${inLijst.has(k) || eigen ? 'checked' : ''} ${eigen ? 'disabled' : ''}> in keuzelijst</label>
       ${eigen ? '<button type="button" class="linkknop rood" data-sjweg>Verwijderen</button>' : `<button type="button" class="linkknop" data-sjstd ${tekst === SJ_STD[k] ? 'hidden' : ''}>Standaard terugzetten</button>`}</div>
     <textarea class="toelinvoer sj-tekst" rows="6">${esc(tekst)}</textarea></div>`;
-  // één tekst tegelijk: kies in de keuzelijst, daaronder zie en bewerk je die tekst (de andere blijven bewaard tot Opslaan)
-  const systeem = Object.keys(SJ_STD).map(k => kaart(k, SJ_LABEL[k] || k, SJ[k], false)).join('');
+  // één tekst tegelijk. Bovenaan precies de keuzelijst uit de melding (zelfde namen en volgorde) met je eigen teksten;
+  // de automatische voorstellen bij een status of actie staan apart, ingeklapt
+  const naamIn = new Map(SJABLOON_LIJST.map(([k, n]) => [k, n])), aangepast = k => SJ_STD[k] !== undefined && SJ[k] !== SJ_STD[k] ? ' · aangepast' : '';
+  const lijstK = SJABLOON_LIJST.map(([k]) => k).filter(k => k in SJ_STD), autoK = Object.keys(SJ_STD).filter(k => !naamIn.has(k));
+  const systeem = Object.keys(SJ_STD).map(k => kaart(k, naamIn.get(k) || SJ_LABEL[k] || k, SJ[k], false)).join('');
   const eigen = Object.entries(SJ_EIGEN).map(([k, e]) => kaart(k, e.naam, e.tekst, true)).join('');
+  const optL = lijstK.map(k => `<option value="${esc(k)}">${esc(naamIn.get(k))}${aangepast(k)}</option>`).join('');
   const optE = Object.entries(SJ_EIGEN).map(([k, e]) => `<option value="${esc(k)}">${esc(e.naam)}</option>`).join('');
-  const optS = Object.keys(SJ_STD).map(k => `<option value="${esc(k)}">${esc(SJ_LABEL[k] || k)}${SJ[k] !== SJ_STD[k] ? ' · aangepast' : ''}</option>`).join('');
+  const optA = autoK.map(k => `<option value="${esc(k)}">${esc(SJ_LABEL[k] || k)}${aangepast(k)}</option>`).join('');
   d.innerHTML = `<div class="dlg-in"><div class="dlg-kop"><div><small>Alleen voor de beheerder · geldt voor iedereen</small><h2>Standaardteksten</h2></div><button class="sluit" data-sjdicht aria-label="Sluiten">×</button></div>
     <p class="hint">De aanhef ("Beste …,") en je handtekening komen er vanzelf omheen. Gebruik <code>{naam}</code>, <code>{afdeling}</code> en <code>{datum}</code>; SubmIT vult die in. Zet <code>[vul aan]</code> waar de collega zelf iets moet invullen.</p>
-    <div class="sj-kies"><select id="sj-keuze" class="afdkeuze" aria-label="Kies een standaardtekst"><optgroup label="Eigen teksten" id="sj-opt-eigen">${optE}</optgroup><optgroup label="Bij een actie of status (komen vanzelf als voorstel)">${optS}</optgroup></select>
+    <div class="sj-kies"><select id="sj-keuze" class="afdkeuze" aria-label="Kies een standaardtekst"><option value="" disabled hidden>Kies een tekst…</option><optgroup label="Keuzelijst in de melding">${optL}</optgroup><optgroup label="Eigen teksten" id="sj-opt-eigen">${optE}</optgroup></select>
       <button type="button" class="linkknop" data-sjnieuw>+ Nieuwe standaardtekst</button></div>
+    ${autoK.length ? `<details class="sj-auto"><summary>Automatische voorstellen bij een status of actie (${autoK.length})</summary><p class="hint">Deze komen vanzelf als voorstel in het reactievak, bijvoorbeeld als je de status wijzigt. Ze staan niet in de keuzelijst; zet "in keuzelijst" aan om er een toe te voegen.</p><select id="sj-keuze-auto" class="afdkeuze" aria-label="Kies een automatisch voorstel"><option value="">Kies een voorstel…</option>${optA}</select></details>` : ''}
     <div id="sj-eigen">${eigen}</div><div id="sj-systeem">${systeem}</div>
-<div class="pb-acties"><span style="flex:1"></span><button type="button" class="knop" data-sjdicht>Annuleren</button><button type="button" class="knop vol" data-sjbewaar>Opslaan</button></div></div>`;
-  d.showModal(); sjToon($('#sj-keuze').value);
+    <p class="fout" id="sj-fout"></p><div class="pb-acties"><span style="flex:1"></span><button type="button" class="knop" data-sjdicht>Annuleren</button><button type="button" class="knop vol" data-sjbewaar>Opslaan</button></div></div>`;
+  d.showModal(); sjToon(lijstK[0] || Object.keys(SJ_EIGEN)[0] || autoK[0]);
 }
-function sjToon(k){ const sel = $('#sj-keuze'); if(!sel) return; if(k) sel.value = k;
-  document.querySelectorAll('#sjdlg .sj-kaart').forEach(kd => { kd.hidden = kd.dataset.sjk !== sel.value; }); }
-document.addEventListener('change', e => { if(e.target.id === 'sj-keuze') sjToon(); });
+function sjToon(k){ const sel = $('#sj-keuze'), auto = $('#sj-keuze-auto'); if(!sel) return;
+  if(k === undefined) k = sel.value;
+  const inHoofd = [...sel.options].some(o => o.value === k && k);
+  sel.value = inHoofd ? k : ''; if(auto) auto.value = inHoofd ? '' : k;
+  document.querySelectorAll('#sjdlg .sj-kaart').forEach(kd => { kd.hidden = kd.dataset.sjk !== k; }); }
+document.addEventListener('change', e => { if(e.target.id === 'sj-keuze') sjToon(e.target.value); if(e.target.id === 'sj-keuze-auto' && e.target.value) sjToon(e.target.value); });
 document.addEventListener('click', async e => {
   if(e.target.closest('[data-sjdicht]')){ $('#sjdlg').close(); return; }
   if(e.target.closest('[data-sjnieuw]')){ const k = 'eigen:' + Date.now().toString(36);
     $('#sj-eigen').insertAdjacentHTML('beforeend', `<div class="sj-kaart" data-sjk="${k}"><div class="sj-kop"><input class="sj-naam datumkeuze" placeholder="Naam in de keuzelijst" aria-label="Naam"><label class="vink"><input type="checkbox" class="sj-lijst" checked disabled> in keuzelijst</label><button type="button" class="linkknop rood" data-sjweg>Verwijderen</button></div><textarea class="toelinvoer sj-tekst" rows="6" placeholder="De tekst…"></textarea></div>`);
     $('#sj-opt-eigen').insertAdjacentHTML('beforeend', `<option value="${k}">Nieuwe tekst</option>`); sjToon(k);
     $('#sj-eigen .sj-kaart:last-child .sj-naam').focus(); return; }
-  const w = e.target.closest('[data-sjweg]'); if(w){ const kd = w.closest('.sj-kaart'), o = $('#sj-keuze').querySelector(`option[value="${CSS.escape(kd.dataset.sjk)}"]`); kd.remove(); if(o) o.remove(); sjToon($('#sj-keuze').options[0] && $('#sj-keuze').options[0].value); return; }
+  const w = e.target.closest('[data-sjweg]'); if(w){ const kd = w.closest('.sj-kaart'), o = $('#sj-keuze').querySelector(`option[value="${CSS.escape(kd.dataset.sjk)}"]`); kd.remove(); if(o) o.remove(); const eerste = [...$('#sj-keuze').options].find(x => x.value); sjToon(eerste ? eerste.value : ''); return; }
   const st = e.target.closest('[data-sjstd]'); if(st){ const kd = st.closest('.sj-kaart'); kd.querySelector('.sj-tekst').value = SJ_STD[kd.dataset.sjk]; st.hidden = true; return; }
   const b = e.target.closest('[data-sjbewaar]'); if(b){
     const teksten = {}, eigen = {}, lijst = []; let fout = '';
@@ -8056,6 +8065,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.65', d: '23-10-2026', p: ['Standaardteksten beheren: de keuzelijst is nu precies die uit de melding (zelfde namen en volgorde). De automatische voorstellen bij een status staan apart, ingeklapt.']},
   {v: 'v7.64', d: '23-10-2026', groot: true, p: ['Aandacht nodig telt nu precies hetzelfde als het SLA-dashboard op de schermen: dezelfde statussen, opvolging na 4 werkdagen, werkdag vanaf 07:30, en niet meetellen: Zorgadministratie, Power BI, changes en verbeteracties.', 'Een melding blijft nieuw tot alle stappen gezet zijn: verantwoordelijke, afdeling, locatie en een reactie aan de melder.']},
   {v: 'v7.62', d: '23-10-2026', p: ['Meldingen rechtsonder (update, herinnering, kritiek, mogelijke storing) hebben dezelfde rustige stijl als de balk links: wit met een zachte schaduw.']},
   {v: 'v7.61', d: '22-10-2026', p: ['Geeft AFAS bij het ophalen van veel meldingen even een fout, dan probeert SubmIT het vanzelf opnieuw in kleinere stukken. Geen rode melding meer.']},
