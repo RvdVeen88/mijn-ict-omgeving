@@ -576,7 +576,11 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .blok:has(.tw){padding-bottom:22px}
 /* tabel breder dan het scherm: een horizontale scrollbalk die onderin beeld blijft staan (niet pas onder de laatste regel) */
 .tw.metbalk{scrollbar-width:none}.tw.metbalk::-webkit-scrollbar{display:none}
-.tw-balk{position:sticky;bottom:var(--voet-h,0px);z-index:4;overflow-x:auto;overflow-y:hidden;height:17px;background:var(--vlak);border-top:1px solid var(--lijn)}
+.tw-voet{position:sticky;bottom:var(--voet-h,0px);z-index:4}
+/* vastgezet onderin (lange lijst): zelfde onderkant als een kaart, met ronde hoeken op de achtergrond van de pagina */
+.tw-voet.vast{background:linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 45%,var(--bg3) 100%) fixed}
+.tw-voet-in{background:var(--vlak)}.tw-voet.vast .tw-voet-in{border-radius:0 0 30px 30px;padding-bottom:16px}
+.tw-balk{position:relative;z-index:4;overflow-x:auto;overflow-y:hidden;height:17px;background:var(--vlak);border-top:1px solid var(--lijn)}
 .tw-balk>div{height:1px}
 .voet .achter{display:inline-flex;align-items:center;gap:8px;margin-right:14px}
 .voet .achter i{display:block;width:120px;height:4px;border-radius:2px;background:var(--lijn);overflow:hidden}
@@ -2404,15 +2408,22 @@ function houdOnderwerp(t){
 // onderbalk (Live · bijgewerkt, voortgang, update) altijd zichtbaar; de horizontale schuifbalk van een lange tabel blijft er net boven
 (() => { const v = document.querySelector('.werk > .voet'); if(!v || !window.ResizeObserver) return;
   new ResizeObserver(() => document.documentElement.style.setProperty('--voet-h', v.offsetHeight + 'px')).observe(v); })();
+// staat de schuifbalk vast onderin terwijl de kaart nog doorloopt? Dan krijgt hij de onderkant van een kaart
+function twVoetVast(){ const voet = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--voet-h')) || 0, grens = innerHeight - voet;
+  document.querySelectorAll('.tw-voet').forEach(w => { const r = w.getBoundingClientRect(), kaart = w.closest('.blok'), kb = kaart ? kaart.getBoundingClientRect().bottom : r.bottom;
+    w.classList.toggle('vast', r.bottom >= grens - 2 && kb > r.bottom + 4); }); }
+let twVoetRaf = 0; const twVoetPlan = () => { if(!twVoetRaf) twVoetRaf = requestAnimationFrame(() => { twVoetRaf = 0; twVoetVast(); }); };
+addEventListener('scroll', twVoetPlan, {passive: true}); addEventListener('resize', twVoetPlan);
 const twLinks = {};   // horizontale scrollpositie per tabel: blijft staan als de lijst ververst
 function zorgScrollbalk(tw){
   const tid = (tw.querySelector('table[data-tabel]') || {dataset: {}}).dataset.tabel;
   if(tid && !tw._links){ tw._links = true; tw.addEventListener('scroll', () => { twLinks[tid] = tw.scrollLeft; }, {passive: true}); if(twLinks[tid]) tw.scrollLeft = twLinks[tid]; }
-  let balk = tw.nextElementSibling && tw.nextElementSibling.classList.contains('tw-balk') ? tw.nextElementSibling : null;
+  const wrap = tw.nextElementSibling && tw.nextElementSibling.classList.contains('tw-voet') ? tw.nextElementSibling : null;
+  let balk = wrap ? wrap.querySelector('.tw-balk') : null;
   const nodig = getComputedStyle(tw).overflowX !== 'visible' && tw.scrollWidth > tw.clientWidth + 2;
   tw.classList.toggle('metbalk', nodig);
-  if(!nodig){ if(balk) balk.remove(); return; }
-  if(!balk){ balk = document.createElement('div'); balk.className = 'tw-balk'; balk.setAttribute('aria-hidden', 'true'); balk.innerHTML = '<div></div>'; tw.after(balk);
+  if(!nodig){ if(wrap) wrap.remove(); return; }
+  if(!balk){ const w = document.createElement('div'); w.className = 'tw-voet'; balk = document.createElement('div'); balk.className = 'tw-balk'; balk.setAttribute('aria-hidden', 'true'); balk.innerHTML = '<div></div>'; const binnen = document.createElement('div'); binnen.className = 'tw-voet-in'; binnen.appendChild(balk); w.appendChild(binnen); tw.after(w); requestAnimationFrame(twVoetVast);
     let bron = null;
     balk.addEventListener('scroll', () => { if(bron === tw) return; bron = balk; tw.scrollLeft = balk.scrollLeft; requestAnimationFrame(() => bron = null); });
     tw.addEventListener('scroll', () => { if(bron === balk) return; bron = tw; balk.scrollLeft = tw.scrollLeft; requestAnimationFrame(() => bron = null); }); }
