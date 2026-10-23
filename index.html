@@ -501,7 +501,8 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .spin{width:18px;height:18px;border-radius:50%;border:2.5px solid var(--lijn);border-top-color:var(--blauw-2);animation:draai 1s linear infinite}
 @keyframes draai{to{transform:rotate(360deg)}}
 
-.voet{display:flex;gap:10px;align-items:center;justify-content:flex-end;padding:6px 28px 14px;color:var(--grijs);font-size:12.5px}
+.voet{display:flex;gap:10px;align-items:center;justify-content:flex-end;padding:6px 28px 10px;color:var(--grijs);font-size:12.5px;
+  position:sticky;bottom:0;z-index:6;margin-top:auto;background:var(--achtergrond)}
 .voet .live{width:8px;height:8px;border-radius:50%;background:#22A06B;animation:knipper 2.4s ease-in-out infinite}
 .voet .live.uit{background:var(--grijs);animation:none}
 @keyframes knipper{50%{opacity:.35}}
@@ -575,7 +576,7 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 .blok:has(.tw){padding-bottom:22px}
 /* tabel breder dan het scherm: een horizontale scrollbalk die onderin beeld blijft staan (niet pas onder de laatste regel) */
 .tw.metbalk{scrollbar-width:none}.tw.metbalk::-webkit-scrollbar{display:none}
-.tw-balk{position:sticky;bottom:0;z-index:4;overflow-x:auto;overflow-y:hidden;height:17px;background:var(--vlak);border-top:1px solid var(--lijn)}
+.tw-balk{position:sticky;bottom:var(--voet-h,0px);z-index:4;overflow-x:auto;overflow-y:hidden;height:17px;background:var(--vlak);border-top:1px solid var(--lijn)}
 .tw-balk>div{height:1px}
 .voet .achter{display:inline-flex;align-items:center;gap:8px;margin-right:14px}
 .voet .achter i{display:block;width:120px;height:4px;border-radius:2px;background:var(--lijn);overflow:hidden}
@@ -2378,6 +2379,9 @@ function houdOnderwerp(t){
   const tekort = [...t.querySelectorAll('thead tr:first-child th')].filter(th => th.offsetParent !== null).reduce((n, th) => n + Math.max(0, (th === ond ? ONDERWERP_MIN : 48) - th.offsetWidth), 0);
   if(tekort > 0) t.style.minWidth = (t.offsetWidth + tekort) + 'px';
 }
+// onderbalk (Live · bijgewerkt, voortgang, update) altijd zichtbaar; de horizontale schuifbalk van een lange tabel blijft er net boven
+(() => { const v = document.querySelector('.werk > .voet'); if(!v || !window.ResizeObserver) return;
+  new ResizeObserver(() => document.documentElement.style.setProperty('--voet-h', v.offsetHeight + 'px')).observe(v); })();
 const twLinks = {};   // horizontale scrollpositie per tabel: blijft staan als de lijst ververst
 function zorgScrollbalk(tw){
   const tid = (tw.querySelector('table[data-tabel]') || {dataset: {}}).dataset.tabel;
@@ -3576,7 +3580,9 @@ async function snelActie(knop){
   if(!huidig || huidig.x !== x) return;
   const l = huidig.wf ? huidig.wf.acties : [], a = soort === 'oppak' ? l.find(isOppakActie) : l.find(sluitActie);
   if(!a){ knop.disabled = false; knop.textContent = oud; $('#d-fout').textContent = `De actie "${oud}" is bij deze melding (nu) niet beschikbaar in AFAS.`; return; }
-  opslaanAlles(l.indexOf(a));
+  // stopt het opslaan vóór het begint (bv. afdeling nog leeg, of je kiest Annuleren), dan de knop weer bruikbaar maken
+  try{ await opslaanAlles(l.indexOf(a)); }
+  finally{ if(knop.isConnected && knop.querySelector('.spin')){ knop.disabled = false; knop.textContent = oud; } }
 }
 /* ================= standaardteksten voor de reactie aan de melder ================= */
 // teksten aan te passen via mijn-ict-config.js (INST.sjablonen: {sleutel: 'tekst'}); {afdeling}, {naam}, {datum} worden ingevuld
@@ -8323,7 +8329,7 @@ async function wisselWindows(){
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
   {v: 'v7.73', d: '23-10-2026', p: ['Beveiliging: HTML uit mails (.eml) en uit AFAS wordt nu zo gelezen dat er nooit code in kan meedraaien. Met dank aan een collega die dit vond.', 'Extra vangnet: SubmIT mag alleen nog verbinding maken met AFAS, Microsoft en de eigen Azure-functies.']},
-  {v: 'v7.72', d: '23-10-2026', groot: true, p: ['In een melding: één AI-knop voor alles. Is dit eerder opgelost (oude meldingen of de kennisbank), dan pulseert hij. Bovenaan het menu staat dan het antwoord op basis van die oplossingen: advies voor jou met de bronnen, een concept voor de melder met één klik, en ruimte voor een vervolgvraag.', 'De losse chat in de balk links is weg. De status van de AI-index staat bij Beheer → Connectoren & velden.', 'Gesloten meldingen laden blijft niet meer hangen: stokt AFAS, dan probeert SubmIT het na een minuut zelf opnieuw.', 'Overal hetzelfde AI-icoon als op de AI-knop, ook naast Standaardtekst (grijs als het uit staat), bij voorstellen, samenvatting, tips en instructies.', 'Bijlage toevoegen is nu het paperclipje links onderin het reactievak. Annuleren in het bestandsvenster vraagt niet meer of je de melding wilt sluiten.']},
+  {v: 'v7.72', d: '23-10-2026', groot: true, p: ['In een melding: één AI-knop voor alles. Is dit eerder opgelost (oude meldingen of de kennisbank), dan pulseert hij. Bovenaan het menu staat dan het antwoord op basis van die oplossingen: advies voor jou met de bronnen, een concept voor de melder met één klik, en ruimte voor een vervolgvraag.', 'De losse chat in de balk links is weg. De status van de AI-index staat bij Beheer → Connectoren & velden.', 'Gesloten meldingen laden blijft niet meer hangen: stokt AFAS, dan probeert SubmIT het na een minuut zelf opnieuw.', 'De onderbalk (Live · bijgewerkt, voortgang, nieuwe versie) blijft nu altijd onderin zichtbaar, ook bij een lange lijst; de schuifbalk van een brede tabel staat er net boven.', 'Afhandelen bleef draaien als het opslaan niet door kon (bijvoorbeeld omdat de afdeling nog leeg was); de knop is nu meteen weer bruikbaar.', 'Overal hetzelfde AI-icoon als op de AI-knop, ook naast Standaardtekst (grijs als het uit staat), bij voorstellen, samenvatting, tips en instructies.', 'Bijlage toevoegen is nu het paperclipje links onderin het reactievak. Annuleren in het bestandsvenster vraagt niet meer of je de melding wilt sluiten.']},
   {v: 'v7.71', d: '23-10-2026', p: ['Sneller compleet na het inloggen: afgehandelde meldingen van de laatste 7 dagen komen meteen na de open meldingen, zodat Afgehandeld deze week direct klopt. Daarna eerst de laatste 14 dagen, dan de rest tot 90 dagen.', 'Meldingen over de index van Vraag het SubmIT staan nu in gewone taal bij Beheer → Connectoren & velden, niet meer onder de chat.']},
   {v: 'v7.70', d: '23-10-2026', p: ['Vraag het SubmIT: alle meldingen uit AFAS ophalen gebeurt \'s nachts, zodat SubmIT overdag niet trager laadt. Index nu bijwerken haalt overdag alleen wat nieuw is en gaat na een storing zelf verder.', 'De ICT-mailbox doet niet meer mee; de chat zoekt in meldingen met reacties en in de kennisbank.']},
   {v: 'v7.69', d: '23-10-2026', p: ['Vraag het SubmIT: de beheerder kan de index nu meteen laten vullen met de knop Index nu bijwerken (onderin het chatpaneel). De automatische ronde is lichter voor AFAS: overdag alleen wat nieuw is, \'s nachts alles.']},
