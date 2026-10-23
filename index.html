@@ -1144,6 +1144,7 @@ dialog#detail.sleept .bijlbalk{min-height:84px;padding:8px 16px;border-color:var
 dialog#detail.sleept .bijlbalk::after{content:'Sleep je bestand hierheen om het aan de melding toe te voegen';position:absolute;left:0;right:0;bottom:8px;text-align:center;color:var(--blauw);font-weight:600;font-size:13px;pointer-events:none}
 dialog#detail.sleept .composer{outline:1.5px dashed var(--lijn);outline-offset:4px;border-radius:12px}
 .onderbalk{position:sticky;top:-24px;background:var(--vlak);padding:10px 0 8px;z-index:3}
+.bijlbalk.nietsdaar:not(:has(#klaar-ticket > *)){display:none}dialog#detail.sleept .bijlbalk.nietsdaar,dialog#nieuw.sleept .bijlbalk.nietsdaar{display:flex}
 .bijlbalk.erover{border-color:var(--blauw-2);background:var(--lichtblauw-2)}
 .bijlbalk .bijltitel{display:inline-flex;align-items:center;gap:5px;color:var(--blauw)}
 .bijlbalk .bijltitel svg{width:14px;height:14px}
@@ -1196,7 +1197,7 @@ dialog#detail .dlg-in > *{flex-shrink:0}
 dialog#detail .tijdlijn{min-height:120px}
 /* reactievak: standaard ruim, groeit mee met de tekst (bv. een standaardtekst met ondertekening) */
 dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:vertical;line-height:1.5;box-sizing:border-box;padding-bottom:38px}
-.tekstvak{position:relative}.tekstvak textarea{width:100%;display:block}
+.tekstvak{position:relative}#n-form .tekstvak textarea{padding-bottom:38px}.tekstvak textarea{width:100%;display:block}
 .clipin{position:absolute;left:8px;bottom:8px;width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:var(--grijs);display:grid;place-items:center;cursor:default}
 .clipin:hover,.clipin:focus-visible{background:var(--lichtblauw-2);color:var(--blauw)}.clipin svg{width:17px;height:17px}
 
@@ -4457,6 +4458,7 @@ function verdeelBijlagen(x){
     + (fouten.length ? `<span class="hint">${geenRechten ? `Bijlagen kunnen nog niet worden gelezen: laat de beheerder GetConnector ${fouten.map(f => esc(f.conn)).join(' en ')} aan de app connector koppelen.` : `Bijlagen ophalen lukte niet: ${fouten.map(f => esc(f.conn + ': ' + f.fout)).join('; ')}`}</span>` : '');
   const t = $('#bijl-titel'); if(t) t.textContent = lijst.length ? `Bijlagen (${lijst.length})` : 'Bijlagen';
   $('#d-bijl') && $('#d-bijl').classList.toggle('leeg', !lijst.length);
+  $('#d-bijl') && $('#d-bijl').classList.toggle('nietsdaar', !los.length && !fouten.length);   // geen bijlagen: regel weg (komt terug bij slepen of als je er een klaarzet)
 }
 async function haalBestand(b){
   const pad = id => `/SubjectConnector/${encodeURIComponent(id)}/${encodeURIComponent(b.file)}`;
@@ -4572,11 +4574,11 @@ function sleepDoel(e){
 const wisErover = (behalve) => document.querySelectorAll('.erover').forEach(n => n !== behalve && n.classList.remove('erover'));
 ['dragenter', 'dragover'].forEach(t => document.addEventListener(t, e => {
   if(!metBestanden(e)) return; e.preventDefault();   // nooit het bestand zelf in de browser openen
-  const d = sleepDoel(e); wisErover(d && d.el); $('#detail').classList.toggle('sleept', !!e.target.closest('#detail'));
+  const d = sleepDoel(e); wisErover(d && d.el); $('#detail').classList.toggle('sleept', !!e.target.closest('#detail')); $('#nieuw') && $('#nieuw').classList.toggle('sleept', !!e.target.closest('#nieuw'));
   if(d){ e.dataTransfer.dropEffect = 'copy'; d.el.classList.add('erover'); } else e.dataTransfer.dropEffect = 'none'; }));
-document.addEventListener('dragleave', e => { if(metBestanden(e) && !e.relatedTarget){ wisErover(); $('#detail').classList.remove('sleept'); } });
+document.addEventListener('dragleave', e => { if(metBestanden(e) && !e.relatedTarget){ wisErover(); $('#detail').classList.remove('sleept'); $('#nieuw') && $('#nieuw').classList.remove('sleept'); } });
 document.addEventListener('drop', e => {
-  if(!metBestanden(e)) return; e.preventDefault(); const d = sleepDoel(e); wisErover(); $('#detail').classList.remove('sleept');
+  if(!metBestanden(e)) return; e.preventDefault(); const d = sleepDoel(e); wisErover(); $('#detail').classList.remove('sleept'); $('#nieuw') && $('#nieuw').classList.remove('sleept');
   if(d && e.dataTransfer.files.length) (d.soort === 'nieuw' ? zetNieuwBijl : f => zetKlaar(f, d.soort))(e.dataTransfer.files);
 });
 // plakken (Ctrl+V) van een schermafbeelding of gekopieerd bestand
@@ -4630,7 +4632,7 @@ function zetNieuwBijl(files){
   const mail = [...files].find(f => /\.(msg|eml)$/i.test(f.name) && f.size <= MAXB());
   if(mail) mailNaarMelding(mail);
 }
-function tekenNieuwBijl(){ const el = $('#n-bijl-lijst'); if(el) el.innerHTML = nieuwBijl.map((f, i) => `<span class="bijlchip klaar" title="${esc(f.name)}"><span>${bestIcoon(f.name)}</span><b>${esc(f.name)}</b><small>${fmtGrootte(f.size)}</small><button type="button" class="weg" data-nieuwweg="${i}" aria-label="Weghalen">×</button></span>`).join(''); }
+function tekenNieuwBijl(){ const nb = $('#n-bijl'); if(nb) nb.classList.toggle('nietsdaar', !nieuwBijl.length); const el = $('#n-bijl-lijst'); if(el) el.innerHTML = nieuwBijl.map((f, i) => `<span class="bijlchip klaar" title="${esc(f.name)}"><span>${bestIcoon(f.name)}</span><b>${esc(f.name)}</b><small>${fmtGrootte(f.size)}</small><button type="button" class="weg" data-nieuwweg="${i}" aria-label="Weghalen">×</button></span>`).join(''); }
 document.addEventListener('click', e => {
   if(e.target.closest('#k-nbijl')){ $('#f-nieuw').click(); return; }
   const w = e.target.closest('[data-nieuwweg]'); if(w){ nieuwBijl.splice(+w.dataset.nieuwweg, 1); tekenNieuwBijl(); }
@@ -5059,7 +5061,7 @@ function keuze(f, naam, std){
   return `<select name="${naam}"><option value="">Kies…</option>${w.map(x => `<option value="${esc(x.code)}" ${x.code === kies.code ? 'selected' : ''}>${esc(x.naam)}</option>`).join('')}</select>`;
 }
 async function nieuweMelding(){
-  const d = $('#nieuw'), kop = `<div class="dlg-kop"><div><small>Aanvraag ICT</small><h2>Nieuwe melding</h2></div><button class="sluit" data-sluitnieuw aria-label="Sluiten">×</button></div>`;
+  const d = $('#nieuw'), kop = `<div class="dlg-kop"><div><h2>Nieuwe melding</h2></div><button class="sluit" data-sluitnieuw aria-label="Sluiten">×</button></div>`;
   $('#nieuw-in').innerHTML = kop + '<p class="leeg">Velden ophalen uit AFAS…</p>'; d.dataset.gewijzigd = ''; nieuwBijl = []; d.showModal();
   let m;
   try{ m = await laadNieuwMeta(); }
@@ -5068,7 +5070,7 @@ async function nieuweMelding(){
   // zelfde opbouw als een bestaande melding: titel bovenin, kaarten Melding | Behandeling, toelichting, bijlagen, knoppen
   const kz = (f, naam, std) => keuze(f, naam, std).replace('<select ', '<select class="afdkeuze" ').replace('<input ', '<input class="datumkeuze" ');
   $('#nieuw-in').innerHTML = `<form class="nform nmeld" id="n-form" onsubmit="return false">
-    <div class="dlg-kop"><div><small>Nieuwe melding · Aanvraag ICT</small><h2 id="n-titel">Nieuwe melding</h2></div><button type="button" class="sluit" data-sluitnieuw aria-label="Sluiten">×</button></div>
+    <div class="dlg-kop"><div><h2 id="n-titel">Nieuwe melding</h2></div><button type="button" class="sluit" data-sluitnieuw aria-label="Sluiten">×</button></div>
     <div class="kaarten">
       <div class="kaart2"><h3>Melding</h3>
         <span>Melder</span><b><input name="melder" id="n-melder" class="datumkeuze metpijl" autocomplete="off" spellcheck="false" placeholder="Zoek op naam of nummer"><input type="hidden" name="melderId"><small class="hint" id="n-melder-hint">Medewerkers ophalen…</small></b>
@@ -5090,8 +5092,8 @@ async function nieuweMelding(){
       </div>
     </div>
     <div class="toelblok"><h3>Onderwerp<i class="verpl" data-verpl="#n-form [name=ond]" title="Verplicht">*</i></h3><input name="ond" class="lang toelinvoer ondveld" required maxlength="80" spellcheck="true" aria-label="Onderwerp" placeholder="Kort en duidelijk, bv. Printer balie Almere print niet" autocomplete="off">
-      <h3 style="margin-top:6px">Toelichting</h3><textarea name="tx" class="lang toelinvoer" rows="4" aria-label="Toelichting" placeholder="Sinds wanneer, welke werkplek, wat is al geprobeerd?"></textarea></div>
-    <div class="bijlbalk" id="n-bijl" title="Sleep bestanden of een mail hierheen, of plak een schermafbeelding met Ctrl+V"><span class="bijltitel">${CLIP}<b>Bijlagen</b></span><span class="bijlrij" id="n-bijl-lijst"></span><button type="button" class="linkknop" id="k-nbijl">toevoegen</button><input type="file" id="f-nieuw" multiple hidden></div>
+      <h3 style="margin-top:6px">Toelichting</h3><div class="tekstvak"><textarea name="tx" class="lang toelinvoer" rows="4" aria-label="Toelichting" placeholder="Sinds wanneer, welke werkplek, wat is al geprobeerd?"></textarea><button type="button" class="clipin" id="k-nbijl" title="Bijlage toevoegen (je kunt ook bestanden of een mail hierheen slepen, of een schermafbeelding plakken met Ctrl+V)" aria-label="Bijlage toevoegen">${CLIP}</button></div></div>
+    <div class="bijlbalk nietsdaar" id="n-bijl" title="Sleep bestanden of een mail hierheen, of plak een schermafbeelding met Ctrl+V"><span class="bijltitel">${CLIP}<b>Bijlagen</b></span><span class="bijlrij" id="n-bijl-lijst"></span><input type="file" id="f-nieuw" multiple hidden></div>
     <div class="fout" id="n-fout">${m.stId ? '' : `Het type dossieritem "Aanvraag ICT" is niet gevonden in AFAS (gevonden: ${esc(m.typen.map(t => t.naam).join(', ') || 'geen')}). Zet nieuwStId in mijn-ict-config.js.`}</div>
     <div class="onderbalk"><span style="flex:1"></span><span class="opslaanknoppen"><button type="button" class="knop" data-sluitnieuw>Annuleren</button><button type="button" class="knop vol" id="n-maak" title="Ctrl+Enter" ${m.stId ? '' : 'disabled'}>Melding aanmaken <kbd>Ctrl+Enter</kbd></button></span></div>
   </form>`;
@@ -8351,7 +8353,7 @@ async function wisselWindows(){
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
   {v: 'v7.73', d: '23-10-2026', p: ['Beveiliging: HTML uit mails (.eml) en uit AFAS wordt nu zo gelezen dat er nooit code in kan meedraaien. Met dank aan een collega die dit vond.', 'Extra vangnet: SubmIT mag alleen nog verbinding maken met AFAS, Microsoft en de eigen Azure-functies.']},
-  {v: 'v7.72', d: '23-10-2026', groot: true, p: ['In een melding: één AI-knop voor alles. Is dit eerder opgelost (oude meldingen of de kennisbank), dan pulseert hij. Bovenaan het menu staat dan het antwoord op basis van die oplossingen: advies voor jou met de bronnen, een concept voor de melder met één klik, en ruimte voor een vervolgvraag.', 'De losse chat in de balk links is weg. De status van de AI-index staat bij Beheer → Connectoren & velden.', 'Gesloten meldingen laden blijft niet meer hangen: stokt AFAS, dan probeert SubmIT het na een minuut zelf opnieuw.', 'Nieuwe melding: Onderwerp staat nu boven Toelichting (zoals in AFAS), met een verplicht-sterretje; de titel bovenin neemt het onderwerp over.', 'Nieuwe meldingen: een reactie aan de melder is geen eis meer. Nieuw = geen verantwoordelijke, of afdeling of locatie ontbreekt. Zo tellen SubmIT en het SLA-dashboard gelijk.', 'Gesloten meldingen laden sneller: SubmIT onthoudt welk filter AFAS weigert en probeert dat niet steeds opnieuw (veel minder foutmeldingen in de console). Extra variant: filter op status Afgehandeld/Gesloten.', 'De onderbalk (Live · bijgewerkt, voortgang, nieuwe versie) blijft nu altijd onderin zichtbaar, ook bij een lange lijst; de schuifbalk van een brede tabel staat er net boven.', 'Afhandelen bleef draaien als het opslaan niet door kon (bijvoorbeeld omdat de afdeling nog leeg was); de knop is nu meteen weer bruikbaar.', 'Overal hetzelfde AI-icoon als op de AI-knop, ook naast Standaardtekst (grijs als het uit staat), bij voorstellen, samenvatting, tips en instructies.', 'Bijlage toevoegen is nu het paperclipje links onderin het reactievak. Annuleren in het bestandsvenster vraagt niet meer of je de melding wilt sluiten.']},
+  {v: 'v7.72', d: '23-10-2026', groot: true, p: ['In een melding: één AI-knop voor alles. Is dit eerder opgelost (oude meldingen of de kennisbank), dan pulseert hij. Bovenaan het menu staat dan het antwoord op basis van die oplossingen: advies voor jou met de bronnen, een concept voor de melder met één klik, en ruimte voor een vervolgvraag.', 'De losse chat in de balk links is weg. De status van de AI-index staat bij Beheer → Connectoren & velden.', 'Gesloten meldingen laden blijft niet meer hangen: stokt AFAS, dan probeert SubmIT het na een minuut zelf opnieuw.', 'Minder dubbel: de regel Bijlagen staat er alleen als er bijlagen zijn; bijlage toevoegen is overal het paperclipje in het tekstvak (ook bij een nieuwe melding). De kop van een nieuwe melding staat er niet meer dubbel.', 'Nieuwe melding: Onderwerp staat nu boven Toelichting (zoals in AFAS), met een verplicht-sterretje; de titel bovenin neemt het onderwerp over.', 'Nieuwe meldingen: een reactie aan de melder is geen eis meer. Nieuw = geen verantwoordelijke, of afdeling of locatie ontbreekt. Zo tellen SubmIT en het SLA-dashboard gelijk.', 'Gesloten meldingen laden sneller: SubmIT onthoudt welk filter AFAS weigert en probeert dat niet steeds opnieuw (veel minder foutmeldingen in de console). Extra variant: filter op status Afgehandeld/Gesloten.', 'De onderbalk (Live · bijgewerkt, voortgang, nieuwe versie) blijft nu altijd onderin zichtbaar, ook bij een lange lijst; de schuifbalk van een brede tabel staat er net boven.', 'Afhandelen bleef draaien als het opslaan niet door kon (bijvoorbeeld omdat de afdeling nog leeg was); de knop is nu meteen weer bruikbaar.', 'Overal hetzelfde AI-icoon als op de AI-knop, ook naast Standaardtekst (grijs als het uit staat), bij voorstellen, samenvatting, tips en instructies.', 'Bijlage toevoegen is nu het paperclipje links onderin het reactievak. Annuleren in het bestandsvenster vraagt niet meer of je de melding wilt sluiten.']},
   {v: 'v7.71', d: '23-10-2026', p: ['Sneller compleet na het inloggen: afgehandelde meldingen van de laatste 7 dagen komen meteen na de open meldingen, zodat Afgehandeld deze week direct klopt. Daarna eerst de laatste 14 dagen, dan de rest tot 90 dagen.', 'Meldingen over de index van Vraag het SubmIT staan nu in gewone taal bij Beheer → Connectoren & velden, niet meer onder de chat.']},
   {v: 'v7.70', d: '23-10-2026', p: ['Vraag het SubmIT: alle meldingen uit AFAS ophalen gebeurt \'s nachts, zodat SubmIT overdag niet trager laadt. Index nu bijwerken haalt overdag alleen wat nieuw is en gaat na een storing zelf verder.', 'De ICT-mailbox doet niet meer mee; de chat zoekt in meldingen met reacties en in de kennisbank.']},
   {v: 'v7.69', d: '23-10-2026', p: ['Vraag het SubmIT: de beheerder kan de index nu meteen laten vullen met de knop Index nu bijwerken (onderin het chatpaneel). De automatische ronde is lichter voor AFAS: overdag alleen wat nieuw is, \'s nachts alles.']},
