@@ -646,27 +646,6 @@ dialog.lade:has(> .kbpaneel.naastlade:not([hidden])){overflow:visible}
 .kbacties{display:flex;gap:4px;opacity:.35;transition:opacity .15s}.kbrij:hover .kbacties,.kbrij:focus-within .kbacties{opacity:1}
 .kbk{border:0;background:var(--achtergrond);color:var(--blauw);border-radius:999px;padding:3px 9px;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap}.kbrij:hover .kbk{background:var(--vlak)}
 .kbleeg{color:var(--grijs);font-size:13px;padding:14px 8px}.kbleeg .knop{margin-top:6px}
-#kc-knop{--acc:#8B5CF6}
-.kcpaneel .kbkop{gap:10px}.kcpaneel .kbkop .linkknop{font-size:12.5px}
-.kc-lijst{flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px;margin:0 -6px;padding:4px 6px}
-.kc-msg{font-size:13.5px;line-height:1.5;color:var(--inkt);border-radius:14px;padding:9px 12px;max-width:92%}
-.kc-msg.ik{align-self:flex-end;background:var(--blauw);color:#fff;border-bottom-right-radius:4px;white-space:pre-wrap}
-.kc-msg.ai{align-self:flex-start;background:var(--achtergrond);border-bottom-left-radius:4px}.kc-msg.ai.geen{color:var(--grijs)}
-.kc-tekst{white-space:pre-wrap}
-.kc-ref{border:0;background:var(--lichtblauw-2);color:var(--blauw);font:inherit;font-size:10.5px;font-weight:700;border-radius:999px;min-width:17px;height:17px;padding:0 4px;margin:0 1px;vertical-align:1px;cursor:default}
-.kc-bronnen{display:flex;flex-direction:column;gap:4px;margin-top:8px}
-.kc-bron{display:grid;grid-template-columns:auto auto 1fr;grid-template-rows:auto auto;column-gap:7px;align-items:center;text-align:left;border:1px solid var(--lijn);background:var(--vlak);border-radius:10px;padding:5px 9px;font:inherit;cursor:default;color:var(--inkt)}
-.kc-bron:hover{border-color:var(--blauw)}.kc-bron.ook{opacity:.85}
-.kc-bron .kc-nr{grid-row:1/3;font-size:10.5px;font-weight:700;color:var(--blauw);background:var(--lichtblauw-2);border-radius:999px;min-width:18px;height:18px;display:grid;place-items:center}
-.kc-bron .kc-ico{grid-row:1/3;color:var(--grijs);display:grid}.kc-bron .kc-ico svg{width:15px;height:15px}
-.kc-bron .kc-bt{font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.kc-bron small{font-size:11px;color:var(--grijs)}
-.kc-ook{margin-top:6px;font-size:12px;color:var(--grijs)}.kc-ook summary{cursor:default}.kc-ook .kc-bron{margin-top:4px;width:100%}
-.kc-acties{display:flex;gap:14px;margin-top:6px}.kc-acties .linkknop{font-size:12px}
-.kc-leeg{display:flex;flex-direction:column;gap:8px;color:var(--grijs);font-size:13px;padding:6px 2px}.kc-leeg p{margin:0 0 4px}
-.kc-vb{text-align:left;border:1px solid var(--lijn);background:var(--vlak);border-radius:12px;padding:7px 11px;font:inherit;font-size:13px;color:var(--inkt);cursor:default}.kc-vb:hover{border-color:var(--blauw)}
-.kc-in{display:flex;gap:8px;align-items:flex-end;background:var(--achtergrond);border-radius:16px;padding:6px 6px 6px 12px}
-.kc-in textarea{flex:1;border:0;outline:0;background:transparent;resize:none;font:inherit;font-size:13.5px;color:var(--inkt);min-height:0;height:42px;max-height:140px;padding:5px 0;box-shadow:none}
-.kc-in .knop{border-radius:999px;width:34px;height:34px;padding:0;font-size:16px;flex:none}
 .kbtip{margin:0;font-size:11.5px;color:var(--grijs);padding:0 4px}
 .paperclip .kbico{width:15px;height:15px;vertical-align:-3px;margin-right:4px}
 body.kbsleept #detail .composer{outline:2px dashed var(--lichtblauw);outline-offset:4px;border-radius:12px}
@@ -1208,7 +1187,10 @@ dialog#detail.sleept .composer{outline:1.5px dashed var(--lijn);outline-offset:4
 dialog#detail .dlg-in > *{flex-shrink:0}
 dialog#detail .tijdlijn{min-height:120px}
 /* reactievak: standaard ruim, groeit mee met de tekst (bv. een standaardtekst met ondertekening) */
-dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:vertical;line-height:1.5;box-sizing:border-box}
+dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:vertical;line-height:1.5;box-sizing:border-box;padding-bottom:38px}
+.tekstvak{position:relative}.tekstvak textarea{width:100%;display:block}
+.clipin{position:absolute;left:8px;bottom:8px;width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:var(--grijs);display:grid;place-items:center;cursor:default}
+.clipin:hover,.clipin:focus-visible{background:var(--lichtblauw-2);color:var(--blauw)}.clipin svg{width:17px;height:17px}
 
 /* ================= responsive: tablet en telefoon ================= */
 .menuknop{display:none;width:40px;height:40px;border-radius:12px;border:1.5px solid var(--lijn);background:var(--vlak);color:var(--blauw);place-items:center;padding:0;flex:none}
@@ -1407,6 +1389,27 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 #kbgdlg,#auditdlg{width:min(720px,94vw)}.kbg-lijst{display:flex;flex-direction:column;gap:8px;margin-top:8px}.kbg-rij{display:flex;gap:12px;align-items:center;border:1px solid var(--lijn);border-radius:12px;padding:10px 12px}
 .kbg-rij > div{flex:1;display:flex;flex-direction:column;gap:2px}.kbg-rij small{color:var(--grijs);font-size:12px}
 .ai-wrap{position:relative;display:inline-block}
+.ai2{position:relative;display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 13px 4px 9px;font:inherit;font-weight:600;font-size:13px;color:#3b1f8f;cursor:default;white-space:nowrap;
+  border:2px solid transparent;background:linear-gradient(110deg,#eef3ff,#f4eeff,#fdeef6,#fff6e8) padding-box,linear-gradient(110deg,#2F6FEB,#8B5CF6,#EC4899,#F59E0B) border-box}
+.ai2:disabled{opacity:.6}.ai2.puls{animation:aiGloed 2s infinite}
+@keyframes aiGloed{0%{box-shadow:0 0 0 0 rgba(139,92,246,.45)}70%{box-shadow:0 0 0 10px rgba(236,72,153,0)}100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}}
+@media (prefers-reduced-motion:reduce){.ai2.puls{animation:none;box-shadow:0 0 0 3px rgba(236,72,153,.3)}}
+.ai-stip{position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#EC4899;border:2px solid var(--vlak,#fff)}.ai-stip[hidden]{display:none}
+.ai-menu button.top{background:linear-gradient(110deg,#eef3ff,#f4eeff,#fdeef6)}.ai-menu button .ai-r{display:flex;gap:8px;align-items:flex-start}
+.aik{border-radius:16px;padding:2px;background:linear-gradient(110deg,#2F6FEB,#8B5CF6,#EC4899,#F59E0B);margin:10px 0 6px}
+.aik>div{background:var(--vlak,#fff);border-radius:14px;padding:11px 14px 12px;font-size:13.5px;line-height:1.5;color:var(--inkt)}
+.ki-kop{display:flex;align-items:center;gap:7px;margin-bottom:6px}.ki-kop b{color:#3b1f8f;font-size:13.5px}.ki-kop small{flex:1}.ki-kop .sluit{border:0;background:transparent;font-size:18px;color:var(--grijs)}
+.ki-tekst{white-space:pre-wrap}.ki-ai{margin:4px 0}.ki-ai.geen{color:var(--grijs)}
+.ki-ik{align-self:flex-end;margin:8px 0 4px auto;width:fit-content;max-width:85%;background:var(--blauw);color:#fff;border-radius:12px 12px 4px 12px;padding:6px 11px;font-size:13px}
+.ki-ref{border:0;background:#f1ebff;color:#6d3fe0;font:inherit;font-size:10.5px;font-weight:700;border-radius:999px;min-width:17px;height:17px;padding:0 4px;margin:0 1px;vertical-align:1px;cursor:default}
+.ki-bronnen{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.ki-bron{display:inline-flex;align-items:center;gap:6px;border:1px solid #e3dbfb;background:#faf8ff;border-radius:9px;padding:3px 9px;font:inherit;font-size:12px;color:var(--inkt);cursor:default;max-width:100%}
+.ki-bron:hover{border-color:#8B5CF6}.ki-bron b{color:var(--blauw);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px}.ki-bron small{color:var(--grijs)}
+.ki-nr{font-size:10.5px;font-weight:700;color:#6d3fe0;background:#f1ebff;border-radius:999px;min-width:17px;height:17px;display:grid;place-items:center}.ki-i{color:var(--grijs);display:grid}.ki-i svg{width:14px;height:14px}
+.ki-acties{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:9px;font-size:12.5px}.ki-acties .linkknop{font-size:12.5px}.ki-acties .grijs{color:var(--grijs)}
+.ki-vol{border:0;border-radius:999px;padding:6px 14px;color:#fff;font:inherit;font-weight:600;font-size:13px;background:linear-gradient(110deg,#2F6FEB,#8B5CF6,#EC4899);cursor:default}
+.ki-vraag{display:flex;gap:8px;margin-top:9px}.ki-vraag input{flex:1;border:1px solid #e3dbfb;border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;background:var(--vlak,#fff);color:var(--inkt)}
+.ki-stuur{border:0;border-radius:999px;width:30px;height:30px;color:#fff;background:linear-gradient(110deg,#8B5CF6,#EC4899);font-size:14px}
 .ai-menu{position:absolute;left:0;bottom:calc(100% + 6px);z-index:30;background:var(--kaart,#fff);border:1px solid var(--lijn);border-radius:12px;box-shadow:0 10px 30px rgba(5,55,135,.16);padding:6px;min-width:290px;display:flex;flex-direction:column}
 .ai-menu[hidden]{display:none}.ai-menu button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;border:0;background:transparent;padding:8px 10px;border-radius:8px;color:var(--inkt);font:inherit;cursor:default}
 .ai-menu button:hover{background:var(--blauw-licht,rgba(5,55,135,.07))}.ai-menu b{font-size:13px;color:var(--blauw)}.ai-menu small{font-size:11.5px;color:var(--grijs)}
@@ -1465,7 +1468,6 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
     <button type="button" class="r" id="meld-knop" title="Meldingen (terug naar waar je was)" aria-label="Meldingen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16"/><path class="acc" d="M4 18h10"/></svg></button>
     <button type="button" class="r" id="todo-knop" data-weergave="todo" title="To-do en notities" aria-label="To-do en notities"><img class="todo-logo" src="todo.png" alt="" hidden onload="this.hidden=false;this.nextElementSibling.style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span class="tel" id="todo-aantal"></span></button>
     <button type="button" class="r" id="kb-knop" title="Kennisbank: instructies zoeken, openen en meesturen" aria-label="Kennisbank"><img class="todo-logo" src="kennisbank.png" alt="" hidden onload="this.hidden=false;this.nextElementSibling.style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 4.9 6.6 4.4 3 5v13c3.6-.6 7 0 9 1.6"/><path d="M12 6.5c2-1.6 5.4-2.1 9-1.5v13c-3.6-.6-7 0-9 1.6z"/><path d="M12 6.5v13.1"/><path class="acc" d="M5.8 9c1.6-.2 3 .1 4 .6M5.8 12.2c1.6-.2 3 .1 4 .6M14.2 9.6c1-.5 2.4-.8 4-.6M14.2 12.8c1-.5 2.4-.8 4-.6"/></svg></button>
-    <button type="button" class="r" id="kc-knop" title="Vraag het SubmIT: zoekt in oude meldingen en de kennisbank" aria-label="Vraag het SubmIT"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M12 8.5l.9 2 2 .9-2 .9-.9 2-.9-2-2-.9 2-.9z" fill="currentColor" stroke-width="1"/></svg></button>
     <button type="button" class="r" id="rap-knop" data-weergave="rapport" title="Rapportage: aantallen, trends en een AI-analyse" aria-label="Rapportage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
     <button type="button" class="r" id="team-knop" title="Team: wie is er online en wat gebeurt er" aria-label="Team" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path class="acc" d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 20a6.5 6.5 0 0 0-2.6-5.2"/></svg><span class="tel online" id="team-aantal"></span><span class="stip" id="team-stip" hidden></span></button>
     <button type="button" class="r plus" id="nieuw-knop" title="Nieuwe melding" aria-label="Nieuwe melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><path class="acc" d="M17.5 3.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>
@@ -1597,7 +1599,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.71', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.72', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1694,11 +1696,15 @@ async function afas(pad, opties = {}, opnieuw = true){
 }
 async function afasKaal(pad, opties = {}, opnieuw = true){
   if(DEMO) return demoAfas(pad, opties);
+  // de wekker loopt tot het antwoord helemaal binnen is: stokt AFAS halverwege, dan afbreken en opnieuw proberen (niet eindeloos wachten)
   const ctrl = new AbortController(), tm = setTimeout(() => ctrl.abort(), 60000);
-  const r = await fetch(afasBasis() + pad, {...opties, signal: ctrl.signal, headers:{'Authorization':'Bearer ' + await geldigToken(), 'Accept':'application/json', 'Accept-Language':'nl-nl', ...(opties.body ? {'Content-Type':'application/json'} : {})}});
+  let r, t;
+  try{ r = await fetch(afasBasis() + pad, {...opties, signal: ctrl.signal, headers:{'Authorization':'Bearer ' + await geldigToken(), 'Accept':'application/json', 'Accept-Language':'nl-nl', ...(opties.body ? {'Content-Type':'application/json'} : {})}});
+    t = await r.text(); }
+  catch(e){ clearTimeout(tm); throw new Error(e.name === 'AbortError' ? 'AFAS: time-out (geen antwoord binnen 60 seconden)' : e.message); }
   clearTimeout(tm);
   if(r.status === 401 && opnieuw){ tok = null; return afas(pad, opties, false); }
-  const t = await r.text(); let j = null; try{ j = JSON.parse(t); }catch(e){}
+  let j = null; try{ j = JSON.parse(t); }catch(e){}
   if(!r.ok){ let detail = (j && (j.externalMessage || j.message)) || '';
     try{ const h = r.headers.get('X-Profit-Error'); if(h && !detail) detail = new TextDecoder().decode(Uint8Array.from(atob(h), c => c.charCodeAt(0))); }catch(e){}
     throw new Error(`AFAS gaf HTTP ${r.status}${detail ? ': ' + detail : ''}`); }
@@ -1707,7 +1713,7 @@ async function afasKaal(pad, opties = {}, opnieuw = true){
 // alle regels in pagina's. AFAS geeft bij grote opvragingen soms even HTTP 500 of een time-out:
 // dan dezelfde pagina opnieuw, met kleinere stukken en een korte pauze (max. 4 pogingen per pagina)
 async function connectorAlles(naam, filter = '', opVoortgang){
-  const rijen = []; let take = 1000, skip = 0;
+  const rijen = []; let take = 500, skip = 0;
   while(skip < 50000){
     let d = null, fout = null;
     for(let poging = 0; poging < 4; poging++){
@@ -2121,16 +2127,12 @@ function laadRestOpAchtergrond(){
   if(alleGeladen || achterBezig) return achterBezig;
   const el = $('#achter');
   el.hidden = false; el.querySelector('span').textContent = 'Gesloten meldingen ophalen…';
-  const vg = maakVoortgang([INST.connSla + '|dicht'], p => { el.style.setProperty('--p', p + '%'); el.querySelector('span').textContent = `Gesloten meldingen ophalen… tot 90 dagen ${p}%`; });
+  const vg = maakVoortgang([INST.connSla + '|dicht'], p => { el.style.setProperty('--p', p + '%'); el.querySelector('span').textContent = `Gesloten meldingen ophalen… ${p}%`; });
   vg.begin();
   return achterBezig = (async () => {
     await laadRecentDicht();
     try{
       const mee = (r, k) => vg.stap(INST.connSla + '|dicht', r, k);
-      // eerst de laatste 14 dagen (wat je het vaakst nodig hebt), dan de rest tot 90 dagen
-      el.querySelector('span').textContent = 'Gesloten meldingen ophalen… laatste 14 dagen';
-      try{ voegDichtToe(await dichtSinds(isoD(new Date(Date.now() - 14 * DAG)))); if(!$('#detail').open) teken(); }catch(e){}
-      el.querySelector('span').textContent = 'Gesloten meldingen ophalen… tot 90 dagen';
       let dicht; try{ dicht = await dichtSinds(isoD(new Date(Date.now() - 90 * DAG)), mee); }catch(e){ dicht = await connectorAlles(INST.connSla, '', mee); }
       voegDichtToe(dicht);
       alleGeladen = true; weekGeladen = true;
@@ -2827,7 +2829,7 @@ function rustInhoud(){
 function rustToon(){
   if(!rustAan || !profiel || document.hidden || !$('#app') || $('#app').hidden) return rustReset();
   let d = $('#rustscherm'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="rustscherm" aria-label="Rustscherm"></dialog>'); d = $('#rustscherm');
-    d.addEventListener('cancel', e => { e.preventDefault(); rustWeg(); }); d.addEventListener('click', () => rustWeg()); }
+    d.addEventListener('cancel', e => { if(e.target !== d) return; e.preventDefault(); rustWeg(); }); d.addEventListener('click', () => rustWeg()); }
   rustInhoud(); rustSinds = Date.now(); d.classList.remove('weg'); d.tabIndex = -1; d.showModal(); d.focus(); requestAnimationFrame(() => d.classList.add('aan'));
   clearInterval(rustKlok); rustKlok = setInterval(rustInhoud, 30e3);   // tijd en cijfers blijven actueel
 }
@@ -4245,6 +4247,7 @@ function openDetail(nr){
   setTimeout(() => { const p = $('#kbpaneel'); if(p && !p.hidden && p.classList.contains('naastlade')){ KB.inMelding = true; kbSuggesties(); kbTeken(); } }, 0);
   navNu = String(nr); document.querySelectorAll('#detail .navpijl').forEach(b => b.disabled = false); setTimeout(navPush, 0);
   const x = items.find(y => String(y.nr) === String(nr)); if(!x) return; huidig = {x, wf:null};
+  setTimeout(() => { if(huidig && huidig.x === x) kiZoek(x); }, 400);   // AI-knop: is er iets eerder opgelost?
   x._sg = signalen(x); markeerGelezen(x);
   const st = stapVan(x);
   const r = (t, w, o = {}) => w || o.altijd ? `<span>${t}</span><b>${o.html ? w : esc(w || '')}</b>` : '';
@@ -4272,10 +4275,11 @@ function openDetail(nr){
     <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3></div>` : `
     ${pbIs(x) ? '<div class="pbres" id="d-pbres"><h3>Resultaat vastleggen</h3><p class="hint">Ophalen…</p></div>' : ''}
     <div class="composer">
-      <textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea>
+      <div class="tekstvak"><textarea id="tekst" placeholder="Schrijf een reactie aan de melder…"></textarea><button type="button" class="clipin" id="k-clip" title="Bijlage toevoegen (je kunt ook een bestand op het reactievak slepen of een schermafbeelding plakken met Ctrl+V)" aria-label="Bijlage toevoegen">${CLIP}</button></div>
       <div class="klaarzet" id="klaar-reactie"></div><div class="ai-tips" id="ai-tips" hidden></div>
-      <div class="onder"><button type="button" class="linkknop paperclip" id="k-clip" title="Bestand meesturen met deze reactie. Je kunt ook een bestand op het reactievak slepen of een schermafbeelding plakken met Ctrl+V.">${CLIP}Bijlage</button><input type="file" id="f-reactie" multiple hidden><label class="vink notitie" data-uitleg="Alleen zichtbaar voor de afdeling ICT. De melder ziet deze notitie niet en krijgt geen mail."><input type="checkbox" id="notitie"> Interne notitie</label>
-        <span class="sjgroep"><button type="button" class="sjai" id="k-sjai" aria-pressed="${sjAiAan()}" title="${sjAiAan() ? 'AI maakt standaardteksten persoonlijk: staat aan (klik om uit te zetten)' : 'AI maakt standaardteksten persoonlijk: staat uit (klik om aan te zetten)'}" aria-label="Standaardteksten persoonlijk maken met AI">✦</button><select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select></span>${x.afgesloten ? '' : `<button type="button" class="linkknop conceptknop" id="k-concept" title="Concept-antwoord op basis van hoe een vergelijkbare melding is opgelost, met een instructie uit de kennisbank als die er is">✦ Concept-antwoord</button><span class="ai-wrap"><button type="button" class="linkknop conceptknop" id="k-aimeer" aria-haspopup="menu" aria-expanded="false" title="Meer hulp van AI bij deze melding">✦ Meer ▾</button><div class="ai-menu" id="ai-menu" role="menu" hidden>
+      <div class="onder"><input type="file" id="f-reactie" multiple hidden><label class="vink notitie" data-uitleg="Alleen zichtbaar voor de afdeling ICT. De melder ziet deze notitie niet en krijgt geen mail."><input type="checkbox" id="notitie"> Interne notitie</label>
+        <span class="sjgroep"><button type="button" class="sjai" id="k-sjai" aria-pressed="${sjAiAan()}" title="${sjAiAan() ? 'AI maakt standaardteksten persoonlijk: staat aan (klik om uit te zetten)' : 'AI maakt standaardteksten persoonlijk: staat uit (klik om aan te zetten)'}" aria-label="Standaardteksten persoonlijk maken met AI">✦</button><select id="d-sjabloon" class="sjabloonkeuze" title="Standaardtekst invoegen"><option value="">Standaardtekst…</option>${SJABLOON_LIJST.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</select></span>${x.afgesloten ? '' : `<span class="ai-wrap"><button type="button" class="ai2" id="k-aimeer" aria-haspopup="menu" aria-expanded="false" title="AI-hulp bij deze melding">${AI_ICO(16)}AI<span class="ai-stip" hidden></span></button><div class="ai-menu" id="ai-menu" role="menu" hidden>
+          <button type="button" role="menuitem" id="k-concept"><b>Antwoord voorstellen</b><small>concept op basis van vergelijkbare meldingen</small></button>
           <button type="button" role="menuitem" id="k-vragen"><b>Vraag ontbrekende info</b><small>1-2 gerichte vragen aan de melder</small></button>
           <button type="button" role="menuitem" id="k-samenvat"><b>Samenvatting</b><small>probleem, wat er al gedaan is, volgende stap</small></button>
           <button type="button" role="menuitem" id="k-leverancier"><b>Overdracht aan leverancier</b><small>zakelijke tekst voor KroonCo, Timeff, AFAS…</small></button></div></span>`}
@@ -5879,16 +5883,19 @@ function tekenConnectoren(){
     ${c ? `<section class="blok cn-kaart"><header><h2>Connectoren in de app connector die SubmIT niet gebruikt</h2><span class="cn-badge ${nietGebruikt.length ? 'oranje' : 'groen'}">${c.alle ? nietGebruikt.length : '?'}</span></header>
       <p class="cn-doel">${c.alle ? (nietGebruikt.length ? 'Deze staan in de app connector "Mijn ICT-omgeving" maar worden door deze pagina niet aangeroepen. Kunnen eruit, tenzij een ander dashboard dezelfde app connector gebruikt.' : 'Alle connectoren in de app connector worden gebruikt.') : `Lijst niet op te halen: ${esc(c.alleFout || '')}`}</p>
       ${nietGebruikt.length ? `<table class="cn-tabel"><thead><tr><th>Connector</th><th>Omschrijving in AFAS</th><th>Soort</th></tr></thead><tbody>${nietGebruikt.map(x => `<tr><td><code>${esc(x.id)}</code></td><td>${esc(x.oms)}</td><td>${x.s === 'GET' ? 'GetConnector' : 'UpdateConnector'}</td></tr>`).join('')}</tbody></table>` : ''}</section>` : ''}
-    ${kennisMeldingen().length ? `<section class="blok cn-kaart"><header><h2>Vraag het SubmIT (index)</h2><span class="cn-badge oranje">${kennisMeldingen().length}</span></header>${kennisMeldingen().map(t => `<p class="cn-doel">${t}</p>`).join('')}</section>` : ''}
+    ${isBeheerder() ? `<section class="blok cn-kaart"><header><h2>AI-index (eerder opgelost)</h2><span class="cn-badge ${kennisMeldingen().length ? 'oranje' : KC.aantal ? 'groen' : 'grijs'}">${kennisMeldingen().length ? kennisMeldingen().length + ' aandachtspunt' + (kennisMeldingen().length === 1 ? '' : 'en') : KC.aantal ? 'ok' : '…'}</span></header>
+      <p class="cn-doel">De AI-knop in een melding zoekt hierin naar eerder opgeloste meldingen en kennisbankdocumenten. ${KC.aantal ? `Nu: <b>${(KC.aantal.afas || 0).toLocaleString('nl-NL')}</b> meldingen · <b>${(KC.aantal.kb || 0).toLocaleString('nl-NL')}</b> documenten.` : esc(KC.statusFout || 'Ophalen…')} 's Nachts wordt alles uit AFAS opgehaald, overdag elk uur alleen wat nieuw is.</p>
+      ${kennisMeldingen().map(t => `<p class="cn-doel">${t}</p>`).join('')}
+      <p class="cn-doel">${KC.indexBezig ? `<span class="spin" style="display:inline-block;width:11px;height:11px;vertical-align:-1px;margin-right:6px"></span>${esc(KC.indexBezig)}` : `<button type="button" class="knop" data-kcindex>Index nu bijwerken</button>${KC.status && KC.status.afas && KC.status.afas.voortgang ? ` <span class="hint">${esc(KC.status.afas.voortgang)}</span>` : ''}`}</p></section>` : ''}
     ${kaarten}
     <section class="blok cn-kaart"><header><h2>Buiten AFAS</h2><button type="button" class="kolknop" data-kritiektest style="margin-left:auto" title="Laat alleen bij jou zien hoe de melding van een kritieke storing eruitziet; er gaat niets naar collega's of AFAS">Kritieke melding testen</button></header><table class="cn-tabel"><tbody>
       ${buitenRij('afas-token', 'Azure Function: wisselt de AFAS-login om voor een token (client secret staat alleen in Azure)', 'Verplicht', DEMO ? 'demo' : tok ? 'ok' : 'nog niet', INST.tokenFunctie || '')}
       ${buitenRij('ict-aanwezig', 'Azure Function: wie is er online, en het oogje "kijkt mee" (wie heeft dezelfde melding open)', 'Optioneel', DEMO ? 'demo' : AANW.status || 'nog niet', aanwezigUrl())}
       ${buitenRij('ict-instellingen', 'Azure Function: je instellingen online, overal hetzelfde', 'Optioneel', DEMO ? 'demo' : syncStatus, syncUrl())}
-      ${buitenRij('ict-kennis', 'Azure Functions ict-kennis en ict-kennis-afas: Vraag het SubmIT (index van meldingen en kennisbank)', 'Optioneel', DEMO ? 'demo' : !KC.status ? 'nog niet' : kennisMeldingen().length ? 'onvolledig' : 'ok', kennisUrl())}
+      ${buitenRij('ict-kennis', 'Azure Functions ict-kennis en ict-kennis-afas: AI-index voor de AI-knop in een melding (eerder opgelost)', 'Optioneel', DEMO ? 'demo' : !KC.status ? 'nog niet' : kennisMeldingen().length ? 'onvolledig' : 'ok', kennisUrl())}
       ${buitenRij('Microsoft To Do', 'To-do per gebruiker (Microsoft Graph, Entra-app SubmIT)', 'Optioneel', DEMO ? 'demo' : ({ok:'ok', geen:'nog niet gekoppeld', verlopen:'opnieuw verbinden', fout:'fout', laden:'laden…'})[TD.status] || TD.status, 'graph.microsoft.com')}</tbody></table></section>`;
   if(!c && !connBezig) controleerConnectoren();
-  if(!KC.status && !KC.statusGevraagd && !DEMO){ KC.statusGevraagd = true; kcStatus().then(() => tekenConnectoren()); }
+  if(!KC.status && !KC.statusGevraagd && isBeheerder()){ KC.statusGevraagd = true; kcStatus().then(() => tekenConnectoren()); }
 }
 // meldingen van de index in gewone taal (voor de beheerder, bij Connectoren & velden)
 function kennisMeldingen(){
@@ -5959,7 +5966,7 @@ function tourDialoog(){
   let d = $('#tour'); if(d) return d;
   document.body.insertAdjacentHTML('beforeend', `<dialog id="tour" aria-label="Rondleiding"><div class="tour-spot" id="tour-spot"></div><div class="tour-kaart" id="tour-kaart" role="document"></div></dialog>`);
   d = $('#tour');
-  d.addEventListener('cancel', e => { e.preventDefault(); stopTour(); });
+  d.addEventListener('cancel', e => { if(e.target !== d) return; e.preventDefault(); stopTour(); });
   d.addEventListener('click', e => { const b = e.target.closest('[data-tour]'); if(!b) return;
     if(b.dataset.tour === 'stop') stopTour(); else gaTour(tourStap + (b.dataset.tour === 'volgende' ? 1 : -1)); });
   d.addEventListener('keydown', e => { if(e.key === 'ArrowRight' || e.key === 'Enter'){ e.preventDefault(); gaTour(tourStap + 1); } else if(e.key === 'ArrowLeft'){ e.preventDefault(); gaTour(tourStap - 1); } });
@@ -6253,11 +6260,9 @@ async function sluitDialoog(d){
     if(e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom){
       const kb = $('#kb-knop').getBoundingClientRect();   // Kennisbank in de balk: melding blijft open, kennisbank ernaast
       if(d.id === 'detail' && e.clientX >= kb.left && e.clientX <= kb.right && e.clientY >= kb.top && e.clientY <= kb.bottom){ const p = $('#kbpaneel'); if(p && !p.hidden && p.parentElement === d) kbDicht(); else kbOpen(true); return; }
-      const kc = $('#kc-knop').getBoundingClientRect();   // Vraag het SubmIT in de balk: melding blijft open, chat ernaast
-      if(d.id === 'detail' && e.clientX >= kc.left && e.clientX <= kc.right && e.clientY >= kc.top && e.clientY <= kc.bottom){ const p = $('#kcpaneel'); if(p && !p.hidden && p.parentElement === d) kcDicht(); else kcOpen(); return; }
       if(d.id === 'detail' && $('#kbpaneel') && !$('#kbpaneel').hidden && $('#kbpaneel').parentElement === d){ const k = $('#kbpaneel').getBoundingClientRect(); if(e.clientX >= k.left && e.clientX <= k.right && e.clientY >= k.top && e.clientY <= k.bottom) return; }
       naastLade(d, e.clientX, e.clientY); } });
-  d.addEventListener('cancel', e => { e.preventDefault(); sluitDialoog(d); });
+  d.addEventListener('cancel', e => { if(e.target !== d) return; e.preventDefault(); sluitDialoog(d); });   // alleen Esc op het venster zelf, niet 'annuleren' in een bestandskiezer
 });
 /* ---- zoeken in alle meldingen (kopregel): treffers direct openen; in een lijst filtert het ook die lijst ---- */
 let zoekSel = -1, zoekHits = [];
@@ -6469,7 +6474,7 @@ function kbOpen(inMelding){
     <label class="kbzoek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="kb-zoek" placeholder="Zoek in de instructies…" autocomplete="off" spellcheck="false"></label>
     <div class="kbkruim"></div><div class="kblijst"></div><p class="kbtip"></p></div>`); p = $('#kbpaneel');
     let t = 0; $('#kb-zoek').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { KB.q = e.target.value.trim(); kbLaad(); }, 300); }); }
-  KB.inMelding = !!inMelding; { const kc = $('#kcpaneel'); if(kc && !kc.hidden) kcDicht(); }
+  KB.inMelding = !!inMelding;
   if(KB.inMelding && (KB.q || KB.pad.length)){ KB.q = ''; KB.pad = []; KB.l = null; $('#kb-zoek').value = ''; }   // vanuit een melding: schoon beginnen, met suggesties
   const host = inMelding && $('#detail').open ? $('#detail') : document.body;
   if(p.parentElement !== host) host.appendChild(p);
@@ -7371,7 +7376,7 @@ async function aiVragen(){
     const j = await aiApi({soort: 'vragen', melding: aiMelding(x)}); if(!j.tekst) throw new Error('geen antwoord');
     t._vstelVoor = t.value; await zetVoorstel(await maakBrief(x, [j.tekst]), true); if(!t.classList.contains('voorstel')) return;
     let l = $('#vst-tekst'); if(l) l.remove();
-    $('#k-concept').insertAdjacentHTML('afterend', `<span class="vstel" id="vst-tekst" data-vstel="tekst"><span class="vst-l" title="Vragen om ontbrekende informatie, opgesteld door AI. Lees het na; × haalt het weg.">✦ AI-vragen</span><button type="button" class="vst-ok" data-vstok aria-label="Overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Weghalen" title="Weghalen">×</button></span>`);
+    $('.ai-wrap').insertAdjacentHTML('afterend', `<span class="vstel" id="vst-tekst" data-vstel="tekst"><span class="vst-l" title="Vragen om ontbrekende informatie, opgesteld door AI. Lees het na; × haalt het weg.">✦ AI-vragen</span><button type="button" class="vst-ok" data-vstok aria-label="Overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Weghalen" title="Weghalen">×</button></span>`);
     t.focus(); }
   catch(e){ toast('Vragen opstellen lukte niet: ' + e.message, true); }
   finally{ aiVoortgangWeg(); anker.disabled = false; }
@@ -7455,7 +7460,7 @@ const tipsReset = () => { clearTimeout(TIP.timer); TIP.l = []; TIP.laatst = ''; 
 
 // ---- mogelijke storing herkennen: meerdere meldingen kort na elkaar over hetzelfde ----
 const STORING = {laatst: '', bezig: false};
-/* ================= Vraag het SubmIT: chat over oude meldingen en de kennisbank =================
+/* ================= AI-index: eerder opgeloste meldingen en de kennisbank (voor de AI-knop in een melding) =================
    Antwoord alleen op basis van gevonden bronnen (Azure-functie ict-kennis, vectorzoeken); niets gevonden = dat zeggen.
    De index: meldingen + reacties vult de functie zelf uit AFAS ('s nachts alles, overdag elk uur alleen wat nieuw is). De kennisbank
    haalt SubmIT op met de Microsoft-login van de collega en stuurt ze naar de index (op de achtergrond, hooguit eens per 6 uur). */
@@ -7469,83 +7474,97 @@ async function kennisApi(body){
 function kennisDemo(b){
   if(b.soort === 'status') return {status: {afas: {laatst: new Date().toISOString(), aantal: 1840}, kb: {laatst: new Date().toISOString()}}, aantal: {afas: 1840, kb: 64}};
   if(b.soort === 'push') return {ok: true, verwerkt: (b.items || []).length};
+  if(b.soort === 'gevonden'){ const t = norm(((b.melding || {}).onderwerp || '') + ' ' + ((b.melding || {}).toelichting || ''));
+    return /wifi|printer|vast|emma|teams|headset/.test(t) ? {treffers: [{bron: 'afas', id: '4203', titel: 'Melding 4203: Vastlopen Emma', datum: '2024-12-06', meta: {nr: '4203'}}, {bron: 'afas', id: '12922', titel: 'Melding 12922: Loopt vast', datum: '2026-10-15', meta: {nr: '12922'}}]} : {treffers: []}; }
+  if(b.soort === 'advies') return new Promise(z => setTimeout(() => z(b.vraag ? {advies: 'Bij melding 12922 is de RDP-sessie afgemeld door KroonCo; daarna kon de gebruiker weer inloggen [2].', bericht: '', bronnen: [{nr: 2, bron: 'afas', titel: 'Melding 12922: Loopt vast', datum: '2026-10-15', link: '', meta: {nr: '12922'}, gebruikt: true}]}
+    : {advies: 'Dit is eerder twee keer voorgekomen:\n1. Laat de gebruiker Emma helemaal afsluiten.\n2. Opnieuw inloggen met Ctrl+Shift+R; daarna werkte het weer [1].\n3. Lukt dat niet: de RDP-sessie laten afmelden via KroonCo [2].', bericht: 'Wil je Emma helemaal afsluiten en daarna opnieuw inloggen met Ctrl+Shift+R? Bij collega\'s met hetzelfde probleem loste dat het op. Werkt het daarna nog niet, laat het ons dan weten.',
+      bronnen: [{nr: 1, bron: 'afas', titel: 'Melding 4203: Vastlopen Emma', datum: '2024-12-06', link: '', meta: {nr: '4203'}, gebruikt: true}, {nr: 2, bron: 'afas', titel: 'Melding 12922: Loopt vast', datum: '2026-10-15', link: '', meta: {nr: '12922'}, gebruikt: true}]}), 400));
   if(b.soort === 'afas-nu') return new Promise(z => setTimeout(() => z({klaar: true, bijgewerkt: 3, aantal: 1840}), 300));
-  const v = norm(b.vraag || '');
-  if(/printer|print/.test(v)) return new Promise(z => setTimeout(() => z({antwoord: 'Dit is eerder twee keer voorgekomen in Almere. De oplossing was:\n1. De printer uit- en weer aanzetten.\n2. De papierlade opnieuw uitlijnen; de sensor ziet het papier anders niet [1].\nBlijft de melding terugkomen, dan is de lade defect en vervangt de leverancier hem [2].', bronnen: [
-    {nr: 1, bron: 'afas', titel: 'Melding 12402: Printer Almere geeft papierfout', datum: '2026-08-14', link: '', meta: {nr: '12402'}, gebruikt: true},
-    {nr: 2, bron: 'afas', titel: 'Melding 11873: Printer balie Almere blijft papier weigeren', datum: '2026-05-02', link: '', meta: {nr: '11873'}, gebruikt: true},
-    {nr: 3, bron: 'kb', titel: 'Printer toevoegen', datum: '2026-03-01', link: 'https://dcklinieken.sharepoint.com/', gebruikt: false}]}), 500));
-  return new Promise(z => setTimeout(() => z({antwoord: 'Hier heb ik geen eerder antwoord op gevonden.', geen: true, bronnen: []}), 400));
+  return {};
 }
 const KC_ICO = {afas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H8l-4 4z"/></svg>',
   mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
   kb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/></svg>'};
 const KC_SOORT = {afas: 'Melding', mail: 'Mail', kb: 'Kennisbank'};
 const kcDatum = d => { const x = new Date(d); return isNaN(x) ? '' : fmtDatum(x); };
-function kcAntwoordHtml(m, i){
-  const t = metLinks(m.tekst).replace(/\[(\d+)\]/g, (z, n) => (m.bronnen || []).some(b => b.nr === +n) ? `<button type="button" class="kc-ref" data-kcref="${i}:${n}" title="Bron ${n}">${n}</button>` : z);
-  const bron = b => `<button type="button" class="kc-bron${b.gebruikt ? '' : ' ook'}" data-kcbron="${i}:${b.nr}" title="${esc(KC_SOORT[b.bron] + ' openen')}"><span class="kc-nr">${b.nr}</span><span class="kc-ico">${KC_ICO[b.bron] || ''}</span><span class="kc-bt">${esc(b.titel)}</span><small>${esc(KC_SOORT[b.bron])}${b.datum ? ' · ' + kcDatum(b.datum) : ''}</small></button>`;
-  const gebr = (m.bronnen || []).filter(b => b.gebruikt), ook = (m.bronnen || []).filter(b => !b.gebruikt);
-  return `<div class="kc-msg ai${m.geen ? ' geen' : ''}"><div class="kc-tekst">${t}</div>
-    ${gebr.length ? `<div class="kc-bronnen">${gebr.map(bron).join('')}</div>` : ''}
-    ${ook.length ? `<details class="kc-ook"><summary>Ook gevonden (${ook.length})</summary>${ook.map(bron).join('')}</details>` : ''}
-    ${m.geen || m.fout ? '' : `<div class="kc-acties"><button type="button" class="linkknop" data-kckopie="${i}">Kopiëren</button>${$('#detail').open && $('#tekst') ? `<button type="button" class="linkknop" data-kcreactie="${i}">In mijn reactie zetten</button>` : ''}</div>`}</div>`;
-}
-function kcStatusTekst(){
-  if(!KC.aantal) return KC.statusFout ? 'Index: ' + KC.statusFout : 'Index ophalen…';
-  const a = KC.aantal, s = KC.status || {}, f = n => n.toLocaleString('nl-NL'), d = [];
-  d.push(`${f(a.afas || 0)} meldingen`, `${f(a.kb || 0)} documenten`);
-  const extra = [];
-  if(isBeheerder() && s.afas && s.afas.voortgang) extra.push('meldingen: ' + s.afas.voortgang);
-  if(KC.sync) extra.push(KC.sync);
-  return `Zoekt in ${d.join(' · ')}${extra.length ? '<br>' + extra.map(esc).join('<br>') : ''}`;
-}
-function kcTeken(){
-  const p = $('#kcpaneel'); if(!p || p.hidden) return;
-  const l = p.querySelector('.kc-lijst');
-  l.innerHTML = KC.gesprek.length ? KC.gesprek.map((m, i) => m.rol === 'ik' ? `<div class="kc-msg ik">${esc(m.tekst)}</div>` : kcAntwoordHtml(m, i)).join('')
-      + (KC.bezig ? '<div class="kc-msg ai"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Zoeken in meldingen en kennisbank…</div>' : '')
-    : `<div class="kc-leeg"><p>Stel een vraag. SubmIT zoekt in oude meldingen met reacties en in de kennisbank, en antwoordt alleen op basis van wat het vindt, met de bronnen erbij.</p>
-      ${['Hoe hebben we de papierfout bij de printer opgelost?', 'Wat doe je als Emma niet opstart na inloggen met MFA?', 'Hoe vraag je een nieuwe telefoon aan bij KroonCo?'].map(v => `<button type="button" class="kc-vb" data-kcvb>${esc(v)}</button>`).join('')}</div>`;
-  p.querySelector('.kc-status').innerHTML = kcStatusTekst() + (isBeheerder() ? `<br>${KC.indexBezig ? `<span class="spin" style="display:inline-block;width:10px;height:10px;vertical-align:-1px;margin-right:4px"></span>${esc(KC.indexBezig)}` : '<button type="button" class="linkknop" data-kcindex>Index nu bijwerken</button>'}` : '');
-  p.querySelector('[data-kcnieuw]').hidden = !KC.gesprek.length;
-  l.scrollTop = l.scrollHeight;
-}
+const kcTeken = () => { if(tab === 'connectoren') tekenConnectoren(); };   // index-status staat bij Beheer → Connectoren & velden
 async function kcStatus(){
   try{ const j = await kennisApi({soort: 'status'}); KC.status = j.status || {}; KC.aantal = j.aantal || {}; KC.statusFout = ''; }
   catch(e){ KC.statusFout = e.message; }
   kcTeken(); return KC.status;
 }
-function kcOpen(){
-  let p = $('#kcpaneel');
-  if(!p){ document.body.insertAdjacentHTML('beforeend', `<div class="kbpaneel kcpaneel" id="kcpaneel" role="dialog" aria-label="Vraag het SubmIT" hidden><div class="kbkop"><h4>✦ Vraag het SubmIT</h4><span style="flex:1"></span><button type="button" class="linkknop" data-kcnieuw hidden>Nieuw gesprek</button><button type="button" class="sluit" data-kcsluit aria-label="Sluiten">×</button></div>
-    <div class="kc-lijst" aria-live="polite"></div>
-    <form class="kc-in" onsubmit="return false"><textarea id="kc-vraag" rows="2" placeholder="Stel je vraag…" aria-label="Je vraag"></textarea><button type="button" class="knop vol" data-kcstuur aria-label="Vraag stellen">↑</button></form>
-    <p class="kbtip kc-status"></p></div>`); p = $('#kcpaneel'); }
-  const kb = $('#kbpaneel'); if(kb && !kb.hidden) kbDicht();
-  const host = $('#detail').open ? $('#detail') : document.body;
-  if(p.parentElement !== host) host.appendChild(p);
-  p.classList.toggle('naastlade', host !== document.body);
-  if(host !== document.body){ const l = $('#detail').getBoundingClientRect().left, rk = $('#kc-knop').getBoundingClientRect(); p.style.left = (rk.right + 14) + 'px'; p.style.width = Math.max(300, Math.min(460, l - rk.right - 30)) + 'px'; } else { p.style.left = ''; p.style.width = ''; }
-  p.hidden = false; $('#kc-knop').setAttribute('aria-pressed', true);
-  kcTeken(); kcStatus();
-  setTimeout(() => $('#kc-vraag').focus(), 30);
+/* ---- AI in een open melding: één knop. Is er iets eerder opgelost, dan pulseert hij (bolletje) en staat dat bovenaan het menu;
+   een klik geeft advies voor jou + bronnen, en met één klik een concept voor de melder (met opening en afsluiting). ---- */
+const AI_ICO = (() => { let n = 0; return (s = 16) => { const id = 'aiv' + (++n);
+  return `<svg class="ai-ico" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2F6FEB"/><stop offset=".45" stop-color="#8B5CF6"/><stop offset=".8" stop-color="#EC4899"/><stop offset="1" stop-color="#F59E0B"/></linearGradient></defs><path fill="url(#${id})" d="M10 2.5c.5 3.9 2.6 6 6.5 6.5-3.9.5-6 2.6-6.5 6.5-.5-3.9-2.6-6-6.5-6.5 3.9-.5 6-2.6 6.5-6.5z"/><path fill="url(#${id})" d="M18 13c.3 2.3 1.5 3.5 3.8 3.8-2.3.3-3.5 1.5-3.8 3.8-.3-2.3-1.5-3.5-3.8-3.8 2.3-.3 3.5-1.5 3.8-3.8z"/></svg>`; }; })();
+const KI = new Map();   // per melding: {treffers, verborgen, gesprek, bezig}
+const kiUitsluit = x => ['afas|' + String(x.nr)];
+const kiVan = x => { const k = String(x.nr); if(!KI.has(k)) KI.set(k, {treffers: null, gesprek: []}); return KI.get(k); };
+async function kiZoek(x){
+  if(!x || x.afgesloten || x.inuit || x.iu) return;
+  const c = kiVan(x);
+  if(c.treffers === null){ c.treffers = [];
+    try{ const j = await kennisApi({soort: 'gevonden', melding: aiMelding(x), uitsluit: kiUitsluit(x)}); c.treffers = j.treffers || []; }catch(e){ c.treffers = []; } }
+  kiKnop(x);
 }
-function kcDicht(){ const p = $('#kcpaneel'); if(p) p.hidden = true; $('#kc-knop').setAttribute('aria-pressed', false); }
-async function kcVraag(v){
-  v = String(v || '').trim(); if(!v || KC.bezig) return;
-  const geschiedenis = KC.gesprek.filter(m => !m.fout).slice(-6).map(m => ({rol: m.rol, tekst: m.tekst}));
-  KC.gesprek.push({rol: 'ik', tekst: v}); KC.bezig = true; $('#kc-vraag').value = ''; kcTeken();
-  try{ const j = await kennisApi({soort: 'chat', vraag: v, geschiedenis}); KC.gesprek.push({rol: 'ai', tekst: j.antwoord || '', geen: !!j.geen || !(j.bronnen || []).length, bronnen: j.bronnen || []}); }
-  catch(e){ KC.gesprek.push({rol: 'ai', tekst: 'Vragen lukte niet: ' + e.message, fout: true, geen: true, bronnen: []}); }
-  KC.bezig = false; kcTeken(); $('#kc-vraag').focus();
+const kiAantal = x => { const c = KI.get(String(x.nr)); return c && c.treffers && !c.verborgen ? c.treffers.length : 0; };
+function kiKnop(x){
+  if(!huidig || huidig.x !== x) return; const knop = $('#k-aimeer'); if(!knop) return;
+  const c = KI.get(String(x.nr)) || {}, n = kiAantal(x), mv = n === 1 ? '' : 'en';
+  knop.classList.toggle('puls', !!n); const stip = knop.querySelector('.ai-stip'); if(stip) stip.hidden = !n;
+  knop.title = n ? `AI-hulp: ${n} eerdere oplossing${mv} gevonden die op deze melding lijk${n === 1 ? 't' : 'en'}` : 'AI-hulp bij deze melding';
+  const it = $('#k-concept'); if(!it) return; it.classList.toggle('top', !!n);
+  it.querySelector('b').textContent = n ? `Antwoord op basis van ${n} eerdere oplossing${mv}` : 'Antwoord voorstellen';
+  it.querySelector('small').textContent = n ? c.treffers.map(t => t.bron === 'kb' ? 'kennisbank' : 'melding ' + ((t.meta || {}).nr || t.id)).join(' · ') + ' · advies + concept' : 'concept op basis van vergelijkbare meldingen';
 }
-function kcBronOpen(i, n){
-  const m = KC.gesprek[i], b = m && (m.bronnen || []).find(x => x.nr === n); if(!b) return;
-  if(b.bron === 'afas'){ const nr = String((b.meta || {}).nr || (b.titel.match(/Melding (\d+)/) || [])[1] || ''); if(nr && items.some(x => String(x.nr) === nr)){ if(!$('#detail').open) kcDicht(); openDetail(nr); return; } }
+const kiRef = (t, i, bronnen) => metLinks(t).replace(/\[(\d+)\]/g, (z, n) => (bronnen || []).some(b => b.nr === +n) ? `<button type="button" class="ki-ref" data-kibron="${i}:${n}" title="Bron ${n} openen">${n}</button>` : z);
+function kiTeken(x){
+  if(!huidig || huidig.x !== x) return; const c = kiVan(x);
+  let kaart = $('#ai-advies'); const plek = $('#detail .onder');
+  if(!kaart){ if(!plek) return; plek.insertAdjacentHTML('beforebegin', '<div class="aik" id="ai-advies" role="region" aria-label="Eerder opgelost"><div></div></div>'); kaart = $('#ai-advies'); }
+  const laatste = [...c.gesprek].reverse().find(m => m.rol === 'ai');
+  const bron = (b, i) => `<button type="button" class="ki-bron${b.gebruikt ? '' : ' ook'}" data-kibron="${i}:${b.nr}"><span class="ki-nr">${b.nr}</span><span class="ki-i">${KC_ICO[b.bron] || ''}</span><b>${esc(b.titel)}</b><small>${esc(KC_SOORT[b.bron] || '')}${b.datum ? ' · ' + kcDatum(b.datum) : ''}</small></button>`;
+  kaart.firstElementChild.innerHTML = `<div class="ki-kop">${AI_ICO(17)}<b>Eerder opgelost · advies voor jou</b><small class="hint">lees na; komt uit oude meldingen en de kennisbank</small><button type="button" class="sluit" data-kidicht aria-label="Sluiten">×</button></div>
+    ${c.gesprek.map((m, i) => m.rol === 'ik' ? `<div class="ki-ik">${esc(m.tekst)}</div>` : `<div class="ki-ai${m.geen ? ' geen' : ''}"><div class="ki-tekst">${kiRef(m.tekst, i, m.bronnen)}</div>${(m.bronnen || []).filter(b => b.gebruikt).length ? `<div class="ki-bronnen">${m.bronnen.filter(b => b.gebruikt).map(b => bron(b, i)).join('')}</div>` : ''}</div>`).join('')}
+    ${c.bezig ? `<div class="ki-ai"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Eerdere oplossingen lezen…</div>` : ''}
+    ${!c.bezig && laatste ? `<div class="ki-acties">${laatste.bericht ? '<button type="button" class="ki-vol" data-kiconcept>Concept in reactie zetten</button>' : ''}${laatste.fout ? '' : '<button type="button" class="linkknop" data-kikopie>Kopiëren</button>'}<button type="button" class="linkknop" data-kianders title="Concept op basis van vergelijkbare meldingen uit je lijst">Andere aanpak</button><button type="button" class="linkknop grijs" data-kiweg title="Niet meer tonen bij deze melding">niet nuttig ×</button></div>
+      <div class="ki-vraag"><input id="ki-vraag" placeholder="Vervolgvraag over deze melding…" aria-label="Vervolgvraag" autocomplete="off"><button type="button" class="ki-stuur" data-kistuur aria-label="Vraag stellen">↑</button></div>` : ''}`;
+}
+async function aiAdvies(vraag){
+  const x = huidig && huidig.x; if(!x) return; const c = kiVan(x); if(c.bezig) return;
+  if(!vraag && c.gesprek.length){ kiTeken(x); $('#ai-advies').scrollIntoView({block: 'nearest'}); return; }
+  const geschiedenis = c.gesprek.filter(m => !m.fout).slice(-6).map(m => ({rol: m.rol, tekst: m.tekst}));
+  if(vraag) c.gesprek.push({rol: 'ik', tekst: vraag});
+  c.bezig = true; kiTeken(x); $('#ai-advies').scrollIntoView({block: 'nearest'});
+  try{ const j = await kennisApi({soort: 'advies', melding: aiMelding(x), uitsluit: kiUitsluit(x), ...(vraag ? {vraag, geschiedenis} : {})});
+    c.gesprek.push({rol: 'ai', tekst: j.advies || '', bericht: j.bericht || '', bronnen: j.bronnen || [], geen: !!j.geen}); }
+  catch(e){ c.gesprek.push({rol: 'ai', tekst: 'Advies ophalen lukte niet: ' + e.message, fout: true, bronnen: []}); }
+  c.bezig = false; kiTeken(x);
+}
+async function kiConcept(){
+  const x = huidig && huidig.x, t = $('#tekst'); if(!x || !t) return; const c = kiVan(x), m = [...c.gesprek].reverse().find(m => m.rol === 'ai' && m.bericht); if(!m) return;
+  t._vstelVoor = t.value; await zetVoorstel(await maakBrief(x, [m.bericht]), true); if(!t.classList.contains('voorstel')) return;
+  const nrs = (m.bronnen || []).filter(b => b.gebruikt).map(b => b.bron === 'kb' ? 'kennisbank "' + b.titel + '"' : 'melding ' + ((b.meta || {}).nr || b.id)).join(', ');
+  let l = $('#vst-tekst'); if(l) l.remove();
+  $('.ai-wrap').insertAdjacentHTML('afterend', `<span class="vstel" id="vst-tekst" data-vstel="tekst"><span class="vst-l" title="AI-concept op basis van ${esc(nrs || 'eerdere oplossingen')}. Lees het na en pas aan; × haalt het weer weg.">✦ AI-concept</span><button type="button" class="vst-ok" data-vstok aria-label="Concept overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Concept weghalen" title="Weghalen">×</button></span>`);
+  t.focus();
+}
+function kiBronOpen(i, n){
+  const x = huidig && huidig.x; if(!x) return; const m = kiVan(x).gesprek[i], b = m && (m.bronnen || []).find(y => y.nr === n); if(!b) return;
   if(b.link) window.open(b.link, '_blank', 'noopener'); else toast('Deze bron heeft geen link', true);
 }
-// beheerder: index nu bijwerken (AFAS in porties via de functie; kennisbank meteen, niet pas over 6 uur)
+document.addEventListener('click', e => {
+  if(!e.target.closest('#ai-advies')) return;
+  const x = huidig && huidig.x; if(!x) return;
+  if(e.target.closest('[data-kidicht]')){ $('#ai-advies').remove(); return; }
+  if(e.target.closest('[data-kiweg]')){ kiVan(x).verborgen = true; $('#ai-advies').remove(); kiKnop(x); toast('Verborgen bij deze melding'); return; }
+  if(e.target.closest('[data-kiconcept]')){ kiConcept(); return; }
+  if(e.target.closest('[data-kianders]')){ maakConcept(); return; }
+  if(e.target.closest('[data-kistuur]')){ const v = $('#ki-vraag').value.trim(); if(v) aiAdvies(v); return; }
+  const k = e.target.closest('[data-kikopie]'); if(k){ const m = [...kiVan(x).gesprek].reverse().find(m => m.rol === 'ai'); navigator.clipboard.writeText(kcKaal(m.tekst)).then(() => toast('Advies gekopieerd'), () => toast('Kopiëren lukte niet', true)); return; }
+  const r = e.target.closest('[data-kibron]'); if(r){ const [i, n] = r.dataset.kibron.split(':').map(Number); kiBronOpen(i, n); }
+});
+document.addEventListener('keydown', e => { if(e.target.id === 'ki-vraag' && e.key === 'Enter'){ e.preventDefault(); const v = e.target.value.trim(); if(v) aiAdvies(v); } });
 async function kcIndexNu(){
   if(KC.indexBezig) return;
   KC.indexBezig = 'bijwerken…'; kcTeken();
@@ -7569,24 +7588,7 @@ async function kcIndexNu(){
   KC.indexBezig = ''; await kcStatus();
 }
 const kcKaal = t => String(t || '').replace(/\s*\[\d+\]/g, '').trim();
-document.addEventListener('click', e => {
-  if(e.target.closest('#kc-knop')){ const p = $('#kcpaneel'); if(p && !p.hidden) kcDicht(); else kcOpen(); return; }
-  if(!e.target.closest('#kcpaneel')) return;
-  if(e.target.closest('[data-kcsluit]')){ kcDicht(); return; }
-  if(e.target.closest('[data-kcindex]')){ kcIndexNu(); return; }
-  if(e.target.closest('[data-kcnieuw]')){ KC.gesprek = []; kcTeken(); $('#kc-vraag').focus(); return; }
-  if(e.target.closest('[data-kcstuur]')){ kcVraag($('#kc-vraag').value); return; }
-  const vb = e.target.closest('[data-kcvb]'); if(vb){ kcVraag(vb.textContent); return; }
-  const r = e.target.closest('[data-kcref], [data-kcbron]'); if(r){ const [i, n] = (r.dataset.kcref || r.dataset.kcbron).split(':').map(Number); kcBronOpen(i, n); return; }
-  const k = e.target.closest('[data-kckopie]'); if(k){ navigator.clipboard.writeText(kcKaal(KC.gesprek[+k.dataset.kckopie].tekst)).then(() => toast('Antwoord gekopieerd'), () => toast('Kopiëren lukte niet', true)); return; }
-  const rz = e.target.closest('[data-kcreactie]'); if(rz){ const t = $('#tekst'); if(!t) return; const s = kcKaal(KC.gesprek[+rz.dataset.kcreactie].tekst); t.value = t.value.trim() ? t.value.replace(/\s+$/, '') + '\n\n' + s : s; t.dispatchEvent(new Event('input', {bubbles: true})); pasHoogteAan(t); t.focus(); toast('Antwoord in je reactie gezet: lees het even na'); return; }
-});
-document.addEventListener('keydown', e => {
-  if(e.target.id === 'kc-vraag' && e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); kcVraag(e.target.value); }
-  if(e.key === 'Escape' && $('#kcpaneel') && !$('#kcpaneel').hidden && e.target.closest && e.target.closest('#kcpaneel')){ e.preventDefault(); e.stopPropagation(); kcDicht(); }
-}, true);
-document.addEventListener('input', e => { if(e.target.id === 'kc-vraag'){ const t = e.target; t.style.height = '42px'; t.style.height = Math.min(140, t.scrollHeight) + 'px'; } });
-$('#detail').addEventListener('close', () => { const p = $('#kcpaneel'); if(p && p.parentElement === $('#detail') && !p.hidden) kcDicht(); });
+document.addEventListener('click', e => { if(e.target.closest('[data-kcindex]')) kcIndexNu(); });
 
 /* ---- index vullen: kennisbank, met de Microsoft-login van deze collega ---- */
 const b64Van = async blob => { const b = new Uint8Array(await blob.arrayBuffer()); let s = ''; for(let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); };
@@ -7827,8 +7829,8 @@ document.addEventListener('click', e => {
 
 
 async function maakConcept(){
-  const x = huidig && huidig.x, t = $('#tekst'), k = $('#k-concept'); if(!x || !t || !k) return;
-  const oud = k.textContent; k.disabled = true; k.textContent = '✦ Bezig…'; const N = DEMO ? 2 : 3;
+  const x = huidig && huidig.x, t = $('#tekst'), k = $('#k-aimeer'); if(!x || !t || !k) return; if(k.disabled) return;
+  k.disabled = true; const N = DEMO ? 2 : 3;
   try{
     aiVoortgang(k, 1, N, 'vergelijkbare opgeloste meldingen zoeken');
     if(!alleDichtGeladen) await Promise.resolve(laadAlleGesloten()).catch(() => {});
@@ -7861,11 +7863,11 @@ async function maakConcept(){
     if(!t.classList.contains('voorstel')) return;   // niet vervangen (jij koos Annuleren)
     const uitleg = (ai ? 'AI, op basis van de melding' + (voorbeelden.length ? ' en ' : '') : '') + [voorbeelden.length && (ai ? voorbeelden.map(v => nrT(v.y)).join(', ') : `oplossing van melding ${nrT(bron)} (${bron.onderwerp})`), kb && `instructie "${kb.name}" uit de kennisbank`].filter(Boolean).join(' en ');
     let l = $('#vst-tekst'); if(l) l.remove();
-    k.insertAdjacentHTML('afterend', `<span class="vstel" id="vst-tekst" data-vstel="tekst"><span class="vst-l" title="Concept op basis van ${esc(uitleg)}. Lees het na en pas aan; × haalt het weer weg.">✦ ${ai ? 'AI-concept' : 'Concept' + (bron ? ' o.b.v. ' + esc(nrT(bron)) : '')}</span><button type="button" class="vst-ok" data-vstok aria-label="Concept overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Concept weghalen" title="Weghalen">×</button></span>`);
+    $('.ai-wrap').insertAdjacentHTML('afterend', `<span class="vstel" id="vst-tekst" data-vstel="tekst"><span class="vst-l" title="Concept op basis van ${esc(uitleg)}. Lees het na en pas aan; × haalt het weer weg.">✦ ${ai ? 'AI-concept' : 'Concept' + (bron ? ' o.b.v. ' + esc(nrT(bron)) : '')}</span><button type="button" class="vst-ok" data-vstok aria-label="Concept overnemen" title="Overnemen">✓</button><button type="button" class="vst-weg" data-vstweg aria-label="Concept weghalen" title="Weghalen">×</button></span>`);
     t.focus();
-  }finally{ aiVoortgangWeg(); k.disabled = false; k.textContent = oud; }
+  }finally{ aiVoortgangWeg(); k.disabled = false; }
 }
-document.addEventListener('click', e => { if(e.target.closest('#k-concept')) maakConcept(); });
+document.addEventListener('click', e => { if(!e.target.closest('#k-concept')) return; const m = $('#ai-menu'); if(m) m.hidden = true; const x = huidig && huidig.x; if(x && kiAantal(x)) aiAdvies(); else maakConcept(); });
 document.addEventListener('input', e => { if(e.isTrusted && (e.target.id === 'tekst' || (e.target.dataset && e.target.dataset.voor === 'tekst'))){ const l = $('#vst-tekst'); if(l){ l.remove(); $('#tekst').classList.remove('voorstel'); if(huidig) huidig.autoTekst = null; } } });
 
 /* idee 3: van melding naar instructie. Een Word-concept (.docx) in DC-huisstijl: titel "Systeem - Handeling", waar het over gaat,
@@ -8312,6 +8314,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.72', d: '23-10-2026', groot: true, p: ['In een melding: één AI-knop voor alles. Is dit eerder opgelost (oude meldingen of de kennisbank), dan pulseert hij. Bovenaan het menu staat dan het antwoord op basis van die oplossingen: advies voor jou met de bronnen, een concept voor de melder met één klik, en ruimte voor een vervolgvraag.', 'De losse chat in de balk links is weg. De status van de AI-index staat bij Beheer → Connectoren & velden.', 'Gesloten meldingen laden blijft niet meer hangen: stokt AFAS, dan probeert SubmIT het na een minuut zelf opnieuw.', 'Bijlage toevoegen is nu het paperclipje links onderin het reactievak. Annuleren in het bestandsvenster vraagt niet meer of je de melding wilt sluiten.']},
   {v: 'v7.71', d: '23-10-2026', p: ['Sneller compleet na het inloggen: afgehandelde meldingen van de laatste 7 dagen komen meteen na de open meldingen, zodat Afgehandeld deze week direct klopt. Daarna eerst de laatste 14 dagen, dan de rest tot 90 dagen.', 'Meldingen over de index van Vraag het SubmIT staan nu in gewone taal bij Beheer → Connectoren & velden, niet meer onder de chat.']},
   {v: 'v7.70', d: '23-10-2026', p: ['Vraag het SubmIT: alle meldingen uit AFAS ophalen gebeurt \'s nachts, zodat SubmIT overdag niet trager laadt. Index nu bijwerken haalt overdag alleen wat nieuw is en gaat na een storing zelf verder.', 'De ICT-mailbox doet niet meer mee; de chat zoekt in meldingen met reacties en in de kennisbank.']},
   {v: 'v7.69', d: '23-10-2026', p: ['Vraag het SubmIT: de beheerder kan de index nu meteen laten vullen met de knop Index nu bijwerken (onderin het chatpaneel). De automatische ronde is lichter voor AFAS: overdag alleen wat nieuw is, \'s nachts alles.']},
