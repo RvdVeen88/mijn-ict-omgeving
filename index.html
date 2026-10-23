@@ -646,6 +646,27 @@ dialog.lade:has(> .kbpaneel.naastlade:not([hidden])){overflow:visible}
 .kbacties{display:flex;gap:4px;opacity:.35;transition:opacity .15s}.kbrij:hover .kbacties,.kbrij:focus-within .kbacties{opacity:1}
 .kbk{border:0;background:var(--achtergrond);color:var(--blauw);border-radius:999px;padding:3px 9px;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap}.kbrij:hover .kbk{background:var(--vlak)}
 .kbleeg{color:var(--grijs);font-size:13px;padding:14px 8px}.kbleeg .knop{margin-top:6px}
+#kc-knop{--acc:#8B5CF6}
+.kcpaneel .kbkop{gap:10px}.kcpaneel .kbkop .linkknop{font-size:12.5px}
+.kc-lijst{flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px;margin:0 -6px;padding:4px 6px}
+.kc-msg{font-size:13.5px;line-height:1.5;color:var(--inkt);border-radius:14px;padding:9px 12px;max-width:92%}
+.kc-msg.ik{align-self:flex-end;background:var(--blauw);color:#fff;border-bottom-right-radius:4px;white-space:pre-wrap}
+.kc-msg.ai{align-self:flex-start;background:var(--achtergrond);border-bottom-left-radius:4px}.kc-msg.ai.geen{color:var(--grijs)}
+.kc-tekst{white-space:pre-wrap}
+.kc-ref{border:0;background:var(--lichtblauw-2);color:var(--blauw);font:inherit;font-size:10.5px;font-weight:700;border-radius:999px;min-width:17px;height:17px;padding:0 4px;margin:0 1px;vertical-align:1px;cursor:default}
+.kc-bronnen{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.kc-bron{display:grid;grid-template-columns:auto auto 1fr;grid-template-rows:auto auto;column-gap:7px;align-items:center;text-align:left;border:1px solid var(--lijn);background:var(--vlak);border-radius:10px;padding:5px 9px;font:inherit;cursor:default;color:var(--inkt)}
+.kc-bron:hover{border-color:var(--blauw)}.kc-bron.ook{opacity:.85}
+.kc-bron .kc-nr{grid-row:1/3;font-size:10.5px;font-weight:700;color:var(--blauw);background:var(--lichtblauw-2);border-radius:999px;min-width:18px;height:18px;display:grid;place-items:center}
+.kc-bron .kc-ico{grid-row:1/3;color:var(--grijs);display:grid}.kc-bron .kc-ico svg{width:15px;height:15px}
+.kc-bron .kc-bt{font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.kc-bron small{font-size:11px;color:var(--grijs)}
+.kc-ook{margin-top:6px;font-size:12px;color:var(--grijs)}.kc-ook summary{cursor:default}.kc-ook .kc-bron{margin-top:4px;width:100%}
+.kc-acties{display:flex;gap:14px;margin-top:6px}.kc-acties .linkknop{font-size:12px}
+.kc-leeg{display:flex;flex-direction:column;gap:8px;color:var(--grijs);font-size:13px;padding:6px 2px}.kc-leeg p{margin:0 0 4px}
+.kc-vb{text-align:left;border:1px solid var(--lijn);background:var(--vlak);border-radius:12px;padding:7px 11px;font:inherit;font-size:13px;color:var(--inkt);cursor:default}.kc-vb:hover{border-color:var(--blauw)}
+.kc-in{display:flex;gap:8px;align-items:flex-end;background:var(--achtergrond);border-radius:16px;padding:6px 6px 6px 12px}
+.kc-in textarea{flex:1;border:0;outline:0;background:transparent;resize:none;font:inherit;font-size:13.5px;color:var(--inkt);min-height:0;height:42px;max-height:140px;padding:5px 0;box-shadow:none}
+.kc-in .knop{border-radius:999px;width:34px;height:34px;padding:0;font-size:16px;flex:none}
 .kbtip{margin:0;font-size:11.5px;color:var(--grijs);padding:0 4px}
 .paperclip .kbico{width:15px;height:15px;vertical-align:-3px;margin-right:4px}
 body.kbsleept #detail .composer{outline:2px dashed var(--lichtblauw);outline-offset:4px;border-radius:12px}
@@ -1444,6 +1465,7 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
     <button type="button" class="r" id="meld-knop" title="Meldingen (terug naar waar je was)" aria-label="Meldingen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16"/><path class="acc" d="M4 18h10"/></svg></button>
     <button type="button" class="r" id="todo-knop" data-weergave="todo" title="To-do en notities" aria-label="To-do en notities"><img class="todo-logo" src="todo.png" alt="" hidden onload="this.hidden=false;this.nextElementSibling.style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span class="tel" id="todo-aantal"></span></button>
     <button type="button" class="r" id="kb-knop" title="Kennisbank: instructies zoeken, openen en meesturen" aria-label="Kennisbank"><img class="todo-logo" src="kennisbank.png" alt="" hidden onload="this.hidden=false;this.nextElementSibling.style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 4.9 6.6 4.4 3 5v13c3.6-.6 7 0 9 1.6"/><path d="M12 6.5c2-1.6 5.4-2.1 9-1.5v13c-3.6-.6-7 0-9 1.6z"/><path d="M12 6.5v13.1"/><path class="acc" d="M5.8 9c1.6-.2 3 .1 4 .6M5.8 12.2c1.6-.2 3 .1 4 .6M14.2 9.6c1-.5 2.4-.8 4-.6M14.2 12.8c1-.5 2.4-.8 4-.6"/></svg></button>
+    <button type="button" class="r" id="kc-knop" title="Vraag het SubmIT: zoekt in oude meldingen, de ICT-mailbox en de kennisbank" aria-label="Vraag het SubmIT"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M12 8.5l.9 2 2 .9-2 .9-.9 2-.9-2-2-.9 2-.9z" fill="currentColor" stroke-width="1"/></svg></button>
     <button type="button" class="r" id="rap-knop" data-weergave="rapport" title="Rapportage: aantallen, trends en een AI-analyse" aria-label="Rapportage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
     <button type="button" class="r" id="team-knop" title="Team: wie is er online en wat gebeurt er" aria-label="Team" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path class="acc" d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 20a6.5 6.5 0 0 0-2.6-5.2"/></svg><span class="tel online" id="team-aantal"></span><span class="stip" id="team-stip" hidden></span></button>
     <button type="button" class="r plus" id="nieuw-knop" title="Nieuwe melding" aria-label="Nieuwe melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><path class="acc" d="M17.5 3.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>
@@ -1575,7 +1597,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.67', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.68', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3598,7 +3620,7 @@ async function sjBewaar(data){
 /* AI-instellingen (alleen de beheerder, geldt voor iedereen): aanspreekvorm, lengte en extra aanwijzingen voor ✦ Concept-antwoord en ✦ Instructie maken.
    Opslag via ict-beoordelingen ?soort=ai; de functie ai-concept leest ze zelf in (niet via de browser van de gebruiker). */
 const aiInstUrl = () => pbUrl() + (pbUrl().includes('?') ? '&' : '?') + 'soort=ai';
-const AI_STD = {vorm: 'je', woorden: 120, concept: '', instructie: '', meelezen: 'aan', meelezenNotitie: 'spelling', leveranciers: ''};
+const AI_STD = {vorm: 'je', woorden: 120, concept: '', instructie: '', chat: '', meelezen: 'aan', meelezenNotitie: 'spelling', leveranciers: ''};
 async function aiBeheer(){
   let d = $('#aidlg'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="aidlg" aria-label="AI-instellingen"></dialog>'); d = $('#aidlg'); }
   d.innerHTML = '<div class="dlg-in"><p class="leeg">Instellingen ophalen…</p></div>'; d.showModal();
@@ -3620,11 +3642,13 @@ async function aiBeheer(){
     <textarea name="concept" class="toelinvoer" rows="5" placeholder="Bijv.: Verwijs bij wachtwoordvragen altijd naar de selfservice (aka.ms/sspr). Noem bij storingen dat de melder een reactie krijgt zodra het is opgelost. Gebruik geen uitroeptekens.">${esc(w.concept || '')}</textarea>
     <h3 class="pb-kop3">Extra aanwijzingen voor ✦ Instructie maken</h3>
     <textarea name="instructie" class="toelinvoer" rows="4" placeholder="Bijv.: Schrijf voor medewerkers zonder ICT-kennis. Noem knoppen en menu's tussen aanhalingstekens, precies zoals ze op het scherm staan.">${esc(w.instructie || '')}</textarea>
+    <h3 class="pb-kop3">Extra aanwijzingen voor ✦ Vraag het SubmIT</h3>
+    <textarea name="chat" class="toelinvoer" rows="3" placeholder="Bijv.: Noem bij hardware altijd dat KroonCo de leverancier is. Verwijs bij Emma-vragen ook naar de functioneel beheerder.">${esc(w.chat || '')}</textarea>
     <p class="fout" id="ai-fout"></p>
     <div class="pb-acties"><span style="flex:1"></span><button type="button" class="knop" data-aidicht>Annuleren</button><button type="button" class="knop vol" data-aibewaar>Opslaan</button></div></form>`;
 }
 async function aiBewaar(){
-  const f = $('#ai-form'), k = f.querySelector('[data-aibewaar]'), data = {vorm: f.vorm.value, woorden: +f.woorden.value, meelezen: f.meelezen.value, meelezenNotitie: f.meelezenNotitie.value, leveranciers: f.leveranciers.value.trim().slice(0, 300), concept: f.concept.value.trim().slice(0, 2000), instructie: f.instructie.value.trim().slice(0, 2000)};
+  const f = $('#ai-form'), k = f.querySelector('[data-aibewaar]'), data = {vorm: f.vorm.value, woorden: +f.woorden.value, meelezen: f.meelezen.value, meelezenNotitie: f.meelezenNotitie.value, leveranciers: f.leveranciers.value.trim().slice(0, 300), concept: f.concept.value.trim().slice(0, 2000), instructie: f.instructie.value.trim().slice(0, 2000), chat: f.chat.value.trim().slice(0, 1500)};
   k.disabled = true; k.textContent = 'Opslaan…';
   try{ if(DEMO) opslag.set('mict-demo-ai', data);
     else { const r = await fetch(aiInstUrl(), {method: 'PUT', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await geldigToken()}, body: JSON.stringify({data})}); const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(j.error || 'HTTP ' + r.status); }
@@ -6205,6 +6229,8 @@ async function sluitDialoog(d){
     if(e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom){
       const kb = $('#kb-knop').getBoundingClientRect();   // Kennisbank in de balk: melding blijft open, kennisbank ernaast
       if(d.id === 'detail' && e.clientX >= kb.left && e.clientX <= kb.right && e.clientY >= kb.top && e.clientY <= kb.bottom){ const p = $('#kbpaneel'); if(p && !p.hidden && p.parentElement === d) kbDicht(); else kbOpen(true); return; }
+      const kc = $('#kc-knop').getBoundingClientRect();   // Vraag het SubmIT in de balk: melding blijft open, chat ernaast
+      if(d.id === 'detail' && e.clientX >= kc.left && e.clientX <= kc.right && e.clientY >= kc.top && e.clientY <= kc.bottom){ const p = $('#kcpaneel'); if(p && !p.hidden && p.parentElement === d) kcDicht(); else kcOpen(); return; }
       if(d.id === 'detail' && $('#kbpaneel') && !$('#kbpaneel').hidden && $('#kbpaneel').parentElement === d){ const k = $('#kbpaneel').getBoundingClientRect(); if(e.clientX >= k.left && e.clientX <= k.right && e.clientY >= k.top && e.clientY <= k.bottom) return; }
       naastLade(d, e.clientX, e.clientY); } });
   d.addEventListener('cancel', e => { e.preventDefault(); sluitDialoog(d); });
@@ -6419,7 +6445,7 @@ function kbOpen(inMelding){
     <label class="kbzoek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="kb-zoek" placeholder="Zoek in de instructies…" autocomplete="off" spellcheck="false"></label>
     <div class="kbkruim"></div><div class="kblijst"></div><p class="kbtip"></p></div>`); p = $('#kbpaneel');
     let t = 0; $('#kb-zoek').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { KB.q = e.target.value.trim(); kbLaad(); }, 300); }); }
-  KB.inMelding = !!inMelding;
+  KB.inMelding = !!inMelding; { const kc = $('#kcpaneel'); if(kc && !kc.hidden) kcDicht(); }
   if(KB.inMelding && (KB.q || KB.pad.length)){ KB.q = ''; KB.pad = []; KB.l = null; $('#kb-zoek').value = ''; }   // vanuit een melding: schoon beginnen, met suggesties
   const host = inMelding && $('#detail').open ? $('#detail') : document.body;
   if(p.parentElement !== host) host.appendChild(p);
@@ -7405,6 +7431,205 @@ const tipsReset = () => { clearTimeout(TIP.timer); TIP.l = []; TIP.laatst = ''; 
 
 // ---- mogelijke storing herkennen: meerdere meldingen kort na elkaar over hetzelfde ----
 const STORING = {laatst: '', bezig: false};
+/* ================= Vraag het SubmIT: chat over oude meldingen, de ICT-mailbox en de kennisbank =================
+   Antwoord alleen op basis van gevonden bronnen (Azure-functie ict-kennis, vectorzoeken); niets gevonden = dat zeggen.
+   De index: meldingen + reacties vult de functie zelf uit AFAS (ict-kennis-afas, elk uur). Mails uit ict@ en de kennisbank
+   haalt SubmIT op met de Microsoft-login van de collega en stuurt ze naar de index (rustig op de achtergrond, hooguit eens per uur). */
+const kennisUrl = () => INST.kennisUrl || String(INST.tokenFunctie || '').replace(/afas-token\/?$/, 'ict-kennis');
+const KC_MAILBOX = () => INST.kennisMailbox || 'ict@dcklinieken.nl';
+const KC = {gesprek: [], bezig: false, status: null, aantal: null, sync: ''};
+async function kennisApi(body){
+  if(DEMO) return kennisDemo(body);
+  const r = await fetch(kennisUrl(), {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await geldigToken()}, body: JSON.stringify(body)});
+  const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(r.status === 404 ? 'de Azure-functie ict-kennis is (nog) niet gepubliceerd' : (j.error || 'HTTP ' + r.status)); return j;
+}
+function kennisDemo(b){
+  if(b.soort === 'status') return {status: {afas: {laatst: new Date().toISOString(), aantal: 1840}, mail: {laatst: new Date().toISOString(), checkpoint: 't:' + new Date().toISOString()}, kb: {laatst: new Date().toISOString()}}, aantal: {afas: 1840, mail: 2310, kb: 64}};
+  if(b.soort === 'push') return {ok: true, verwerkt: (b.items || []).length};
+  const v = norm(b.vraag || '');
+  if(/printer|print/.test(v)) return new Promise(z => setTimeout(() => z({antwoord: 'Dit is eerder twee keer voorgekomen in Almere. De oplossing was:\n1. De printer uit- en weer aanzetten.\n2. De papierlade opnieuw uitlijnen; de sensor ziet het papier anders niet [1].\nBlijft de melding terugkomen, dan is de lade defect en vervangt de leverancier hem [2].', bronnen: [
+    {nr: 1, bron: 'afas', titel: 'Melding 12402: Printer Almere geeft papierfout', datum: '2026-08-14', link: '', meta: {nr: '12402'}, gebruikt: true},
+    {nr: 2, bron: 'mail', titel: 'RE: Printer balie Almere', datum: '2026-05-02', link: 'https://outlook.office.com/mail/', gebruikt: true},
+    {nr: 3, bron: 'kb', titel: 'Printer toevoegen', datum: '2026-03-01', link: 'https://dcklinieken.sharepoint.com/', gebruikt: false}]}), 500));
+  return new Promise(z => setTimeout(() => z({antwoord: 'Hier heb ik geen eerder antwoord op gevonden.', geen: true, bronnen: []}), 400));
+}
+const KC_ICO = {afas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H8l-4 4z"/></svg>',
+  mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
+  kb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/></svg>'};
+const KC_SOORT = {afas: 'Melding', mail: 'Mail', kb: 'Kennisbank'};
+const kcDatum = d => { const x = new Date(d); return isNaN(x) ? '' : fmtDatum(x); };
+function kcAntwoordHtml(m, i){
+  const t = metLinks(m.tekst).replace(/\[(\d+)\]/g, (z, n) => (m.bronnen || []).some(b => b.nr === +n) ? `<button type="button" class="kc-ref" data-kcref="${i}:${n}" title="Bron ${n}">${n}</button>` : z);
+  const bron = b => `<button type="button" class="kc-bron${b.gebruikt ? '' : ' ook'}" data-kcbron="${i}:${b.nr}" title="${esc(KC_SOORT[b.bron] + ' openen')}"><span class="kc-nr">${b.nr}</span><span class="kc-ico">${KC_ICO[b.bron] || ''}</span><span class="kc-bt">${esc(b.titel)}</span><small>${esc(KC_SOORT[b.bron])}${b.datum ? ' · ' + kcDatum(b.datum) : ''}</small></button>`;
+  const gebr = (m.bronnen || []).filter(b => b.gebruikt), ook = (m.bronnen || []).filter(b => !b.gebruikt);
+  return `<div class="kc-msg ai${m.geen ? ' geen' : ''}"><div class="kc-tekst">${t}</div>
+    ${gebr.length ? `<div class="kc-bronnen">${gebr.map(bron).join('')}</div>` : ''}
+    ${ook.length ? `<details class="kc-ook"><summary>Ook gevonden (${ook.length})</summary>${ook.map(bron).join('')}</details>` : ''}
+    ${m.geen || m.fout ? '' : `<div class="kc-acties"><button type="button" class="linkknop" data-kckopie="${i}">Kopiëren</button>${$('#detail').open && $('#tekst') ? `<button type="button" class="linkknop" data-kcreactie="${i}">In mijn reactie zetten</button>` : ''}</div>`}</div>`;
+}
+function kcStatusTekst(){
+  if(!KC.aantal) return KC.statusFout ? 'Index: ' + KC.statusFout : 'Index ophalen…';
+  const a = KC.aantal, s = KC.status || {}, f = n => n.toLocaleString('nl-NL'), d = [];
+  d.push(`${f(a.afas || 0)} meldingen`, `${f(a.mail || 0)} mailgesprekken`, `${f(a.kb || 0)} documenten`);
+  const extra = [];
+  if(s.mail && /^b:/.test(s.mail.checkpoint || '')) extra.push(`mailbox wordt gevuld (t/m ${s.mail.checkpoint.slice(2)})`);
+  if(s.afas && s.afas.voortgang) extra.push('meldingen: ' + s.afas.voortgang);
+  if(isBeheerder()){ if(s.afas && s.afas.fout) extra.push('AFAS: ' + s.afas.fout); if(s.afas && s.afas.diag) extra.push(s.afas.diag); if(s.mail && s.mail.fout) extra.push('mailbox: ' + s.mail.fout); }
+  if(KC.sync) extra.push(KC.sync);
+  return `Zoekt in ${d.join(' · ')}${extra.length ? '<br>' + extra.map(esc).join('<br>') : ''}`;
+}
+function kcTeken(){
+  const p = $('#kcpaneel'); if(!p || p.hidden) return;
+  const l = p.querySelector('.kc-lijst');
+  l.innerHTML = KC.gesprek.length ? KC.gesprek.map((m, i) => m.rol === 'ik' ? `<div class="kc-msg ik">${esc(m.tekst)}</div>` : kcAntwoordHtml(m, i)).join('')
+      + (KC.bezig ? '<div class="kc-msg ai"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Zoeken in meldingen, mails en kennisbank…</div>' : '')
+    : `<div class="kc-leeg"><p>Stel een vraag. SubmIT zoekt in oude meldingen met reacties, de ICT-mailbox en de kennisbank, en antwoordt alleen op basis van wat het vindt, met de bronnen erbij.</p>
+      ${['Hoe hebben we de papierfout bij de printer opgelost?', 'Wat doe je als Emma niet opstart na inloggen met MFA?', 'Hoe vraag je een nieuwe telefoon aan bij KroonCo?'].map(v => `<button type="button" class="kc-vb" data-kcvb>${esc(v)}</button>`).join('')}</div>`;
+  p.querySelector('.kc-status').innerHTML = kcStatusTekst();
+  p.querySelector('[data-kcnieuw]').hidden = !KC.gesprek.length;
+  l.scrollTop = l.scrollHeight;
+}
+async function kcStatus(){
+  try{ const j = await kennisApi({soort: 'status'}); KC.status = j.status || {}; KC.aantal = j.aantal || {}; KC.statusFout = ''; }
+  catch(e){ KC.statusFout = e.message; }
+  kcTeken(); return KC.status;
+}
+function kcOpen(){
+  let p = $('#kcpaneel');
+  if(!p){ document.body.insertAdjacentHTML('beforeend', `<div class="kbpaneel kcpaneel" id="kcpaneel" role="dialog" aria-label="Vraag het SubmIT" hidden><div class="kbkop"><h4>✦ Vraag het SubmIT</h4><span style="flex:1"></span><button type="button" class="linkknop" data-kcnieuw hidden>Nieuw gesprek</button><button type="button" class="sluit" data-kcsluit aria-label="Sluiten">×</button></div>
+    <div class="kc-lijst" aria-live="polite"></div>
+    <form class="kc-in" onsubmit="return false"><textarea id="kc-vraag" rows="2" placeholder="Stel je vraag…" aria-label="Je vraag"></textarea><button type="button" class="knop vol" data-kcstuur aria-label="Vraag stellen">↑</button></form>
+    <p class="kbtip kc-status"></p></div>`); p = $('#kcpaneel'); }
+  const kb = $('#kbpaneel'); if(kb && !kb.hidden) kbDicht();
+  const host = $('#detail').open ? $('#detail') : document.body;
+  if(p.parentElement !== host) host.appendChild(p);
+  p.classList.toggle('naastlade', host !== document.body);
+  if(host !== document.body){ const l = $('#detail').getBoundingClientRect().left, rk = $('#kc-knop').getBoundingClientRect(); p.style.left = (rk.right + 14) + 'px'; p.style.width = Math.max(300, Math.min(460, l - rk.right - 30)) + 'px'; } else { p.style.left = ''; p.style.width = ''; }
+  p.hidden = false; $('#kc-knop').setAttribute('aria-pressed', true);
+  kcTeken(); kcStatus();
+  setTimeout(() => $('#kc-vraag').focus(), 30);
+}
+function kcDicht(){ const p = $('#kcpaneel'); if(p) p.hidden = true; $('#kc-knop').setAttribute('aria-pressed', false); }
+async function kcVraag(v){
+  v = String(v || '').trim(); if(!v || KC.bezig) return;
+  const geschiedenis = KC.gesprek.filter(m => !m.fout).slice(-6).map(m => ({rol: m.rol, tekst: m.tekst}));
+  KC.gesprek.push({rol: 'ik', tekst: v}); KC.bezig = true; $('#kc-vraag').value = ''; kcTeken();
+  try{ const j = await kennisApi({soort: 'chat', vraag: v, geschiedenis}); KC.gesprek.push({rol: 'ai', tekst: j.antwoord || '', geen: !!j.geen || !(j.bronnen || []).length, bronnen: j.bronnen || []}); }
+  catch(e){ KC.gesprek.push({rol: 'ai', tekst: 'Vragen lukte niet: ' + e.message, fout: true, geen: true, bronnen: []}); }
+  KC.bezig = false; kcTeken(); $('#kc-vraag').focus();
+}
+function kcBronOpen(i, n){
+  const m = KC.gesprek[i], b = m && (m.bronnen || []).find(x => x.nr === n); if(!b) return;
+  if(b.bron === 'afas'){ const nr = String((b.meta || {}).nr || (b.titel.match(/Melding (\d+)/) || [])[1] || ''); if(nr && items.some(x => String(x.nr) === nr)){ if(!$('#detail').open) kcDicht(); openDetail(nr); return; } }
+  if(b.link) window.open(b.link, '_blank', 'noopener'); else toast('Deze bron heeft geen link', true);
+}
+const kcKaal = t => String(t || '').replace(/\s*\[\d+\]/g, '').trim();
+document.addEventListener('click', e => {
+  if(e.target.closest('#kc-knop')){ const p = $('#kcpaneel'); if(p && !p.hidden) kcDicht(); else kcOpen(); return; }
+  if(!e.target.closest('#kcpaneel')) return;
+  if(e.target.closest('[data-kcsluit]')){ kcDicht(); return; }
+  if(e.target.closest('[data-kcnieuw]')){ KC.gesprek = []; kcTeken(); $('#kc-vraag').focus(); return; }
+  if(e.target.closest('[data-kcstuur]')){ kcVraag($('#kc-vraag').value); return; }
+  const vb = e.target.closest('[data-kcvb]'); if(vb){ kcVraag(vb.textContent); return; }
+  const r = e.target.closest('[data-kcref], [data-kcbron]'); if(r){ const [i, n] = (r.dataset.kcref || r.dataset.kcbron).split(':').map(Number); kcBronOpen(i, n); return; }
+  const k = e.target.closest('[data-kckopie]'); if(k){ navigator.clipboard.writeText(kcKaal(KC.gesprek[+k.dataset.kckopie].tekst)).then(() => toast('Antwoord gekopieerd'), () => toast('Kopiëren lukte niet', true)); return; }
+  const rz = e.target.closest('[data-kcreactie]'); if(rz){ const t = $('#tekst'); if(!t) return; const s = kcKaal(KC.gesprek[+rz.dataset.kcreactie].tekst); t.value = t.value.trim() ? t.value.replace(/\s+$/, '') + '\n\n' + s : s; t.dispatchEvent(new Event('input', {bubbles: true})); pasHoogteAan(t); t.focus(); toast('Antwoord in je reactie gezet: lees het even na'); return; }
+});
+document.addEventListener('keydown', e => {
+  if(e.target.id === 'kc-vraag' && e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); kcVraag(e.target.value); }
+  if(e.key === 'Escape' && $('#kcpaneel') && !$('#kcpaneel').hidden && e.target.closest && e.target.closest('#kcpaneel')){ e.preventDefault(); e.stopPropagation(); kcDicht(); }
+}, true);
+document.addEventListener('input', e => { if(e.target.id === 'kc-vraag'){ const t = e.target; t.style.height = '42px'; t.style.height = Math.min(140, t.scrollHeight) + 'px'; } });
+$('#detail').addEventListener('close', () => { const p = $('#kcpaneel'); if(p && p.parentElement === $('#detail') && !p.hidden) kcDicht(); });
+
+/* ---- index vullen: kennisbank en ICT-mailbox, met de Microsoft-login van deze collega ---- */
+const MAIL = {scope: 'openid offline_access Mail.Read.Shared', sleutel: () => 'mict-msmail-' + (sub || 'demo')};
+async function mailGeldig(){
+  const t = opslag.get(MAIL.sleutel());
+  if(t && Date.now() < t.tot) return t.at;
+  const rt = (t && t.rt) || (opslag.get(KB.sleutel()) || {}).rt || (msOpgeslagen() || {}).rt;
+  if(!rt) throw Object.assign(new Error('niet gekoppeld met Microsoft'), {soort: 'koppel'});
+  try{ return (await msToken({grant_type: 'refresh_token', refresh_token: rt}, MAIL.scope, MAIL.sleutel())).at; }
+  catch(e){ throw Object.assign(new Error(/AADSTS65001|consent/i.test(e.message) ? 'wacht op toestemming voor Mail.Read.Shared (beheerder Entra)' : e.message), {soort: 'toestemming'}); }
+}
+const b64Van = async blob => { const b = new Uint8Array(await blob.arrayBuffer()); let s = ''; for(let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); };
+const KB_TYPES = /\.(docx|docm|pptx|pdf|txt|md|html?)$/i;
+async function kcSyncKb(st){
+  const s = st.kb || {}; if(s.laatst && Date.now() - new Date(s.laatst) < 6 * 36e5) return;
+  try{ await kbGeldig(); }catch(e){ return; }                                  // kennisbank niet gekoppeld: overslaan
+  const r = await kbRoot(), alle = [], mappen = [r.id];
+  while(mappen.length && alle.length < 3000){ const id = mappen.shift(); for(const d of await kbMap(id)){ if(d.folder) mappen.push(d.id); else if(d.file && KB_TYPES.test(d.name) && (d.size || 0) < 15e6) alle.push(d); } }
+  const versies = s.versies || {}, nu = new Set(alle.map(d => d.id));
+  const nieuw = alle.filter(d => versies[d.id] !== d.lastModifiedDateTime), weg = Object.keys(versies).filter(id => !nu.has(id));
+  for(let i = 0; i < nieuw.length; i += 4){
+    const deel = nieuw.slice(i, i + 4); KC.sync = `kennisbank inlezen: ${Math.min(i + 4, nieuw.length)} van ${nieuw.length}`; kcTeken();
+    const items = []; for(const d of deel){ try{ items.push({id: d.id, titel: kbTitel(d), datum: d.lastModifiedDateTime, link: d.webUrl, bestand: {naam: d.name, b64: await b64Van(await kbBestand(d))}}); }catch(e){} }
+    await kennisApi({soort: 'push', bron: 'kb', items, status: {versies: Object.fromEntries(deel.map(d => [d.id, d.lastModifiedDateTime]))}});
+  }
+  await kennisApi({soort: 'push', bron: 'kb', items: [], verwijder: weg, status: {versies: Object.fromEntries(weg.map(id => [id, null]))}});
+}
+const mailSchoon = t => String(t || '').replace(/\r/g, '').split(/\n\s*(-{2,}\s*(original message|oorspronkelijk bericht)|_{5,}|van:\s.*\n\s*verzonden:|from:\s.*\n\s*sent:)/i)[0]
+  .replace(/^\s*(beste|hoi|hallo|hey|hi|dag|goedemorgen|goedemiddag|goedenavond|geachte)\b[^\n]{0,60}\n+/i, '')
+  .split(/\n\s*(met vriendelijke groet|vriendelijke groet|met groet|groet(en|jes)?|mvg|kind regards|best regards|regards)\b/i)[0].replace(/\n{3,}/g, '\n\n').trim();
+const NOREPLY = /no-?reply|noreply|mailer-daemon|postmaster|notificatie|notification/i;
+// mails van één maand (of sinds een moment), gebundeld per gesprek
+async function kcMailItems(mb, vanaf, tot, overslaan){
+  const sel = '$select=id,conversationId,subject,receivedDateTime,from,toRecipients,ccRecipients,parentFolderId,uniqueBody,webLink';
+  let url = `/users/${encodeURIComponent(mb)}/messages?$filter=receivedDateTime ge ${vanaf} and receivedDateTime lt ${tot}&$orderby=receivedDateTime asc&${sel}&$top=50`;
+  const berichten = [];
+  while(url){ const j = await graph(url, {headers: {Prefer: 'outlook.body-content-type="text"'}}, mailGeldig); berichten.push(...(j.value || []).filter(m => !overslaan.has(m.parentFolderId))); url = j['@odata.nextLink'] || ''; }
+  return berichten;
+}
+function kcMailBundel(berichten, mb){
+  const per = new Map();
+  for(const m of berichten){ const van = (m.from && m.from.emailAddress) || {}; if(NOREPLY.test(van.address || '')) continue;
+    const k = m.conversationId + '|' + String(m.receivedDateTime).slice(0, 7); if(!per.has(k)) per.set(k, []); per.get(k).push(m); }
+  return [...per].map(([id, l]) => { l.sort((a, b) => String(a.receivedDateTime).localeCompare(String(b.receivedDateTime))); const laatste = l[l.length - 1];
+    const namen = new Set(); l.forEach(m => [m.from, ...(m.toRecipients || []), ...(m.ccRecipients || [])].forEach(r => { const e = r && r.emailAddress; if(e){ if(e.name && !/@/.test(e.name)) namen.add(e.name); } }));
+    const tekst = l.map(m => { const van = ((m.from || {}).emailAddress || {}).address || ''; const t = mailSchoon((m.uniqueBody || {}).content); return t ? `[${norm(van) === norm(mb) ? 'ICT-mailbox' : 'afzender'} ${kcDatum(m.receivedDateTime)}] ${t}` : ''; }).filter(Boolean).join('\n\n');
+    return {id, titel: String(laatste.subject || '(geen onderwerp)').replace(/^\s*((re|fw|fwd|antw|doorst)\s*:\s*)+/i, '').slice(0, 200), datum: laatste.receivedDateTime, link: laatste.webLink || '', tekst: tekst.slice(0, 30000), namen: [...namen]}; })
+    .filter(x => x.tekst);
+}
+async function kcPushMail(lijst, status){
+  for(let i = 0; i < lijst.length; i += 25) await kennisApi({soort: 'push', bron: 'mail', items: lijst.slice(i, i + 25), ...(i + 25 >= lijst.length ? {status} : {})});
+  if(!lijst.length) await kennisApi({soort: 'push', bron: 'mail', items: [], status});
+}
+async function kcSyncMail(st){
+  const s = st.mail || {}, mb = KC_MAILBOX(), cp = String(s.checkpoint || '');
+  const backfill = !cp || cp.startsWith('b:');
+  if(s.laatst && Date.now() - new Date(s.laatst) < (backfill ? 4 * 60e3 : 50 * 60e3)) return;   // iemand anders is al bezig of het is net gedaan
+  try{ await mailGeldig(); }catch(e){ if(e.soort === 'toestemming' && isBeheerder()) await kennisApi({soort: 'push', bron: 'mail', items: [], status: {fout: e.message}}).catch(() => {}); return; }
+  const overslaan = new Set(); for(const f of ['junkemail', 'deleteditems', 'drafts']){ try{ overslaan.add((await graph(`/users/${encodeURIComponent(mb)}/mailFolders/${f}?$select=id`, {}, mailGeldig)).id); }catch(e){} }
+  const mnd = d => d.toISOString().slice(0, 7), volgende = m => { const [j, n] = m.split('-').map(Number); return n === 12 ? `${j + 1}-01` : `${j}-${String(n + 1).padStart(2, '0')}`; };
+  if(backfill){
+    // eerste keer: maand voor maand, vanaf 2 jaar terug; daarna verder vanaf het laatste moment
+    let m = cp ? cp.slice(2) : mnd(new Date(Date.now() - 730 * 864e5)); const deze = mnd(new Date()), start = new Date().toISOString();
+    while(m <= deze && $('#app') && !document.hidden){
+      KC.sync = `mailbox inlezen: ${m.split('-').reverse().join('-')}`; kcTeken(); opslag.set('mict-kennis-slot', Date.now());
+      const lijst = kcMailBundel(await kcMailItems(mb, m + '-01T00:00:00Z', volgende(m) + '-01T00:00:00Z', overslaan), mb);
+      m = volgende(m); await kcPushMail(lijst, {checkpoint: m > deze ? 't:' + start : 'b:' + m, fout: ''});
+    }
+  } else {
+    // bijwerken: gesprekken met nieuwe mail sinds de vorige keer, per gesprek de hele maand opnieuw
+    const vanaf = new Date(new Date(cp.slice(2)) - 15 * 60e3).toISOString(), nu = new Date().toISOString();
+    const nieuw = await kcMailItems(mb, vanaf, nu, overslaan), gesprekken = [...new Set(nieuw.map(m => m.conversationId))].slice(0, 200), alle = [];
+    for(const c of gesprekken){ const j = await graph(`/users/${encodeURIComponent(mb)}/messages?$filter=conversationId eq '${c.replace(/'/g, "''")}'&$select=id,conversationId,subject,receivedDateTime,from,toRecipients,ccRecipients,parentFolderId,uniqueBody,webLink&$top=100`, {headers: {Prefer: 'outlook.body-content-type="text"'}}, mailGeldig);
+      const maanden = new Set(nieuw.filter(m => m.conversationId === c).map(m => String(m.receivedDateTime).slice(0, 7)));
+      alle.push(...(j.value || []).filter(m => !overslaan.has(m.parentFolderId) && maanden.has(String(m.receivedDateTime).slice(0, 7)))); }
+    await kcPushMail(kcMailBundel(alle, mb), {checkpoint: 't:' + nu, fout: ''});
+  }
+}
+async function kcSync(){
+  if(DEMO || !profiel || document.hidden) return;
+  const slot = opslag.get('mict-kennis-slot'); if(slot && Date.now() - slot < 10 * 60e3) return;   // al bezig in een ander tabblad
+  opslag.set('mict-kennis-slot', Date.now());
+  try{ const st = await kennisApi({soort: 'status'}).then(j => j.status || {});
+    try{ await kcSyncKb(st); }catch(e){ console.warn('SubmIT kennisindex (kennisbank):', e.message); }
+    try{ await kcSyncMail(st); }catch(e){ console.warn('SubmIT kennisindex (mail):', e.message); if(isBeheerder()) kennisApi({soort: 'push', bron: 'mail', items: [], status: {fout: e.message}}).catch(() => {}); } }
+  catch(e){ /* functie (nog) niet beschikbaar */ }
+  finally{ KC.sync = ''; opslag.weg('mict-kennis-slot'); kcTeken(); }
+}
+setTimeout(() => { kcSync(); setInterval(kcSync, 15 * 60e3); }, 90e3);
 async function storingCheck(){
   if(STORING.bezig || !profiel || !items.length) return;
   const grens = Date.now() - 3 * 36e5, kand = items.filter(x => !x.afgesloten && !x.inuit && !x.kritiek && +x.aangemaakt > grens);
@@ -8101,6 +8326,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.68', d: '23-10-2026', groot: true, p: ['Nieuw in de balk links: ✦ Vraag het SubmIT. Stel een vraag en SubmIT zoekt in oude meldingen met reacties, de ICT-mailbox en de kennisbank. Het antwoord komt alleen uit wat er gevonden is, met de bronnen erbij; is er niets, dan zegt het dat.', 'Werkt ook naast een open melding: zet een antwoord met één klik in je reactie.']},
   {v: 'v7.67', d: '23-10-2026', p: ['Standaardteksten: opening en afsluiting stel je één keer algemeen in (Beheer → Standaardteksten → Opening en afsluiting). Ze gelden voor alle teksten, ook AI-concepten. De afsluiting noemt nu Afdeling ICT.', 'Onder elk tekstvak: knop { } Variabelen om ze snel te bekijken en in te voegen.']},
   {v: 'v7.66', d: '23-10-2026', p: ['Periodieke beoordelingen heten nu Periodieke taken: naast controles ook onderhoud, zoals een SSL-certificaat. Nieuwe meldingen krijgen het type "Periodieke taak"; oude meldingen blijven bij hun taak horen.', 'NEN 7510-verslag: je kiest met vinkjes welke taken erin komen.']},
   {v: 'v7.65', d: '23-10-2026', p: ['Standaardteksten beheren: de keuzelijst is nu precies die uit de melding (zelfde namen en volgorde). De automatische voorstellen bij een status staan apart, ingeklapt.']},
