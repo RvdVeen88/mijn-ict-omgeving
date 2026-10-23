@@ -502,7 +502,7 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--lijn);border-radius
 @keyframes draai{to{transform:rotate(360deg)}}
 
 .voet{display:flex;gap:10px;align-items:center;justify-content:flex-end;padding:6px 28px 10px;color:var(--grijs);font-size:12.5px;
-  position:sticky;bottom:0;z-index:6;margin-top:auto;background:var(--achtergrond)}
+  position:sticky;bottom:0;z-index:6;margin-top:auto;background:linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 45%,var(--bg3) 100%) fixed}   /* zelfde achtergrond als de pagina: geen losse balk */
 .voet .live{width:8px;height:8px;border-radius:50%;background:#22A06B;animation:knipper 2.4s ease-in-out infinite}
 .voet .live.uit{background:var(--grijs);animation:none}
 @keyframes knipper{50%{opacity:.35}}
