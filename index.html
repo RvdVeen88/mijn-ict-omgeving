@@ -1597,7 +1597,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.68', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.69', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -7446,6 +7446,7 @@ async function kennisApi(body){
 function kennisDemo(b){
   if(b.soort === 'status') return {status: {afas: {laatst: new Date().toISOString(), aantal: 1840}, mail: {laatst: new Date().toISOString(), checkpoint: 't:' + new Date().toISOString()}, kb: {laatst: new Date().toISOString()}}, aantal: {afas: 1840, mail: 2310, kb: 64}};
   if(b.soort === 'push') return {ok: true, verwerkt: (b.items || []).length};
+  if(b.soort === 'afas-nu') return new Promise(z => setTimeout(() => z({klaar: true, aantal: 1840}), 300));
   const v = norm(b.vraag || '');
   if(/printer|print/.test(v)) return new Promise(z => setTimeout(() => z({antwoord: 'Dit is eerder twee keer voorgekomen in Almere. De oplossing was:\n1. De printer uit- en weer aanzetten.\n2. De papierlade opnieuw uitlijnen; de sensor ziet het papier anders niet [1].\nBlijft de melding terugkomen, dan is de lade defect en vervangt de leverancier hem [2].', bronnen: [
     {nr: 1, bron: 'afas', titel: 'Melding 12402: Printer Almere geeft papierfout', datum: '2026-08-14', link: '', meta: {nr: '12402'}, gebruikt: true},
@@ -7485,7 +7486,7 @@ function kcTeken(){
       + (KC.bezig ? '<div class="kc-msg ai"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Zoeken in meldingen, mails en kennisbank…</div>' : '')
     : `<div class="kc-leeg"><p>Stel een vraag. SubmIT zoekt in oude meldingen met reacties, de ICT-mailbox en de kennisbank, en antwoordt alleen op basis van wat het vindt, met de bronnen erbij.</p>
       ${['Hoe hebben we de papierfout bij de printer opgelost?', 'Wat doe je als Emma niet opstart na inloggen met MFA?', 'Hoe vraag je een nieuwe telefoon aan bij KroonCo?'].map(v => `<button type="button" class="kc-vb" data-kcvb>${esc(v)}</button>`).join('')}</div>`;
-  p.querySelector('.kc-status').innerHTML = kcStatusTekst();
+  p.querySelector('.kc-status').innerHTML = kcStatusTekst() + (isBeheerder() ? `<br>${KC.indexBezig ? `<span class="spin" style="display:inline-block;width:10px;height:10px;vertical-align:-1px;margin-right:4px"></span>${esc(KC.indexBezig)}` : '<button type="button" class="linkknop" data-kcindex>Index nu bijwerken</button>'}` : '');
   p.querySelector('[data-kcnieuw]').hidden = !KC.gesprek.length;
   l.scrollTop = l.scrollHeight;
 }
@@ -7523,11 +7524,27 @@ function kcBronOpen(i, n){
   if(b.bron === 'afas'){ const nr = String((b.meta || {}).nr || (b.titel.match(/Melding (\d+)/) || [])[1] || ''); if(nr && items.some(x => String(x.nr) === nr)){ if(!$('#detail').open) kcDicht(); openDetail(nr); return; } }
   if(b.link) window.open(b.link, '_blank', 'noopener'); else toast('Deze bron heeft geen link', true);
 }
+// beheerder: alles nu inlezen (AFAS in porties via de functie; kennisbank en mailbox meteen, niet pas over een uur)
+async function kcIndexNu(){
+  if(KC.indexBezig) return;
+  KC.indexBezig = 'meldingen uit AFAS ophalen…'; kcTeken();
+  try{
+    for(let i = 0; i < 80; i++){
+      const j = await kennisApi({soort: 'afas-nu'});
+      if(j.klaar){ toast(`Index bijgewerkt: ${(j.aantal || 0).toLocaleString('nl-NL')} meldingen`); break; }
+      KC.indexBezig = (j.bezig ? 'wacht op de automatische ronde: ' : '') + (j.voortgang || 'bezig…'); kcTeken();
+      if(j.bezig) await new Promise(z => setTimeout(z, 20e3));
+    }
+    KC.indexBezig = 'kennisbank en mailbox bijwerken…'; kcTeken(); await kcSync(true);
+  }catch(e){ toast('Index bijwerken lukte niet: ' + e.message, true); }
+  KC.indexBezig = ''; await kcStatus();
+}
 const kcKaal = t => String(t || '').replace(/\s*\[\d+\]/g, '').trim();
 document.addEventListener('click', e => {
   if(e.target.closest('#kc-knop')){ const p = $('#kcpaneel'); if(p && !p.hidden) kcDicht(); else kcOpen(); return; }
   if(!e.target.closest('#kcpaneel')) return;
   if(e.target.closest('[data-kcsluit]')){ kcDicht(); return; }
+  if(e.target.closest('[data-kcindex]')){ kcIndexNu(); return; }
   if(e.target.closest('[data-kcnieuw]')){ KC.gesprek = []; kcTeken(); $('#kc-vraag').focus(); return; }
   if(e.target.closest('[data-kcstuur]')){ kcVraag($('#kc-vraag').value); return; }
   const vb = e.target.closest('[data-kcvb]'); if(vb){ kcVraag(vb.textContent); return; }
@@ -7554,8 +7571,8 @@ async function mailGeldig(){
 }
 const b64Van = async blob => { const b = new Uint8Array(await blob.arrayBuffer()); let s = ''; for(let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); };
 const KB_TYPES = /\.(docx|docm|pptx|pdf|txt|md|html?)$/i;
-async function kcSyncKb(st){
-  const s = st.kb || {}; if(s.laatst && Date.now() - new Date(s.laatst) < 6 * 36e5) return;
+async function kcSyncKb(st, forceer){
+  const s = st.kb || {}; if(!forceer && s.laatst && Date.now() - new Date(s.laatst) < 6 * 36e5) return;
   try{ await kbGeldig(); }catch(e){ return; }                                  // kennisbank niet gekoppeld: overslaan
   const r = await kbRoot(), alle = [], mappen = [r.id];
   while(mappen.length && alle.length < 3000){ const id = mappen.shift(); for(const d of await kbMap(id)){ if(d.folder) mappen.push(d.id); else if(d.file && KB_TYPES.test(d.name) && (d.size || 0) < 15e6) alle.push(d); } }
@@ -7594,10 +7611,10 @@ async function kcPushMail(lijst, status){
   for(let i = 0; i < lijst.length; i += 25) await kennisApi({soort: 'push', bron: 'mail', items: lijst.slice(i, i + 25), ...(i + 25 >= lijst.length ? {status} : {})});
   if(!lijst.length) await kennisApi({soort: 'push', bron: 'mail', items: [], status});
 }
-async function kcSyncMail(st){
+async function kcSyncMail(st, forceer){
   const s = st.mail || {}, mb = KC_MAILBOX(), cp = String(s.checkpoint || '');
   const backfill = !cp || cp.startsWith('b:');
-  if(s.laatst && Date.now() - new Date(s.laatst) < (backfill ? 4 * 60e3 : 50 * 60e3)) return;   // iemand anders is al bezig of het is net gedaan
+  if(!forceer && s.laatst && Date.now() - new Date(s.laatst) < (backfill ? 4 * 60e3 : 50 * 60e3)) return;   // iemand anders is al bezig of het is net gedaan
   try{ await mailGeldig(); }catch(e){ if(e.soort === 'toestemming' && isBeheerder()) await kennisApi({soort: 'push', bron: 'mail', items: [], status: {fout: e.message}}).catch(() => {}); return; }
   const overslaan = new Set(); for(const f of ['junkemail', 'deleteditems', 'drafts']){ try{ overslaan.add((await graph(`/users/${encodeURIComponent(mb)}/mailFolders/${f}?$select=id`, {}, mailGeldig)).id); }catch(e){} }
   const mnd = d => d.toISOString().slice(0, 7), volgende = m => { const [j, n] = m.split('-').map(Number); return n === 12 ? `${j + 1}-01` : `${j}-${String(n + 1).padStart(2, '0')}`; };
@@ -7619,13 +7636,13 @@ async function kcSyncMail(st){
     await kcPushMail(kcMailBundel(alle, mb), {checkpoint: 't:' + nu, fout: ''});
   }
 }
-async function kcSync(){
-  if(DEMO || !profiel || document.hidden) return;
-  const slot = opslag.get('mict-kennis-slot'); if(slot && Date.now() - slot < 10 * 60e3) return;   // al bezig in een ander tabblad
+async function kcSync(forceer){
+  if(DEMO || !profiel || (document.hidden && !forceer)) return;
+  const slot = opslag.get('mict-kennis-slot'); if(!forceer && slot && Date.now() - slot < 10 * 60e3) return;   // al bezig in een ander tabblad
   opslag.set('mict-kennis-slot', Date.now());
   try{ const st = await kennisApi({soort: 'status'}).then(j => j.status || {});
-    try{ await kcSyncKb(st); }catch(e){ console.warn('SubmIT kennisindex (kennisbank):', e.message); }
-    try{ await kcSyncMail(st); }catch(e){ console.warn('SubmIT kennisindex (mail):', e.message); if(isBeheerder()) kennisApi({soort: 'push', bron: 'mail', items: [], status: {fout: e.message}}).catch(() => {}); } }
+    try{ await kcSyncKb(st, forceer); }catch(e){ console.warn('SubmIT kennisindex (kennisbank):', e.message); }
+    try{ await kcSyncMail(st, forceer); }catch(e){ console.warn('SubmIT kennisindex (mail):', e.message); if(isBeheerder()) kennisApi({soort: 'push', bron: 'mail', items: [], status: {fout: e.message}}).catch(() => {}); } }
   catch(e){ /* functie (nog) niet beschikbaar */ }
   finally{ KC.sync = ''; opslag.weg('mict-kennis-slot'); kcTeken(); }
 }
@@ -8326,6 +8343,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.69', d: '23-10-2026', p: ['Vraag het SubmIT: de beheerder kan de index nu meteen laten vullen met de knop Index nu bijwerken (onderin het chatpaneel). De automatische ronde is lichter voor AFAS: overdag alleen wat nieuw is, \'s nachts alles.']},
   {v: 'v7.68', d: '23-10-2026', groot: true, p: ['Nieuw in de balk links: ✦ Vraag het SubmIT. Stel een vraag en SubmIT zoekt in oude meldingen met reacties, de ICT-mailbox en de kennisbank. Het antwoord komt alleen uit wat er gevonden is, met de bronnen erbij; is er niets, dan zegt het dat.', 'Werkt ook naast een open melding: zet een antwoord met één klik in je reactie.']},
   {v: 'v7.67', d: '23-10-2026', p: ['Standaardteksten: opening en afsluiting stel je één keer algemeen in (Beheer → Standaardteksten → Opening en afsluiting). Ze gelden voor alle teksten, ook AI-concepten. De afsluiting noemt nu Afdeling ICT.', 'Onder elk tekstvak: knop { } Variabelen om ze snel te bekijken en in te voegen.']},
   {v: 'v7.66', d: '23-10-2026', p: ['Periodieke beoordelingen heten nu Periodieke taken: naast controles ook onderhoud, zoals een SSL-certificaat. Nieuwe meldingen krijgen het type "Periodieke taak"; oude meldingen blijven bij hun taak horen.', 'NEN 7510-verslag: je kiest met vinkjes welke taken erin komen.']},
