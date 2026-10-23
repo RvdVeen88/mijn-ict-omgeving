@@ -1597,7 +1597,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.70', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.71', VERSIE_DATUM = '22-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2100,27 +2100,39 @@ async function verrijkMetTaken(){
     setTimeout(() => toonHerinnering(), 2500);   // herinnering bij inloggen, als je taken en meldingen compleet zijn   // Controle: één keer op de achtergrond, daarna bij openen (max. elke 10 min)
   }catch(e){ takenKlaar = true; }
 }
-/* achtergrond 2: afgesloten meldingen van de laatste 90 dagen erbij halen, voortgang onderin */
-let weekGeladen = false, laadRestPoging = 0;
+/* achtergrond 2: afgesloten meldingen erbij halen, nieuwste eerst; voortgang onderin */
+let weekGeladen = false, laadRestPoging = 0, recentBezig = null;
+const voegDichtToe = rijen => { if(!rijen || !rijen.length) return; const al = new Set(items.map(x => String(x.nr))); items = [...items, ...bouwItems(rijen, new Map(sbCache)).filter(x => !al.has(String(x.nr)))]; pasInUitToe(); };
+async function dichtSinds(sinds, mee){
+  for(const w of ['true', '1']){ try{ const d = await connectorAlles(INST.connSla, filterEn([['Workflow_afgerond', w, 1], ['Laatste_wijziging_externe_status', sinds, 2]]), mee); if(d.length) return d; }catch(e){} }
+  return connectorAlles(INST.connSla, filterEn([['Laatste_wijziging_externe_status', sinds, 2]]), mee);   // dubbele (open) meldingen vallen weg bij het toevoegen
+}
+// meteen na de open meldingen (niet pas na taken en melders): afgehandeld in de laatste 7 dagen, een paar regels, zodat het overzicht klopt
+function laadRecentDicht(){
+  if(weekGeladen || alleGeladen) return Promise.resolve();
+  return recentBezig = recentBezig || (async () => {
+    try{ const sinds = new Date(Math.min(+beginWeek(), Date.now() - 7 * DAG)); voegDichtToe(await dichtSinds(isoD(sinds))); weekGeladen = true;
+      if(!$('#detail').open && !$('#app').hidden) teken(); }
+    catch(e){ console.warn('SubmIT: afgehandeld laatste 7 dagen ophalen lukte niet:', e.message); }
+    recentBezig = null;
+  })();
+}
 function laadRestOpAchtergrond(){
   if(alleGeladen || achterBezig) return achterBezig;
   const el = $('#achter');
   el.hidden = false; el.querySelector('span').textContent = 'Gesloten meldingen ophalen…';
-  const vg = maakVoortgang([INST.connSla + '|dicht'], p => { el.style.setProperty('--p', p + '%'); el.querySelector('span').textContent = `Gesloten meldingen ophalen… ${p}%`; });
+  const vg = maakVoortgang([INST.connSla + '|dicht'], p => { el.style.setProperty('--p', p + '%'); el.querySelector('span').textContent = `Gesloten meldingen ophalen… tot 90 dagen ${p}%`; });
   vg.begin();
   return achterBezig = (async () => {
-    // snel eerst: afgehandeld deze week (paar regels), zodat het cijfer op het overzicht meteen klopt
-    if(!weekGeladen){ try{ let w = null, gelukt = false;
-        for(const v of ['true', '1']){ try{ w = await connectorAlles(INST.connSla, filterEn([['Workflow_afgerond', v, 1], ['Laatste_wijziging_externe_status', isoD(beginWeek()), 2]])); gelukt = true; if(w.length) break; }catch(e){ w = null; } }
-        if(w && w.length){ const al = new Set(items.map(x => String(x.nr))); items = [...items, ...bouwItems(w, new Map(sbCache)).filter(x => !al.has(String(x.nr)))]; pasInUitToe(); }
-        weekGeladen = gelukt; if(gelukt && !$('#detail').open && tab === 'mij') teken(); }catch(e){} }
+    await laadRecentDicht();
     try{
-      const sinds = isoD(new Date(Date.now() - 90 * DAG)), mee = (r, k) => vg.stap(INST.connSla + '|dicht', r, k);
-      let dicht = null;
-      for(const w of ['true', '1']){ try{ dicht = await connectorAlles(INST.connSla, filterEn([['Workflow_afgerond', w, 1], ['Laatste_wijziging_externe_status', sinds, 2]]), mee); if(dicht.length) break; dicht = null; }catch(e){ dicht = null; } }
-      if(!dicht) dicht = await connectorAlles(INST.connSla, filterEn([['Laatste_wijziging_externe_status', sinds, 2]]), mee).catch(() => connectorAlles(INST.connSla, '', mee));
-      const nrs = new Set(items.map(x => String(x.nr)));
-      items = [...items, ...bouwItems(dicht, new Map(sbCache)).filter(x => !nrs.has(String(x.nr)))]; pasInUitToe();
+      const mee = (r, k) => vg.stap(INST.connSla + '|dicht', r, k);
+      // eerst de laatste 14 dagen (wat je het vaakst nodig hebt), dan de rest tot 90 dagen
+      el.querySelector('span').textContent = 'Gesloten meldingen ophalen… laatste 14 dagen';
+      try{ voegDichtToe(await dichtSinds(isoD(new Date(Date.now() - 14 * DAG)))); if(!$('#detail').open) teken(); }catch(e){}
+      el.querySelector('span').textContent = 'Gesloten meldingen ophalen… tot 90 dagen';
+      let dicht; try{ dicht = await dichtSinds(isoD(new Date(Date.now() - 90 * DAG)), mee); }catch(e){ dicht = await connectorAlles(INST.connSla, '', mee); }
+      voegDichtToe(dicht);
       alleGeladen = true; weekGeladen = true;
       vg.stop(); el.querySelector('span').textContent = 'Alle meldingen geladen'; setTimeout(() => el.hidden = true, 2500);
       if(!$('#detail').open) teken(); }
@@ -5867,13 +5879,25 @@ function tekenConnectoren(){
     ${c ? `<section class="blok cn-kaart"><header><h2>Connectoren in de app connector die SubmIT niet gebruikt</h2><span class="cn-badge ${nietGebruikt.length ? 'oranje' : 'groen'}">${c.alle ? nietGebruikt.length : '?'}</span></header>
       <p class="cn-doel">${c.alle ? (nietGebruikt.length ? 'Deze staan in de app connector "Mijn ICT-omgeving" maar worden door deze pagina niet aangeroepen. Kunnen eruit, tenzij een ander dashboard dezelfde app connector gebruikt.' : 'Alle connectoren in de app connector worden gebruikt.') : `Lijst niet op te halen: ${esc(c.alleFout || '')}`}</p>
       ${nietGebruikt.length ? `<table class="cn-tabel"><thead><tr><th>Connector</th><th>Omschrijving in AFAS</th><th>Soort</th></tr></thead><tbody>${nietGebruikt.map(x => `<tr><td><code>${esc(x.id)}</code></td><td>${esc(x.oms)}</td><td>${x.s === 'GET' ? 'GetConnector' : 'UpdateConnector'}</td></tr>`).join('')}</tbody></table>` : ''}</section>` : ''}
+    ${kennisMeldingen().length ? `<section class="blok cn-kaart"><header><h2>Vraag het SubmIT (index)</h2><span class="cn-badge oranje">${kennisMeldingen().length}</span></header>${kennisMeldingen().map(t => `<p class="cn-doel">${t}</p>`).join('')}</section>` : ''}
     ${kaarten}
     <section class="blok cn-kaart"><header><h2>Buiten AFAS</h2><button type="button" class="kolknop" data-kritiektest style="margin-left:auto" title="Laat alleen bij jou zien hoe de melding van een kritieke storing eruitziet; er gaat niets naar collega's of AFAS">Kritieke melding testen</button></header><table class="cn-tabel"><tbody>
       ${buitenRij('afas-token', 'Azure Function: wisselt de AFAS-login om voor een token (client secret staat alleen in Azure)', 'Verplicht', DEMO ? 'demo' : tok ? 'ok' : 'nog niet', INST.tokenFunctie || '')}
       ${buitenRij('ict-aanwezig', 'Azure Function: wie is er online, en het oogje "kijkt mee" (wie heeft dezelfde melding open)', 'Optioneel', DEMO ? 'demo' : AANW.status || 'nog niet', aanwezigUrl())}
       ${buitenRij('ict-instellingen', 'Azure Function: je instellingen online, overal hetzelfde', 'Optioneel', DEMO ? 'demo' : syncStatus, syncUrl())}
+      ${buitenRij('ict-kennis', 'Azure Functions ict-kennis en ict-kennis-afas: Vraag het SubmIT (index van meldingen en kennisbank)', 'Optioneel', DEMO ? 'demo' : !KC.status ? 'nog niet' : kennisMeldingen().length ? 'onvolledig' : 'ok', kennisUrl())}
       ${buitenRij('Microsoft To Do', 'To-do per gebruiker (Microsoft Graph, Entra-app SubmIT)', 'Optioneel', DEMO ? 'demo' : ({ok:'ok', geen:'nog niet gekoppeld', verlopen:'opnieuw verbinden', fout:'fout', laden:'laden…'})[TD.status] || TD.status, 'graph.microsoft.com')}</tbody></table></section>`;
   if(!c && !connBezig) controleerConnectoren();
+  if(!KC.status && !KC.statusGevraagd && !DEMO){ KC.statusGevraagd = true; kcStatus().then(() => tekenConnectoren()); }
+}
+// meldingen van de index in gewone taal (voor de beheerder, bij Connectoren & velden)
+function kennisMeldingen(){
+  const a = (KC.status || {}).afas || {}, uit = [], gevolg = {[INST.connSla]: 'meldingen staan zonder onderwerp en status in de index, waardoor de chat ze minder goed vindt', [INST.connReacties]: 'meldingen staan zonder reacties in de index, dus zonder de oplossing', [INST.connTickets]: 'er komen geen meldingen in de index'};
+  String(a.diag || '').split(' · ').filter(Boolean).forEach(d => { const conn = d.split(':')[0].trim();
+    if(/niet geautoriseerd|geen toegang|not authori|40[13]/i.test(d)) uit.push(`<b>${esc(conn)}</b> zit niet in de app connector van de ICT Assistent: ${esc(gevolg[conn] || 'de index mist gegevens')}. Vraag de AFAS-beheerder deze toe te voegen.`);
+    else uit.push(`<b>${esc(conn)}</b>: ${esc(d.slice(conn.length + 1).trim().slice(0, 200))}`); });
+  if(a.fout) uit.push(`Laatste ronde uit AFAS mislukt: ${esc(String(a.fout).slice(0, 200))}`);
+  return uit;
 }
 // regel in "Buiten AFAS": met een statusbolletje zoals bij de connectoren
 function buitenRij(naam, oms, nodig, st, adres){
@@ -7472,8 +7496,7 @@ function kcStatusTekst(){
   const a = KC.aantal, s = KC.status || {}, f = n => n.toLocaleString('nl-NL'), d = [];
   d.push(`${f(a.afas || 0)} meldingen`, `${f(a.kb || 0)} documenten`);
   const extra = [];
-  if(s.afas && s.afas.voortgang) extra.push('meldingen: ' + s.afas.voortgang);
-  if(isBeheerder()){ if(s.afas && s.afas.fout) extra.push('AFAS: ' + s.afas.fout); if(s.afas && s.afas.diag) extra.push(s.afas.diag); }
+  if(isBeheerder() && s.afas && s.afas.voortgang) extra.push('meldingen: ' + s.afas.voortgang);
   if(KC.sync) extra.push(KC.sync);
   return `Zoekt in ${d.join(' · ')}${extra.length ? '<br>' + extra.map(esc).join('<br>') : ''}`;
 }
@@ -8289,6 +8312,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.71', d: '23-10-2026', p: ['Sneller compleet na het inloggen: afgehandelde meldingen van de laatste 7 dagen komen meteen na de open meldingen, zodat Afgehandeld deze week direct klopt. Daarna eerst de laatste 14 dagen, dan de rest tot 90 dagen.', 'Meldingen over de index van Vraag het SubmIT staan nu in gewone taal bij Beheer → Connectoren & velden, niet meer onder de chat.']},
   {v: 'v7.70', d: '23-10-2026', p: ['Vraag het SubmIT: alle meldingen uit AFAS ophalen gebeurt \'s nachts, zodat SubmIT overdag niet trager laadt. Index nu bijwerken haalt overdag alleen wat nieuw is en gaat na een storing zelf verder.', 'De ICT-mailbox doet niet meer mee; de chat zoekt in meldingen met reacties en in de kennisbank.']},
   {v: 'v7.69', d: '23-10-2026', p: ['Vraag het SubmIT: de beheerder kan de index nu meteen laten vullen met de knop Index nu bijwerken (onderin het chatpaneel). De automatische ronde is lichter voor AFAS: overdag alleen wat nieuw is, \'s nachts alles.']},
   {v: 'v7.68', d: '23-10-2026', groot: true, p: ['Nieuw in de balk links: ✦ Vraag het SubmIT. Stel een vraag en SubmIT zoekt in oude meldingen met reacties en in de kennisbank. Het antwoord komt alleen uit wat er gevonden is, met de bronnen erbij; is er niets, dan zegt het dat.', 'Werkt ook naast een open melding: zet een antwoord met één klik in je reactie.']},
@@ -8545,6 +8569,7 @@ function laadKaart(naam){
     await introUit(); toonApp(); if(!opslag.get(TOUR_GEZIEN)) setTimeout(() => { if(!document.querySelector('dialog[open]')) startTour(); }, 2500);
     tdStart(); setTimeout(seinAanwezig, 2000); setTimeout(openGedeeld, 300);
     if(!DEMO) setTimeout(() => { laadSubjMeta().catch(() => {}); zoekZichtVeld().catch(() => {}); zorgReactieKol().catch(() => {}); }, 1500);   // alvast klaarzetten: het eerste melding opent dan sneller
+    laadRecentDicht();   // afgehandeld laatste 7 dagen: meteen, tegelijk met taken en melders
     verrijkMetTaken().then(verrijkMelders).then(() => { controleerIctReacties(); laadRestOpAchtergrond(); });
     setTimeout(laadProjecten, 1200);   // Mijn projecten: op de achtergrond, los van de meldingen
   }catch(e){ startInlog(e.message); }
