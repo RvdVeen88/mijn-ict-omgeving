@@ -1831,7 +1831,7 @@ function laadAlleGesloten(){
     try{
       await laadRestOpAchtergrond();
       let dicht = null;
-      for(const w of ['true', '1']){ try{ dicht = await connectorAlles(INST.connSla, filterEn([['Workflow_afgerond', w, 1]]), n => { if(tab === 'dichtalle') $('#lijst-sub').textContent = `Alle gesloten meldingen ophalen… ${n.length} opgehaald`; }); if(dicht.length) break; dicht = null; }catch(e){ dicht = null; } }
+      try{ dicht = await dichtOphalen(null, n => { if(tab === 'dichtalle') $('#lijst-sub').textContent = `Alle gesloten meldingen ophalen… ${typeof n === 'number' ? n : (n || []).length} opgehaald`; }); }catch(e){ dicht = null; }
       if(!dicht) dicht = await connectorAlles(INST.connSla, '');
       const nrs = new Set(items.map(x => String(x.nr)));   // sleutel: in-/uitdienst heeft U + nummer
       items = [...items, ...bouwItems(dicht, new Map(sbCache)).filter(x => x.afgesloten && !nrs.has(String(x.nr)))]; pasInUitToe();
@@ -2115,10 +2115,31 @@ async function verrijkMetTaken(){
 /* achtergrond 2: afgesloten meldingen erbij halen, nieuwste eerst; voortgang onderin */
 let weekGeladen = false, laadRestPoging = 0, recentBezig = null;
 const voegDichtToe = rijen => { if(!rijen || !rijen.length) return; const al = new Set(items.map(x => String(x.nr))); items = [...items, ...bouwItems(rijen, new Map(sbCache)).filter(x => !al.has(String(x.nr)))]; pasInUitToe(); };
-async function dichtSinds(sinds, mee){
-  for(const w of ['true', '1']){ try{ const d = await connectorAlles(INST.connSla, filterEn([['Workflow_afgerond', w, 1], ['Laatste_wijziging_externe_status', sinds, 2]]), mee); if(d.length) return d; }catch(e){} }
-  return connectorAlles(INST.connSla, filterEn([['Laatste_wijziging_externe_status', sinds, 2]]), mee);   // dubbele (open) meldingen vallen weg bij het toevoegen
+/* gesloten meldingen opvragen: AFAS weigert bij jullie sommige filters (HTTP 500). Eén korte proefvraag per variant; wat geweigerd wordt
+   onthoudt SubmIT een week en slaat het daarna over (minder rode regels, sneller). Varianten van smal naar breed. */
+const DICHT_WEG = 'mict-dichtfilter-weg', DICHT_GOED = 'mict-dichtfilter-goed';
+function dichtVarianten(sinds){
+  const st = String(INST.st_afgesloten || '').split(',').map(x => x.trim()).filter(Boolean), d = sinds ? [['Laatste_wijziging_externe_status', sinds, 2]] : [];
+  // AFAS: komma = EN, puntkomma = OF (per OF-groep alle velden herhalen)
+  const opStatus = st.length ? `&filterfieldids=${st.map(() => ['Status', ...d.map(x => x[0])].join(',')).join(';')}&filtervalues=${st.map(w => [encodeURIComponent(w), ...d.map(x => encodeURIComponent(x[1]))].join(',')).join(';')}&operatortypes=${st.map(() => [1, ...d.map(x => x[2])].join(',')).join(';')}` : '';
+  return [['wf-true', filterEn([['Workflow_afgerond', 'true', 1], ...d])], ['wf-1', filterEn([['Workflow_afgerond', '1', 1], ...d])], ...(opStatus ? [['status', opStatus]] : []),
+    ...(sinds ? [['datum', filterEn(d)]] : []), ['alles', '']];
 }
+async function dichtOphalen(sinds, mee){
+  const weg = opslag.get(DICHT_WEG) || {}, nu = Date.now(), soort = sinds ? 'sinds' : 'alles';
+  const goed = (opslag.get(DICHT_GOED) || {})[soort];
+  const l = dichtVarianten(sinds).filter(([k]) => !(weg[soort + ':' + k] > nu - 7 * DAG)).sort((a, b) => (b[0] === goed) - (a[0] === goed));
+  for(const [k, f] of l){
+    if(k !== 'alles' && k !== goed){   // nog onbekend: eerst één kleine proefvraag, zonder herhalen
+      try{ await afas(`/connectors/${encodeURIComponent(INST.connSla)}?skip=0&take=1${f}`); }
+      catch(e){ if(/HTTP 5\d\d|HTTP 400/.test(e.message)){ weg[soort + ':' + k] = nu; opslag.set(DICHT_WEG, weg); continue; } throw e; }
+    }
+    try{ const rijen = await connectorAlles(INST.connSla, f, mee); opslag.set(DICHT_GOED, {...(opslag.get(DICHT_GOED) || {}), [soort]: k}); return rijen; }
+    catch(e){ if(k === 'alles') throw e; weg[soort + ':' + k] = nu; opslag.set(DICHT_WEG, weg); }
+  }
+  throw new Error('gesloten meldingen ophalen lukte niet');
+}
+const dichtSinds = (sinds, mee) => dichtOphalen(sinds, mee);
 // meteen na de open meldingen (niet pas na taken en melders): afgehandeld in de laatste 7 dagen, een paar regels, zodat het overzicht klopt
 function laadRecentDicht(){
   if(weekGeladen || alleGeladen) return Promise.resolve();
@@ -2227,7 +2248,7 @@ function signalen(x){
   const u = ongelezen(x);
   if(u) s.push({ernst:1, code:'ongelezen', tekst: u.wat === 'toegewezen' ? 'Nieuw voor jou' : u.wat === 'reactie' ? `Ongelezen reactie · ${u.wie.split(' ')[0]}` : 'Ongelezen update', uitleg: u.wat === 'toegewezen' ? `Deze melding is${u.wie && !benIk(u.wie) ? ' door ' + u.wie : ''} aan jou toegewezen en je hebt het nog niet geopend.` : u.wat === 'reactie' ? `${u.wie} reageerde op ${wanneer(u.t)}, nadat jij de melding voor het laatst opende. Open de melding om deze te lezen.` : `${u.wie} wijzigde de melding op ${wanneer(u.t)} (status nu "${toonStatus(x.status)}"), nadat jij het voor het laatst opende.`});
   if(!x.afdeling && !x.inuit) s.push({ernst:3, code:'afdeling', tekst:'Geen afdeling', uitleg:'Er is geen afdeling aan deze melding toegewezen, waardoor deze bij niemand in beeld komt. Zet deze door naar de juiste afdeling.'});
-  if(isNieuw(x)){ const mist = ontbreekt(x); if(mist.length) s.push({ernst:2, code:'onvolledig', tekst:'Mist: ' + mist.join(' · '), uitleg:`Een nieuwe melding is pas compleet als afdeling, ${heeftLocKolom ? 'locatie ' : ''}en een reactie aan de melder zijn ingevuld. Nog nodig: ${mist.join(', ')}.`}); }
+  if(isNieuw(x)){ const mist = ontbreekt(x); if(mist.length) s.push({ernst:2, code:'onvolledig', tekst:'Mist: ' + mist.join(' · '), uitleg:`Een nieuwe melding is pas compleet als verantwoordelijke en afdeling${heeftLocKolom ? ' en locatie' : ''} zijn ingevuld. Nog nodig: ${mist.join(', ')}.`}); }
   if(kritiekActief(x)) s.unshift({ernst:3, code:'kritiek', tekst:'Kritieke storing', uitleg:'In AFAS als kritieke storing gemarkeerd: direct oppakken.'});
   else if(x.kritiek) s.push(kritiekWasChip(x));
   if(x.datalek) s.unshift({ernst:3, code:'datalek', tekst:'Datalek', uitleg:'Gemarkeerd als (mogelijk) datalek: volg de datalekprocedure en betrek Kwaliteit & Veiligheid / de FG.'});
@@ -2250,10 +2271,7 @@ function ontbreekt(x){
   const m = [];
   if(!x.afdeling) m.push('afdeling');
   if((heeftLocKolom || (locBronTickets && locCache.has(String(x.nr)))) && !locVan(x)) m.push('locatie');
-  // reactie aan de melder is alleen nodig als de melder niet zelf van ICT is (een ICT'er die zelf een melding maakt hoeft zichzelf niet te antwoorden)
-  if(isIctCollega(x.melder)) return m;
-  // de laatste reactie kan van de melder zijn terwijl ICT eerder wél reageerde: dat weten we pas na het ophalen van de reacties
-  if(!x.reactieDatum || (laatsteVanMelder(x) && !(x.ictReactie || ictReactieBekend(x.nr)))) m.push('reactie');
+  // een reactie aan de melder telt (sinds v7.73) niet meer mee: gelijk aan het SLA-dashboard, dat de reacties niet kan zien
   return m;
 }
 // nieuw = nog niet compleet; oudere onvolledige meldingen alleen als er ook nog niemand op staat (anders loopt de lijst vol met oude meldingen)
@@ -4618,7 +4636,7 @@ document.addEventListener('click', e => {
 document.addEventListener('change', e => { if(e.target.id === 'f-nieuw'){ zetNieuwBijl(e.target.files); e.target.value = ''; } });
 function checklist(x){
   const mist = ontbreekt(x), punt = (k, t) => `<span class="${mist.includes(k) ? 'mist' : 'ok'}">${mist.includes(k) ? '○' : '✓'} ${t}</span>`;
-  return `<b>${mist.length ? 'Nieuwe melding compleet maken' : 'Nieuwe melding is compleet'}</b>${punt('afdeling', 'Afdeling')}${heeftLocKolom ? punt('locatie', 'Locatie') : '<span class="hint" title="Locatie staat niet in de GetConnector; vraag de beheerder het veld Locatie toe te voegen aan ' + esc(INST.connSla) + '.">Locatie ?</span>'}${punt('reactie', 'Reactie aan melder')}`;
+  return `<b>${mist.length ? 'Nieuwe melding compleet maken' : 'Nieuwe melding is compleet'}</b>${punt('afdeling', 'Afdeling')}${heeftLocKolom ? punt('locatie', 'Locatie') : '<span class="hint" title="Locatie staat niet in de GetConnector; vraag de beheerder het veld Locatie toe te voegen aan ' + esc(INST.connSla) + '.">Locatie ?</span>'}`;
 }
 function markeerOntbrekend(x){
   if(x.afgesloten || !isNieuw(x)) return;
@@ -8329,7 +8347,7 @@ async function wisselWindows(){
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
   {v: 'v7.73', d: '23-10-2026', p: ['Beveiliging: HTML uit mails (.eml) en uit AFAS wordt nu zo gelezen dat er nooit code in kan meedraaien. Met dank aan een collega die dit vond.', 'Extra vangnet: SubmIT mag alleen nog verbinding maken met AFAS, Microsoft en de eigen Azure-functies.']},
-  {v: 'v7.72', d: '23-10-2026', groot: true, p: ['In een melding: één AI-knop voor alles. Is dit eerder opgelost (oude meldingen of de kennisbank), dan pulseert hij. Bovenaan het menu staat dan het antwoord op basis van die oplossingen: advies voor jou met de bronnen, een concept voor de melder met één klik, en ruimte voor een vervolgvraag.', 'De losse chat in de balk links is weg. De status van de AI-index staat bij Beheer → Connectoren & velden.', 'Gesloten meldingen laden blijft niet meer hangen: stokt AFAS, dan probeert SubmIT het na een minuut zelf opnieuw.', 'De onderbalk (Live · bijgewerkt, voortgang, nieuwe versie) blijft nu altijd onderin zichtbaar, ook bij een lange lijst; de schuifbalk van een brede tabel staat er net boven.', 'Afhandelen bleef draaien als het opslaan niet door kon (bijvoorbeeld omdat de afdeling nog leeg was); de knop is nu meteen weer bruikbaar.', 'Overal hetzelfde AI-icoon als op de AI-knop, ook naast Standaardtekst (grijs als het uit staat), bij voorstellen, samenvatting, tips en instructies.', 'Bijlage toevoegen is nu het paperclipje links onderin het reactievak. Annuleren in het bestandsvenster vraagt niet meer of je de melding wilt sluiten.']},
+  {v: 'v7.72', d: '23-10-2026', groot: true, p: ['In een melding: één AI-knop voor alles. Is dit eerder opgelost (oude meldingen of de kennisbank), dan pulseert hij. Bovenaan het menu staat dan het antwoord op basis van die oplossingen: advies voor jou met de bronnen, een concept voor de melder met één klik, en ruimte voor een vervolgvraag.', 'De losse chat in de balk links is weg. De status van de AI-index staat bij Beheer → Connectoren & velden.', 'Gesloten meldingen laden blijft niet meer hangen: stokt AFAS, dan probeert SubmIT het na een minuut zelf opnieuw.', 'Nieuwe meldingen: een reactie aan de melder is geen eis meer. Nieuw = geen verantwoordelijke, of afdeling of locatie ontbreekt. Zo tellen SubmIT en het SLA-dashboard gelijk.', 'Gesloten meldingen laden sneller: SubmIT onthoudt welk filter AFAS weigert en probeert dat niet steeds opnieuw (veel minder foutmeldingen in de console). Extra variant: filter op status Afgehandeld/Gesloten.', 'De onderbalk (Live · bijgewerkt, voortgang, nieuwe versie) blijft nu altijd onderin zichtbaar, ook bij een lange lijst; de schuifbalk van een brede tabel staat er net boven.', 'Afhandelen bleef draaien als het opslaan niet door kon (bijvoorbeeld omdat de afdeling nog leeg was); de knop is nu meteen weer bruikbaar.', 'Overal hetzelfde AI-icoon als op de AI-knop, ook naast Standaardtekst (grijs als het uit staat), bij voorstellen, samenvatting, tips en instructies.', 'Bijlage toevoegen is nu het paperclipje links onderin het reactievak. Annuleren in het bestandsvenster vraagt niet meer of je de melding wilt sluiten.']},
   {v: 'v7.71', d: '23-10-2026', p: ['Sneller compleet na het inloggen: afgehandelde meldingen van de laatste 7 dagen komen meteen na de open meldingen, zodat Afgehandeld deze week direct klopt. Daarna eerst de laatste 14 dagen, dan de rest tot 90 dagen.', 'Meldingen over de index van Vraag het SubmIT staan nu in gewone taal bij Beheer → Connectoren & velden, niet meer onder de chat.']},
   {v: 'v7.70', d: '23-10-2026', p: ['Vraag het SubmIT: alle meldingen uit AFAS ophalen gebeurt \'s nachts, zodat SubmIT overdag niet trager laadt. Index nu bijwerken haalt overdag alleen wat nieuw is en gaat na een storing zelf verder.', 'De ICT-mailbox doet niet meer mee; de chat zoekt in meldingen met reacties en in de kennisbank.']},
   {v: 'v7.69', d: '23-10-2026', p: ['Vraag het SubmIT: de beheerder kan de index nu meteen laten vullen met de knop Index nu bijwerken (onderin het chatpaneel). De automatische ronde is lichter voor AFAS: overdag alleen wat nieuw is, \'s nachts alles.']},
