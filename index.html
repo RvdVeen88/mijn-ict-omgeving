@@ -976,6 +976,8 @@ dialog#detail.groot .toelblok .lang{max-height:40vh}
 .linkmenu button:hover{background:var(--lichtblauw-2)}
 .linkmenu input{border:1px solid var(--lijn);border-radius:8px;padding:6px 10px;font:inherit;font-size:13px;background:var(--achtergrond);color:var(--inkt);min-width:280px}
 .linkmenu small{color:var(--grijs);padding:2px 4px}
+input.toelinvoer.ondveld{width:100%;box-sizing:border-box;border:1.5px solid transparent;font:inherit;font-size:14px;font-weight:600;color:var(--inkt);outline:0;min-height:0}
+input.toelinvoer.ondveld:hover{border-color:var(--lijn)}input.toelinvoer.ondveld:focus{border-color:var(--blauw-2);background:var(--vlak)}
 textarea.toelinvoer{width:100%;box-sizing:border-box;border:1.5px solid transparent;font:inherit;font-size:13.5px;line-height:1.5;color:var(--inkt);resize:vertical;min-height:60px;max-height:none;outline:0}
 textarea.toelinvoer:hover{border-color:var(--lijn)}textarea.toelinvoer:focus{border-color:var(--blauw-2);background:var(--vlak)}
 textarea.toelinvoer.nieuw{color:var(--grijs)}
@@ -4610,7 +4612,7 @@ async function feedback(){
   [$('#detail'), $('#projdlg')].forEach(d => { if(d && d.open) d.close(); });
   await nieuweMelding();
   const f = $('#n-form'); if(!f) return;
-  f.ond.value = 'Feedback SubmIT: '; f.ond.classList.add('voorstel');
+  f.ond.value = 'Feedback SubmIT: '; f.ond.classList.add('voorstel'); f.ond.dispatchEvent(new Event('input'));
   f.tx.value = `\n\n— automatisch toegevoegd —\nVersie: ${VERSIE} (${VERSIE_DATUM})\nWaar: ${waar}\nScherm: ${innerWidth}×${innerHeight}\nBrowser: ${navigator.userAgent}`;
   if(f.tel && !f.tel.value){ f.tel.value = 'Teams'; f.tel.classList.add('voorstel'); }
   if(shot){ nieuwBijl = [shot]; tekenNieuwBijl(); }
@@ -5066,7 +5068,7 @@ async function nieuweMelding(){
   // zelfde opbouw als een bestaande melding: titel bovenin, kaarten Melding | Behandeling, toelichting, bijlagen, knoppen
   const kz = (f, naam, std) => keuze(f, naam, std).replace('<select ', '<select class="afdkeuze" ').replace('<input ', '<input class="datumkeuze" ');
   $('#nieuw-in').innerHTML = `<form class="nform nmeld" id="n-form" onsubmit="return false">
-    <div class="dlg-kop"><div><small>Nieuwe melding · Aanvraag ICT</small><h2><input name="ond" class="ondinvoer" required maxlength="80" spellcheck="true" aria-label="Onderwerp" placeholder="Onderwerp, kort en duidelijk"></h2></div><button type="button" class="sluit" data-sluitnieuw aria-label="Sluiten">×</button></div>
+    <div class="dlg-kop"><div><small>Nieuwe melding · Aanvraag ICT</small><h2 id="n-titel">Nieuwe melding</h2></div><button type="button" class="sluit" data-sluitnieuw aria-label="Sluiten">×</button></div>
     <div class="kaarten">
       <div class="kaart2"><h3>Melding</h3>
         <span>Melder</span><b><input name="melder" id="n-melder" class="datumkeuze metpijl" autocomplete="off" spellcheck="false" placeholder="Zoek op naam of nummer"><input type="hidden" name="melderId"><small class="hint" id="n-melder-hint">Medewerkers ophalen…</small></b>
@@ -5087,12 +5089,14 @@ async function nieuweMelding(){
         <span class="nopg" hidden>Storing opgelost</span><b class="nopg" hidden><input type="datetime-local" name="opgelost" class="datumkeuze" title="Wanneer de storing is opgelost"></b>
       </div>
     </div>
-    <div class="toelblok"><h3>Toelichting</h3><textarea name="tx" class="lang toelinvoer" rows="4" aria-label="Toelichting" placeholder="Sinds wanneer, welke werkplek, wat is al geprobeerd?"></textarea></div>
+    <div class="toelblok"><h3>Onderwerp<i class="verpl" data-verpl="#n-form [name=ond]" title="Verplicht">*</i></h3><input name="ond" class="lang toelinvoer ondveld" required maxlength="80" spellcheck="true" aria-label="Onderwerp" placeholder="Kort en duidelijk, bv. Printer balie Almere print niet" autocomplete="off">
+      <h3 style="margin-top:6px">Toelichting</h3><textarea name="tx" class="lang toelinvoer" rows="4" aria-label="Toelichting" placeholder="Sinds wanneer, welke werkplek, wat is al geprobeerd?"></textarea></div>
     <div class="bijlbalk" id="n-bijl" title="Sleep bestanden of een mail hierheen, of plak een schermafbeelding met Ctrl+V"><span class="bijltitel">${CLIP}<b>Bijlagen</b></span><span class="bijlrij" id="n-bijl-lijst"></span><button type="button" class="linkknop" id="k-nbijl">toevoegen</button><input type="file" id="f-nieuw" multiple hidden></div>
     <div class="fout" id="n-fout">${m.stId ? '' : `Het type dossieritem "Aanvraag ICT" is niet gevonden in AFAS (gevonden: ${esc(m.typen.map(t => t.naam).join(', ') || 'geen')}). Zet nieuwStId in mijn-ict-config.js.`}</div>
     <div class="onderbalk"><span style="flex:1"></span><span class="opslaanknoppen"><button type="button" class="knop" data-sluitnieuw>Annuleren</button><button type="button" class="knop vol" id="n-maak" title="Ctrl+Enter" ${m.stId ? '' : 'disabled'}>Melding aanmaken <kbd>Ctrl+Enter</kbd></button></span></div>
   </form>`;
-  { const mi = $('#n-form').melder; mi.addEventListener('click', () => { if(mi.dataset.std === '1') mi.select(); }); $('#n-form').ond.focus(); }   // titel bovenin eerst, net als bij een bestaande melding   // typen vervangt 'jijzelf' direct
+  { const mi = $('#n-form').melder; mi.addEventListener('click', () => { if(mi.dataset.std === '1') mi.select(); }); const o = $('#n-form').ond, ti = $('#n-titel');
+    const zetTitel = () => { ti.textContent = o.value.trim() || 'Nieuwe melding'; }; o.addEventListener('input', () => { zetTitel(); zetVerplicht(); }); zetTitel(); zetVerplicht(); o.focus(); }   // titel bovenin eerst, net als bij een bestaande melding   // typen vervangt 'jijzelf' direct
   koppelMelder(); koppelBehandelaar();
   koppelCc($('#n-form').cc);
 }
@@ -6861,7 +6865,7 @@ let todoBron = null;
 async function todoNaarMelding(t){
   todoBron = t.id; await nieuweMelding();
   const f = $('#n-form'); if(!f){ return; }
-  f.ond.value = t.titel.slice(0, 80); f.tx.value = t.notitie || t.titel;
+  f.ond.value = t.titel.slice(0, 80); f.ond.dispatchEvent(new Event('input')); f.tx.value = t.notitie || t.titel;
 }
 $('#nieuw').addEventListener('close', () => setTimeout(() => { todoBron = null; }, 0));
 function todoGekoppeld(nr, id = todoBron){
@@ -8277,7 +8281,7 @@ async function kritiekVanStoring(g){
   const l = g.nrs.map(nr => items.find(y => String(y.nr) === nr)).filter(Boolean);
   await nieuweMelding(); const f = $('#n-form'); if(!f) return;
   const ond = `Kritieke storing: ${g.woord}${g.loc ? ' ' + g.loc : ''} (meldingen ${g.nrs.join(', ')})`;
-  f.ond.value = ond.length > 80 ? ond.slice(0, 77) + '…' : ond;
+  f.ond.value = ond.length > 80 ? ond.slice(0, 77) + '…' : ond; f.ond.dispatchEvent(new Event('input'));
   f.tx.value = `Mogelijke kritieke storing: ${l.length} vergelijkbare meldingen over “${g.woord}”${g.loc ? ' op locatie ' + g.loc : ''} sinds ${fmtDatum(g.sinds)} ${fmtTijd(g.sinds)}.\n\nMeldingen met hetzelfde probleem:\n` + l.map(x => `- ${x.nr} · ${x.onderwerp}${x.melder ? ' (' + x.melder + (x.locatie ? ', ' + x.locatie : '') + ')' : ''}`).join('\n');
   if(f.kritiek) f.kritiek.checked = true;
   if(f.tel && !f.tel.value){ f.tel.value = 'Teams'; f.tel.classList.add('voorstel'); }
@@ -8347,7 +8351,7 @@ async function wisselWindows(){
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
   {v: 'v7.73', d: '23-10-2026', p: ['Beveiliging: HTML uit mails (.eml) en uit AFAS wordt nu zo gelezen dat er nooit code in kan meedraaien. Met dank aan een collega die dit vond.', 'Extra vangnet: SubmIT mag alleen nog verbinding maken met AFAS, Microsoft en de eigen Azure-functies.']},
-  {v: 'v7.72', d: '23-10-2026', groot: true, p: ['In een melding: één AI-knop voor alles. Is dit eerder opgelost (oude meldingen of de kennisbank), dan pulseert hij. Bovenaan het menu staat dan het antwoord op basis van die oplossingen: advies voor jou met de bronnen, een concept voor de melder met één klik, en ruimte voor een vervolgvraag.', 'De losse chat in de balk links is weg. De status van de AI-index staat bij Beheer → Connectoren & velden.', 'Gesloten meldingen laden blijft niet meer hangen: stokt AFAS, dan probeert SubmIT het na een minuut zelf opnieuw.', 'Nieuwe meldingen: een reactie aan de melder is geen eis meer. Nieuw = geen verantwoordelijke, of afdeling of locatie ontbreekt. Zo tellen SubmIT en het SLA-dashboard gelijk.', 'Gesloten meldingen laden sneller: SubmIT onthoudt welk filter AFAS weigert en probeert dat niet steeds opnieuw (veel minder foutmeldingen in de console). Extra variant: filter op status Afgehandeld/Gesloten.', 'De onderbalk (Live · bijgewerkt, voortgang, nieuwe versie) blijft nu altijd onderin zichtbaar, ook bij een lange lijst; de schuifbalk van een brede tabel staat er net boven.', 'Afhandelen bleef draaien als het opslaan niet door kon (bijvoorbeeld omdat de afdeling nog leeg was); de knop is nu meteen weer bruikbaar.', 'Overal hetzelfde AI-icoon als op de AI-knop, ook naast Standaardtekst (grijs als het uit staat), bij voorstellen, samenvatting, tips en instructies.', 'Bijlage toevoegen is nu het paperclipje links onderin het reactievak. Annuleren in het bestandsvenster vraagt niet meer of je de melding wilt sluiten.']},
+  {v: 'v7.72', d: '23-10-2026', groot: true, p: ['In een melding: één AI-knop voor alles. Is dit eerder opgelost (oude meldingen of de kennisbank), dan pulseert hij. Bovenaan het menu staat dan het antwoord op basis van die oplossingen: advies voor jou met de bronnen, een concept voor de melder met één klik, en ruimte voor een vervolgvraag.', 'De losse chat in de balk links is weg. De status van de AI-index staat bij Beheer → Connectoren & velden.', 'Gesloten meldingen laden blijft niet meer hangen: stokt AFAS, dan probeert SubmIT het na een minuut zelf opnieuw.', 'Nieuwe melding: Onderwerp staat nu boven Toelichting (zoals in AFAS), met een verplicht-sterretje; de titel bovenin neemt het onderwerp over.', 'Nieuwe meldingen: een reactie aan de melder is geen eis meer. Nieuw = geen verantwoordelijke, of afdeling of locatie ontbreekt. Zo tellen SubmIT en het SLA-dashboard gelijk.', 'Gesloten meldingen laden sneller: SubmIT onthoudt welk filter AFAS weigert en probeert dat niet steeds opnieuw (veel minder foutmeldingen in de console). Extra variant: filter op status Afgehandeld/Gesloten.', 'De onderbalk (Live · bijgewerkt, voortgang, nieuwe versie) blijft nu altijd onderin zichtbaar, ook bij een lange lijst; de schuifbalk van een brede tabel staat er net boven.', 'Afhandelen bleef draaien als het opslaan niet door kon (bijvoorbeeld omdat de afdeling nog leeg was); de knop is nu meteen weer bruikbaar.', 'Overal hetzelfde AI-icoon als op de AI-knop, ook naast Standaardtekst (grijs als het uit staat), bij voorstellen, samenvatting, tips en instructies.', 'Bijlage toevoegen is nu het paperclipje links onderin het reactievak. Annuleren in het bestandsvenster vraagt niet meer of je de melding wilt sluiten.']},
   {v: 'v7.71', d: '23-10-2026', p: ['Sneller compleet na het inloggen: afgehandelde meldingen van de laatste 7 dagen komen meteen na de open meldingen, zodat Afgehandeld deze week direct klopt. Daarna eerst de laatste 14 dagen, dan de rest tot 90 dagen.', 'Meldingen over de index van Vraag het SubmIT staan nu in gewone taal bij Beheer → Connectoren & velden, niet meer onder de chat.']},
   {v: 'v7.70', d: '23-10-2026', p: ['Vraag het SubmIT: alle meldingen uit AFAS ophalen gebeurt \'s nachts, zodat SubmIT overdag niet trager laadt. Index nu bijwerken haalt overdag alleen wat nieuw is en gaat na een storing zelf verder.', 'De ICT-mailbox doet niet meer mee; de chat zoekt in meldingen met reacties en in de kennisbank.']},
   {v: 'v7.69', d: '23-10-2026', p: ['Vraag het SubmIT: de beheerder kan de index nu meteen laten vullen met de knop Index nu bijwerken (onderin het chatpaneel). De automatische ronde is lichter voor AFAS: overdag alleen wat nieuw is, \'s nachts alles.']},
@@ -8555,7 +8559,7 @@ async function mailNaarMelding(f){
   let m; try{ m = await leesMail(f); }catch(e){ toast('De mail kon niet worden gelezen: ' + e.message, true); return; }
   const schoon = String(m.tekst || '').replace(/\r\n/g, '\n').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
   const kop = [m.van || m.vanMail ? `Van: ${m.van || ''}${m.vanMail && !String(m.van).includes(m.vanMail) ? ` <${m.vanMail}>` : ''}`.trim() : '', m.datum && !isNaN(m.datum) ? `Verzonden: ${fmtDatum(m.datum)} ${fmtTijd(m.datum)}` : '', m.onderwerp ? `Onderwerp: ${m.onderwerp}` : ''].filter(Boolean).join('\n');
-  f2.ond.value = String(m.onderwerp || '').replace(/^\s*((re|fw|fwd|antw|doorst)\s*:\s*)+/i, '').slice(0, 80);
+  f2.ond.value = String(m.onderwerp || '').replace(/^\s*((re|fw|fwd|antw|doorst)\s*:\s*)+/i, '').slice(0, 80); f2.ond.dispatchEvent(new Event('input'));
   f2.tx.value = (kop ? kop + '\n\n' : '') + schoon.slice(0, 30000);
   // melder: de afzender, als die eenduidig in de medewerkerslijst staat
   let gevonden = '';
