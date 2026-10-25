@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <!-- Beveiliging (vangnet): SubmIT mag alleen verbinding maken met AFAS, Microsoft (login, Graph, SharePoint) en de eigen Azure-functies.
      Verandert de AFAS-omgeving of de Function App van adres, pas dan connect-src hieronder aan. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://*.sharepoint.com https://graph.microsoft.com; connect-src 'self' https://88406.rest.afas.online https://func-dck-helpdesk-b8cpg3gmd6d5hsgp.westeurope-01.azurewebsites.net https://login.microsoftonline.com https://graph.microsoft.com https://*.sharepoint.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://*.sharepoint.com https://graph.microsoft.com; connect-src 'self' https://88406.rest.afas.online https://func-dck-helpdesk-b8cpg3gmd6d5hsgp.westeurope-01.azurewebsites.net https://func-dck-kennis-bjdmb7b5aqb9bpdf.westeurope-01.azurewebsites.net https://login.microsoftonline.com https://graph.microsoft.com https://*.sharepoint.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#053787">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
@@ -1567,6 +1567,7 @@ const INST = Object.assign({
   omgeving: '88406',
   clientId: '91a1c1c2-bbaa-4075-a1cc-09252fd9c561',
   tokenFunctie: 'https://func-dck-helpdesk-b8cpg3gmd6d5hsgp.westeurope-01.azurewebsites.net/api/afas-token',
+  kennisUrl: 'https://func-dck-kennis-bjdmb7b5aqb9bpdf.westeurope-01.azurewebsites.net/api/ict-kennis',   // AI-index in een eigen Function App (func-dck-kennis): zwaar zoekwerk houdt het inloggen nooit op
   connIk: 'PowerBI_ICT_Gebruikers',     // GetConnector op gebruikers met filter Gebruiker = [Gebruiker]: geeft alleen de ingelogde gebruiker terug
   // Functioneel beheer: domeinen, met zoekwoorden in focusgebied/afdeling/systeem van een melding, en wat er automatisch bij hoort
   domeinen: [
@@ -1619,7 +1620,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.77', VERSIE_DATUM = '25-10-2026';
+const VERSIE = 'v7.78', VERSIE_DATUM = '25-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -5961,7 +5962,7 @@ function tekenConnectoren(){
       ${buitenRij('afas-token', 'Azure Function: wisselt de AFAS-login om voor een token (client secret staat alleen in Azure)', 'Verplicht', DEMO ? 'demo' : tok ? 'ok' : 'nog niet', INST.tokenFunctie || '')}
       ${buitenRij('ict-aanwezig', 'Azure Function: wie is er online, en het oogje "kijkt mee" (wie heeft dezelfde melding open)', 'Optioneel', DEMO ? 'demo' : AANW.status || 'nog niet', aanwezigUrl())}
       ${buitenRij('ict-instellingen', 'Azure Function: je instellingen online, overal hetzelfde', 'Optioneel', DEMO ? 'demo' : syncStatus, syncUrl())}
-      ${buitenRij('ict-kennis', 'Azure Functions ict-kennis en ict-kennis-afas: AI-index voor de AI-knop in een melding (eerder opgelost)', 'Optioneel', DEMO ? 'demo' : !KC.status ? 'nog niet' : kennisMeldingen().length ? 'onvolledig' : 'ok', kennisUrl())}
+      ${buitenRij('ict-kennis', 'Function App func-dck-kennis (ict-kennis en ict-kennis-afas): AI-index voor de AI-knop in een melding (eerder opgelost)', 'Optioneel', DEMO ? 'demo' : !KC.status ? 'nog niet' : kennisMeldingen().length ? 'onvolledig' : 'ok', kennisUrl())}
       ${buitenRij('Microsoft To Do', 'To-do per gebruiker (Microsoft Graph, Entra-app SubmIT)', 'Optioneel', DEMO ? 'demo' : ({ok:'ok', geen:'nog niet gekoppeld', verlopen:'opnieuw verbinden', fout:'fout', laden:'laden…'})[TD.status] || TD.status, 'graph.microsoft.com')}</tbody></table></section>`;
   if(!c && !connBezig) controleerConnectoren();
   if(!KC.status && !KC.statusGevraagd && isBeheerder()){ KC.statusGevraagd = true; kcStatus().then(() => tekenConnectoren()); }
@@ -8383,6 +8384,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.78', d: '25-10-2026', p: ['De AI-knop zoekt nu via een eigen Azure-omgeving. Zwaar zoekwerk kan het inloggen in SubmIT daardoor niet meer vertragen.']},
   {v: 'v7.77', d: '25-10-2026', p: ['Bij changes heet het veld Startdatum project nu gewoon Startdatum.']},
   {v: 'v7.76', d: '25-10-2026', p: ['Inloggen blijft niet meer eindeloos hangen: reageert de inlogkoppeling in Azure niet binnen 20 seconden, dan zegt SubmIT dat en kun je opnieuw proberen. Je blijft dan ingelogd.']},
   {v: 'v7.75', d: '25-10-2026', p: ['Bestaande melding: bovenin staan het type en het nummer, bv. Incident 13081. Het onderwerp staat boven de toelichting, net als bij een nieuwe melding.']},
