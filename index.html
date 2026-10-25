@@ -1619,7 +1619,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.75', VERSIE_DATUM = '25-10-2026';
+const VERSIE = 'v7.76', VERSIE_DATUM = '25-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1681,7 +1681,11 @@ async function inloggen(){
   location.href = `${afasBasis()}/oauth/authorize?${p}`;
 }
 async function tokenFunctie(velden){
-  const r = await fetch(INST.tokenFunctie, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(velden)});
+  // nooit eindeloos wachten: na 20 seconden zonder antwoord stoppen (Azure-functie of AFAS hangt)
+  const ac = new AbortController(), klok = setTimeout(() => ac.abort(), 20e3); let r;
+  try{ r = await fetch(INST.tokenFunctie, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(velden), signal: ac.signal}); }
+  catch(e){ clearTimeout(klok); if(e.name === 'AbortError'){ const f = new Error('De inlogkoppeling in Azure reageert niet. Probeer het over een minuut opnieuw.'); f.hangt = true; throw f; } throw e; }
+  clearTimeout(klok);
   const t = await r.text(); let j = null; try{ j = JSON.parse(t); }catch(e){}
   if(!r.ok || !j || !j.access_token){ const m = (j && (j.error_description || j.error)) || '';
     // AFAS geeft bij een storing een HTML-foutpagina (bv. 'HTTP Error 500.30'): geen HTML tonen, wel zeggen wat er aan de hand is
@@ -5769,10 +5773,10 @@ function autoRol(ik){
 const groetWoord = () => { const u = new Date().getHours(); return u < 12 ? 'Goedemorgen' : u < 18 ? 'Goedemiddag' : 'Goedenavond'; };
 const groet = naam => `<div class="groet"><h1>${groetWoord()}, <b>${esc(String(naam).split(' ')[0])}</b></h1></div>`;
 function toonStart(html){ $('#app').hidden = true; $('#s-start').hidden = false; $('#kaart-start').innerHTML = html; }
-function startInlog(fout){
+function startInlog(fout, opnieuw){
   toonStart(`${INTRO_LOGO}<p>Jouw meldingen en taken uit AFAS op één plek. Je logt in met je gewone werkaccount; alles wat je hier doet, staat in AFAS op jouw naam.</p>
-    ${fout ? `<p class="fout">${esc(fout)}</p>` : ''}<div><button class="knop vol" id="k-in">Inloggen met AFAS</button></div>`);
-  $('#k-in').onclick = () => inloggen();
+    ${fout ? `<p class="fout">${esc(fout)}</p>` : ''}<div><button class="knop vol" id="k-in">${opnieuw ? 'Opnieuw proberen' : 'Inloggen met AFAS'}</button></div>`);
+  $('#k-in').onclick = () => opnieuw ? location.replace(REDIRECT) : inloggen();
 }
 function toonApp(){ $('#s-start').hidden = true; $('#app').hidden = false; teken();
   if(!toonApp.nieuws){ toonApp.nieuws = 1; sjLaad(); aiInstLaad(); setTimeout(() => nieuwsNaUpdate(), 3000); laadLocatiesNaLaden(); } }   // na een update één keer 'SubmIT is bijgewerkt'
@@ -8379,6 +8383,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.76', d: '25-10-2026', p: ['Inloggen blijft niet meer eindeloos hangen: reageert de inlogkoppeling in Azure niet binnen 20 seconden, dan zegt SubmIT dat en kun je opnieuw proberen. Je blijft dan ingelogd.']},
   {v: 'v7.75', d: '25-10-2026', p: ['Bestaande melding: bovenin staan het type en het nummer, bv. Incident 13081. Het onderwerp staat boven de toelichting, net als bij een nieuwe melding.']},
   {v: 'v7.74', d: '25-10-2026', p: ['Melding maken vanuit To-Do: jij staat meteen als verantwoordelijke ingevuld.', 'Nieuwe melding: bovenin staat weer gewoon Nieuwe melding; het onderwerp vul je eronder in.']},
   {v: 'v7.73', d: '23-10-2026', p: ['Beveiliging: HTML uit mails (.eml) en uit AFAS wordt nu zo gelezen dat er nooit code in kan meedraaien. Met dank aan een collega die dit vond.', 'Extra vangnet: SubmIT mag alleen nog verbinding maken met AFAS, Microsoft en de eigen Azure-functies.']},
@@ -8621,7 +8626,7 @@ function laadKaart(naam){
   try{
     if(!DEMO){
       const terug = await terugVanAfas();
-      if(!terug){ if(!opslag.get(RT)){ startInlog(); return; } try{ await vernieuw(); }catch(e){ opslag.weg(RT); startInlog('Je sessie is verlopen. Log opnieuw in.'); return; } }
+      if(!terug){ if(!opslag.get(RT)){ startInlog(); return; } try{ await vernieuw(); }catch(e){ if(e.hangt){ startInlog(e.message, true); return; } opslag.weg(RT); startInlog('Je sessie is verlopen. Log opnieuw in.'); return; } }
     } else sub = 'demo';
     startFase('inloggen');
     const ik = await wieBenIk(); startFase('wie ben ik');
@@ -8643,7 +8648,7 @@ function laadKaart(naam){
     laadRecentDicht();   // afgehandeld laatste 7 dagen: meteen, tegelijk met taken en melders
     verrijkMetTaken().then(verrijkMelders).then(() => { controleerIctReacties(); laadRestOpAchtergrond(); });
     setTimeout(laadProjecten, 1200);   // Mijn projecten: op de achtergrond, los van de meldingen
-  }catch(e){ startInlog(e.message); }
+  }catch(e){ startInlog(e.message, e.hangt); }
 })();
 
 /* ================= demodata (alleen met ?demo in de adresbalk) ================= */
