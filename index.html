@@ -320,18 +320,6 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .vb-storing .vbs-nrs{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:4px;font-size:12.5px;color:var(--grijs)}
 .vb-storing .vbs-nrs button{border:0;background:none;padding:0;font:inherit;color:var(--blauw);font-weight:600;cursor:default}
 /* context in een melding: eerder van deze melder en vergelijkbare opgeloste meldingen */
-.contextblok{display:flex;flex-direction:column;gap:6px}
-.contextblok > button.ctx-kop{display:flex;align-items:center;gap:10px;border:0;background:none;padding:0;font:inherit;font-size:13px;font-weight:600;color:var(--blauw);text-align:left}
-.contextblok > button.ctx-kop i{font-style:normal;transition:transform .15s}.contextblok.open > button.ctx-kop i{transform:rotate(90deg)}
-.contextblok > button.ctx-kop span{font-weight:500;color:var(--grijs)}
-.contextblok .ctx-in{display:none;grid-template-columns:1fr 1fr;gap:14px}.contextblok.open .ctx-in{display:grid}
-@media (max-width:760px){.contextblok .ctx-in{grid-template-columns:1fr}}
-.ctx-kol h4{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--grijs);margin:0 0 4px}
-.ctx-regel{display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:baseline;padding:5px 8px;border-radius:10px;font-size:13px;background:var(--achtergrond);margin-bottom:4px}
-.ctx-regel b{color:var(--blauw);cursor:default}.ctx-regel small{color:var(--grijs);font-size:11.5px;white-space:nowrap}
-.ctx-regel .ctx-ond{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ctx-opl{grid-column:1 / -1;font-size:12.5px;white-space:pre-wrap;background:var(--vlak);border-radius:8px;padding:6px 10px;margin-top:2px;max-height:160px;overflow:auto}
-.ctx-opl .linkknop{display:inline-block;margin-top:4px}
 /* @collega: keuzelijstje onder het reactievak */
 .vermeldlijst{position:fixed;z-index:95;background:var(--vlak);border-radius:12px;box-shadow:0 12px 34px rgba(3,31,77,.25);padding:4px;min-width:200px}
 .vermeldlijst button{display:flex;align-items:center;gap:8px;width:100%;border:0;background:none;font:inherit;font-size:13px;padding:6px 10px;border-radius:8px;text-align:left;color:var(--inkt)}
@@ -1620,7 +1608,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.78', VERSIE_DATUM = '25-10-2026';
+const VERSIE = 'v7.80', VERSIE_DATUM = '25-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2955,7 +2943,7 @@ function tekenLijst(){
   if(tlAan){ $('#lijst-sub').textContent = ''; $('#lijst').innerHTML = samenTijdlijn(l, extra || []); $('#titel').textContent = ''; $('#subtitel').textContent = ''; return; }
   if(!heeftLocKolom && !verborgenKol.has('loc')) vulLocaties(l.slice(0, 400));
   $('#lijst').innerHTML = (l.length && tab === 'inuit' ? iuSecties(lid, l, dicht) : l.length ? tabel(lid, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(isDicht ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])], changes: alleenChanges() || soortVan(tab) === 'changes'}) : `<p class="leeg">${tab === 'zoek' && !w ? 'Typ bovenin wat je zoekt.' : dicht ? 'Geen afgehandelde meldingen.' : tab === 'zoek' ? 'Geen meldingen gevonden.' : 'Geen open meldingen.'}</p>`)
-    + (extra ? projSectie(extra, dicht) : '') + (tab === 'toegewezen' && MCH.aan ? chSectie(dicht, w, isDicht) : '');
+    + (extra ? projSectie(extra, dicht) : '') + (tab === 'toegewezen' && MCH.aan ? chSectie(dicht, w, isDicht) : '') + (!dicht ? chOnderSectie(tab, w) : '');
   $('#titel').textContent = ''; $('#subtitel').textContent = '';   // de naam staat al in het menu en boven de lijst
 }
 /* één kop voor elke lijst: Open|Afgehandeld · + Projecten/Changes · Filter+Kolommen (of periode bij tijdlijn) · lijst/tijdlijn */
@@ -2979,6 +2967,14 @@ const zoekProj = l => { const w = norm(filt.zoek); return w ? l.filter(p => norm
 const projStd = (a, b) => (a.rol !== 'Projectleider') - (b.rol !== 'Projectleider') || +(a.projEind || 9e15) - +(b.projEind || 9e15);
 const projTabel = (l, dicht) => l.length ? tabel('lijst:projecten', [...l].sort(projStd), {proj: true}) : `<p class="leeg">${dicht ? 'Geen afgeronde projecten.' : 'Geen open projecten.'}${PRJ.diag && !dicht ? `<br><small>Gelezen uit AFAS: ${esc(PRJ.diag)}</small>` : ''}</p>`;
 const projSectie = (l, dicht) => `<h3 class="subkop">Mijn projecten <b>${l.length}</b></h3>` + (PRJ.fout ? `<p class="leeg">Projecten ophalen lukte niet (${esc(PRJ.fout)}); zie Connectoren &amp; velden.</p>` : projTabel(l, dicht));
+// Nieuwe meldingen en afdelingen: changes en verbeteracties eronder, zodat niets buiten beeld valt (tellen niet mee in het getal, net als op het SLA-dashboard)
+const chOnder = t => t === 'nieuw' ? open().filter(x => isChange(x) && !x.inuit && !String(x.verantw || '').trim())
+  : t.startsWith('afd:') ? open().filter(x => isChange(x) && !x.inuit && norm(navAfd(x.afdeling)) === norm(t.slice(4))) : null;
+function chOnderSectie(t, w){
+  let l = chOnder(t); if(!l) return ''; if(w) l = l.filter(x => x.zoek.includes(w)); if(!l.length) return '';
+  l = [...l].sort((a, b) => (b.aangemaakt || 0) - (a.aangemaakt || 0));
+  return `<h3 class="subkop">${t === 'nieuw' ? 'Changes en verbeteracties zonder verantwoordelijke' : 'Changes en verbeteracties'} <b>${l.length}</b></h3>` + tabel('lijst:' + t + ':ch', l, {zonder: t.startsWith('afd:') ? ['afd'] : [], changes: true});
+}
 function chSectie(dicht, w, isDicht){
   let l = dicht ? dichtVan('ch:mijn') : open().filter(isChange).filter(isMijn);
   if(w) l = l.filter(x => x.zoek.includes(w));
@@ -4329,7 +4325,6 @@ function openDetail(nr){
     ${x.iu ? iuKaarten(x) : ''}
     <div class="toelblok"><h3>Onderwerp</h3><input id="d-ond" class="lang toelinvoer ondveld" value="${esc(x.onderwerp)}" data-oud="${esc(x.onderwerp)}" maxlength="80" spellcheck="true" aria-label="Onderwerp" autocomplete="off">
       <h3 style="margin-top:6px">Toelichting</h3>${`<textarea class="lang toelinvoer" id="d-toel" rows="2" spellcheck="true" placeholder="${x.toelichting != null ? '' : 'Toelichting ophalen…'}" ${x.toelichting != null ? `data-oud="${esc(String(x.toelichting).trim())}"` : 'disabled'}>${esc(String(x.toelichting || '').trim())}</textarea>`}</div>
-    <div class="contextblok${opslag.get('mict-context-open') ? ' open' : ''}" id="d-context"></div>
     <div class="bijlbalk" id="d-bijl"${x.afgesloten ? '' : ' title="Sleep bestanden op de melding om ze als bijlage toe te voegen, of plak een schermafbeelding met Ctrl+V"'}><span class="bijltitel">${CLIP}<b id="bijl-titel">Bijlagen</b></span>
       <span id="bijl-lijst" class="bijlrij"><span class="hint">ophalen…</span></span><span class="klaarzet" id="klaar-ticket"></span>
       ${x.afgesloten ? '' : '<input type="file" id="f-ticket" multiple hidden>'}</div>
@@ -4369,7 +4364,7 @@ function openDetail(nr){
   (DEMO ? Promise.resolve() : zorgSbId(x)).then(() => { laadBijlagen(x); return toonReacties(x); }).catch(e => { const el = $('#tijdlijn'); if(el) el.innerHTML = `<h3>Reacties</h3><p class="hint">Het interne nummer van deze melding kon niet worden opgezocht: ${esc(e.message)}</p>`; const bl = $('#bijl-lijst'); if(bl) bl.innerHTML = '<span class="hint">Bijlagen ophalen kan niet zonder het interne nummer van de melding.</span>'; });
   if(!x.afgesloten){ vulStatusKeuze(x); vulLocKeuze(x); Promise.all([vulAfdKeuze(x), vulVerantwKeuze(x), vulTypeKeuze(x)]).then(() => stelVoorBijBinnenkomst(x)).catch(() => {}); setTimeout(() => markeerOntbrekend(x), 0); }
   const toelKlaar = x.toelichting == null || !x.toelichting ? toonToelichting(x) : null; if(pbIs(x) && !x.afgesloten) Promise.resolve(toelKlaar).catch(() => {}).then(() => pbResInit(x)); if(toelKlaar){} else if($('#d-toel') && $('#d-toel').tagName === 'TEXTAREA') pasToelHoogte($('#d-toel'));
-  toonContext(x);
+  if(!alleDichtGeladen) laadAlleGesloten();   // archief alvast ophalen: nodig voor voorstellen (afdeling/type) bij binnenkomst
   if(x.melder) toonMelderInfo(x);
   toonInstuurder(x);
   if(x.afgesloten) huidig.wfKlaar = laadHeropen(x);
@@ -8101,33 +8096,7 @@ function stelVoorBijBinnenkomst(x){
   if(v.type) zetVeldVoorstel($('#d-type'), v.type.waarde, voorstelUitleg(v.type));
   zetKnoppen(); mailVooraf();
 }
-function toonContext(x){
-  const el = $('#d-context'); if(!el) return;
-  if(!alleDichtGeladen) laadAlleGesloten();
-  const e = eerderVan(x).slice(0, 5), v = vergelijkbaar(x);
-  if(!e.length && !v.length){ el.innerHTML = ''; el.hidden = true; return; }
-  el.hidden = false;
-  const regel = (y, opl) => `<div class="ctx-regel" data-ctxnr="${esc(y.nr)}"><b data-ctxopen="${esc(y.nr)}" title="Melding ${esc(nrT(y))} openen">${esc(nrT(y))}</b><span class="ctx-ond" title="${esc(y.onderwerp)}">${esc(y.onderwerp)}</span><small>${y.afgesloten ? 'afgehandeld ' + kortDatum(y.statusDatum || y.aangemaakt) : esc(toonStatus(y.status) || 'open')}${opl ? ` · <button type="button" class="linkknop" data-ctxopl="${esc(y.nr)}">oplossing</button>` : ''}</small></div>`;
-  el.innerHTML = `<button type="button" class="ctx-kop" data-ctxwissel><i>▸</i>Eerder &amp; vergelijkbaar <span>${[e.length && `${e.length} eerder van ${esc(String(x.melder).split(' ')[0])}`, v.length && `${v.length} vergelijkbaar opgelost`].filter(Boolean).join(' · ')}</span></button>
-    <div class="ctx-in"><div class="ctx-kol"><h4>Eerder van ${esc(x.melder || 'deze melder')}</h4>${e.length ? e.map(y => regel(y, y.afgesloten)).join('') : '<p class="hint">Geen eerdere meldingen.</p>'}</div>
-    <div class="ctx-kol"><h4>Vergelijkbaar opgelost</h4>${v.length ? v.map(y => regel(y, true)).join('') : '<p class="hint">Niets vergelijkbaars gevonden.</p>'}</div></div>`;
-}
-// laatste reactie van ICT bij een afgehandelde melding: de oplossing, met de knop om die te hergebruiken
-async function toonOplossing(nr, knop){
-  const rij = knop.closest('.ctx-regel'), oud = rij.querySelector('.ctx-opl'); if(oud){ oud.remove(); return; }
-  const y = items.find(z => String(z.nr) === String(nr)); if(!y) return;
-  rij.insertAdjacentHTML('beforeend', '<div class="ctx-opl"><span class="hint">Oplossing ophalen…</span></div>'); const box = rij.querySelector('.ctx-opl');
-  try{ if(!DEMO) await zorgSbId(y); const l = await haalReacties(y);
-    const r = [...l].reverse().find(r => r.tekst && !r.intern && norm(r.wie) !== norm(y.melder)) || [...l].reverse().find(r => r.tekst);
-    box.innerHTML = r ? `<b>${esc(r.wie || 'ICT')}</b> · ${r.t ? fmtDatum(r.t) : ''}<br>${esc(r.tekst)}<br>${$('#tekst') ? `<button type="button" class="linkknop" data-ctxgebruik>In mijn reactie zetten</button>` : ''}` : '<span class="hint">Geen reactie gevonden bij deze melding.</span>';
-    box._tekst = r ? r.tekst : '';
-  }catch(e){ box.innerHTML = `<span class="hint">Ophalen lukte niet: ${esc(e.message)}</span>`; }
-}
 document.addEventListener('click', e => {
-  if(e.target.closest('[data-ctxwissel]')){ const b = $('#d-context'); b.classList.toggle('open'); opslag.set('mict-context-open', b.classList.contains('open')); return; }
-  const o = e.target.closest('[data-ctxopen]'); if(o){ navLijst = []; openDetail(o.dataset.ctxopen); return; }
-  const op = e.target.closest('[data-ctxopl]'); if(op){ toonOplossing(op.dataset.ctxopl, op); return; }
-  if(e.target.closest('[data-ctxgebruik]')){ const t = $('#tekst'), box = e.target.closest('.ctx-opl'); if(!t || !box) return; t.value = (t.value.trim() ? t.value.trimEnd() + '\n\n' : '') + box._tekst; t.dispatchEvent(new Event('input', {bubbles: true})); t.focus(); toast('Oplossing in je reactie gezet: pas hem aan waar nodig'); return; }
   const ng = e.target.closest('[data-storingnegeer]'); if(ng){ const g = STORINGEN[+ng.dataset.storingnegeer]; if(g){ const l = opslag.get(negeerSleutel()) || []; g.nrs.forEach(n => { if(!l.includes(n)) l.push(n); }); opslag.set(negeerSleutel(), l.slice(-300)); teken(); toast('Genegeerd: komt alleen terug als er nieuwe vergelijkbare meldingen bij komen'); } return; }
   const sk = e.target.closest('[data-storingkrit]'); if(sk){ const g = STORINGEN[+sk.dataset.storingkrit]; if(g) kritiekVanStoring(g); return; }
   const sn = e.target.closest('[data-storingnr]'); if(sn){ const g = STORINGEN[+sn.dataset.groep]; navLijst = g ? [...g.nrs] : []; openDetail(sn.dataset.storingnr); return; }
@@ -8384,6 +8353,8 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.80', d: '25-10-2026', p: ['Changes en verbeteracties vallen niet meer buiten beeld: zonder verantwoordelijke staan ze onder Nieuwe meldingen, en per afdeling onder de meldingen van die afdeling. Ze tellen niet mee in de getallen, net als op het SLA-dashboard.']},
+  {v: 'v7.79', d: '25-10-2026', p: ['In een melding is het blok Eerder & vergelijkbaar weg: eerder opgeloste meldingen vind je via de AI-knop.']},
   {v: 'v7.78', d: '25-10-2026', p: ['De AI-knop zoekt nu via een eigen Azure-omgeving. Zwaar zoekwerk kan het inloggen in SubmIT daardoor niet meer vertragen.']},
   {v: 'v7.77', d: '25-10-2026', p: ['Bij changes heet het veld Startdatum project nu gewoon Startdatum.']},
   {v: 'v7.76', d: '25-10-2026', p: ['Inloggen blijft niet meer eindeloos hangen: reageert de inlogkoppeling in Azure niet binnen 20 seconden, dan zegt SubmIT dat en kun je opnieuw proberen. Je blijft dan ingelogd.']},
