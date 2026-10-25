@@ -986,7 +986,7 @@ dialog#detail.groot .toelblok .lang{max-height:40vh}
 .linkmenu input{border:1px solid var(--lijn);border-radius:8px;padding:6px 10px;font:inherit;font-size:13px;background:var(--achtergrond);color:var(--inkt);min-width:280px}
 .linkmenu small{color:var(--grijs);padding:2px 4px}
 input.toelinvoer.ondveld{width:100%;box-sizing:border-box;border:1.5px solid transparent;font:inherit;font-size:14px;font-weight:600;color:var(--inkt);outline:0;min-height:0}
-input.toelinvoer.ondveld:hover{border-color:var(--lijn)}input.toelinvoer.ondveld:focus{border-color:var(--blauw-2);background:var(--vlak)}
+input.toelinvoer.ondveld.gewijzigd{color:var(--grijs)}input.toelinvoer.ondveld:hover{border-color:var(--lijn)}input.toelinvoer.ondveld:focus{border-color:var(--blauw-2);background:var(--vlak)}
 textarea.toelinvoer{width:100%;box-sizing:border-box;border:1.5px solid transparent;font:inherit;font-size:13.5px;line-height:1.5;color:var(--inkt);resize:vertical;min-height:60px;max-height:none;outline:0}
 textarea.toelinvoer:hover{border-color:var(--lijn)}textarea.toelinvoer:focus{border-color:var(--blauw-2);background:var(--vlak)}
 textarea.toelinvoer.nieuw{color:var(--grijs)}
@@ -1619,7 +1619,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.73', VERSIE_DATUM = '22-10-2026';
+const VERSIE = 'v7.75', VERSIE_DATUM = '25-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -4312,7 +4312,7 @@ function openDetail(nr){
   const r = (t, w, o = {}) => w || o.altijd ? `<span>${t}</span><b>${o.html ? w : esc(w || '')}</b>` : '';
   const link = INST.ticketUrl && x.sbid ? INST.ticketUrl.replace('{sbid}', encodeURIComponent(x.sbid)).replace('{nr}', encodeURIComponent(x.nr)) : '';
   $('#detail-in').innerHTML = `
-    <div class="dlg-kop"><div><small>${x.inuit ? 'In-/uitdienst' : 'Melding'} ${esc(nrT(x))}${x.type ? ' · ' + esc(x.type) : ''}${x.afdeling ? ' · ' + esc(x.afdeling) : ''}</small><h2><input id="d-ond" class="ondinvoer" value="${esc(x.onderwerp)}" data-oud="${esc(x.onderwerp)}" maxlength="80" spellcheck="true" aria-label="Onderwerp" title="Klik om het onderwerp aan te passen"></h2></div><span class="aanwezig" id="d-aanwezig" hidden></span><button type="button" class="afasknop" id="d-afas" title="Melding openen in AFAS InSite (nieuw tabblad)" aria-label="Melding openen in AFAS">${ICO_AFAS}</button><button type="button" class="todoknop" data-todovan="${esc(x.nr)}" title="To-do maken bij deze melding" aria-label="To-do maken bij deze melding">${TD_VINK_PLUS}</button><button type="button" class="grootknop" data-groot aria-label="Venster groter of kleiner" title="${$('#detail').classList.contains('groot') ? 'Kleiner venster' : 'Venster vergroten'}">${$('#detail').classList.contains('groot') ? ICO_KLEIN : ICO_GROOT}</button>${fbKnop()}<button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
+    <div class="dlg-kop"><div><h2 id="d-kop">${esc(x.inuit ? 'In-/uitdienst' : (x.type || 'Melding'))} ${esc(nrT(x))}</h2></div><span class="aanwezig" id="d-aanwezig" hidden></span><button type="button" class="afasknop" id="d-afas" title="Melding openen in AFAS InSite (nieuw tabblad)" aria-label="Melding openen in AFAS">${ICO_AFAS}</button><button type="button" class="todoknop" data-todovan="${esc(x.nr)}" title="To-do maken bij deze melding" aria-label="To-do maken bij deze melding">${TD_VINK_PLUS}</button><button type="button" class="grootknop" data-groot aria-label="Venster groter of kleiner" title="${$('#detail').classList.contains('groot') ? 'Kleiner venster' : 'Venster vergroten'}">${$('#detail').classList.contains('groot') ? ICO_KLEIN : ICO_GROOT}</button>${fbKnop()}<button class="sluit" data-sluit aria-label="Sluiten">×</button></div>
     ${(() => { const sg = x._sg.filter(s => s.code !== 'onvolledig').sort((a, b) => (b.code === 'kritiekwas') - (a.code === 'kritiekwas')); return sg.length ? `<div class="stappen"><span class="chips">${sg.map(c => SJABLOON_SIG[c.code] && !x.afgesloten ? `<button type="button" class="chipknop" data-sjabloon="sig:${c.code}" title="Klik voor een voorsteltekst aan de melder">${chip(c)}</button>` : chip(c)).join('')}</span></div>` : ''; })()}
     ${!x.afgesloten && isNieuw(x) ? `<div class="checklist" id="d-check">${checklist(x)}</div>` : ''}
     <div class="kaarten">
@@ -4322,7 +4322,8 @@ function openDetail(nr){
           <span>Markeren</span><b class="vinkjes"><label class="vink"><input type="checkbox" id="d-kritiek" ${x.kritiek ? 'checked' : ''} data-oud="${x.kritiek ? 1 : 0}"> Kritieke storing</label><label class="vink"><input type="checkbox" id="d-datalek" ${x.datalek ? 'checked' : ''} data-oud="${x.datalek ? 1 : 0}"> Datalek</label></b>${opgelostRij(x)}`}</div>
     </div>
     ${x.iu ? iuKaarten(x) : ''}
-    <div class="toelblok"><h3>Toelichting</h3>${`<textarea class="lang toelinvoer" id="d-toel" rows="2" spellcheck="true" placeholder="${x.toelichting != null ? '' : 'Toelichting ophalen…'}" ${x.toelichting != null ? `data-oud="${esc(String(x.toelichting).trim())}"` : 'disabled'}>${esc(String(x.toelichting || '').trim())}</textarea>`}</div>
+    <div class="toelblok"><h3>Onderwerp</h3><input id="d-ond" class="lang toelinvoer ondveld" value="${esc(x.onderwerp)}" data-oud="${esc(x.onderwerp)}" maxlength="80" spellcheck="true" aria-label="Onderwerp" autocomplete="off">
+      <h3 style="margin-top:6px">Toelichting</h3>${`<textarea class="lang toelinvoer" id="d-toel" rows="2" spellcheck="true" placeholder="${x.toelichting != null ? '' : 'Toelichting ophalen…'}" ${x.toelichting != null ? `data-oud="${esc(String(x.toelichting).trim())}"` : 'disabled'}>${esc(String(x.toelichting || '').trim())}</textarea>`}</div>
     <div class="contextblok${opslag.get('mict-context-open') ? ' open' : ''}" id="d-context"></div>
     <div class="bijlbalk" id="d-bijl"${x.afgesloten ? '' : ' title="Sleep bestanden op de melding om ze als bijlage toe te voegen, of plak een schermafbeelding met Ctrl+V"'}><span class="bijltitel">${CLIP}<b id="bijl-titel">Bijlagen</b></span>
       <span id="bijl-lijst" class="bijlrij"><span class="hint">ophalen…</span></span><span class="klaarzet" id="klaar-ticket"></span>
@@ -5084,7 +5085,7 @@ function keuze(f, naam, std){
   const kies = w.find(x => norm(x.naam) === norm(std)) || {};
   return `<select name="${naam}"><option value="">Kies…</option>${w.map(x => `<option value="${esc(x.code)}" ${x.code === kies.code ? 'selected' : ''}>${esc(x.naam)}</option>`).join('')}</select>`;
 }
-async function nieuweMelding(){
+async function nieuweMelding(opt = {}){
   const d = $('#nieuw'), kop = `<div class="dlg-kop"><div><h2>Nieuwe melding</h2></div><button class="sluit" data-sluitnieuw aria-label="Sluiten">×</button></div>`;
   $('#nieuw-in').innerHTML = kop + '<p class="leeg">Velden ophalen uit AFAS…</p>'; d.dataset.gewijzigd = ''; nieuwBijl = []; d.showModal();
   let m;
@@ -5121,9 +5122,9 @@ async function nieuweMelding(){
     <div class="fout" id="n-fout">${m.stId ? '' : `Het type dossieritem "Aanvraag ICT" is niet gevonden in AFAS (gevonden: ${esc(m.typen.map(t => t.naam).join(', ') || 'geen')}). Zet nieuwStId in mijn-ict-config.js.`}</div>
     <div class="onderbalk"><span style="flex:1"></span><span class="opslaanknoppen"><button type="button" class="knop" data-sluitnieuw>Annuleren</button><button type="button" class="knop vol" id="n-maak" title="Ctrl+Enter" ${m.stId ? '' : 'disabled'}>Melding aanmaken <kbd>Ctrl+Enter</kbd></button></span></div>
   </form>`;
-  { const mi = $('#n-form').melder; mi.addEventListener('click', () => { if(mi.dataset.std === '1') mi.select(); }); const o = $('#n-form').ond, ti = $('#n-titel');
-    const zetTitel = () => { ti.textContent = o.value.trim() || 'Nieuwe melding'; }; o.addEventListener('input', () => { zetTitel(); zetVerplicht(); }); zetTitel(); zetVerplicht(); o.focus(); }   // titel bovenin eerst, net als bij een bestaande melding   // typen vervangt 'jijzelf' direct
-  koppelMelder(); koppelBehandelaar();
+  { const mi = $('#n-form').melder; mi.addEventListener('click', () => { if(mi.dataset.std === '1') mi.select(); }); const o = $('#n-form').ond;
+    o.addEventListener('input', () => zetVerplicht()); zetVerplicht(); o.focus(); }   // kop blijft "Nieuwe melding": het onderwerp staat er al onder
+  koppelMelder(); koppelBehandelaar(opt.ikVerantw);
   koppelCc($('#n-form').cc);
 }
 async function maakMelding(){
@@ -5319,7 +5320,7 @@ function stelLocatieVoor(m){
   if(!sel._voorstel){ sel._voorstel = true; sel.addEventListener('change', e => { if(e.isTrusted){ sel.dataset.auto = '0'; sel.classList.remove('voorstel'); const h = $('#n-loc-hint'); if(h) h.textContent = ''; } }); }
 }
 // verantwoordelijke bij een nieuwe melding: zelfde ICT-lijst als bij 'Toewijzen aan collega', standaard leeg
-async function koppelBehandelaar(){
+async function koppelBehandelaar(ik){
   const inp = $('#n-beh'), f = $('#n-form'); if(!inp) return;
   let l = [];
   try{ l = await ictCollegas(); }catch(e){ $('#n-beh-hint').textContent = 'ICT-collega’s ophalen lukte niet: ' + e.message; return; }
@@ -5332,6 +5333,8 @@ async function koppelBehandelaar(){
   comboKoppel(inp, items, k => { if(k.leeg){ inp.value = ''; f.behCode.value = ''; } else { inp.value = k.waarde; f.behCode.value = k.code; } },
     () => { f.behCode.value = ''; });
   inp.addEventListener('blur', () => setTimeout(() => { if(!f.behCode.value) inp.value = ''; }, 200));   // alleen een gekozen naam telt
+  // vanuit To-Do: de eigenaar van de lijst (de ingelogde collega) is meteen verantwoordelijke
+  const mij = ik && !inp.value && l.find(c => benIk(c.naam)); if(mij){ inp.value = mij.naam; f.behCode.value = mij.code; }
 }
 // CC: dezelfde zoekbare keuzelijst als bij Melder ("Achternaam, Voornaam (nummer)", afdeling eronder, laatst gekozen bovenaan)
 async function koppelCc(inp){
@@ -6889,7 +6892,7 @@ document.addEventListener('click', e => { const b = e.target.closest('[data-todo
 // een to-do omzetten naar een melding: het venster Nieuwe melding, vooraf ingevuld; na aanmaken wordt de to-do afgevinkt met het meldingnummer
 let todoBron = null;
 async function todoNaarMelding(t){
-  todoBron = t.id; await nieuweMelding();
+  todoBron = t.id; await nieuweMelding({ikVerantw: true});
   const f = $('#n-form'); if(!f){ return; }
   f.ond.value = t.titel.slice(0, 80); f.ond.dispatchEvent(new Event('input')); f.tx.value = t.notitie || t.titel;
 }
@@ -8376,6 +8379,8 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.75', d: '25-10-2026', p: ['Bestaande melding: bovenin staan het type en het nummer, bv. Incident 13081. Het onderwerp staat boven de toelichting, net als bij een nieuwe melding.']},
+  {v: 'v7.74', d: '25-10-2026', p: ['Melding maken vanuit To-Do: jij staat meteen als verantwoordelijke ingevuld.', 'Nieuwe melding: bovenin staat weer gewoon Nieuwe melding; het onderwerp vul je eronder in.']},
   {v: 'v7.73', d: '23-10-2026', p: ['Beveiliging: HTML uit mails (.eml) en uit AFAS wordt nu zo gelezen dat er nooit code in kan meedraaien. Met dank aan een collega die dit vond.', 'Extra vangnet: SubmIT mag alleen nog verbinding maken met AFAS, Microsoft en de eigen Azure-functies.']},
   {v: 'v7.72', d: '23-10-2026', groot: true, p: ['In een melding: één AI-knop voor alles. Is dit eerder opgelost (oude meldingen of de kennisbank), dan pulseert hij. Bovenaan het menu staat dan het antwoord op basis van die oplossingen: advies voor jou met de bronnen, een concept voor de melder met één klik, en ruimte voor een vervolgvraag.', 'De losse chat in de balk links is weg. De status van de AI-index staat bij Beheer → Connectoren & velden.', 'Gesloten meldingen laden blijft niet meer hangen: stokt AFAS, dan probeert SubmIT het na een minuut zelf opnieuw.', 'Balk links in twee groepjes: meldingen (Meldingen, Nieuwe melding, Team en activiteiten) en hulpmiddelen (To-do, Kennisbank, Rapportage).', 'Standaardteksten: wat je zelf moet aanvullen ([vul aan], [stand van zaken], [datum]) staat geel gemarkeerd in het reactievak. Klik erop en typ: de markering verdwijnt zodra het is ingevuld. Opslaan kan pas als alles is aangevuld.', 'Minder dubbel: de regel Bijlagen staat er alleen als er bijlagen zijn; bijlage toevoegen is overal het paperclipje in het tekstvak (ook bij een nieuwe melding). De kop van een nieuwe melding staat er niet meer dubbel.', 'Nieuwe melding: Onderwerp staat nu boven Toelichting (zoals in AFAS), met een verplicht-sterretje; de titel bovenin neemt het onderwerp over.', 'Nieuwe meldingen: een reactie aan de melder is geen eis meer. Nieuw = geen verantwoordelijke, of afdeling of locatie ontbreekt. Zo tellen SubmIT en het SLA-dashboard gelijk.', 'Gesloten meldingen laden sneller: SubmIT onthoudt welk filter AFAS weigert en probeert dat niet steeds opnieuw (veel minder foutmeldingen in de console). Extra variant: filter op status Afgehandeld/Gesloten.', 'De onderbalk (Live · bijgewerkt, voortgang, nieuwe versie) blijft nu altijd onderin zichtbaar, ook bij een lange lijst; de schuifbalk van een brede tabel staat er net boven.', 'Afhandelen bleef draaien als het opslaan niet door kon (bijvoorbeeld omdat de afdeling nog leeg was); de knop is nu meteen weer bruikbaar.', 'Overal hetzelfde AI-icoon als op de AI-knop, ook naast Standaardtekst (grijs als het uit staat), bij voorstellen, samenvatting, tips en instructies.', 'Bijlage toevoegen is nu het paperclipje links onderin het reactievak. Annuleren in het bestandsvenster vraagt niet meer of je de melding wilt sluiten.']},
   {v: 'v7.71', d: '23-10-2026', p: ['Sneller compleet na het inloggen: afgehandelde meldingen van de laatste 7 dagen komen meteen na de open meldingen, zodat Afgehandeld deze week direct klopt. Daarna eerst de laatste 14 dagen, dan de rest tot 90 dagen.', 'Meldingen over de index van Vraag het SubmIT staan nu in gewone taal bij Beheer → Connectoren & velden, niet meer onder de chat.']},
