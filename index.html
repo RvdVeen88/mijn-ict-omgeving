@@ -1608,7 +1608,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.80', VERSIE_DATUM = '25-10-2026';
+const VERSIE = 'v7.81', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -5143,11 +5143,11 @@ async function maakMelding(){
   if((f.gepland && f.gepland.value) || (f.pstart && f.pstart.value) || (f.peind && f.peind.value)){ const sm = await laadSubjMeta().catch(() => ({})), chg = !document.querySelector('#n-form .nchg[hidden]');
     [['gepland', sm.gepland], ...(chg ? [['pstart', sm.projStart], ['peind', sm.projEind]] : [])].forEach(([n, veld]) => { if(veld && f[n] && f[n].value) w[veldCode(veld)] = f[n].value; }); }
   m.extra.forEach((x, i) => zet(x, f['x' + i].value));
+  let ccNieuw = null;
   if(f.cc && f.cc.value.trim()){ const sm = await laadSubjMeta(), cc = f.cc.value.trim();
     if(!sm.cc){ fout.textContent = 'Het veld CC is niet gevonden in AFAS (UpdateConnector KnSubject); laat CC leeg of vraag de beheerder.'; return; }
-    const o = waardenVan(sm.cc.values).find(o => norm(o.naam) === norm(cc) || norm(o.naam) === norm(ccNaam(cc)) || (ccId(cc) && o.code === ccId(cc))); let code = o ? o.code : ccId(cc) || null;
-    if(!code){ const mw = await zoekMedewerker(cc); if(!mw){ fout.textContent = `CC "${cc}" is geen (eenduidige) medewerker. Kies een naam uit de lijst.`; f.cc.focus(); return; } code = mw.id; }
-    w[veldCode(sm.cc)] = code; }
+    try{ ccNieuw = {kand: await ccKandidaten(cc, sm.cc.values), veld: veldCode(sm.cc)}; }catch(e){ fout.textContent = e.message; f.cc.focus(); return; }
+    const k0 = ccNieuw.kand[0]; w[ccNieuw.veld] = typeof k0 === 'string' ? k0 : k0.code; }
   if(f.kritiek && f.kritiek.checked){ const sm = await laadSubjMeta(); if(!sm.kritiek){ fout.textContent = 'Het veld Kritieke storing is niet gevonden in AFAS.'; return; } w[veldCode(sm.kritiek)] = true;
     if(f.opgelost && f.opgelost.value && sm.opgelost) w[veldCode(sm.opgelost)] = f.opgelost.value + ':00'; }
   if(f.datalek && f.datalek.checked){ const sm = await laadSubjMeta(); if(!sm.datalek){ fout.textContent = 'Het veld Datalek is niet gevonden in AFAS.'; return; } w[veldCode(sm.datalek)] = true; }
@@ -5168,7 +5168,10 @@ async function maakMelding(){
   const body = {KnSubject: {Element: {Fields: top, ...(objecten.length ? {Objects: objecten} : {})}}};
   f.querySelectorAll('button, input, select, textarea').forEach(b => b.disabled = true); fout.textContent = '';
   try{
-    const antw = await afas('/connectors/KnSubject', {method:'POST', body: JSON.stringify(body)});
+    // CC: lukt de eerste code niet ('bestaat niet'), dan dezelfde melding met de andere code (alleen de CC-waarde verschilt)
+    const zetCc = (o, code) => { if(!o || typeof o !== 'object') return; for(const [k, v] of Object.entries(o)){ if(ccNieuw && k === ccNieuw.veld.split('/').pop() && typeof v !== 'object') o[k] = code; else zetCc(v, code); } };
+    const antw = ccNieuw ? await metCc(ccNieuw.kand, code => { zetCc(body, code); return afas('/connectors/KnSubject', {method:'POST', body: JSON.stringify(body)}); })
+      : await afas('/connectors/KnSubject', {method:'POST', body: JSON.stringify(body)});
     if(melder) opslag.set('mict-recente-melders', [melder, ...(opslag.get('mict-recente-melders') || []).filter(x => x !== melder)].slice(0, 5));
     const sbid = JSON.stringify(antw).match(/"@?SbId"\s*:\s*"?(\d+)/i)?.[1] || '';
     const knop = $('#nieuw-knop').getBoundingClientRect();
@@ -5350,6 +5353,22 @@ async function koppelCc(inp){
     if(inp.dataset.oud !== undefined){ inp.classList.toggle('gewijzigd', inp.value !== inp.dataset.oud); const d = inp.closest('dialog'); if(d) d.dataset.gewijzigd = '1'; } });
   inp.addEventListener('focus', () => setTimeout(() => inp.select(), 0));
   inp.addEventListener('blur', () => setTimeout(() => { if(inp.value !== gekozen && !(comboHuidig && comboHuidig.inp === inp)) inp.value = gekozen; }, 200));
+}
+// CC is in AFAS een verwijzing zonder keuzelijst: welke code AFAS wil (gebruikerscode 88406.xxx of medewerkernummer) proberen we; wat werkt, onthouden we
+const CC_SOORT = 'mict-cc-soort';
+async function ccKandidaten(cc, opties = []){
+  const o = waardenVan(opties).find(o => norm(o.naam) === norm(cc) || norm(o.naam) === norm(ccNaam(cc)) || (ccId(cc) && o.code === ccId(cc))); if(o) return [o.code];
+  let id = ccId(cc); if(!id){ const mw = await zoekMedewerker(cc); if(!mw) throw new Error(`CC "${cc}" is geen (eenduidige) medewerker. Kies een naam uit de lijst.`); id = mw.id; }
+  const mw = (await laadMedewerkers().catch(() => [])).find(m => m.id === id), l = [mw && mw.code && {soort: 'gebruiker', code: mw.code}, {soort: 'medewerker', code: id}].filter(Boolean);
+  if(opslag.get(CC_SOORT) === 'medewerker') l.reverse();
+  return l;
+}
+const ccBestaatNiet = e => /cc/i.test(e.message || '') && /bestaat niet|does not exist|niet gevonden/i.test(e.message || '');
+// voert 'doe(code)' uit met de eerste kandidaat; zegt AFAS dat de CC-waarde niet bestaat, dan met de volgende
+async function metCc(kand, doe){
+  for(let i = 0; i < kand.length; i++){ const k = kand[i], code = typeof k === 'string' ? k : k.code;
+    try{ const uit = await doe(code); if(k.soort) opslag.set(CC_SOORT, k.soort); return uit; }
+    catch(e){ if(i < kand.length - 1 && ccBestaatNiet(e)) continue; throw e; } }
 }
 const ccId = v => (String(v || '').match(/\((\w+)\)\s*$/) || [])[1] || '';
 const ccNaam = v => String(v || '').replace(/\s*\(\w+\)\s*$/, '').trim();
@@ -5574,18 +5593,17 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
       if(nieuwGepland.datum){ const n = await wfActie(x, /inplannen|plannen/i).catch(() => ''); if(n) viaActie.push(n); }
       gedaan.push(nieuwGepland.datum ? 'gepland op ' + fmtDatum(lok.gepland) : 'planning gewist'); }
     // 4a0. markeringen en CC (velden)
-    if(nieuwKritiek !== null || nieuwDatalek !== null || nieuwCc !== null || nieuwTel !== null || nieuwOpgelost !== null){ stap = 'markering/CC/bereikbaarheid'; const m = await laadSubjMeta(), w = {};
+    if(nieuwKritiek !== null || nieuwDatalek !== null || nieuwCc !== null || nieuwTel !== null || nieuwOpgelost !== null){ stap = 'markering/CC/bereikbaarheid'; const m = await laadSubjMeta(), w = {}, deze = [];   // 'deze' pas na succes bij 'gedaan'
       const mis = [nieuwKritiek !== null && !m.kritiek && 'Kritieke storing', nieuwDatalek !== null && !m.datalek && 'Datalek', nieuwCc !== null && !m.cc && 'CC', nieuwTel !== null && !m.tel && 'Bereikbaarheid', nieuwOpgelost !== null && !m.opgelost && 'Storing opgelost'].filter(Boolean);
       if(mis.length) throw new Error(`Het veld ${mis.join(', ')} is niet gevonden in AFAS (UpdateConnector KnSubject).`);
-      if(nieuwKritiek !== null){ w[veldCode(m.kritiek)] = nieuwKritiek; lok.kritiek = nieuwKritiek; gedaan.push(nieuwKritiek ? 'kritieke storing' : 'geen kritieke storing meer'); }
-      if(nieuwDatalek !== null){ w[veldCode(m.datalek)] = nieuwDatalek; lok.datalek = nieuwDatalek; gedaan.push(nieuwDatalek ? 'gemarkeerd als datalek' : 'datalek-markering weg'); }
-      if(nieuwCc !== null){ let code = null;
-        if(nieuwCc){ const opties = waardenVan(m.cc.values); const o = opties.find(o => norm(o.naam) === norm(nieuwCc) || norm(o.naam) === norm(ccNaam(nieuwCc)) || (ccId(nieuwCc) && o.code === ccId(nieuwCc)));
-          if(o) code = o.code; else if(ccId(nieuwCc)) code = ccId(nieuwCc); else { const mw = await zoekMedewerker(nieuwCc); if(!mw) throw new Error(`CC "${nieuwCc}" is geen (eenduidige) medewerker. Kies een naam uit de lijst.`); code = mw.id; } }
-        w[veldCode(m.cc)] = code; lok.cc = ccNaam(nieuwCc); gedaan.push(nieuwCc ? 'CC: ' + ccNaam(nieuwCc) : 'CC gewist'); }
-      if(nieuwOpgelost !== null){ w[veldCode(m.opgelost)] = nieuwOpgelost ? nieuwOpgelost + ':00' : null; lok.opgelost = nieuwOpgelost ? new Date(nieuwOpgelost) : null; gedaan.push(nieuwOpgelost ? 'storing opgelost op ' + fmtDatum(lok.opgelost) + ' ' + fmtTijd(lok.opgelost) : 'tijdstip opgelost gewist'); }
-      if(nieuwTel !== null){ w[veldCode(m.tel)] = nieuwTel || null; lok.tel = nieuwTel; gedaan.push(nieuwTel ? 'bereikbaar op ' + nieuwTel : 'bereikbaarheid gewist'); }
-      await zetVelden(x, w); const ev = extraCache.get(String(x.nr)) || {}; ['datalek', 'cc', 'tel', 'opgelost'].forEach(k => { if(k in lok) ev[k] = lok[k]; }); extraCache.set(String(x.nr), ev); }
+      if(nieuwKritiek !== null){ w[veldCode(m.kritiek)] = nieuwKritiek; lok.kritiek = nieuwKritiek; deze.push(nieuwKritiek ? 'kritieke storing' : 'geen kritieke storing meer'); }
+      if(nieuwDatalek !== null){ w[veldCode(m.datalek)] = nieuwDatalek; lok.datalek = nieuwDatalek; deze.push(nieuwDatalek ? 'gemarkeerd als datalek' : 'datalek-markering weg'); }
+      let ccKand = null;
+      if(nieuwCc !== null){ ccKand = nieuwCc ? await ccKandidaten(nieuwCc, m.cc.values) : [null];
+        lok.cc = ccNaam(nieuwCc); deze.push(nieuwCc ? 'CC: ' + ccNaam(nieuwCc) : 'CC gewist'); }
+      if(nieuwOpgelost !== null){ w[veldCode(m.opgelost)] = nieuwOpgelost ? nieuwOpgelost + ':00' : null; lok.opgelost = nieuwOpgelost ? new Date(nieuwOpgelost) : null; deze.push(nieuwOpgelost ? 'storing opgelost op ' + fmtDatum(lok.opgelost) + ' ' + fmtTijd(lok.opgelost) : 'tijdstip opgelost gewist'); }
+      if(nieuwTel !== null){ w[veldCode(m.tel)] = nieuwTel || null; lok.tel = nieuwTel; deze.push(nieuwTel ? 'bereikbaar op ' + nieuwTel : 'bereikbaarheid gewist'); }
+      if(ccKand) await metCc(ccKand, code => { w[veldCode(m.cc)] = code; return zetVelden(x, w); }); else await zetVelden(x, w); gedaan.push(...deze); const ev = extraCache.get(String(x.nr)) || {}; ['datalek', 'cc', 'tel', 'opgelost'].forEach(k => { if(k in lok) ev[k] = lok[k]; }); extraCache.set(String(x.nr), ev); }
     // 4a. change: startdatum project en deadline (velden)
     if(nieuwProj){ stap = 'startdatum/deadline'; const m = await laadSubjMeta();
       if((nieuwProj.startGew && !m.projStart) || (nieuwProj.eindGew && !m.projEind)) throw new Error('Het veld ' + (nieuwProj.startGew && !m.projStart ? 'Begindatum project' : 'Einddatum project') + ' is niet gevonden in AFAS.');
@@ -8353,6 +8371,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.81', d: '26-10-2026', p: ['CC werkt weer: AFAS wil daar de gebruiker, niet het medewerkernummer. SubmIT probeert zelf wat AFAS accepteert en onthoudt dat.', 'Bij een fout staat onder Al doorgevoerd alleen nog wat echt is opgeslagen.']},
   {v: 'v7.80', d: '25-10-2026', p: ['Changes en verbeteracties vallen niet meer buiten beeld: zonder verantwoordelijke staan ze onder Nieuwe meldingen, en per afdeling onder de meldingen van die afdeling. Ze tellen niet mee in de getallen, net als op het SLA-dashboard.']},
   {v: 'v7.79', d: '25-10-2026', p: ['In een melding is het blok Eerder & vergelijkbaar weg: eerder opgeloste meldingen vind je via de AI-knop.']},
   {v: 'v7.78', d: '25-10-2026', p: ['De AI-knop zoekt nu via een eigen Azure-omgeving. Zwaar zoekwerk kan het inloggen in SubmIT daardoor niet meer vertragen.']},
