@@ -1609,7 +1609,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.83', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v7.84', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2751,7 +2751,7 @@ SMAL.addEventListener('change', () => plaatsTdMenu());
 $('#detail').addEventListener('close', () => { const p = $('#kbpaneel'); if(p && p.parentElement === $('#detail') && !p.hidden) kbDicht(); });
 function tekenNav(){
   const mini = id => `<span class="minischak" role="group" aria-label="Mij of alles">${['mij','alles'].map(v => `<span role="button" tabindex="0" data-mijalles="${id}" data-v="${v}" aria-pressed="${(v === 'mij') === schuifAan(id)}" title="${v === 'mij' ? 'Alleen mijn meldingen en wat bij niemand ligt' : 'Alle meldingen'}">${v === 'mij' ? 'Mij' : 'Alle'}</span>`).join('')}</span>`;
-  const it = (id, t, n, o = {}) => { const ong = o.ongelezen ? open().filter(x => (x._sg || []).some(s => s.code === 'ongelezen')).length : 0;
+  const it = (id, t, n, o = {}) => { const ongL = o.ongLijst || (o.ongelezen ? open() : []), ong = ongL.filter(x => (x._sg || []).some(s => s.code === 'ongelezen')).length;   // bolletje alleen voor wat in deze weergave staat
     return `<button type="button" class="it${o.cls ? ' ' + o.cls : ''}${o.rood && n ? ' rinkel' : ''}${(o.stuiter && n && profiel && profiel.rol === 'servicedesk') || ong ? ' stuiter' : ''}" data-weergave="${esc(id)}" aria-pressed="${tab === id || (id === 'beheer' && ['controle', 'beoordelingen', 'connectoren'].includes(tab))}" ${o.titel ? `title="${esc(o.titel)}" ` : ''}${ong ? `title="${ong} melding${ong === 1 ? '' : 's'} met iets nieuws voor jou"` : ''}>${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${o.mini || ''}${n == null ? (ong ? '<b class="stip leeg"></b>' : '') : `<b class="${o.rood && n ? 'rood' : ''}${ong ? ' stip' : ''}${o.laat ? ' laat' : ''}">${n}</b>`}</button>`; };
   const fav = favorieten(), isFav = a => fav.some(x => norm(x) === norm(a));
   const afd = afdelingen();
@@ -2771,15 +2771,15 @@ function tekenNav(){
     : pot ? {...vast[0], cls: 'potstoring', ico: '<path d="M3 12h4l3-8 4 16 3-8h4"/>', titel: `Mogelijke storing: ${STORINGEN.map(g => g.nrs.length + '× ' + g.woord).join(', ')}`} : vast[0];
   $('#nav').innerHTML = `${it(vast[0].id, vast[0].t, null, ovz)}
     <h4>Meldingen</h4>
-    ${(() => { const nm = zichtbaar(mijnM.id, mijnM.f()).length, nc = MCH.aan ? chMijnOpen().length : 0;   // + Changes aan: die tellen mee in het menu
-      return it(mijnM.id, mijnM.t, nm + nc, nc ? {...mijnM, titel: `${nm} melding${nm === 1 ? '' : 'en'} + ${nc} change${nc === 1 ? '' : 's'}`} : mijnM); })()}
+    ${(() => { const lm = zichtbaar(mijnM.id, mijnM.f()), lc = MCH.aan ? chMijnOpen() : [], nm = lm.length, nc = lc.length;   // + Changes aan: die tellen mee in het menu (getal en bolletje)
+      return it(mijnM.id, mijnM.t, nm + nc, {...mijnM, ongLijst: [...lm, ...lc], ...(nc ? {titel: `${nm} melding${nm === 1 ? '' : 'en'} + ${nc} change${nc === 1 ? '' : 's'}`} : {})}); })()}
     ${(() => { const l = zichtbaar(nieuwM.id, nieuwM.f()), laat = l.filter(nieuwTeLaat).length;   // te laat opgepakt: subtiel rood randje om het getal
       return it(nieuwM.id, nieuwM.t, l.length, laat ? {...nieuwM, laat, titel: `${laat} van de ${l.length} te laat opgepakt`} : nieuwM); })()}
     ${it(aandacht.id, 'Aandacht', zichtbaar(aandacht.id, aandacht.f()).length, {...aandacht, mini: keuze('data-wissel-werk', werkOns ? 'alle' : 'mij', 'Mij', 'Alle', 'Alleen jouw meldingen die aandacht nodig hebben', 'Alle meldingen die aandacht nodig hebben')})}
     <h4>Changes &amp; projecten</h4>
     ${(() => { const nc = chMijnOpen().length, np = PRJ.geladen ? projOpen().length : null, s = TL.samen;   // + Projecten / + Changes aan: samen tellen
       const tip = `${nc} change${nc === 1 ? '' : 's'} + ${np || 0} project${np === 1 ? '' : 'en'}`;
-      return CHANGES.map(v => it(v.id, v.t, nc + (s ? np || 0 : 0), s ? {...v, titel: tip} : v)).join('')
+      return CHANGES.map(v => it(v.id, v.t, nc + (s ? np || 0 : 0), {...v, ongLijst: chMijnOpen(), ...(s ? {titel: tip} : {})})).join('')
         + it('projecten', 'Mijn projecten', np == null ? null : np + (s ? nc : 0), s ? {ico: TR_ICO, titel: tip} : {ico: TR_ICO}); })()}
     <h4>Mijn afdelingen</h4>
     ${favL.map(rijA).join('') || '<p class="favhint"><b style="color:var(--inkt);font-weight:500">Geen afdeling geselecteerd</b><br>Zet een ★ bij een afdeling om hem hier te tonen.</p>'}
@@ -8378,6 +8378,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.84', d: '26-10-2026', p: ['Het gele bolletje (iets nieuws voor jou) staat nu bij de weergave waar die melding echt in staat: bij Mijn meldingen alleen voor meldingen (en changes als + Changes aan staat), bij Mijn changes voor je changes.']},
   {v: 'v7.83', d: '26-10-2026', p: ['Nieuwe meldingen die te laat zijn opgepakt blijven bij Nieuwe meldingen en staan niet meer onder Aandacht. Is er een te laat, dan krijgt het getal bij Nieuwe meldingen een rood randje. Het SLA-dashboard telt op dezelfde manier.']},
   {v: 'v7.82', d: '26-10-2026', p: ['Met + Changes of + Projecten telt het getal in het menu nu ook mee wat je hebt bijgeplust. Ga met de muis op het getal staan om te zien hoe het is opgebouwd.']},
   {v: 'v7.81', d: '26-10-2026', p: ['CC werkt weer: AFAS wil daar de gebruiker, niet het medewerkernummer. SubmIT probeert zelf wat AFAS accepteert en onthoudt dat.', 'Bij een fout staat onder Al doorgevoerd alleen nog wat echt is opgeslagen.']},
