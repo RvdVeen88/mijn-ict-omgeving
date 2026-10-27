@@ -1462,8 +1462,6 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 .sj-tekst{width:100%;box-sizing:border-box;border:1px solid var(--lijn);border-radius:10px;padding:8px 10px;font:inherit;font-size:13.5px;background:var(--achtergrond);color:var(--inkt);resize:vertical}
 #sjdlg code{background:var(--lichtblauw-2);color:var(--blauw);padding:0 5px;border-radius:5px;font-size:12px}
 
-/* tekstaanwijzer en typcursor: altijd zichtbaar, ook bij een witte of omgekeerde Windows-muisaanwijzer (donkerblauw I-streepje met witte rand) */
-input:not([type]),input[type=text],input[type=search],input[type=tel],input[type=email],input[type=number],input[type=url],input[type=password],textarea,[contenteditable]:not([contenteditable=false]),.linkveld,.linkveld *,.ondinvoer{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='24' viewBox='0 0 16 24'%3E%3Cpath d='M4 2.5h3l1 1 1-1h3M8 3.5v17M4 21.5h3l1-1 1 1h3' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M4 2.5h3l1 1 1-1h3M8 3.5v17M4 21.5h3l1-1 1 1h3' fill='none' stroke='%23053787' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 8 12,text;caret-color:var(--blauw-2)}
 </style>
 <script src="mijn-ict-config.js"></script>
 </head>
@@ -1613,7 +1611,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.86', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v7.87', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -8383,7 +8381,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
-  {v: 'v7.86', d: '27-10-2026', p: ['De muisaanwijzer in tekstvelden is nu altijd goed zichtbaar (donkerblauw met witte rand), ook als Windows een witte of omgekeerde aanwijzer gebruikt. Het typcursortje is DC-blauw.']},
+  {v: 'v7.87', d: '27-10-2026', p: ['Muisaanwijzer en typcursor in tekstvelden weer gewoon zoals Windows ze toont.']},
   {v: 'v7.85', d: '27-10-2026', p: ['Mail naar een nieuwe melding slepen en omzetten: AI maakt nu een overzichtelijke toelichting (vraag of probleem, details, gevraagde actie, termijn). De mail zelf zit als bijlage in de melding.']},
   {v: 'v7.84', d: '26-10-2026', p: ['Het gele bolletje (iets nieuws voor jou) staat nu bij de weergave waar die melding echt in staat: bij Mijn meldingen alleen voor meldingen (en changes als + Changes aan staat), bij Mijn changes voor je changes.']},
   {v: 'v7.83', d: '26-10-2026', p: ['Nieuwe meldingen die te laat zijn opgepakt blijven bij Nieuwe meldingen en staan niet meer onder Aandacht. Is er een te laat, dan krijgt het getal bij Nieuwe meldingen een rood randje. Het SLA-dashboard telt op dezelfde manier.']},
