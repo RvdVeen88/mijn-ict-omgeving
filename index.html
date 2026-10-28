@@ -230,9 +230,9 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .todo-bestand button{border:0;background:none;color:var(--blauw-2);font-size:12px;text-decoration:underline;padding:0 0 0 6px;cursor:default}
 .todo-paneel{padding:4px 0 10px}
 .todo-nieuw{display:flex;align-items:center;gap:12px;padding:12px 22px;border-bottom:2px solid var(--lichtblauw)}
-.todo-nieuw span{font-size:24px;line-height:1;color:var(--blauw-2);width:24px;text-align:center}
+.todo-nieuw > span[aria-hidden]{font-size:24px;line-height:1;color:var(--blauw-2);width:24px;text-align:center}
 .todo-nieuw input{flex:1;border:0;outline:0;background:transparent;font-size:15px;color:var(--inkt)}
-.taak{display:grid;grid-template-columns:28px 1fr auto auto;gap:12px;align-items:center;padding:10px 22px;border-bottom:1px solid var(--lijn)}
+.taak{display:grid;grid-template-columns:28px 1fr auto auto auto;gap:12px;align-items:center;padding:10px 22px;border-bottom:1px solid var(--lijn)}
 .taak:hover{background:var(--achtergrond)}
 .tdvink{width:22px;height:22px;border-radius:50%;border:2px solid var(--grijs);background:transparent;display:grid;place-items:center;padding:0;cursor:default}
 .tdvink:hover{border-color:var(--blauw-2)}
@@ -243,6 +243,11 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .taak .titel{font-size:14.5px;cursor:default;min-width:0}
 .taak .titel small{display:block;font-size:12px;color:var(--grijs);margin-top:2px}
 .taak .titel small .laat{color:var(--rood);font-weight:600}
+.tddl{font-size:12px;font-weight:600;color:var(--grijs);background:var(--achtergrond);border:1px solid var(--lijn);border-radius:999px;padding:2px 10px;white-space:nowrap}
+.tddl:empty{visibility:hidden;padding:0;border:0}.tddl.vandaag{color:var(--blauw);border-color:var(--lichtblauw);background:var(--lichtblauw-2)}.tddl.laat{color:var(--rood);border-color:var(--rood);background:transparent}
+.taak.klaar .tddl{opacity:.6}
+.todo-wk{display:flex;gap:8px;flex:none}.todo-nieuw input{min-width:0}.todo-wk[hidden]{display:none}
+#todo-open .chtijdlijn{margin:0}.td-tlscroll{overflow:hidden;max-width:100%}
 .taak.klaar .titel{text-decoration:line-through;color:var(--grijs)}
 .taak .ster{border:0;background:none;padding:2px;cursor:default;color:var(--grijs)}
 .taak .ster svg{width:17px;height:17px}
@@ -1611,7 +1616,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.87', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v7.89', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3030,7 +3035,7 @@ function tekenTijdlijn(lijst, opt = {}){
   const wacht = x => x.emmer === 'leverancier' ? 'wacht op leverancier' : x.emmer === 'melder' ? 'wacht op melder' : /akkoord/i.test(toonStatus(x.status)) ? 'wacht op akkoord' : '';
   const fase = x => { const b = startVan(x), e = eindVan(x); if(!b && !e) return 'zonder';
     if(e && +e < +nu) return 'laat'; if(b && +b > nuMs) return 'komt'; return 'loopt'; };
-  const FASEN = [['laat', 'Te laat', 'var(--rood)'], ['loopt', 'Loopt', 'var(--blauw)'], ['komt', 'Komt eraan', 'var(--blauw-2)'], ['zonder', 'Nog niet gepland', 'var(--grijs)']];
+  const FASEN = [['laat', 'Te laat', 'var(--rood)'], ['loopt', 'Loopt', 'var(--blauw)'], ['komt', 'Komt eraan', 'var(--blauw-2)'], ['zonder', 'Nog niet gepland', 'var(--grijs)']].map(([k, t, c]) => [k, (opt.fasen || {})[k] || t, c]);
   const rij = x => {
     const f = fase(x), b = startVan(x) || x.aangemaakt, e = eindVan(x);
     let balk = '', tekst = '', sub = '';
@@ -3044,13 +3049,13 @@ function tekenTijdlijn(lijst, opt = {}){
     else { const l = pos(b);
       if(e){ const r = pos(new Date(+beginDag(e) + DAG)), p = Math.round(Math.min(1, Math.max(0, (nuMs - b) / (+e + DAG - b))) * 100); sub = 'tot ' + kort(e);
         balk = `<span class="tl-bk" style="left:${l}%;width:${Math.max(0.8, r - l)}%"><span style="width:${p}%"></span></span>`;
-        tekst = `<span class="tl-pct" style="left:calc(${r}% + 8px)">${[p + '%', wacht(x)].filter(Boolean).join(' · ')}</span>`; }
+        tekst = `<span class="tl-pct" style="left:calc(${r}% + 8px)">${[opt.resterend ? (wd(werkMs(nuMs, +e + DAG)) <= 1 ? 'vandaag af' : `nog ${wd(werkMs(nuMs, +e + DAG))} werkdagen`) : p + '%', wacht(x)].filter(Boolean).join(' · ')}</span>`; }
       else { const r = Math.min(100, pos(nu) + 10); sub = 'geen einddatum';
         balk = `<span class="tl-bk open" style="left:${l}%;width:${Math.max(0.8, r - l)}%"><span style="width:${Math.max(0, (pos(nu) - l) / Math.max(0.8, r - l) * 100)}%"></span></span>`;
         tekst = `<span class="tl-pct" style="left:calc(${r}% + 8px)">einddatum ontbreekt</span>`; } }
     if(f !== 'zonder' && (+(e || b) < +van || +b > +tot)) { balk = ''; tekst = `<span class="tl-pct" style="${+b > +tot ? 'right:8px' : 'left:8px'}">${+b > +tot ? 'later →' : '← eerder'}</span>`; }
     return `<div class="tl-rij" data-nr="${esc(x.nr)}" tabindex="0" role="button" title="${esc(x.onderwerp)} · ${esc(toonStatus(x.status) || '')}">
-      <div class="tl-label"><b>${opt.tag ? `<span class="trtag ${x._tr || 'c'}">${x._tr === 'p' ? 'P' : 'C'}</span>` : ''}${esc(x.onderwerp)}</b><small>${esc(nrT(x))} · ${x._tr === 'p' && x.rol ? esc(x.rol.toLowerCase()) + ' · ' : ''}${sub}</small></div>
+      <div class="tl-label"><b>${opt.tag ? `<span class="trtag ${x._tr || 'c'}">${x._tr === 'p' ? 'P' : 'C'}</span>` : ''}${esc(x.onderwerp)}</b><small>${esc(opt.nr ? opt.nr(x) : nrT(x))} · ${x._tr === 'p' && x.rol ? esc(x.rol.toLowerCase()) + ' · ' : ''}${sub}</small></div>
       <div class="tl-spoor" style="${raster}"><span class="tl-vandaag" style="left:${pos(nu)}%"></span>${balk}${tekst}</div></div>`;
   };
   const sorteerOp = {laat: x => +eindVan(x), loopt: x => +(eindVan(x) || 9e15), komt: x => +startVan(x), zonder: x => -(x.aangemaakt || 0)};
@@ -3061,7 +3066,7 @@ function tekenTijdlijn(lijst, opt = {}){
     ${opt.drukte ? (() => { const dw = trDrukte(lijst, van, weken), max = Math.max(DRUK, ...dw.map(d => d.n));
       return `<div class="tl-rij tl-drukte"><div class="tl-label"><b>Drukte per week</b><small>${dw.some(d => d.n >= DRUK) ? 'rood = ' + DRUK + ' of meer tegelijk' : 'geen drukke weken'}</small></div><div class="tl-spoor" style="${raster}">${dw.map(d => `<span class="tl-dk${d.n >= DRUK ? ' druk' : ''}" style="left:${pos(d.van)}%;width:${100 / weken}%" title="Week ${weeknr(d.van)}: ${d.c} change${d.c === 1 ? '' : 's'}, ${d.p} project${d.p === 1 ? '' : 'en'}"><i class="p" style="height:${d.p / max * 100}%"></i><i class="c" style="height:${d.c / max * 100}%"></i></span>`).join('')}<span class="tl-vandaag" style="left:${pos(nu)}%"></span></div></div>`; })() : ''}
     <div class="tl-body">${groepen}</div>
-    <div class="tl-legenda"><span><i style="background:var(--blauw)"></i>Verstreken doorlooptijd</span><span><i style="background:var(--lichtblauw-2);border:1px solid var(--lichtblauw)"></i>Nog te gaan</span><span><i style="background:var(--rood)"></i>Einddatum verstreken</span>${opt.tag ? '<span><b class="trtag c">C</b> change <b class="trtag p" style="margin-left:8px">P</b> project</span>' : '<span>Einddatum = Einddatum project, anders Gepland</span>'}</div>
+    ${opt.geenLegenda ? '' : `<div class="tl-legenda"><span><i style="background:var(--blauw)"></i>Verstreken doorlooptijd</span><span><i style="background:var(--lichtblauw-2);border:1px solid var(--lichtblauw)"></i>Nog te gaan</span><span><i style="background:var(--rood)"></i>Einddatum verstreken</span>${opt.tag ? '<span><b class="trtag c">C</b> change <b class="trtag p" style="margin-left:8px">P</b> project</span>' : '<span>Einddatum = Einddatum project, anders Gepland</span>'}</div>`}
   </div>`;
 }
 let tab = 'mij';
@@ -6725,9 +6730,13 @@ const tdLijstNaam = id => ((TD.data.lijsten || []).find(l => l.id === id) || {})
 const tdSorteer = (a, b) => (b.belangrijk ? 1 : 0) - (a.belangrijk ? 1 : 0) || (a.deadline || '9999').localeCompare(b.deadline || '9999') || (b.gemaakt || '').localeCompare(a.gemaakt || '');
 const TD_VINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const TD_STER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>';
+// deadline als vast labeltje rechts in de rij: grijs, vandaag blauw, te laat rood (overal hetzelfde: to-do's en Planner)
+function tdDl(dl, klaar){ if(!dl) return '<span class="tddl"></span>'; const v = tdIso(new Date()), d = new Date(dl + 'T00:00:00');
+  const k = !klaar && dl < v ? 'laat' : !klaar && dl === v ? 'vandaag' : '';
+  return `<span class="tddl ${k}" title="Deadline ${fmtDatum(d)}${k === 'laat' ? ' (te laat)' : ''}">${k === 'laat' ? 'te laat · ' : k === 'vandaag' ? 'vandaag · ' : ''}${d.toLocaleDateString('nl-NL', {weekday: 'short'})} ${fmtDatum(d)}</span>`; }
 function tdRij(t){
   const vandaag = tdIso(new Date()), laat = t.deadline && !t.klaar && t.deadline < vandaag;
-  const sub = [['alle', 'belangrijk'].includes(TD.lijst) && esc(tdLijstNaam(t.lijst)), t.deadline && `<span class="${laat ? 'laat' : ''}">${laat ? 'te laat · ' : ''}${fmtDatum(new Date(t.deadline + 'T00:00:00'))}</span>`, t.notitie && 'notitie', t.melding && `melding ${esc(kaalNr(t.melding))}`, t.ticket && `<a data-tdticket="${esc(t.ticket)}" title="Melding openen">melding ${esc(t.ticket)}</a>`].filter(Boolean);
+  const sub = [['alle', 'belangrijk'].includes(TD.lijst) && esc(tdLijstNaam(t.lijst)), t.notitie && 'notitie', t.melding && `melding ${esc(kaalNr(t.melding))}`, t.ticket && `<a data-tdticket="${esc(t.ticket)}" title="Melding openen">melding ${esc(t.ticket)}</a>`].filter(Boolean);
   const detail = TD.open === t.id ? `<div class="taakdetail"><div class="kaart2">
       <span>Titel</span><b><input class="datumkeuze" data-veld="titel" value="${esc(t.titel)}"></b>
       <span>Deadline</span><b><input type="date" class="datumkeuze" data-veld="deadline" value="${esc(t.deadline || '')}"></b>
@@ -6736,7 +6745,7 @@ function tdRij(t){
       <div class="acties">${t.melding ? `<button type="button" class="knop klein" data-tdactie="ticket">Melding ${esc(t.melding)} openen</button>` : ''}<button type="button" class="linkknop weg" data-tdactie="weg">Verwijderen</button></div></div>` : '';
   return `<div class="taak ${t.klaar ? 'klaar' : ''} ${TD.open === t.id ? 'open' : ''}" data-taak="${esc(t.id)}" draggable="${TD.open === t.id ? 'false' : 'true'}">
     <button type="button" class="tdvink" data-tdactie="vink" aria-label="${t.klaar ? 'Weer openzetten' : 'Afvinken'}">${TD_VINK}</button>
-    <span class="titel" data-tdactie="open">${esc(t.titel)}${sub.length ? `<small>${sub.join(' · ')}</small>` : ''}</span>
+    <span class="titel" data-tdactie="open">${esc(t.titel)}${sub.length ? `<small>${sub.join(' · ')}</small>` : ''}</span>${tdDl(t.deadline, t.klaar)}
     ${t.melding ? `<span class="gekoppeld">✓ melding ${esc(kaalNr(t.melding))}</span>` : t.klaar || t.ticket ? '<span></span>' : '<button type="button" class="naarafas" data-tdactie="naarafas" title="Maak van deze to-do een melding">+ Melding aanmaken</button>'}
     <button type="button" class="ster" data-tdactie="belangrijk" aria-pressed="${!!t.belangrijk}" title="${t.belangrijk ? 'Niet meer belangrijk' : 'Markeer als belangrijk'}">${TD_STER}</button>
     ${detail}</div>`;
@@ -6824,15 +6833,40 @@ function tdTeken(){
     + d.lijsten.filter(l => !l.vast).map(l => knop(l.id, l.naam, tel(t => t.lijst === l.id), TD_LIJST, l)).join('') +
     `<span class="lijstnieuw"><input id="todo-nieuwe-lijst" placeholder="+ Nieuwe lijst"></span>`;
   if(TD.lijst === 'mij'){ const pl = (TD.planner || []).filter(t => !q || norm(t.titel + ' ' + t.plan).includes(q));
-    $('#todo-open').innerHTML = TD.planner === null ? '<p class="todo-leeg">Taken uit Planner ophalen…</p>' : pl.length ? pl.map(t => `<div class="taak"><button type="button" class="tdvink" data-pvink="${esc(t.id)}" aria-label="Afvinken in Planner">${TD_VINK}</button><span class="titel"><a href="https://tasks.office.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${esc(t.titel)}</a><small>${[t.plan && esc(t.plan), t.deadline && fmtDatum(new Date(t.deadline + 'T00:00:00'))].filter(Boolean).join(' · ')}</small></span><span></span><span></span></div>`).join('') : `<p class="todo-leeg">${TD.plannerFout ? 'Planner ophalen lukte niet: ' + esc(TD.plannerFout) : 'Geen taken aan jou toegewezen.'}</p>`;
-    $('#todo-klaar').hidden = true; return; }
+    $('#todo-open').innerHTML = TD.planner === null ? '<p class="todo-leeg">Taken uit Planner ophalen…</p>' : pl.length ? pl.map(t => `<div class="taak"><button type="button" class="tdvink" data-pvink="${esc(t.id)}" aria-label="Afvinken in Planner">${TD_VINK}</button><span class="titel"><a href="https://tasks.office.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${esc(t.titel)}</a><small>${esc(t.plan || '')}</small></span>${tdDl(t.deadline)}<span></span><span></span></div>`).join('') : `<p class="todo-leeg">${TD.plannerFout ? 'Planner ophalen lukte niet: ' + esc(TD.plannerFout) : 'Geen taken aan jou toegewezen.'}</p>`;
+    $('#todo-klaar').hidden = true; tdWissel(false); return; }
   const open = d.taken.filter(t => !t.klaar && inLijst(t)).sort(tdSorteer), klaar = d.taken.filter(t => t.klaar && inLijst(t)).sort((a, b) => (b.klaarOp || '').localeCompare(a.klaarOp || ''));
+  tdWissel(true);
+  if(TD.weergave === 'tijdlijn'){   // tijdlijn: wanneer moet wat af (balk van aanmaken tot deadline); zonder deadline onderaan
+    $('#todo-open').innerHTML = open.length ? `<div class="td-tlscroll">${tdTijdlijn(open)}</div>` : `<p class="todo-leeg">${q ? `Geen to-do’s gevonden voor “${esc(filt.zoek)}”.` : 'Geen open to-do’s.'}</p>`;
+    $('#todo-klaar').hidden = true; $('#titel').textContent = ''; $('#subtitel').textContent = ''; return; }
   $('#todo-open').innerHTML = open.length ? open.map(tdRij).join('') : `<p class="todo-leeg">${q ? `Geen to-do’s gevonden voor “${esc(filt.zoek)}”.` : 'Geen open to-do’s.'}</p>`;
   $('#todo-klaar').hidden = !klaar.length; $('#todo-klaar summary b').textContent = klaar.length;
   $('#todo-klaar-lijst').innerHTML = klaar.slice(0, 200).map(tdRij).join('');
   $('#titel').textContent = ''; $('#subtitel').textContent = '';   // de gekozen lijst en het aantal staan al in de knoppen
 }
 const tdTaak = id => TD.data.taken.find(t => t.id === id);
+TD.weergave = opslag.get('mict-tdweergave') || 'lijst';
+// lijst | tijdlijn (zelfde knoppen en periodes als bij Changes); bij 'Toegewezen aan mij' (Planner) alleen de lijst
+function tdWissel(aan){
+  let el = $('#todo-wk'); if(!el){ $('.todo-nieuw').insertAdjacentHTML('beforeend', '<span class="todo-wk" id="todo-wk"></span>'); el = $('#todo-wk'); }
+  const tl = TD.weergave === 'tijdlijn'; el.hidden = !aan; if(!aan) return;
+  el.innerHTML = (tl ? `<span class="wkeuze tlsoort" role="group" aria-label="Periode">${PERIODES.map(([k, t]) => `<button type="button" data-tdz="${k}" aria-pressed="${k === chZoom}">${t}</button>`).join('')}</span>` : '')
+    + `<span class="wkeuze"><button type="button" data-tdw="lijst" aria-pressed="${!tl}" aria-label="Lijst" title="Lijst"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button><button type="button" data-tdw="tijdlijn" aria-pressed="${tl}" aria-label="Tijdlijn" title="Tijdlijn: wanneer moet wat af"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h9M7 12h11M5 18h8"/></svg></button></span>`;
+}
+function tdTijdlijn(l){
+  // balk van vandaag tot de deadline (hoeveel tijd je nog hebt); te laat: rood van de deadline tot vandaag
+  const nu = beginDag(new Date());
+  const v = l.map(t => { const e = t.deadline ? new Date(t.deadline + 'T00:00:00') : null;
+    return {nr: 'td:' + t.id, onderwerp: t.titel, status: '', aangemaakt: null, projStart: e ? (e < nu ? e : nu) : null, projEind: e, _td: t}; });
+  return tekenTijdlijn(v, {nr: x => tdLijstNaam(x._td.lijst) + (x._td.belangrijk ? ' · ★' : ''), resterend: true, geenLegenda: true, fasen: {loopt: 'Open', zonder: 'Geen deadline'}}).replace(/data-nr="td:/g, 'data-tdtl="');
+}
+document.addEventListener('click', e => {
+  const w = e.target.closest('[data-tdw]'); if(w){ TD.weergave = w.dataset.tdw; opslag.set('mict-tdweergave', TD.weergave); tdTeken(); return; }
+  const z = e.target.closest('[data-tdz]'); if(z){ chZoom = z.dataset.tdz; opslag.set('mict-chzoom', chZoom); tdTeken(); return; }
+  const r = e.target.closest('[data-tdtl]'); if(r){ TD.weergave = 'lijst'; opslag.set('mict-tdweergave', 'lijst'); TD.open = r.dataset.tdtl; tdTeken();   // in de lijst openen om te bewerken
+    const el = document.querySelector(`#todo-open [data-taak="${CSS.escape(r.dataset.tdtl)}"]`); if(el) el.scrollIntoView({block: 'center'}); }
+});
 // de lijsten staan op brede schermen in de zijbalk (#tdnav), buiten #v-todo: daar dezelfde klik- en toetsafhandeling
 const tdOp = (t, f) => ['#v-todo', '#tdnav'].forEach(s => $(s).addEventListener(t, f));
 tdOp('click', async e => {
@@ -7303,9 +7337,8 @@ function meldInUit(){
     for(const [c, n] of twijfel) if(!nu.has(c)) weg.push(n);
     const erbij = [...nu].filter(([c]) => !AANW.vorige.has(c) && !twijfel.has(c)).map(([, n]) => n);
     AANW.twijfel = new Map([...AANW.vorige].filter(([c]) => !nu.has(c) && !twijfel.has(c)));
-    // geen pop-up meer (rustig): in- en uitloggen gaat stil naar Team
-    const t = Date.now(); erbij.forEach(n => stroomErbij({id: `in-${n}-${t}`, soort: 'in', door: n, t})); weg.forEach(n => stroomErbij({id: `uit-${n}-${t}`, soort: 'uit', door: n, t}));
-    const kort1 = n => String(n).split(' ')[0];
+    // in- en uitloggen komt niet in de activiteiten: wie er online is, zie je bij Team
+        const kort1 = n => String(n).split(' ')[0];
     if(erbij.length) teamWolk(`${lijstje(erbij.map(kort1))} ${erbij.length === 1 ? 'is' : 'zijn'} online`, true);
     else if(weg.length) teamWolk(`${lijstje(weg.map(kort1))} ${weg.length === 1 ? 'is' : 'zijn'} offline`, false);
   }
@@ -8250,7 +8283,8 @@ function toonTeamPopup(regels){
   popupTimer = setTimeout(() => { if(!popupWacht.length || nietStoren) { popupWacht = []; return; } const l = popupWacht; popupWacht = []; laatstePopup = Date.now();
     toast(l.length > 2 ? `${l.slice(-2).join(' · ')} · en nog ${l.length - 2}` : l.join(' · ')); }, wacht);
 }
-function stroomErbij(e){ if(!e || !e.id || STROOM.has(e.id)) return false; STROOM.set(e.id, e); return true; }
+// in-/uitloggen hoort niet bij de activiteiten (wie online is, zie je bij Team)
+function stroomErbij(e){ if(!e || !e.id || STROOM.has(e.id) || e.soort === 'in' || e.soort === 'uit') return false; STROOM.set(e.id, e); return true; }
 const STROOM_ZIN = {gewijzigd: e => { let w = {}; try{ w = JSON.parse(e.w || '{}'); }catch(err){} const l = Object.keys(w).map(k => DEEL_LABEL[k]).filter(Boolean); return `wijzigde ${l.length ? esc(l.join(', ')) + ' van ' : ''}<b>${esc(kaalNr(e.nr))}</b>`; }, gesloten: e => `heeft <b>${esc(kaalNr(e.nr))}</b> afgehandeld`, doorgezet: e => `heeft <b>${esc(kaalNr(e.nr))}</b> doorgezet naar ${esc(String(e.naar || '').split(' · ').map(d => benIk(d) ? 'jou' : d).join(' · '))}`, opgepakt: e => `heeft <b>${esc(kaalNr(e.nr))}</b> opgepakt`,
   reactie: e => `reageerde op <b>${esc(kaalNr(e.nr))}</b>`, vermeld: e => `noemde ${esc(String(e.naar || '').split(' · ').map(d => benIk(d) ? 'jou' : d.split(' ')[0]).join(', '))} in <b>${esc(kaalNr(e.nr))}</b>${e.tekst ? ': “' + esc(kort(e.tekst, 90)) + '”' : ''}`, kritiek: e => `zette <b>${esc(kaalNr(e.nr))}</b> op kritieke storing`, in: () => 'is ingelogd', uit: () => 'is uitgelogd'};
 const geleden = t => { const m = Math.round((Date.now() - t) / 60e3); return m < 1 ? 'zojuist' : m < 60 ? m + ' min' : new Date(t).toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'}); };
@@ -8381,6 +8415,8 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.89', d: '28-10-2026', p: ['Team: in- en uitloggen staat niet meer tussen de activiteiten. Wie er online is, zie je nog steeds.']},
+  {v: 'v7.88', d: '28-10-2026', p: ['To-do: de deadline staat als label rechts in elke rij (vandaag blauw, te laat rood).', 'Nieuw: tijdlijn bij je to-do’s. Met de knop rechtsboven zie je per periode wanneer wat af moet; klik op een to-do om hem te bewerken.']},
   {v: 'v7.87', d: '27-10-2026', p: ['Muisaanwijzer en typcursor in tekstvelden weer gewoon zoals Windows ze toont.']},
   {v: 'v7.85', d: '27-10-2026', p: ['Mail naar een nieuwe melding slepen en omzetten: AI maakt nu een overzichtelijke toelichting (vraag of probleem, details, gevraagde actie, termijn). De mail zelf zit als bijlage in de melding.']},
   {v: 'v7.84', d: '26-10-2026', p: ['Het gele bolletje (iets nieuws voor jou) staat nu bij de weergave waar die melding echt in staat: bij Mijn meldingen alleen voor meldingen (en changes als + Changes aan staat), bij Mijn changes voor je changes.']},
