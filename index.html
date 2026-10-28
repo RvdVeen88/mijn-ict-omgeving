@@ -1616,7 +1616,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.89', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v7.90', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -6895,6 +6895,12 @@ tdOp('change', e => {
   const t = tdTaak(rij.dataset.taak); if(!t) return;
   t[veld] = veld === 'titel' ? (e.target.value.trim() || t.titel) : e.target.value; tdBewaar();
 });
+// open to-do: klik je ernaast (of druk je Esc), dan klapt hij weer dicht. Wat je invulde is dan al bewaard (change gaat vóór de klik)
+document.addEventListener('click', e => {
+  if(!TD.open || tab !== 'todo' || !e.target.isConnected || e.target.closest('.taak, dialog, [role=menu], .ctxmenu, #todo-wk, [data-tdtl]')) return;
+  TD.open = null; tdTeken();
+});
+document.addEventListener('keydown', e => { if(e.key !== 'Escape' || !TD.open || tab !== 'todo' || document.querySelector('dialog[open]')) return; if(document.activeElement && document.activeElement.blur) document.activeElement.blur(); TD.open = null; tdTeken(); });
 tdOp('focusin', e => { if(e.target.closest('.taakdetail, .todo-nieuw')) TD.bewerk = true; });
 tdOp('focusout', () => { TD.bewerk = false; });
 tdOp('keydown', e => {
@@ -8415,6 +8421,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.90', d: '28-10-2026', p: ['To-do: een geopende to-do klapt weer dicht als je ernaast klikt of op Esc drukt. Wat je hebt ingevuld, is dan al bewaard.']},
   {v: 'v7.89', d: '28-10-2026', p: ['Team: in- en uitloggen staat niet meer tussen de activiteiten. Wie er online is, zie je nog steeds.']},
   {v: 'v7.88', d: '28-10-2026', p: ['To-do: de deadline staat als label rechts in elke rij (vandaag blauw, te laat rood).', 'Nieuw: tijdlijn bij je to-do’s. Met de knop rechtsboven zie je per periode wanneer wat af moet; klik op een to-do om hem te bewerken.']},
   {v: 'v7.87', d: '27-10-2026', p: ['Muisaanwijzer en typcursor in tekstvelden weer gewoon zoals Windows ze toont.']},
