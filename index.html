@@ -195,15 +195,15 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .todo-indeling{display:grid;grid-template-columns:230px minmax(0,1fr);gap:22px;align-items:start}
 @media (max-width:800px){.todo-indeling{grid-template-columns:minmax(0,1fr)}.todo-kop{position:static}}
 .todo-kop{display:flex;flex-direction:column;gap:14px;position:sticky;top:12px}
-@media (min-width:801px){.todo-indeling{min-height:420px;background:var(--vlak);border-radius:30px;box-shadow:var(--schaduw);overflow:clip;gap:0;align-items:stretch}
-  .todo-indeling > .todo-kop{position:static;background:var(--bg2);border-right:1px solid var(--lijn);padding:16px 10px 14px;gap:10px}
+.todo-indeling.blok{margin-top:14px;gap:0;align-items:stretch}.todo-indeling > .todo-blokkop{grid-column:1/-1;grid-row:1}
+@media (min-width:801px){.todo-indeling > .todo-kop{grid-row:2;position:static;border-right:1px solid var(--lijn);padding:4px 10px 14px;gap:10px;min-height:360px}.todo-indeling > .todo-rechts{grid-row:2;min-width:0}
   .todo-indeling > .todo-kop .tdlijst{border-radius:10px;font-size:13.5px;padding:7px 10px;gap:9px}.todo-indeling > .todo-kop .tdlijst svg{width:16px;height:16px}
-  .todo-indeling > .todo-kop .tdlijst:hover{background:var(--vlak)}
+  .todo-indeling > .todo-kop .tdlijst:hover{background:var(--bg2)}
   .todo-indeling > .todo-kop .tdlijst[aria-pressed="true"]{background:var(--lichtblauw-2);color:var(--blauw)}.todo-indeling > .todo-kop .tdlijst[aria-pressed="true"] b{background:var(--vlak);color:var(--blauw)}
   :root[data-thema="donker"] .todo-indeling > .todo-kop .tdlijst[aria-pressed="true"]{background:#1B2A4A;color:#CFE0FF}
-  .todo-indeling > .todo-kop .todo-bestand{margin-top:auto;padding:8px 10px 0}
-  .todo-indeling .todo-rechts > .blok{box-shadow:none;border-radius:0}
-  .todo-indeling:not(:has(> .todo-kop)){background:transparent;box-shadow:none;overflow:visible}}
+  .todo-indeling > .todo-kop .todo-bestand{margin-top:auto;padding:8px 10px 0}}
+.todo-indeling .todo-rechts > .blok{box-shadow:none;border-radius:0;background:transparent}
+.todo-indeling:not(:has(> .todo-kop)) > .todo-rechts{grid-column:1/-1}
 .todo-indeling:not(:has(> .todo-kop)){grid-template-columns:minmax(0,1fr)}
 .tdnav .todo-kop{position:static;gap:10px}.tdnav{margin:2px 0 6px}.tdnav .todo-lijsten{gap:1px}.tdnav .tdlijst{padding-left:34px!important;font-size:13.5px}.tdnav .tdlijst[aria-pressed="true"]{background:var(--lichtblauw-2);color:var(--blauw)}.tdnav .tdlijst[aria-pressed="true"] b{background:var(--vlak);color:var(--blauw)}:root[data-thema="donker"] .tdnav .tdlijst[aria-pressed="true"]{background:#1B2A4A;color:#CFE0FF}.tdnav .todo-bestand{padding-left:34px}
 #v-todo:not(:has(.todo-kop)) .todo-rechts{margin-top:14px}
@@ -1308,13 +1308,13 @@ dialog#detail .composer textarea#tekst{min-height:190px;max-height:460px;resize:
 
 /* ================= brede schermen (QHD, ultrawide, 4K) ================= */
 @media (min-width:1800px){
-  #v-mij,#v-todo{width:100%;max-width:1560px;margin:0 auto}
+  #v-mij{width:100%;max-width:1560px;margin:0 auto}#v-todo{width:100%}
   dialog#detail.lade{width:clamp(880px,44vw,1180px)}
   dialog.lade.nieuwdlg{width:clamp(880px,44vw,1180px)}
   .teampaneel{width:420px}
 }
 @media (min-width:2600px){
-  #v-mij,#v-todo{max-width:1800px}
+  #v-mij{max-width:1800px}
   .tabel td.ond,.tabel td.k-p-naam{font-size:14.5px}
 }
 
@@ -1404,7 +1404,7 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 #aidlg{width:min(860px,94vw)}.ai-regels{font-weight:400;color:var(--grijs);font-size:13px;line-height:1.5}
 .rap{padding:0 26px 20px}.rap-kop{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:4px 0 12px}.rap-periodes{display:flex;flex-wrap:wrap;gap:6px}
 .chipknop2{border:1px solid var(--lijn);background:transparent;border-radius:999px;padding:4px 12px;font:inherit;font-size:12.5px;color:var(--inkt);cursor:default}.chipknop2[aria-pressed="true"]{background:var(--blauw);border-color:var(--blauw);color:#fff}
-.wv-kop{flex-wrap:wrap}.wv-eigen{display:inline-flex;align-items:center;gap:6px;font-size:13px}.wv-eigen input{font:inherit;font-size:13px;border:1px solid var(--lijn);border-radius:8px;padding:3px 6px;background:var(--vlak);color:var(--inkt)}.wv-teams{margin:-2px 0 12px}.wv-volgt{font-size:12px;font-weight:500;color:var(--grijs);background:var(--zebra);border-radius:999px;padding:1px 8px}.rap-tegel .wv-volgt{font-size:13px;align-self:flex-start;margin:6px 0 4px}.rap-tegel small{font-size:11.5px;color:var(--grijs)}.wv-tabel-wrap{overflow-x:auto;border:1px solid var(--lijn);border-radius:14px;margin-bottom:8px}.wv-tabel{width:100%;min-width:820px;border-collapse:collapse}.wv-tabel th{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--grijs);font-weight:600;text-align:left;padding:10px 9px;border-bottom:1px solid var(--lijn);white-space:nowrap}.wv-tabel td{padding:9px 9px;border-bottom:1px solid var(--zebra);font-size:13.5px;white-space:nowrap}.wv-tabel{table-layout:auto}.wv-proef{margin-top:14px}.wv-proef summary{cursor:default}.wv-proeftabel{min-width:0}.wv-proef h3{font-size:13.5px;color:var(--blauw);margin:12px 0 6px}.wv-proeftabel td{font-size:12px;max-width:520px;overflow:hidden;text-overflow:ellipsis}.wv-tabel tbody tr:last-child td{border-bottom:0}.wv-tabel tbody tr[data-wvwie]:hover{background:var(--bg3);cursor:default}.wv-tabel .num{text-align:right}.wv-mens{display:inline-flex;align-items:center;gap:9px}.wv-ini{flex:none;width:30px;height:30px;border-radius:50%;background:var(--lichtblauw-2);color:var(--blauw);font-size:11.5px;font-weight:600;display:inline-grid;place-items:center}.wv-ini.groot{width:48px;height:48px;font-size:17px}.wv-team{font:inherit;font-size:12px;border:1px solid var(--lijn);background:var(--vlak);color:var(--inkt);border-radius:999px;padding:1px 10px}.wv-team.leeg{color:var(--grijs);border-style:dashed}.wv-kopmens{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 12px}.wv-kopmens b{display:block;font-size:20px;font-weight:500;color:var(--blauw)}.wv-kopmens small{color:var(--grijs);font-size:12.5px}.wv-staven{display:flex;align-items:flex-end;gap:10px;height:170px;padding-top:6px}.wv-staaf{flex:1;max-width:56px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px}.wv-staaf i{display:block;width:100%;min-height:2px;background:var(--lichtblauw);border-radius:6px 6px 0 0}.wv-staaf b{font-size:11.5px;color:var(--blauw)}.wv-staaf small{font-size:11px;color:var(--grijs);white-space:nowrap}.wv-typerij{display:grid;grid-template-columns:minmax(0,140px) 1fr 34px;gap:10px;align-items:center;font-size:13px;margin:6px 0}.wv-typerij span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wv-typerij b{text-align:right;font-weight:600}.wv-balk{height:10px;background:var(--zebra);border-radius:4px;overflow:hidden}.wv-balk i{display:block;height:100%;background:var(--blauw-2)}.wv-lijst{display:flex;flex-direction:column}.wv-melding{display:grid;grid-template-columns:70px minmax(0,1fr) 150px 96px;gap:12px;align-items:center;border:0;border-top:1px solid var(--zebra);background:transparent;font:inherit;font-size:13.5px;color:var(--inkt);text-align:left;padding:8px 4px}.wv-melding:hover{background:var(--bg3)}.wv-melding .nr{color:var(--blauw);font-weight:600}.wv-melding .ond{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wv-melding .zacht{color:var(--grijs);font-size:12.5px}
+.wv-kop{flex-wrap:wrap}.wv-eigen{display:inline-flex;align-items:center;gap:6px;font-size:13px}.wv-eigen input{font:inherit;font-size:13px;border:1px solid var(--lijn);border-radius:8px;padding:3px 6px;background:var(--vlak);color:var(--inkt)}.wv-teams{margin:-2px 0 12px}.wv-volgt{font-size:12px;font-weight:500;color:var(--grijs);background:var(--zebra);border-radius:999px;padding:1px 8px}.rap-tegel .wv-volgt{font-size:13px;align-self:flex-start;margin:6px 0 4px}.rap-tegel small{font-size:11.5px;color:var(--grijs)}.wv-tabel-wrap{overflow-x:auto;border:1px solid var(--lijn);border-radius:14px;margin-bottom:8px}.wv-tabel{width:100%;min-width:820px;border-collapse:collapse}.wv-tabel th{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--grijs);font-weight:600;text-align:left;padding:10px 9px;border-bottom:1px solid var(--lijn);white-space:nowrap}.wv-tabel td{padding:9px 9px;border-bottom:1px solid var(--zebra);font-size:13.5px;white-space:nowrap}.wv-tabel{table-layout:auto}.wv-proef{margin-top:14px}.wv-proef summary{cursor:default}.wv-proeftabel{min-width:0}.wv-proef h3{font-size:13.5px;color:var(--blauw);margin:12px 0 6px}.wv-proeftabel td{font-size:12px;max-width:520px;overflow:hidden;text-overflow:ellipsis}.wv-tabel tbody tr:last-child td{border-bottom:0}.wv-tabel tbody tr[data-wvwie]:hover{background:var(--bg3);cursor:default}.wv-tabel .num{text-align:right}.wv-mens{display:inline-flex;align-items:center;gap:9px}.wv-ini{flex:none;width:30px;height:30px;border-radius:50%;background:var(--lichtblauw-2);color:var(--blauw);font-size:11.5px;font-weight:600;display:inline-grid;place-items:center}.wv-ini.groot{width:48px;height:48px;font-size:17px}.wv-team{font:inherit;font-size:12px;border:1px solid var(--lijn);background:var(--vlak);color:var(--inkt);border-radius:999px;padding:1px 10px}.wv-team.leeg{color:var(--grijs);border-style:dashed}.wv-kopmens{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 12px}.wv-kopmens b{display:block;font-size:20px;font-weight:500;color:var(--blauw)}.wv-kopmens small{color:var(--grijs);font-size:12.5px}.wv-staven{display:flex;align-items:flex-end;gap:10px;height:170px;padding-top:6px}.wv-staaf{flex:1;max-width:56px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px}.wv-staaf i{display:block;width:100%;min-height:2px;background:var(--lichtblauw);border-radius:6px 6px 0 0}.wv-staaf b{font-size:11.5px;color:var(--blauw)}.wv-staaf small{font-size:11px;color:var(--grijs);white-space:nowrap}.wv-tegels{grid-template-columns:repeat(auto-fit,minmax(128px,1fr))}.wv-pct{display:inline-flex;align-items:center;gap:6px;min-width:96px}.wv-pct .wv-balk{flex:1;min-width:36px;height:6px}.wv-pct small{font-size:12px;color:var(--grijs);white-space:nowrap}.wv-zd{display:flex;height:10px!important}.wv-zd i{height:100%}.wv-typerij{display:grid;grid-template-columns:minmax(0,140px) 1fr 54px;gap:10px;align-items:center;font-size:13px;margin:6px 0}.wv-typerij span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wv-typerij b{text-align:right;font-weight:600}.wv-balk{height:10px;background:var(--zebra);border-radius:4px;overflow:hidden}.wv-balk i{display:block;height:100%;background:var(--blauw-2)}.wv-lijst{display:flex;flex-direction:column}.wv-melding{display:grid;grid-template-columns:70px minmax(0,1fr) 150px 96px;gap:12px;align-items:center;border:0;border-top:1px solid var(--zebra);background:transparent;font:inherit;font-size:13.5px;color:var(--inkt);text-align:left;padding:8px 4px}.wv-melding:hover{background:var(--bg3)}.wv-melding .nr{color:var(--blauw);font-weight:600}.wv-melding .ond{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wv-melding .zacht{color:var(--grijs);font-size:12.5px}
 .rap-tegels{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
 .rap-tegel{border:1px solid var(--lijn);border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:2px}.rap-tegel span{font-size:12px;color:var(--grijs)}.rap-tegel b{font-size:24px;color:var(--blauw);line-height:1.15}
 .rap-tegel small,.rap-staaf small{font-size:11.5px;color:var(--grijs)}.rap-tegel small.op,.rap-staaf small.op{color:var(--rood)}.rap-tegel small.af,.rap-staaf small.af{color:var(--groen,#2e7d32)}
@@ -1528,7 +1528,7 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
         <div class="blok" style="margin-top:14px"><header><h2 id="lijst-titel">Meldingen</h2><b id="lijst-n">0</b><small id="lijst-sub"></small><span id="lijst-kol"></span></header><div id="lijst"></div></div>
       </section>
       <section id="v-todo" hidden>
-        <div class="todo-indeling">
+        <div class="todo-indeling blok"><header class="todo-blokkop"><h2 id="todo-titel">To-do</h2><b id="todo-n" hidden></b></header>
         <aside class="todo-kop"><div id="todo-lijsten" class="todo-lijsten" role="group" aria-label="Lijsten"></div><span class="todo-bestand" id="todo-bestand"></span></aside>
         <div class="todo-rechts">
         <div class="todo-verbind" id="todo-verbind" hidden></div>
@@ -1632,7 +1632,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.97', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v7.98', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -4090,7 +4090,49 @@ function wvCijfers(b){
   return {rijen: zicht, af, iu, dagen, pd: zicht.length ? Math.round(af / dagen / zicht.length * 10) / 10 : null,
     doorloop: wvMediaan(zicht.flatMap(r => r.af).filter(x => x.aangemaakt && x.statusDatum).map(x => werkMs(x.aangemaakt, x.statusDatum) / werkdagMs()))};
 }
-const WV_VOLGT = '<span class="wv-volgt" title="Volgt zodra de AFAS-connector op de workflowhistorie er is">volgt</span>';
+const WV_VOLGT = '<span class="wv-volgt" title="Workflowhistorie wordt opgehaald">…</span>';
+// workflowhistorie (Log van acties in workflow): vanaf 30 dagen vóór de periode, zodat ook eerdere toewijzingen van een melding meetellen
+const WVL = {sleutel: '', rijen: null, bezig: false, fout: ''};
+const wvWie = c => { c = String(c ?? '').trim(); if(!c) return ''; const k = (WV.collegas || []).find(x => x.code && norm(x.code) === norm(c)); return k ? k.naam : wieNaam(c) || c; };
+const wvIsDoor = r => r.at === 109 || /toewijzen aan collega/i.test(r.act), wvIsMij = r => r.at === 108 || /toewijzen aan mij/i.test(r.act);
+const wvIsHeropen = r => /heropen/i.test(r.act), wvRuis = r => /mail ter info|automatisch/i.test(r.taak + ' ' + r.act);
+async function wvLogLaad(b){
+  const vanaf = new Date(+b.van - 30 * DAG), k = `${vanaf.getFullYear()}-${String(vanaf.getMonth() + 1).padStart(2, '0')}-${String(vanaf.getDate()).padStart(2, '0')}`;
+  if(WVL.sleutel === k && (WVL.rijen || WVL.bezig)) return; WVL.sleutel = k; WVL.bezig = true; WVL.fout = '';
+  try{ let rs;
+    try{ rs = await connectorAlles(INST.connWorkflowlog, `&filterfieldids=Workflow_omschrijving%2CBegindatum&filtervalues=Aanvraag%20ICT%2C${k}T00%3A00%3A00&operatortypes=1%2C2`); }
+    catch(e){ rs = await connectorAlles(INST.connWorkflowlog, `&filterfieldids=Workflow_omschrijving&filtervalues=Aanvraag%20ICT&operatortypes=1`); }
+    if(WVL.sleutel !== k) return;
+    WVL.rijen = rs.map(r => ({sb: String(r.Dossieritem ?? ''), door: wvWie(r.Gebruiker_door), naar: wvWie(r.Gebruiker_naar), t: datum(r.Begindatum), taak: String(r.Taak_omschrijving ?? ''), act: String(r.Bijschrift ?? ''), at: +r.Actietype || 0}))
+      .filter(r => r.t && r.sb && +r.t >= +vanaf).sort((a, z) => +a.t - +z.t); }
+  catch(e){ WVL.fout = e.message; WVL.rijen = []; }
+  finally{ if(WVL.sleutel === k) WVL.bezig = false; }
+  if(tab === 'werkverdeling') tekenWerkverdeling();
+}
+const wvPct = (a, n) => n ? Math.round(a / n * 100) : null;
+function wvHistorie(b, rijen){
+  const L = WVL.rijen; if(!L) return null;
+  const inR = t => +t >= +b.van && +t < +b.tot, perSb = new Map(); L.forEach(r => { if(!perSb.has(r.sb)) perSb.set(r.sb, []); perSb.get(r.sb).push(r); });
+  const opSb = new Map(items.filter(x => x.sbid != null).map(x => [String(x.sbid), x]));
+  // als eerste opgepakt: eerste echte actie op een melding die in de periode binnenkwam
+  const eerste = []; perSb.forEach((l, sb) => { const x = opSb.get(sb); if(!x || x.inuit || !x.aangemaakt || !inR(x.aangemaakt)) return; const a = l.find(r => !wvRuis(r) && r.door); if(a) eerste.push({wie: a.door, x, ok: werkMs(x.aangemaakt, a.t) <= INST.nieuwUren * UUR}); });
+  rijen.forEach(r => {
+    const van = L.filter(a => inR(a.t) && zelfdePersoon(r.naam, a.door));
+    r.actief = new Set(van.filter(a => !wvRuis(a)).map(a => fmtDatum(a.t))).size;
+    r.door = van.filter(a => wvIsDoor(a) && a.naar && !zelfdePersoon(a.naar, a.door));
+    r.ontv = L.filter(a => inR(a.t) && wvIsDoor(a) && a.naar && zelfdePersoon(r.naam, a.naar) && !zelfdePersoon(a.naar, a.door));
+    const metH = r.af.filter(x => x.sbid != null && perSb.has(String(x.sbid)));
+    r.ftrN = metH.length; r.ftrOk = metH.filter(x => { const l = perSb.get(String(x.sbid)); return !l.some(wvIsHeropen) && !l.some(a => wvIsDoor(a) && zelfdePersoon(r.naam, a.door)); }).length;
+    r.ftr = wvPct(r.ftrOk, r.ftrN);
+    const e = eerste.filter(a => zelfdePersoon(r.naam, a.wie)); r.oppakN = e.length; r.norm = wvPct(e.filter(a => a.ok).length, e.length);
+    r.pdA = r.actief ? Math.round(r.n / r.actief * 10) / 10 : null;
+  });
+  const som = k => rijen.reduce((s, r) => s + (r[k] || 0), 0);
+  return {ftr: wvPct(som('ftrOk'), som('ftrN')), door: rijen.reduce((s, r) => s + r.door.length, 0), norm: wvPct(eerste.filter(a => rijen.some(r => zelfdePersoon(r.naam, a.wie)) && a.ok).length, eerste.filter(a => rijen.some(r => zelfdePersoon(r.naam, a.wie))).length)};
+}
+const wvKleur = (p, goed, matig) => p == null ? 'var(--grijs)' : p >= goed ? 'var(--groen)' : p >= matig ? 'var(--oranje)' : 'var(--rood)';
+const wvPctHtml = (p, goed = 75, matig = 60) => p == null ? '<span class="zacht">–</span>' : `<span class="wv-pct"><b style="color:${wvKleur(p, goed, matig)}">${p}%</b><span class="wv-balk"><i style="width:${p}%;background:${wvKleur(p, goed, matig)}"></i></span></span>`;
+const wvZelfDoor = r => { const z = r.n, d = (r.door || []).length, t = z + d || 1; return `<span class="wv-pct"><span class="wv-balk wv-zd"><i style="width:${z / t * 100}%;background:var(--groen)"></i><i style="width:${d / t * 100}%;background:#E8590C"></i></span><small>${z} · ${d}</small></span>`; };
 function wvKop(b){
   return `<div class="rap-kop wv-kop"><div class="rap-periodes" role="group" aria-label="Periode">${WV_PERIODES.map(([k, t]) => `<button type="button" class="chipknop2" data-wvper="${k}" aria-pressed="${WV.periode === k}">${t}</button>`).join('')}</div>
     ${WV.periode === 'eigen' ? `<span class="wv-eigen"><input type="date" id="wv-van" value="${esc(WV.van)}" aria-label="Van"> t/m <input type="date" id="wv-tot" value="${esc(WV.tot)}" aria-label="Tot en met"></span>` : ''}
@@ -4105,7 +4147,7 @@ function tekenWerkverdeling(){
   $('#lijst-titel').textContent = 'Werkverdeling'; $('#lijst-n').hidden = true; $('#titel').textContent = ''; $('#subtitel').textContent = ''; $('#lijst-sub').textContent = ''; $('#lijst-kol').innerHTML = '';
   ['#f-mijn', '#f-mijalles', '#f-soort', '#f-changes', '#f-weergave', '#f-zoom'].forEach(sel => { const e = $(sel); if(e) e.hidden = true; });
   if((!WV.collegas || !alleDichtGeladen) && !WV.bezig) wvLaad();
-  const b = wvBereik(), c = wvCijfers(b);
+  const b = wvBereik(), c = wvCijfers(b); wvLogLaad(b); const h = wvHistorie(b, c.rijen); c.h = h;
   if(WV.wie) return wvDetail(b, c);
   const tegel = (t, n, sub) => `<div class="rap-tegel"><span>${t}</span><b>${n}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
   const kolom = (t, cls = '') => `<th class="${cls}">${t}</th>`;
@@ -4113,16 +4155,20 @@ function tekenWerkverdeling(){
   $('#lijst').innerHTML = beheerTerug() + `<p class="ctrl-uitleg" style="margin-top:4px">Wie handelt wat af, en lost iemand zelf op of zet hij door? Alleen jij ziet dit scherm. Telt per verantwoordelijke op het moment van afhandelen.</p>
     <div class="rap">${wvKop(b)}
     <div class="rap-periodes wv-teams" role="group" aria-label="Team">${[['alle', 'Alle'], ...WV_TEAMS.map(t => [t, t])].map(([k, t]) => `<button type="button" class="chipknop2" data-wvteamf="${k}" aria-pressed="${WV.team === k}">${t}</button>`).join('')}</div>
-    <div class="rap-tegels">${tegel('Afgehandeld', c.af, `${c.rijen.length} collega’s · ${c.dagen} werkdagen`)}${tegel('Per werkdag', wvGetal(c.pd), 'per collega')}${tegel('Doorlooptijd', c.doorloop == null ? '–' : wvGetal(c.doorloop) + ' wd', 'mediaan, in werkdagen')}${tegel('First time right', WV_VOLGT)}${tegel('Doorgezet naar collega', WV_VOLGT)}${tegel('In- en uitdiensten', c.iu, 'afgerond')}</div>
-    <div class="wv-tabel-wrap"><table class="wv-tabel"><thead><tr>${kolom('Medewerker')}${kolom('Team')}${kolom('Afgehandeld', 'num')}${kolom('Per werkdag', 'num')}${kolom('Doorlooptijd', 'num')}${kolom('First time right')}${kolom('Doorgezet')}${kolom('Ontvangen')}${kolom('Binnen norm')}${kolom('In/uit', 'num')}</tr></thead>
+    <div class="rap-tegels wv-tegels">${tegel('Afgehandeld', c.af, `${c.rijen.length} collega’s · ${c.dagen} werkdagen`)}${h ? tegel('Per dag', wvGetal(c.rijen.reduce((t, r) => t + (r.actief || 0), 0) ? Math.round(c.af / c.rijen.reduce((t, r) => t + (r.actief || 0), 0) * 10) / 10 : null), 'afgehandeld per actieve dag') : tegel('Per werkdag', wvGetal(c.pd), 'per collega')}${tegel('Doorlooptijd', c.doorloop == null ? '–' : wvGetal(c.doorloop) + ' wd', 'mediaan, in werkdagen')}${tegel('First time right', h ? (h.ftr == null ? '–' : h.ftr + '%') : WV_VOLGT, 'zelf afgehandeld, niet doorgezet')}${tegel('Doorgezet naar collega', h ? h.door : WV_VOLGT, h && (c.af + h.door) ? `${wvPct(h.door, c.af + h.door)}% van al het werk` : '')}${tegel('Binnen norm', h ? (h.norm == null ? '–' : h.norm + '%') : WV_VOLGT, `als eerste opgepakt binnen ${INST.nieuwUren} werkuren`)}${tegel('In- en uitdiensten', c.iu, 'afgerond')}</div>
+    <div class="wv-tabel-wrap"><table class="wv-tabel"><thead><tr>${kolom('Medewerker')}${kolom('Team')}${kolom('Actief', 'num')}${kolom('Afgehandeld', 'num')}${kolom('Per dag', 'num')}${kolom('Doorlooptijd', 'num')}${kolom('First time right')}${kolom('Zelf · doorgezet')}${kolom('Ontvangen', 'num')}${kolom('Binnen norm')}${kolom('In/uit', 'num')}</tr></thead>
     <tbody>${c.rijen.map(r => `<tr data-wvwie="${esc(r.naam)}" tabindex="0" title="Details van ${esc(r.naam)}"><td><span class="wv-mens"><span class="wv-ini">${esc(initialen(r.naam))}</span>${esc(r.naam)}</span></td><td>${teamKnop(r)}</td>
-      <td class="num"><b>${r.n}</b></td><td class="num">${wvGetal(r.pd)}</td><td class="num">${r.doorloop == null ? '–' : wvGetal(r.doorloop) + ' wd'}</td><td>${WV_VOLGT}</td><td>${WV_VOLGT}</td><td>${WV_VOLGT}</td><td>${WV_VOLGT}</td><td class="num">${r.iu.length}</td></tr>`).join('')
-      || `<tr><td colspan="10" class="hint">${WV.bezig ? 'Gegevens ophalen…' : 'Geen afgehandelde meldingen in deze periode.'}</td></tr>`}</tbody></table></div>
-    <p class="hint">Per werkdag = afgehandeld gedeeld door de werkdagen in de periode (ma–vr, tot vandaag). Doorlooptijd = van instuurdatum tot afhandelen, in werkdagen. Klik op een rij voor het detail; klik op het team om het in te stellen.</p>
-    ${wvProefHtml()}</div>`;
+      <td class="num">${h ? r.actief + ' dgn' : WV_VOLGT}</td><td class="num"><b>${r.n}</b></td><td class="num">${h ? wvGetal(r.pdA) : wvGetal(r.pd)}</td><td class="num">${r.doorloop == null ? '–' : wvGetal(r.doorloop) + ' wd'}</td>
+      <td>${h ? wvPctHtml(r.ftr) : WV_VOLGT}</td><td>${h ? wvZelfDoor(r) : WV_VOLGT}</td><td class="num">${h ? r.ontv.length : WV_VOLGT}</td><td>${h ? wvPctHtml(r.norm, 85, 70) : WV_VOLGT}</td><td class="num">${r.iu.length}</td></tr>`).join('')
+      || `<tr><td colspan="11" class="hint">${WV.bezig ? 'Gegevens ophalen…' : 'Geen afgehandelde meldingen in deze periode.'}</td></tr>`}</tbody></table></div>
+    <p class="hint">Actief = dagen met minstens één actie in AFAS. Per dag = afgehandeld per actieve dag. Doorlooptijd = van instuurdatum tot afhandelen (mediaan, werkdagen). First time right = afgehandeld zonder het zelf door te zetten en zonder heropenen. Doorgezet = Toewijzen aan collega. Binnen norm = als eerste opgepakt binnen ${INST.nieuwUren} werkuren. Klik op een rij voor het detail; klik op het team om het in te stellen.</p>
+    ${WVL.fout ? `<p class="fout">Workflowhistorie ophalen lukte niet (${esc(INST.connWorkflowlog)}): ${esc(WVL.fout)}</p>` : ''}</div>`;
 }
 function wvDetail(b, c){
-  const r = c.rijen.find(x => zelfdePersoon(x.naam, WV.wie)) || {naam: WV.wie, af: [], iu: [], n: 0, pd: 0, doorloop: null, team: wvTeamVan(WV.wie)};
+  const r = c.rijen.find(x => zelfdePersoon(x.naam, WV.wie)) || {naam: WV.wie, af: [], iu: [], n: 0, pd: 0, doorloop: null, team: wvTeamVan(WV.wie), door: [], ontv: []}, h = c.h;
+  const opSb = new Map(items.filter(x => x.sbid != null).map(x => [String(x.sbid), x]));
+  const naarWie = h ? [...r.door.reduce((m, a) => m.set(a.naar, (m.get(a.naar) || 0) + 1), new Map())].sort((a, z) => z[1] - a[1]) : [];
+  const doorType = new Map(); if(h) r.door.forEach(a => { const x = opSb.get(a.sb), t = (x && x.type) || 'Onbekend'; doorType.set(t, (doorType.get(t) || 0) + 1); });
   const i = c.rijen.findIndex(x => zelfdePersoon(x.naam, WV.wie)), vorige = c.rijen[i - 1], volgende = c.rijen[i + 1];
   const tegel = (t, n, sub) => `<div class="rap-tegel"><span>${t}</span><b>${n}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
   // per week (of per dag bij een korte periode)
@@ -4130,52 +4176,22 @@ function wvDetail(b, c){
   for(let t = +b.van; t < +b.tot && t < Date.now(); t += stap * DAG) emmers.push({van: t, tot: t + stap * DAG});
   emmers.forEach(e => { e.n = r.af.filter(x => +x.statusDatum >= e.van && +x.statusDatum < e.tot).length; });
   const max = Math.max(1, ...emmers.map(e => e.n));
-  const perType = [...r.af.reduce((m, x) => m.set(x.type || 'Onbekend', (m.get(x.type || 'Onbekend') || 0) + 1), new Map())].sort((a, z) => z[1] - a[1]);
-  const maxT = Math.max(1, ...perType.map(t => t[1]));
+  const zelfType = r.af.reduce((m, x) => m.set(x.type || 'Onbekend', (m.get(x.type || 'Onbekend') || 0) + 1), new Map());
+  const perType = [...new Set([...zelfType.keys(), ...doorType.keys()])].map(t => [t, zelfType.get(t) || 0, doorType.get(t) || 0]).sort((a, z) => (z[1] + z[2]) - (a[1] + a[2]));
   const lijst = [...r.af, ...r.iu].sort((a, z) => +(z.statusDatum || z.iuDatum || 0) - +(a.statusDatum || a.iuDatum || 0));
   $('#lijst').innerHTML = `<p class="bh-terug"><button type="button" class="linkknop" data-wvterug>‹ Werkverdeling</button></p>
     <div class="rap">${wvKop(b)}
     <div class="wv-kopmens"><span class="wv-ini groot">${esc(initialen(r.naam))}</span><div><b>${esc(r.naam)}</b><small>${esc(r.team || 'geen team ingesteld')} · ${c.dagen} werkdagen in deze periode</small></div><span style="flex:1"></span>
       ${vorige ? `<button type="button" class="chipknop2" data-wvwie="${esc(vorige.naam)}">‹ ${esc(vorige.naam.split(' ')[0])}</button>` : ''}${volgende ? `<button type="button" class="chipknop2" data-wvwie="${esc(volgende.naam)}">${esc(volgende.naam.split(' ')[0])} ›</button>` : ''}</div>
-    <div class="rap-tegels">${tegel('Afgehandeld', r.n, `${wvGetal(r.pd)} per werkdag · team ${wvGetal(c.pd)}`)}${tegel('Doorlooptijd', r.doorloop == null ? '–' : wvGetal(r.doorloop) + ' wd', `team ${c.doorloop == null ? '–' : wvGetal(c.doorloop) + ' wd'}`)}${tegel('First time right', WV_VOLGT)}${tegel('Doorgezet', WV_VOLGT)}${tegel('Ontvangen', WV_VOLGT)}${tegel('In- en uitdiensten', r.iu.length, 'afgerond')}</div>
+    <div class="rap-tegels wv-tegels">${tegel('Afgehandeld', r.n, h ? `${wvGetal(r.pdA)} per actieve dag · ${r.actief} dagen actief` : `${wvGetal(r.pd)} per werkdag · team ${wvGetal(c.pd)}`)}${tegel('Doorlooptijd', r.doorloop == null ? '–' : wvGetal(r.doorloop) + ' wd', `team ${c.doorloop == null ? '–' : wvGetal(c.doorloop) + ' wd'}`)}${tegel('First time right', h ? (r.ftr == null ? '–' : r.ftr + '%') : WV_VOLGT, h ? `team ${h.ftr == null ? '–' : h.ftr + '%'}` : '')}${tegel('Doorgezet', h ? r.door.length : WV_VOLGT, h ? 'naar een collega' : '')}${tegel('Ontvangen', h ? r.ontv.length : WV_VOLGT, h ? 'van collega’s' : '')}${tegel('Binnen norm', h ? (r.norm == null ? '–' : r.norm + '%') : WV_VOLGT, h ? `team ${h.norm == null ? '–' : h.norm + '%'} · ${r.oppakN} als eerste opgepakt` : '')}${tegel('In- en uitdiensten', r.iu.length, 'afgerond')}</div>
     <div class="rap-raster"><div class="rap-kaart rap-breed"><h3>Afgehandeld per ${stap === 7 ? 'week' : 'dag'}</h3>
       <div class="wv-staven">${emmers.map(e => `<div class="wv-staaf" title="${e.n} afgehandeld"><b>${e.n || ''}</b><i style="height:${Math.round(e.n / max * 100)}%"></i><small>${stap === 7 ? 'wk ' + weekNr(new Date(e.van)) : fmtDatum(new Date(e.van)).slice(0, 5)}</small></div>`).join('')}</div></div>
-      <div class="rap-kaart"><h3>Per type melding</h3>${perType.length ? perType.map(([t, n]) => `<div class="wv-typerij"><span>${esc(t)}</span><span class="wv-balk"><i style="width:${Math.round(n / maxT * 100)}%"></i></span><b>${n}</b></div>`).join('') : '<p class="hint">Niets afgehandeld in deze periode.</p>'}
-        <p class="hint">Zelf opgelost of doorgezet per type volgt met de workflowhistorie.</p></div>
-      <div class="rap-kaart"><h3>Doorgezet naar</h3><p class="hint">Volgt zodra de AFAS-connector op de workflowhistorie er is.</p></div>
+      <div class="rap-kaart"><h3>Per type melding</h3>${perType.length ? perType.map(([t, z, d]) => `<div class="wv-typerij"><span>${esc(t)}</span><span class="wv-balk wv-zd"><i style="width:${z / ((z + d) || 1) * 100}%;background:var(--groen)"></i><i style="width:${d / ((z + d) || 1) * 100}%;background:#E8590C"></i></span><b>${z} · ${d}</b></div>`).join('') : '<p class="hint">Niets afgehandeld in deze periode.</p>'}
+        <p class="hint">Groen zelf afgehandeld · oranje doorgezet naar een collega</p></div>
+      <div class="rap-kaart"><h3>Doorgezet naar</h3>${!h ? '<p class="hint">Workflowhistorie wordt opgehaald…</p>' : naarWie.length ? naarWie.map(([n, k]) => `<div class="wv-typerij"><span class="wv-mens"><span class="wv-ini">${esc(initialen(n))}</span>${esc(n)}</span><span></span><b>${k}</b></div>`).join('') : '<p class="hint">Niets doorgezet in deze periode.</p>'}</div>
+      ${h && r.door.length ? `<div class="rap-kaart rap-breed"><h3>Doorgezette meldingen (${r.door.length})</h3><div class="wv-lijst">${[...r.door].reverse().map(a => { const x = opSb.get(a.sb); return `<button type="button" class="wv-melding"${x ? ` data-wvopen="${esc(x.nr)}"` : ''}><span class="nr">${esc(x ? nrT(x) : '#' + a.sb)}</span><span class="ond">${esc(x ? x.onderwerp || '' : 'melding niet in SubmIT geladen')}</span><span class="zacht">naar ${esc(a.naar)}</span><span class="zacht">${fmtDatum(a.t)}</span></button>`; }).join('')}</div></div>` : ''}
       <div class="rap-kaart rap-breed"><h3>Afgehandeld in deze periode (${lijst.length})</h3>${lijst.length ? `<div class="wv-lijst">${lijst.map(x => `<button type="button" class="wv-melding" data-wvopen="${esc(x.nr)}"><span class="nr">${esc(nrT(x))}</span><span class="ond">${esc((x.inuit ? '[In-/uitdienst] ' : '') + (x.onderwerp || ''))}</span><span class="zacht">${esc(x.inuit ? (x.richting === 'uit' ? 'Uit dienst' : 'In dienst') : x.type || '')}</span><span class="zacht">${fmtDatum(x.statusDatum || x.iuDatum)}</span></button>`).join('')}</div>` : '<p class="hint">Geen meldingen.</p>'}</div></div></div>`;
 }
-// proef: de eerste regels van de workflowhistorie zoals AFAS ze levert (om de berekening op af te stemmen)
-const WVP = {rijen: null, fout: '', bezig: false, open: false};
-async function wvProefLaad(){
-  if(WVP.bezig) return; WVP.bezig = true; WVP.fout = ''; if(tab === 'werkverdeling') tekenWerkverdeling();
-  // alleen ICT-workflows (Aanvraag ICT, in- en uitdienst): filter 'bevat ICT' op de workflowomschrijving
-  const f = `&filterfieldids=Workflow_omschrijving&filtervalues=ICT&operatortypes=6`;
-  try{ let d; try{ d = await afas(`/connectors/${encodeURIComponent(INST.connWorkflowlog)}?skip=0&take=2000${f}&orderbyfieldids=-Begindatum`); }
-      catch(e){ d = await afas(`/connectors/${encodeURIComponent(INST.connWorkflowlog)}?skip=0&take=2000${f}`); }
-    WVP.rijen = d.rows || []; }
-  catch(e){ WVP.fout = e.message; WVP.rijen = null; }
-  WVP.bezig = false; if(tab === 'werkverdeling') tekenWerkverdeling();
-}
-function wvProefHtml(){
-  const voor = ['Dossieritem', 'Gebruiker_door', 'Gebruiker_naar', 'Begindatum', 'Workflow_omschrijving', 'Taak_omschrijving', 'Bijschrift', 'Actietype_omschrijving', 'Status_omschrijving'];
-  const alle = WVP.rijen && WVP.rijen.length ? Object.keys(WVP.rijen[0]) : [], kol = [...voor.filter(k => alle.includes(k)), ...alle.filter(k => !voor.includes(k))];
-  // samenvatting: welke acties komen voor, hoe vaak, en hoe vaak is 'Gebruiker naar' gevuld
-  const sam = new Map(); (WVP.rijen || []).forEach(r => { const k = [r.Workflow_omschrijving, r.Taak_omschrijving, r.Bijschrift, r.Actietype_omschrijving].map(v => String(v ?? '').trim()).join(' | ');
-    const o = sam.get(k) || {n: 0, naar: 0}; o.n++; if(String(r.Gebruiker_naar ?? '').trim()) o.naar++; sam.set(k, o); });
-  const samL = [...sam].sort((a, z) => z[1].n - a[1].n);
-  const periode = WVP.rijen && WVP.rijen.length ? `${fmtDatum(new Date(WVP.rijen[WVP.rijen.length - 1].Begindatum))} t/m ${fmtDatum(new Date(WVP.rijen[0].Begindatum))}` : '';
-  const cel = v => { const t = v == null ? '' : String(v); return esc(/^\d{4}-\d\d-\d\dT/.test(t) ? fmtDatum(new Date(t)) + ' ' + t.slice(11, 16) : t); };
-  return `<details class="rap-kaart wv-proef" data-wvproef ${WVP.open ? 'open' : ''}><summary><b>Proef: workflowhistorie uit AFAS</b> <span class="hint">${esc(INST.connWorkflowlog)}</span></summary>
-    <p class="hint">Alleen ICT-workflows: welke acties er zijn en de nieuwste regels. Hiermee stem ik doorzetten en first time right af; daarna verdwijnt dit blok.</p>
-    <p><button type="button" class="knop" data-wvproefhaal>${WVP.bezig ? 'Ophalen…' : WVP.rijen ? 'Opnieuw ophalen' : 'Ophalen'}</button></p>
-    ${WVP.fout ? `<p class="fout">Ophalen lukte niet: ${esc(WVP.fout)}</p>` : ''}
-    ${WVP.rijen && WVP.rijen.length ? `<p class="hint">${WVP.rijen.length} regels (ICT-workflows) · ${periode}</p><h3>Acties en hoe vaak ze voorkomen</h3>
-      <div class="wv-tabel-wrap"><table class="wv-tabel wv-proeftabel"><thead><tr><th>Workflow | Taak | Bijschrift (actie) | Actietype</th><th>Aantal</th><th>Met ‘Gebruiker naar’</th></tr></thead><tbody>${samL.map(([k, o]) => `<tr><td>${esc(k)}</td><td class="num">${o.n}</td><td class="num">${o.naar}</td></tr>`).join('')}</tbody></table></div><h3>De nieuwste 15 regels</h3>` : ''}
-    ${WVP.rijen ? (WVP.rijen.length ? `<div class="wv-tabel-wrap"><table class="wv-tabel wv-proeftabel"><thead><tr>${kol.map(k => `<th>${esc(k)}</th>`).join('')}</tr></thead><tbody>${WVP.rijen.slice(0, 15).map(r => `<tr>${kol.map(k => `<td>${cel(r[k])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : '<p class="hint">De connector werkt, maar gaf geen regels terug.</p>') : ''}</details>`;
-}
-document.addEventListener('toggle', e => { if(e.target.matches && e.target.matches('[data-wvproef]')){ WVP.open = e.target.open; if(WVP.open && !WVP.rijen && !WVP.bezig && !WVP.fout) wvProefLaad(); } }, true);
-document.addEventListener('click', e => { if(tab === 'werkverdeling' && e.target.closest('[data-wvproefhaal]')) wvProefLaad(); });
 const weekNr = d => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const dg = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - dg); const j = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - j) / DAG + 1) / 7); };
 document.addEventListener('click', e => {
   if(tab !== 'werkverdeling') return;
@@ -7000,6 +7016,7 @@ document.addEventListener('click', e => { const m = $('#tdmenu'); if(!m || m.hid
   if(k){ if(k.dataset.tdm === 'hernoem') tdHernoem(m.dataset.lijst); else tdVerwijderLijst(m.dataset.lijst); } }, true);
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && $('#tdmenu') && !$('#tdmenu').hidden) $('#tdmenu').hidden = true; });
 let tdNavSleutel = '';
+const tdBlokKop = (t, n) => { $('#todo-titel').textContent = t; const b = $('#todo-n'); b.hidden = n == null; b.textContent = n ?? ''; };
 function tdTeken(){
   if(tab === 'mij' && typeof profiel !== 'undefined' && profiel && !$('#v-mij').hidden) tekenMij();   // To-do op het overzicht bijwerken
   const aantal = TD.status === 'ok' ? TD.data.taken.filter(t => !t.klaar).length : 0;
@@ -7032,10 +7049,11 @@ function tdTeken(){
     + (vastL ? knop(vastL.id, 'Taken', tel(t => t.lijst === vastL.id), TD_ALLE) : '') + '<hr class="tdscheid">'
     + d.lijsten.filter(l => !l.vast).map(l => knop(l.id, l.naam, tel(t => t.lijst === l.id), TD_LIJST, l)).join('') +
     `<span class="lijstnieuw"><input id="todo-nieuwe-lijst" placeholder="+ Nieuwe lijst"></span>`;
-  if(TD.lijst === 'mij'){ const pl = (TD.planner || []).filter(t => !q || norm(t.titel + ' ' + t.plan).includes(q));
+  if(TD.lijst === 'mij'){ const pl = (TD.planner || []).filter(t => !q || norm(t.titel + ' ' + t.plan).includes(q)); tdBlokKop('Toegewezen aan mij', TD.planner === null ? null : pl.length);
     $('#todo-open').innerHTML = TD.planner === null ? '<p class="todo-leeg">Taken uit Planner ophalen…</p>' : pl.length ? pl.map(t => `<div class="taak"><button type="button" class="tdvink" data-pvink="${esc(t.id)}" aria-label="Afvinken in Planner">${TD_VINK}</button><span class="titel"><a href="https://tasks.office.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${esc(t.titel)}</a><small>${esc(t.plan || '')}</small></span>${tdDl(t.deadline)}<span></span><span></span></div>`).join('') : `<p class="todo-leeg">${TD.plannerFout ? 'Planner ophalen lukte niet: ' + esc(TD.plannerFout) : 'Geen taken aan jou toegewezen.'}</p>`;
     $('#todo-klaar').hidden = true; tdWissel(false); return; }
   const open = d.taken.filter(t => !t.klaar && inLijst(t)).sort(tdSorteer), klaar = d.taken.filter(t => t.klaar && inLijst(t)).sort((a, b) => (b.klaarOp || '').localeCompare(a.klaarOp || ''));
+  tdBlokKop(TD.lijst === 'belangrijk' ? 'Belangrijk' : TD.lijst === 'alle' ? 'Alle taken' : (d.lijsten.find(l => l.id === TD.lijst) || {}).vast ? 'Taken' : (d.lijsten.find(l => l.id === TD.lijst) || {naam: 'To-do'}).naam, open.length);
   tdWissel(true);
   if(TD.weergave === 'tijdlijn'){   // tijdlijn: wanneer moet wat af (balk van aanmaken tot deadline); zonder deadline onderaan
     $('#todo-open').innerHTML = open.length ? `<div class="td-tlscroll">${tdTijdlijn(open)}</div>` : `<p class="todo-leeg">${q ? `Geen to-do’s gevonden voor “${esc(filt.zoek)}”.` : 'Geen open to-do’s.'}</p>`;
@@ -8621,6 +8639,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.98', d: '29-10-2026', groot: true, p: ['To-do staat in hetzelfde blok als Changes en Projecten: titel en aantal bovenin, je lijsten links in het blok.', 'Werkverdeling compleet met de workflowhistorie uit AFAS: actieve dagen, first time right, zelf afgehandeld tegenover doorgezet, ontvangen van collega’s en als eerste opgepakt binnen de norm. In het detail: naar wie iemand doorzet en welke meldingen.']},
   {v: 'v7.97', d: '29-10-2026', p: ['To-do: je lijsten staan in een eigen paneel links in het to-do-vlak, niet meer in het menu. Het menu blijft kort.']},
   {v: 'v7.96', d: '29-10-2026', p: ['Werkverdeling: het proefblok haalt alleen ICT-workflows op en telt per actie hoe vaak die voorkomt.']},
   {v: 'v7.95', d: '29-10-2026', p: ['Werkverdeling: nieuwe connector PowerBI_ICT_Workflowlog (Log van acties in workflow) staat onder Connectoren & velden, met een proefblok om de gegevens te bekijken.']},
@@ -8926,6 +8945,13 @@ function laadKaart(naam){
 
 /* ================= demodata (alleen met ?demo in de adresbalk) ================= */
 function demoAfas(pad, opties){
+  if(pad.startsWith(`/connectors/${INST.connWorkflowlog}`)){   // demo: workflowhistorie afgeleid van de meldingen (oppakken, soms eerst doorzetten, afhandelen)
+    const iso = t => new Date(t).toISOString().slice(0, 19), mensen = [...new Set(items.map(x => x.verantw).filter(Boolean))], rows = [];
+    items.filter(x => !x.inuit && x.sbid != null && x.verantw && x.aangemaakt).forEach((x, i) => { const t0 = +x.aangemaakt + (i % 4 ? 1 : 5) * UUR, r = (t, door, act, at, naar = '') => rows.push({Dossieritem: x.sbid, Gebruiker_door: door, Gebruiker_naar: naar, Begindatum: iso(t), Workflow_omschrijving: 'Aanvraag ICT', Taak_omschrijving: 'In behandeling', Bijschrift: act, Actietype: at});
+      const ander = mensen.find(m => m !== x.verantw && (i % 3 === 0)) || '';
+      if(ander){ r(t0, ander, 'Toewijzen aan mij', 108); r(t0 + UUR, ander, 'Toewijzen aan collega', 109, x.verantw); } else r(t0, x.verantw, 'Toewijzen aan mij', 108);
+      if(x.afgesloten && x.statusDatum) r(+x.statusDatum, x.verantw, 'Afhandelen', 1); });
+    return {rows: rows.sort((a, z) => z.Begindatum.localeCompare(a.Begindatum))}; }
   if(pad.startsWith(`/connectors/${INST.connInUit}`)){ const d = n => new Date(Date.now() + n * DAG - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10) + 'T00:00:00Z';
     return {rows: [
       {Instuurdatum: d(-30), Omschrijving: 'ICT In- en uitdienst', Onderwerp: 'Medewerker uit dienst', Gebruiker: 'Joyce Peeters', Verantwoordelijke: '', Nummer: 1642, Workflow_afgerond: false, Status: 'ICT', Extern_ticket: 'Yvonne Meekel - van Tilburg', Kostendrager: '572916', Dossieritem: null, Uitdienst_datum: d(24), Gegevensbewaring: 'Niets bewaren', Mailbox_overdragen_aan: '', Afgerond: ''},
