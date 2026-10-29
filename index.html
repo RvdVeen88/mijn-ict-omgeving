@@ -1632,7 +1632,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.99', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.00', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -7585,12 +7585,14 @@ function meldInUit(){
 // klein wolkje naast het Team-icoon (4 s); niet bij Niet storen of als het Team-paneel al open is
 let wolkT = 0;
 function teamWolk(tekst, online){
-  const k = $('#team-knop'), p = $('#teampaneel'); if(!k || nietStoren || (p && !p.hidden) || !k.offsetParent) return;
+  const k = $('#team-knop'), p = $('#teampaneel'); if(!k || nietStoren || document.hidden || (p && !p.hidden) || !k.offsetParent) return;   // tabblad op de achtergrond: niet tonen (anders blijft hij hangen)
   let w = $('#teamwolk'); if(!w){ document.body.insertAdjacentHTML('beforeend', '<div class="teamwolk" id="teamwolk" role="status" aria-live="polite"><i></i><span></span></div>'); w = $('#teamwolk'); }
   const r = k.getBoundingClientRect(); w.style.left = (r.right + 10) + 'px'; w.style.top = (r.top + r.height / 2 - 14) + 'px';
   w.querySelector('span').textContent = tekst; w.classList.toggle('uit', !online);
-  requestAnimationFrame(() => w.classList.add('aan')); clearTimeout(wolkT); wolkT = setTimeout(() => w.classList.remove('aan'), 4000);
+  clearTimeout(wolkT); requestAnimationFrame(() => { w.classList.add('aan'); clearTimeout(wolkT); wolkT = setTimeout(() => w.classList.remove('aan'), 4000); });   // de 4 s gaan pas in als hij echt te zien is
 }
+document.addEventListener('visibilitychange', () => { const w = $('#teamwolk'); if(w && document.hidden){ clearTimeout(wolkT); w.classList.remove('aan'); } });
+document.addEventListener('click', e => { const w = $('#teamwolk'); if(w && w.classList.contains('aan') && !e.target.closest('#teamwolk')){ clearTimeout(wolkT); w.classList.remove('aan'); } }, true);
 function tekenAanwezig(){
   // in de lijsten: oogje achter het meldingnummer
   document.querySelectorAll('tr[data-nr]').forEach(tr => { const a = anderenOp(tr.dataset.nr), td = tr.querySelector('td.ond') || tr.querySelector('td.nr'); if(!td) return;
@@ -8653,6 +8655,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.00', d: '29-10-2026', p: ['Het wolkje “… is online/offline” naast het Team-icoon blijft niet meer hangen: het verdwijnt na 4 seconden, bij een klik, en verschijnt niet als SubmIT op de achtergrond staat.']},
   {v: 'v7.99', d: '29-10-2026', p: ['Werkverdeling: in- en uitdiensten tellen voor wie ze in AFAS echt afrondde, op de datum van afronden (uit de workflowhistorie). Afgehandeld is nu meldingen plus in- en uitdiensten; beide staan ook apart in de tabel.']},
   {v: 'v7.98', d: '29-10-2026', groot: true, p: ['To-do staat in hetzelfde blok als Changes en Projecten: titel en aantal bovenin, je lijsten links in het blok.', 'Werkverdeling compleet met de workflowhistorie uit AFAS: actieve dagen, first time right, zelf afgehandeld tegenover doorgezet, ontvangen van collega’s en als eerste opgepakt binnen de norm. In het detail: naar wie iemand doorzet en welke meldingen.']},
   {v: 'v7.97', d: '29-10-2026', p: ['To-do: je lijsten staan in een eigen paneel links in het to-do-vlak, niet meer in het menu. Het menu blijft kort.']},
