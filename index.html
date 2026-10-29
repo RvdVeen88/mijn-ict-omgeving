@@ -196,7 +196,7 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 @media (max-width:800px){.todo-indeling{grid-template-columns:minmax(0,1fr)}.todo-kop{position:static}}
 .todo-kop{display:flex;flex-direction:column;gap:14px;position:sticky;top:12px}
 .todo-indeling:not(:has(> .todo-kop)){grid-template-columns:minmax(0,1fr)}
-.tdnav .todo-kop{position:static;gap:10px}
+.tdnav .todo-kop{position:static;gap:10px}.tdnav{margin:2px 0 6px}.tdnav .todo-lijsten{gap:1px}.tdnav .tdlijst{padding-left:34px!important;font-size:13.5px}.tdnav .tdlijst[aria-pressed="true"]{background:var(--lichtblauw-2);color:var(--blauw)}.tdnav .tdlijst[aria-pressed="true"] b{background:var(--vlak);color:var(--blauw)}:root[data-thema="donker"] .tdnav .tdlijst[aria-pressed="true"]{background:#1B2A4A;color:#CFE0FF}.tdnav .todo-bestand{padding-left:34px}
 #v-todo:not(:has(.todo-kop)) .todo-rechts{margin-top:14px}
 .tdnav .tdlijst{gap:9px;padding:7px 12px}.tdnav .tdlijst svg{width:16px;height:16px}
 .tdnav .tdlijst b{font-size:12px;min-width:24px;text-align:center}
@@ -1395,6 +1395,7 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
 #aidlg{width:min(860px,94vw)}.ai-regels{font-weight:400;color:var(--grijs);font-size:13px;line-height:1.5}
 .rap{padding:0 26px 20px}.rap-kop{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:4px 0 12px}.rap-periodes{display:flex;flex-wrap:wrap;gap:6px}
 .chipknop2{border:1px solid var(--lijn);background:transparent;border-radius:999px;padding:4px 12px;font:inherit;font-size:12.5px;color:var(--inkt);cursor:default}.chipknop2[aria-pressed="true"]{background:var(--blauw);border-color:var(--blauw);color:#fff}
+.wv-kop{flex-wrap:wrap}.wv-eigen{display:inline-flex;align-items:center;gap:6px;font-size:13px}.wv-eigen input{font:inherit;font-size:13px;border:1px solid var(--lijn);border-radius:8px;padding:3px 6px;background:var(--vlak);color:var(--inkt)}.wv-teams{margin:-2px 0 12px}.wv-volgt{font-size:12px;font-weight:500;color:var(--grijs);background:var(--zebra);border-radius:999px;padding:1px 8px}.rap-tegel .wv-volgt{font-size:13px;align-self:flex-start;margin:6px 0 4px}.rap-tegel small{font-size:11.5px;color:var(--grijs)}.wv-tabel-wrap{overflow-x:auto;border:1px solid var(--lijn);border-radius:14px;margin-bottom:8px}.wv-tabel{width:100%;min-width:820px;border-collapse:collapse}.wv-tabel th{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--grijs);font-weight:600;text-align:left;padding:10px 9px;border-bottom:1px solid var(--lijn);white-space:nowrap}.wv-tabel td{padding:9px 9px;border-bottom:1px solid var(--zebra);font-size:13.5px;white-space:nowrap}.wv-tabel{table-layout:auto}.wv-proef{margin-top:14px}.wv-proef summary{cursor:default}.wv-proeftabel{min-width:0}.wv-proeftabel td{font-size:12px;max-width:260px;overflow:hidden;text-overflow:ellipsis}.wv-tabel tbody tr:last-child td{border-bottom:0}.wv-tabel tbody tr[data-wvwie]:hover{background:var(--bg3);cursor:default}.wv-tabel .num{text-align:right}.wv-mens{display:inline-flex;align-items:center;gap:9px}.wv-ini{flex:none;width:30px;height:30px;border-radius:50%;background:var(--lichtblauw-2);color:var(--blauw);font-size:11.5px;font-weight:600;display:inline-grid;place-items:center}.wv-ini.groot{width:48px;height:48px;font-size:17px}.wv-team{font:inherit;font-size:12px;border:1px solid var(--lijn);background:var(--vlak);color:var(--inkt);border-radius:999px;padding:1px 10px}.wv-team.leeg{color:var(--grijs);border-style:dashed}.wv-kopmens{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 12px}.wv-kopmens b{display:block;font-size:20px;font-weight:500;color:var(--blauw)}.wv-kopmens small{color:var(--grijs);font-size:12.5px}.wv-staven{display:flex;align-items:flex-end;gap:10px;height:170px;padding-top:6px}.wv-staaf{flex:1;max-width:56px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px}.wv-staaf i{display:block;width:100%;min-height:2px;background:var(--lichtblauw);border-radius:6px 6px 0 0}.wv-staaf b{font-size:11.5px;color:var(--blauw)}.wv-staaf small{font-size:11px;color:var(--grijs);white-space:nowrap}.wv-typerij{display:grid;grid-template-columns:minmax(0,140px) 1fr 34px;gap:10px;align-items:center;font-size:13px;margin:6px 0}.wv-typerij span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wv-typerij b{text-align:right;font-weight:600}.wv-balk{height:10px;background:var(--zebra);border-radius:4px;overflow:hidden}.wv-balk i{display:block;height:100%;background:var(--blauw-2)}.wv-lijst{display:flex;flex-direction:column}.wv-melding{display:grid;grid-template-columns:70px minmax(0,1fr) 150px 96px;gap:12px;align-items:center;border:0;border-top:1px solid var(--zebra);background:transparent;font:inherit;font-size:13.5px;color:var(--inkt);text-align:left;padding:8px 4px}.wv-melding:hover{background:var(--bg3)}.wv-melding .nr{color:var(--blauw);font-weight:600}.wv-melding .ond{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wv-melding .zacht{color:var(--grijs);font-size:12.5px}
 .rap-tegels{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
 .rap-tegel{border:1px solid var(--lijn);border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:2px}.rap-tegel span{font-size:12px;color:var(--grijs)}.rap-tegel b{font-size:24px;color:var(--blauw);line-height:1.15}
 .rap-tegel small,.rap-staaf small{font-size:11.5px;color:var(--grijs)}.rap-tegel small.op,.rap-staaf small.op{color:var(--rood)}.rap-tegel small.af,.rap-staaf small.af{color:var(--groen,#2e7d32)}
@@ -1493,7 +1494,7 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
     <button type="button" class="r" id="kb-knop" title="Kennisbank: instructies zoeken, openen en meesturen" aria-label="Kennisbank"><img class="todo-logo" src="kennisbank.png" alt="" hidden onload="this.hidden=false;this.nextElementSibling.style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 4.9 6.6 4.4 3 5v13c3.6-.6 7 0 9 1.6"/><path d="M12 6.5c2-1.6 5.4-2.1 9-1.5v13c-3.6-.6-7 0-9 1.6z"/><path d="M12 6.5v13.1"/><path class="acc" d="M5.8 9c1.6-.2 3 .1 4 .6M5.8 12.2c1.6-.2 3 .1 4 .6M14.2 9.6c1-.5 2.4-.8 4-.6M14.2 12.8c1-.5 2.4-.8 4-.6"/></svg></button>
     <button type="button" class="r" id="rap-knop" data-weergave="rapport" title="Rapportage: aantallen, trends en een AI-analyse" aria-label="Rapportage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
   </nav>
-  <aside class="nav" id="nav"></aside><aside class="nav tdnav" id="tdnav" aria-label="To-do-lijsten" hidden></aside><div class="navscherm" id="navscherm"></div>
+  <aside class="nav" id="nav"></aside><div class="tdnav" id="tdnav" role="group" aria-label="To-do-lijsten" hidden></div><div class="navscherm" id="navscherm"></div>
   <div class="werk">
     <div class="bovenbalk">
       <button type="button" class="menuknop" id="menu-knop" aria-label="Menu" aria-controls="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
@@ -1595,6 +1596,7 @@ const INST = Object.assign({
   ticketUrl: 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}',   // leeg = geen link
   connReacties: 'Helpdesk_Reacties',
   feedbackNaar: 'Robert van der Veen',                        // feedback uit de app komt als melding bij deze verantwoordelijke
+  connWorkflowlog: 'PowerBI_ICT_Workflowlog',                  // Log van acties in workflow: wie deed welke actie, door wie naar wie (Beheer › Werkverdeling)
   connInUit: 'PowerBI_ICT_InUitdienst',                         // dossieritems ICT In- en uitdienst met hun eigen velden
   connBerichten: 'PowerBI_ICT_Berichten',                          // mailcontrole: GetConnector op gegevensverzameling Berichten (welke mails AFAS echt verstuurde)
   connProjecten: 'PowerBI_PBI_Team',
@@ -1621,7 +1623,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.92', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v7.95', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2751,10 +2753,11 @@ function vliegRij(van, doelEl, echteRij, wacht){
   anim.onfinish = () => { kloon.remove(); doelEl.style.visibility = ''; doelEl.classList.add('aankomst'); setTimeout(() => doelEl.classList.remove('aankomst'), 1200); };
 }
 let overigeOpen = !!opslag.get('mict-overige-open');   // per gebruiker onthouden
-// To-do: de lijsten staan in dezelfde zijbalk als het meldingenmenu (zelfde breedte, uitlijning en knoppen); op smalle schermen boven de taken
+// To-do: het hoofdmenu blijft staan; de lijsten klappen open onder To-do in het menu (op smalle schermen boven de taken)
 const SMAL = matchMedia('(max-width:1000px)');
 function plaatsTdMenu(){
-  const kop = document.querySelector('.todo-kop'), zij = $('#tdnav'), naarZij = tab === 'todo' && !SMAL.matches;
+  const kop = document.querySelector('.todo-kop'), zij = $('#tdnav'), plek = $('#nav [data-weergave="todo"]'), naarZij = tab === 'todo' && !SMAL.matches && !!plek;
+  if(naarZij){ if(zij.previousElementSibling !== plek) plek.after(zij); } else if($('#nav').contains(zij)) $('#nav').after(zij);
   zij.hidden = !naarZij; if(!kop) return;
   if(naarZij && kop.parentElement !== zij) zij.appendChild(kop);
   if(!naarZij && kop.parentElement === zij) document.querySelector('.todo-indeling').prepend(kop);
@@ -2762,9 +2765,10 @@ function plaatsTdMenu(){
 SMAL.addEventListener('change', () => plaatsTdMenu());
 $('#detail').addEventListener('close', () => { const p = $('#kbpaneel'); if(p && p.parentElement === $('#detail') && !p.hidden) kbDicht(); });
 function tekenNav(){
+  { const zij = $('#tdnav'); if(zij && $('#nav').contains(zij)) $('#nav').after(zij); }   // de to-do-lijsten bewaren: ze staan (bij To-do) in het menu
   const mini = id => `<span class="minischak" role="group" aria-label="Mij of alles">${['mij','alles'].map(v => `<span role="button" tabindex="0" data-mijalles="${id}" data-v="${v}" aria-pressed="${(v === 'mij') === schuifAan(id)}" title="${v === 'mij' ? 'Alleen mijn meldingen en wat bij niemand ligt' : 'Alle meldingen'}">${v === 'mij' ? 'Mij' : 'Alle'}</span>`).join('')}</span>`;
   const it = (id, t, n, o = {}) => { const ongL = o.ongLijst || (o.ongelezen ? open() : []), ong = ongL.filter(x => (x._sg || []).some(s => s.code === 'ongelezen')).length;   // bolletje alleen voor wat in deze weergave staat
-    return `<button type="button"${o.sleep ? ` draggable="true" data-sleep="${o.sleep}"` : ''} class="it${o.cls ? ' ' + o.cls : ''}${o.rood && n ? ' rinkel' : ''}${(o.stuiter && n && profiel && profiel.rol === 'servicedesk') || ong ? ' stuiter' : ''}" data-weergave="${esc(id)}" aria-pressed="${tab === id || (id === 'beheer' && ['controle', 'beoordelingen', 'connectoren'].includes(tab))}" ${o.titel ? `title="${esc(o.titel)}" ` : ''}${ong ? `title="${ong} melding${ong === 1 ? '' : 's'} met iets nieuws voor jou"` : ''}>${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${o.mini || ''}${n == null ? (ong ? '<b class="stip leeg"></b>' : '') : `<b class="${o.rood && n ? 'rood' : ''}${ong ? ' stip' : ''}${o.laat ? ' laat' : ''}">${n}</b>`}</button>`; };
+    return `<button type="button"${o.sleep ? ` draggable="true" data-sleep="${o.sleep}"` : ''} class="it${o.cls ? ' ' + o.cls : ''}${o.rood && n ? ' rinkel' : ''}${(o.stuiter && n && profiel && profiel.rol === 'servicedesk') || ong ? ' stuiter' : ''}" data-weergave="${esc(id)}" aria-pressed="${tab === id || (id === 'beheer' && ['controle', 'beoordelingen', 'connectoren', 'werkverdeling'].includes(tab))}" ${o.titel ? `title="${esc(o.titel)}" ` : ''}${ong ? `title="${ong} melding${ong === 1 ? '' : 's'} met iets nieuws voor jou"` : ''}>${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${o.mini || ''}${n == null ? (ong ? '<b class="stip leeg"></b>' : '') : `<b class="${o.rood && n ? 'rood' : ''}${ong ? ' stip' : ''}${o.laat ? ' laat' : ''}">${n}</b>`}</button>`; };
   const fav = favorieten(), isFav = a => fav.some(x => norm(x) === norm(a));
   const afd = afdelingen();
   const rijA = ([a, n]) => `<div class="afdrij"><button type="button" class="favknop ${isFav(a) ? 'aan' : ''}" data-fav="${esc(a)}" title="${isFav(a) ? 'Uit favorieten halen' : 'Als favoriet bovenaan zetten'}">★</button>${it('afd:' + a, a, zichtbaar('afd:' + a, weergave('afd:' + a).lijst).length)}</div>`;
@@ -2800,6 +2804,7 @@ function tekenNav(){
     <h4><button type="button" id="k-overige" aria-expanded="${restOpen}">${ico('<path d="M6 9l6 6 6-6"/>')}Andere afdelingen (${rest.length})</button></h4>
     ${restOpen ? rest.map(rijA).join('') : ''}
     <h4>Overig</h4>${[ALLE, ...ONDER].map(v => v.id === 'alle' ? it(v.id, v.t, alleTelling(), {...v, titel: alleUitleg()}) : it(v.id, v.t, v.geenTel ? null : zichtbaar(v.id, v.f()).length, v)).join('')}${it(hist.id, hist.t, null, hist)}`;
+  try{ plaatsTdMenu(); }catch(e){}
 }
 
 /* ================= Overzicht: rustig voorblad met persoonlijke cijfers (zoals in Mijn changes) ================= */
@@ -2933,6 +2938,7 @@ function tekenLijst(){
   if(tab === 'rapport') return tekenRapport();
   if(tab === 'beheer'){ if(isBeheerder()) return tekenBeheer(); tab = 'mij'; return teken(); }
   if(tab === 'controle'){ if(isBeheerder()) return tekenControle(); tab = 'mij'; return teken(); }
+  if(tab === 'werkverdeling'){ if(isBeheerder()) return tekenWerkverdeling(); tab = 'mij'; return teken(); }
   if(tab === 'beoordelingen'){ if(isBeheerder()) return tekenBeoordelingen(); tab = 'mij'; return teken(); }
   if(tab === 'projecten') return tekenProjLijst();
   const v = weergave(tab), w = norm(filt.zoek), kanDicht = dichtVan(tab) !== null, dicht = kanDicht && toonDicht();
@@ -3304,7 +3310,7 @@ function tekenEcht(){
   $('#v-mij').hidden = tab !== 'mij' && tab !== 'connectoren'; $('#v-lijst').hidden = tab === 'mij' || tab === 'todo' || tab === 'connectoren'; $('#v-todo').hidden = tab !== 'todo';
   $('#meld-knop').setAttribute('aria-pressed', isLijstTab(tab)); $('#rap-knop').setAttribute('aria-pressed', tab === 'rapport');
   if(isLijstTab(tab) && meldPlek.tab !== tab){ meldPlek.tab = tab; meldPlek.scroll = 0; }   // onthouden in welke lijst je was (nooit het overzicht) 
-  $('#nav').hidden = tab === 'todo'; $('#menu-knop').hidden = tab === 'todo'; plaatsTdMenu();   // bij To-do hoort het meldingmenu er niet bij
+  plaatsTdMenu();   // het menu blijft altijd staan; bij To-do klappen de lijsten eronder open
   if(tab === 'mij'){ $('#titel').textContent = ''; tekenMij(); } else if(tab === 'connectoren') tekenConnectoren(); else if(tab === 'todo') tdTeken(); else tekenLijst();
   pasTabelBreedtes(); if(typeof tekenAanwezig === 'function') tekenAanwezig();
 }
@@ -4024,6 +4030,7 @@ const isBeheerder = () => !!profiel && !!INST.beheerder && benIk(INST.beheerder)
 /* ================= Beheer: alles wat alleen de beheerder doet, op één plek ================= */
 const BH_ICO = '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>';
 const beheerAandacht = () => { try{ return (CTRL.ict ? controleBevindingen().length : 0) + (PB.defs ? pbAchter().length : 0); }catch(e){ return 0; } };
+const WV_ICO = '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/><circle cx="18" cy="5" r="2.5"/>';
 const beheerTerug = () => '<p class="bh-terug"><button type="button" class="linkknop" data-weergave="beheer">‹ Beheer</button></p>';
 function tekenBeheer(){
   if(!PB.defs && !PB.bezig && !PB.fout) pbLaad(true);
@@ -4036,13 +4043,134 @@ function tekenBeheer(){
   $('#lijst').innerHTML = `<p class="ctrl-uitleg" style="margin-top:4px">Alles wat alleen jij als beheerder ziet en instelt. Wijzigingen gelden voor alle ICT-collega’s.</p>
   <h3 class="bh-kop">Bewaken</h3><div class="bh-raster">
     ${tegel('data-weergave="controle"', CTRL_ICO, 'Controle', 'Staat elke open melding bij een ICT-collega?', nC == null ? 'Bezig met controleren…' : nC ? `${nC} bevinding${nC === 1 ? '' : 'en'}` : '✓ Alles in orde', !!nC)}
-    ${tegel('data-weergave="beoordelingen"', PB_ICO, 'Periodieke taken', 'Controles en onderhoud die vast terugkomen, zoals een NEN 7510-beoordeling of een SSL-certificaat', nA == null ? (PB.fout ? 'Ophalen lukte niet' : 'Ophalen…') : `${nA} actief` + (nP ? ` · ${nP} achter` : ''), !!nP)}</div>
+    ${tegel('data-weergave="beoordelingen"', PB_ICO, 'Periodieke taken', 'Controles en onderhoud die vast terugkomen, zoals een NEN 7510-beoordeling of een SSL-certificaat', nA == null ? (PB.fout ? 'Ophalen lukte niet' : 'Ophalen…') : `${nA} actief` + (nP ? ` · ${nP} achter` : ''), !!nP)}
+    ${tegel('data-weergave="werkverdeling"', WV_ICO, 'Werkverdeling', 'Wie handelt wat af, en lost iemand zelf op of zet hij door?', '')}</div>
   <h3 class="bh-kop">Instellen</h3><div class="bh-raster">
     ${tegel('data-ikm="sjab"', '<path d="M4 5h16M4 10h16M4 15h10"/><path d="M17 14l3 3-5 5h-3v-3z"/>', 'Standaardteksten', 'Teksten in de keuzelijst onder het reactievak', [sjAangepast && `${sjAangepast} aangepast`, sjEigen && `${sjEigen} eigen`].filter(Boolean).join(' · '))}
     ${tegel('data-ikm="kbgaten"', '<path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5z"/><path d="M9 8h5M9 12h3"/><circle cx="17" cy="16" r="3"/><path d="M19.2 18.2 21 20"/>', AI_ICO(14) + 'Kennisbank-gaten', 'Wat wordt vaak gevraagd, maar staat nog niet in de kennisbank?', '')}
     ${tegel('data-ikm="ai"', '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>', 'AI-instellingen', 'Aanspreekvorm, lengte en aanwijzingen voor de AI-knop en Instructie maken', '')}
     ${tegel('data-ikm="conn"', '<path d="M8 3v4M16 3v4M6 7h12v4a6 6 0 0 1-12 0zM12 17v4"/>', 'Connectoren &amp; velden', 'Welke AFAS-connectoren en velden SubmIT gebruikt, en of ze werken', '')}</div>`;
 }
+/* ================= Beheer › Werkverdeling: wie handelt wat af (alleen de beheerder) ================= */
+// Nu: afgehandeld, per werkdag, in- en uitdiensten, doorlooptijd. First time right, doorgezet, ontvangen en binnen de norm volgen met de connector op de workflowhistorie.
+const WV_PERIODES = [['week', 'Deze week'], ['vweek', 'Vorige week'], ['maand', 'Deze maand'], ['vmaand', 'Vorige maand'], ['d90', 'Laatste 90 dagen'], ['eigen', 'Eigen periode']];
+const WV = {periode: opslag.get('mict-wv-periode') || 'maand', team: 'alle', wie: null, van: opslag.get('mict-wv-van') || '', tot: opslag.get('mict-wv-tot') || '', collegas: null, bezig: false};
+const WV_TEAMS = ['Service', 'Kernsystemen'];
+const wvTeams = () => opslag.get('mict-wv-team') || {};
+const wvTeamVan = naam => wvTeams()[norm(naam)] || '';
+function wvBereik(){
+  if(WV.periode === 'eigen'){ const v = WV.van ? new Date(WV.van + 'T00:00:00') : null, t = WV.tot ? new Date(WV.tot + 'T00:00:00') : null;
+    if(v && t && +t >= +v) return {van: v, tot: new Date(+t + DAG), label: `${fmtDatum(v)} t/m ${fmtDatum(t)}`}; }
+  const b = rapBereik(WV.periode === 'eigen' ? 'maand' : WV.periode); return {van: b.van, tot: b.tot, label: (WV_PERIODES.find(p => p[0] === WV.periode) || [, b.label])[1]};
+}
+const wvWerkdagen = (van, tot) => { let n = 0; const eind = Math.min(+tot, Date.now()); for(let t = new Date(van); +t < eind; t = new Date(+t + DAG)) if(t.getDay() % 6) n++; return Math.max(n, 1); };
+const wvMediaan = l => { if(!l.length) return null; const s = [...l].sort((a, b) => a - b); return Math.round(s[Math.floor(s.length / 2)] * 10) / 10; };
+const wvGetal = n => n == null ? '–' : String(n).replace('.', ',');
+function wvCijfers(b){
+  const inR = t => t && +t >= +b.van && +t < +b.tot, dagen = wvWerkdagen(b.van, b.tot);
+  const dicht = items.filter(x => x.afgesloten && x.verantw && inR(x.statusDatum || (x.inuit ? x.iuDatum : null)));
+  const mensen = (WV.collegas || []).map(c => c.naam);
+  dicht.forEach(x => { if(!mensen.some(n => zelfdePersoon(n, x.verantw))) mensen.push(x.verantw); });
+  const rijen = mensen.map(naam => {
+    const van = dicht.filter(x => zelfdePersoon(naam, x.verantw)), af = van.filter(x => !x.inuit), iu = van.filter(x => x.inuit);
+    const door = af.filter(x => x.aangemaakt && x.statusDatum).map(x => werkMs(x.aangemaakt, x.statusDatum) / werkdagMs());
+    return {naam, team: wvTeamVan(naam), af, iu, n: af.length, pd: Math.round(af.length / dagen * 10) / 10, doorloop: wvMediaan(door)};
+  }).filter(r => r.n || r.iu.length || (WV.collegas || []).some(c => zelfdePersoon(c.naam, r.naam)));
+  const zicht = rijen.filter(r => WV.team === 'alle' || r.team === WV.team).sort((a, c) => c.n - a.n || c.iu.length - a.iu.length || a.naam.localeCompare(c.naam, 'nl'));
+  const af = zicht.reduce((s, r) => s + r.n, 0), iu = zicht.reduce((s, r) => s + r.iu.length, 0);
+  return {rijen: zicht, af, iu, dagen, pd: zicht.length ? Math.round(af / dagen / zicht.length * 10) / 10 : null,
+    doorloop: wvMediaan(zicht.flatMap(r => r.af).filter(x => x.aangemaakt && x.statusDatum).map(x => werkMs(x.aangemaakt, x.statusDatum) / werkdagMs()))};
+}
+const WV_VOLGT = '<span class="wv-volgt" title="Volgt zodra de AFAS-connector op de workflowhistorie er is">volgt</span>';
+function wvKop(b){
+  return `<div class="rap-kop wv-kop"><div class="rap-periodes" role="group" aria-label="Periode">${WV_PERIODES.map(([k, t]) => `<button type="button" class="chipknop2" data-wvper="${k}" aria-pressed="${WV.periode === k}">${t}</button>`).join('')}</div>
+    ${WV.periode === 'eigen' ? `<span class="wv-eigen"><input type="date" id="wv-van" value="${esc(WV.van)}" aria-label="Van"> t/m <input type="date" id="wv-tot" value="${esc(WV.tot)}" aria-label="Tot en met"></span>` : ''}
+    <span class="hint">${fmtDatum(b.van)} t/m ${fmtDatum(new Date(+b.tot - 1))}${alleDichtGeladen ? '' : ' · afgehandelde meldingen worden nog geladen'}</span></div>`;
+}
+async function wvLaad(){
+  if(WV.bezig) return; WV.bezig = true;
+  try{ if(!WV.collegas) WV.collegas = await ictCollegas().catch(() => []); if(!alleDichtGeladen) await laadAlleGesloten(); }catch(e){}
+  WV.bezig = false; if(tab === 'werkverdeling') tekenWerkverdeling();
+}
+function tekenWerkverdeling(){
+  $('#lijst-titel').textContent = 'Werkverdeling'; $('#lijst-n').hidden = true; $('#titel').textContent = ''; $('#subtitel').textContent = ''; $('#lijst-sub').textContent = ''; $('#lijst-kol').innerHTML = '';
+  ['#f-mijn', '#f-mijalles', '#f-soort', '#f-changes', '#f-weergave', '#f-zoom'].forEach(sel => { const e = $(sel); if(e) e.hidden = true; });
+  if((!WV.collegas || !alleDichtGeladen) && !WV.bezig) wvLaad();
+  const b = wvBereik(), c = wvCijfers(b);
+  if(WV.wie) return wvDetail(b, c);
+  const tegel = (t, n, sub) => `<div class="rap-tegel"><span>${t}</span><b>${n}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
+  const kolom = (t, cls = '') => `<th class="${cls}">${t}</th>`;
+  const teamKnop = r => `<button type="button" class="wv-team${r.team ? '' : ' leeg'}" data-wvteam="${esc(r.naam)}" title="Team kiezen (klik om te wisselen)">${esc(r.team || 'team?')}</button>`;
+  $('#lijst').innerHTML = beheerTerug() + `<p class="ctrl-uitleg" style="margin-top:4px">Wie handelt wat af, en lost iemand zelf op of zet hij door? Alleen jij ziet dit scherm. Telt per verantwoordelijke op het moment van afhandelen.</p>
+    <div class="rap">${wvKop(b)}
+    <div class="rap-periodes wv-teams" role="group" aria-label="Team">${[['alle', 'Alle'], ...WV_TEAMS.map(t => [t, t])].map(([k, t]) => `<button type="button" class="chipknop2" data-wvteamf="${k}" aria-pressed="${WV.team === k}">${t}</button>`).join('')}</div>
+    <div class="rap-tegels">${tegel('Afgehandeld', c.af, `${c.rijen.length} collega’s · ${c.dagen} werkdagen`)}${tegel('Per werkdag', wvGetal(c.pd), 'per collega')}${tegel('Doorlooptijd', c.doorloop == null ? '–' : wvGetal(c.doorloop) + ' wd', 'mediaan, in werkdagen')}${tegel('First time right', WV_VOLGT)}${tegel('Doorgezet naar collega', WV_VOLGT)}${tegel('In- en uitdiensten', c.iu, 'afgerond')}</div>
+    <div class="wv-tabel-wrap"><table class="wv-tabel"><thead><tr>${kolom('Medewerker')}${kolom('Team')}${kolom('Afgehandeld', 'num')}${kolom('Per werkdag', 'num')}${kolom('Doorlooptijd', 'num')}${kolom('First time right')}${kolom('Doorgezet')}${kolom('Ontvangen')}${kolom('Binnen norm')}${kolom('In/uit', 'num')}</tr></thead>
+    <tbody>${c.rijen.map(r => `<tr data-wvwie="${esc(r.naam)}" tabindex="0" title="Details van ${esc(r.naam)}"><td><span class="wv-mens"><span class="wv-ini">${esc(initialen(r.naam))}</span>${esc(r.naam)}</span></td><td>${teamKnop(r)}</td>
+      <td class="num"><b>${r.n}</b></td><td class="num">${wvGetal(r.pd)}</td><td class="num">${r.doorloop == null ? '–' : wvGetal(r.doorloop) + ' wd'}</td><td>${WV_VOLGT}</td><td>${WV_VOLGT}</td><td>${WV_VOLGT}</td><td>${WV_VOLGT}</td><td class="num">${r.iu.length}</td></tr>`).join('')
+      || `<tr><td colspan="10" class="hint">${WV.bezig ? 'Gegevens ophalen…' : 'Geen afgehandelde meldingen in deze periode.'}</td></tr>`}</tbody></table></div>
+    <p class="hint">Per werkdag = afgehandeld gedeeld door de werkdagen in de periode (ma–vr, tot vandaag). Doorlooptijd = van instuurdatum tot afhandelen, in werkdagen. Klik op een rij voor het detail; klik op het team om het in te stellen.</p>
+    ${wvProefHtml()}</div>`;
+}
+function wvDetail(b, c){
+  const r = c.rijen.find(x => zelfdePersoon(x.naam, WV.wie)) || {naam: WV.wie, af: [], iu: [], n: 0, pd: 0, doorloop: null, team: wvTeamVan(WV.wie)};
+  const i = c.rijen.findIndex(x => zelfdePersoon(x.naam, WV.wie)), vorige = c.rijen[i - 1], volgende = c.rijen[i + 1];
+  const tegel = (t, n, sub) => `<div class="rap-tegel"><span>${t}</span><b>${n}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
+  // per week (of per dag bij een korte periode)
+  const lengte = (+b.tot - +b.van) / DAG, stap = lengte > 14 ? 7 : 1, emmers = [];
+  for(let t = +b.van; t < +b.tot && t < Date.now(); t += stap * DAG) emmers.push({van: t, tot: t + stap * DAG});
+  emmers.forEach(e => { e.n = r.af.filter(x => +x.statusDatum >= e.van && +x.statusDatum < e.tot).length; });
+  const max = Math.max(1, ...emmers.map(e => e.n));
+  const perType = [...r.af.reduce((m, x) => m.set(x.type || 'Onbekend', (m.get(x.type || 'Onbekend') || 0) + 1), new Map())].sort((a, z) => z[1] - a[1]);
+  const maxT = Math.max(1, ...perType.map(t => t[1]));
+  const lijst = [...r.af, ...r.iu].sort((a, z) => +(z.statusDatum || z.iuDatum || 0) - +(a.statusDatum || a.iuDatum || 0));
+  $('#lijst').innerHTML = `<p class="bh-terug"><button type="button" class="linkknop" data-wvterug>‹ Werkverdeling</button></p>
+    <div class="rap">${wvKop(b)}
+    <div class="wv-kopmens"><span class="wv-ini groot">${esc(initialen(r.naam))}</span><div><b>${esc(r.naam)}</b><small>${esc(r.team || 'geen team ingesteld')} · ${c.dagen} werkdagen in deze periode</small></div><span style="flex:1"></span>
+      ${vorige ? `<button type="button" class="chipknop2" data-wvwie="${esc(vorige.naam)}">‹ ${esc(vorige.naam.split(' ')[0])}</button>` : ''}${volgende ? `<button type="button" class="chipknop2" data-wvwie="${esc(volgende.naam)}">${esc(volgende.naam.split(' ')[0])} ›</button>` : ''}</div>
+    <div class="rap-tegels">${tegel('Afgehandeld', r.n, `${wvGetal(r.pd)} per werkdag · team ${wvGetal(c.pd)}`)}${tegel('Doorlooptijd', r.doorloop == null ? '–' : wvGetal(r.doorloop) + ' wd', `team ${c.doorloop == null ? '–' : wvGetal(c.doorloop) + ' wd'}`)}${tegel('First time right', WV_VOLGT)}${tegel('Doorgezet', WV_VOLGT)}${tegel('Ontvangen', WV_VOLGT)}${tegel('In- en uitdiensten', r.iu.length, 'afgerond')}</div>
+    <div class="rap-raster"><div class="rap-kaart rap-breed"><h3>Afgehandeld per ${stap === 7 ? 'week' : 'dag'}</h3>
+      <div class="wv-staven">${emmers.map(e => `<div class="wv-staaf" title="${e.n} afgehandeld"><b>${e.n || ''}</b><i style="height:${Math.round(e.n / max * 100)}%"></i><small>${stap === 7 ? 'wk ' + weekNr(new Date(e.van)) : fmtDatum(new Date(e.van)).slice(0, 5)}</small></div>`).join('')}</div></div>
+      <div class="rap-kaart"><h3>Per type melding</h3>${perType.length ? perType.map(([t, n]) => `<div class="wv-typerij"><span>${esc(t)}</span><span class="wv-balk"><i style="width:${Math.round(n / maxT * 100)}%"></i></span><b>${n}</b></div>`).join('') : '<p class="hint">Niets afgehandeld in deze periode.</p>'}
+        <p class="hint">Zelf opgelost of doorgezet per type volgt met de workflowhistorie.</p></div>
+      <div class="rap-kaart"><h3>Doorgezet naar</h3><p class="hint">Volgt zodra de AFAS-connector op de workflowhistorie er is.</p></div>
+      <div class="rap-kaart rap-breed"><h3>Afgehandeld in deze periode (${lijst.length})</h3>${lijst.length ? `<div class="wv-lijst">${lijst.map(x => `<button type="button" class="wv-melding" data-wvopen="${esc(x.nr)}"><span class="nr">${esc(nrT(x))}</span><span class="ond">${esc((x.inuit ? '[In-/uitdienst] ' : '') + (x.onderwerp || ''))}</span><span class="zacht">${esc(x.inuit ? (x.richting === 'uit' ? 'Uit dienst' : 'In dienst') : x.type || '')}</span><span class="zacht">${fmtDatum(x.statusDatum || x.iuDatum)}</span></button>`).join('')}</div>` : '<p class="hint">Geen meldingen.</p>'}</div></div></div>`;
+}
+// proef: de eerste regels van de workflowhistorie zoals AFAS ze levert (om de berekening op af te stemmen)
+const WVP = {rijen: null, fout: '', bezig: false, open: false};
+async function wvProefLaad(){
+  if(WVP.bezig) return; WVP.bezig = true; WVP.fout = ''; if(tab === 'werkverdeling') tekenWerkverdeling();
+  try{ let d; try{ d = await afas(`/connectors/${encodeURIComponent(INST.connWorkflowlog)}?skip=0&take=15&orderbyfieldids=-Begindatum`); }
+      catch(e){ d = await afas(`/connectors/${encodeURIComponent(INST.connWorkflowlog)}?skip=0&take=15`); }
+    WVP.rijen = d.rows || []; }
+  catch(e){ WVP.fout = e.message; WVP.rijen = null; }
+  WVP.bezig = false; if(tab === 'werkverdeling') tekenWerkverdeling();
+}
+function wvProefHtml(){
+  const kol = WVP.rijen && WVP.rijen.length ? Object.keys(WVP.rijen[0]) : [];
+  const cel = v => { const t = v == null ? '' : String(v); return esc(/^\d{4}-\d\d-\d\dT/.test(t) ? fmtDatum(new Date(t)) + ' ' + t.slice(11, 16) : t); };
+  return `<details class="rap-kaart wv-proef" data-wvproef ${WVP.open ? 'open' : ''}><summary><b>Proef: workflowhistorie uit AFAS</b> <span class="hint">${esc(INST.connWorkflowlog)}</span></summary>
+    <p class="hint">De nieuwste regels zoals de connector ze levert. Hiermee stem ik doorzetten en first time right af; daarna verdwijnt dit blok.</p>
+    <p><button type="button" class="knop" data-wvproefhaal>${WVP.bezig ? 'Ophalen…' : WVP.rijen ? 'Opnieuw ophalen' : 'Ophalen'}</button></p>
+    ${WVP.fout ? `<p class="fout">Ophalen lukte niet: ${esc(WVP.fout)}</p>` : ''}
+    ${WVP.rijen ? (WVP.rijen.length ? `<div class="wv-tabel-wrap"><table class="wv-tabel wv-proeftabel"><thead><tr>${kol.map(k => `<th>${esc(k)}</th>`).join('')}</tr></thead><tbody>${WVP.rijen.map(r => `<tr>${kol.map(k => `<td>${cel(r[k])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : '<p class="hint">De connector werkt, maar gaf geen regels terug.</p>') : ''}</details>`;
+}
+document.addEventListener('toggle', e => { if(e.target.matches && e.target.matches('[data-wvproef]')){ WVP.open = e.target.open; if(WVP.open && !WVP.rijen && !WVP.bezig && !WVP.fout) wvProefLaad(); } }, true);
+document.addEventListener('click', e => { if(tab === 'werkverdeling' && e.target.closest('[data-wvproefhaal]')) wvProefLaad(); });
+const weekNr = d => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const dg = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - dg); const j = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - j) / DAG + 1) / 7); };
+document.addEventListener('click', e => {
+  if(tab !== 'werkverdeling') return;
+  const p = e.target.closest('[data-wvper]'); if(p){ WV.periode = p.dataset.wvper; opslag.set('mict-wv-periode', WV.periode); tekenWerkverdeling(); return; }
+  const tf = e.target.closest('[data-wvteamf]'); if(tf){ WV.team = tf.dataset.wvteamf; tekenWerkverdeling(); return; }
+  const tk = e.target.closest('[data-wvteam]'); if(tk){ const m = wvTeams(), k = norm(tk.dataset.wvteam), nu = m[k] || '', i = WV_TEAMS.indexOf(nu);
+    const nieuw = i < 0 ? WV_TEAMS[0] : WV_TEAMS[i + 1] || ''; if(nieuw) m[k] = nieuw; else delete m[k]; opslag.set('mict-wv-team', m); tekenWerkverdeling(); return; }
+  if(e.target.closest('[data-wvterug]')){ WV.wie = null; tekenWerkverdeling(); scrollTo(0, 0); return; }
+  const o = e.target.closest('[data-wvopen]'); if(o){ openDetail(o.dataset.wvopen); return; }
+  const w = e.target.closest('[data-wvwie]'); if(w){ WV.wie = w.dataset.wvwie; tekenWerkverdeling(); scrollTo(0, 0); }
+});
+document.addEventListener('keydown', e => { if(tab === 'werkverdeling' && e.key === 'Enter' && e.target.matches && e.target.matches('tr[data-wvwie]')){ WV.wie = e.target.dataset.wvwie; tekenWerkverdeling(); } });
+document.addEventListener('change', e => { if(tab !== 'werkverdeling' || !e.target.matches('#wv-van, #wv-tot')) return;
+  WV.van = $('#wv-van').value; WV.tot = $('#wv-tot').value; opslag.set('mict-wv-van', WV.van); opslag.set('mict-wv-tot', WV.tot); tekenWerkverdeling(); });
 const CTRL_ICO = '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>';
 const CTRL = {ict: null, t: 0, bezig: false, fout: ''};
 const CTRL_GROEP = {
@@ -5977,6 +6105,9 @@ const CONN_KAART = () => [
     v(/^(datum|instuurdatum|aangemaakt op|datum aanmaak)/i, 'Datum', 'opt', 'Datum'), v(/^(aangemaakt door|medewerker|instuurder|gebruiker|naam)/i, 'Wie schreef de update', 'opt', 'Aangemaakt door'), v(/^(onderwerp|omschrijving)$/i, 'Onderwerp', 'opt', 'Onderwerp')]},
   {conn: INST.connCollegas, sleutel: 'connCollegas', soort: 'GET', nodig: 'opt', doel: 'Niet nodig zodra de medewerkersconnector Gebruiker en Kostenplaats heeft. Anders: alle AFAS-gebruikers met hun gebruikerscode, voor Verantwoordelijke.', velden: [
     v(/^(gebruiker(scode)?|user(id)?|usid|code)$/i, 'Gebruikerscode (bv. 88406.kgroen): wordt in Verantwoordelijke gezet', 'ja', 'Gebruiker'), v(/^(naam|name|weergavenaam|naam_gebruiker|gebruiker_naam|volledige_naam|medewerker)$/i, 'Naam van de gebruiker', 'ja', 'Naam'), v(/^(geblokkeerd|blocked|inactief)$/i, 'Geblokkeerde gebruikers niet tonen', 'opt', 'Geblokkeerd')]},
+  {conn: INST.connWorkflowlog, sleutel: 'connWorkflowlog', soort: 'GET', nodig: 'opt', doel: 'Werkverdeling (Beheer): wie zette een melding door naar wie, first time right en ontvangen. Gegevensverzameling Log van acties in workflow.', velden: [
+    v(/^dossieritem$/i, 'Dossieritem (koppelt aan de melding)', 'ja', 'Dossieritem'), v(/^gebruiker_door$/i, 'Gebruiker door (wie de actie uitvoerde)', 'ja', 'Gebruiker door'), v(/^gebruiker_naar$/i, 'Gebruiker naar (naar wie het ging)', 'ja', 'Gebruiker naar'),
+    v(/^begindatum$/i, 'Begindatum', 'ja', 'Begindatum'), v(/^einddatum$/i, 'Einddatum', 'opt', 'Einddatum'), v(/^actietype/i, 'Actietype', 'opt', 'Actietype'), v(/^taak_omschrijving$/i, 'Taak (omschrijving)', 'opt', 'Taak omschrijving'), v(/^workflow_omschrijving$/i, 'Workflow (omschrijving)', 'opt', 'Workflow omschrijving')]},
   {conn: INST.connInUit, sleutel: 'connInUit', soort: 'GET', nodig: 'opt', doel: 'In- en uitdienst: het overzicht en de velden zoals in AFAS (medewerker, datums, gegevensbewaring, mailbox, accounts).', velden: [
     v(/^nummer$/i, 'Nummer', 'ja', 'Nummer'), v(/^dossieritem$/i, 'Dossieritem (koppelt aan de melding)', 'ja', 'Dossieritem'), v(/datum.?in.?dienst/i, 'Datum in dienst', 'opt', 'Datum in dienst'), v(/uitdienst.?datum|datum.?uit.?dienst/i, 'Uitdienst datum', 'opt', 'Uitdienst datum'),
     v(/gegevensbewaring/i, 'Gegevensbewaring', 'opt', 'Gegevensbewaring'), v(/mailbox/i, 'Mailbox overdragen aan', 'opt', 'Mailbox overdragen aan'), v(/workflow.?afgerond/i, 'Workflow afgerond', 'opt', 'Workflow afgerond')]},
@@ -7294,7 +7425,7 @@ document.addEventListener('keydown', e => { if(e.key === 'Enter' && (tab === 'pr
 /* ================= instellingen online: overal dezelfde instellingen (Azure Function ict-instellingen) ================= */
 // Wat je instelt staat in de browser én online, per AFAS-gebruiker. Bij inloggen halen we het op en voegen we samen
 // (per instelling wint de nieuwste); wijzig je iets, dan gaat het 3 seconden later mee. Zonder verbinding werkt alles gewoon lokaal.
-const SYNC_VAST = ['mict-thema', 'mict-soort', 'mict-kolommen-uit', 'mict-kolvolgorde', 'mict-kolbreedte', 'mict-chzoom', 'mict-chweergave', 'mict-werk-ons', 'mict-afd-ons',
+const SYNC_VAST = ['mict-wv-team', 'mict-thema', 'mict-soort', 'mict-kolommen-uit', 'mict-kolvolgorde', 'mict-kolbreedte', 'mict-chzoom', 'mict-chweergave', 'mict-werk-ons', 'mict-afd-ons',
   'mict-venster-groot', 'mict-recente-melders', 'mict-tlsoort', 'mict-samen', 'mict-extra', 'mict-kolzelf', 'mict-regels', 'mict-tour-gezien', 'mict-gelezen', 'mict-interne-notities'];
 const SYNC_META = 'mict-sync-tijden';
 const syncUrl = () => INST.instellingenUrl || String(INST.tokenFunctie || '').replace(/afas-token\/?$/, 'ict-instellingen');
@@ -8471,6 +8602,9 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.95', d: '29-10-2026', p: ['Werkverdeling: nieuwe connector PowerBI_ICT_Workflowlog (Log van acties in workflow) staat onder Connectoren & velden, met een proefblok om de gegevens te bekijken.']},
+  {v: 'v7.94', d: '29-10-2026', groot: true, p: ['Nieuw onder Beheer: Werkverdeling (alleen voor de beheerder). Per collega afgehandeld, per werkdag, doorlooptijd en in- en uitdiensten, met een keuze voor periode en team. Klik op een collega voor het detail.', 'First time right, doorgezet, ontvangen en binnen de norm volgen zodra de AFAS-connector op de workflowhistorie er is.']},
+  {v: 'v7.93', d: '29-10-2026', p: ['Bij To-do blijft het menu staan: je to-do-lijsten klappen open onder To-do.']},
   {v: 'v7.92', d: '28-10-2026', groot: true, p: ['Nieuwe indeling van het menu: Voor mij (Meldingen, Changes, Projecten, To-do), Team (Nieuwe meldingen, Aandacht), Mijn afdelingen en Overig.', 'To-do staat nu in het menu, met het aantal open taken; de To-do-knop in de linkerbalk is weg. Slepen naar een lijst kan vanuit het menu.']},
   {v: 'v7.91', d: '28-10-2026', groot: true, p: ['Alles op één pagina: bij Mijn meldingen, Mijn changes en Mijn projecten kun je andere soorten erbij zetten met + Meldingen, + Changes, + Projecten of + To-do. Of sleep het icoon uit het menu (of het To-do-icoon links) naar de pagina.', 'Wat je erbij zet, komt onder de lijst en in de tijdlijn (met een label C, P, M of T) en telt mee in het getal in het menu. SubmIT onthoudt het per pagina.', 'De balk Drukte per week is weg uit de tijdlijn.']},
   {v: 'v7.90', d: '28-10-2026', p: ['To-do: een geopende to-do klapt weer dicht als je ernaast klikt of op Esc drukt. Wat je hebt ingevuld, is dan al bewaard.']},
