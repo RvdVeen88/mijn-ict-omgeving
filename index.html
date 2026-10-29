@@ -1632,7 +1632,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.98', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v7.99', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -4077,17 +4077,19 @@ const wvMediaan = l => { if(!l.length) return null; const s = [...l].sort((a, b)
 const wvGetal = n => n == null ? '–' : String(n).replace('.', ',');
 function wvCijfers(b){
   const inR = t => t && +t >= +b.van && +t < +b.tot, dagen = wvWerkdagen(b.van, b.tot);
-  const dicht = items.filter(x => x.afgesloten && x.verantw && inR(x.statusDatum || (x.inuit ? x.iuDatum : null)));
+  const dicht = items.filter(x => !x.inuit && x.afgesloten && x.verantw && inR(x.statusDatum));
+  const iuAf = wvIuAfronding(), iuL = items.filter(x => x.inuit && x.afgesloten).map(x => { const k = x.sbid != null && iuAf.get(String(x.sbid));
+    x._wvWie = k ? k.wie : x.verantw; x._wvT = k ? k.t : (x.statusDatum || x.iuDatum); return x; }).filter(x => x._wvWie && inR(x._wvT));
   const mensen = (WV.collegas || []).map(c => c.naam);
-  dicht.forEach(x => { if(!mensen.some(n => zelfdePersoon(n, x.verantw))) mensen.push(x.verantw); });
+  [...dicht.map(x => x.verantw), ...iuL.map(x => x._wvWie)].forEach(n => { if(!mensen.some(m => zelfdePersoon(m, n))) mensen.push(n); });
   const rijen = mensen.map(naam => {
-    const van = dicht.filter(x => zelfdePersoon(naam, x.verantw)), af = van.filter(x => !x.inuit), iu = van.filter(x => x.inuit);
+    const af = dicht.filter(x => zelfdePersoon(naam, x.verantw)), iu = iuL.filter(x => zelfdePersoon(naam, x._wvWie));
     const door = af.filter(x => x.aangemaakt && x.statusDatum).map(x => werkMs(x.aangemaakt, x.statusDatum) / werkdagMs());
-    return {naam, team: wvTeamVan(naam), af, iu, n: af.length, pd: Math.round(af.length / dagen * 10) / 10, doorloop: wvMediaan(door)};
-  }).filter(r => r.n || r.iu.length || (WV.collegas || []).some(c => zelfdePersoon(c.naam, r.naam)));
-  const zicht = rijen.filter(r => WV.team === 'alle' || r.team === WV.team).sort((a, c) => c.n - a.n || c.iu.length - a.iu.length || a.naam.localeCompare(c.naam, 'nl'));
+    return {naam, team: wvTeamVan(naam), af, iu, n: af.length, tot: af.length + iu.length, pd: Math.round((af.length + iu.length) / dagen * 10) / 10, doorloop: wvMediaan(door)};
+  }).filter(r => r.tot || (WV.collegas || []).some(c => zelfdePersoon(c.naam, r.naam)));
+  const zicht = rijen.filter(r => WV.team === 'alle' || r.team === WV.team).sort((a, c) => c.tot - a.tot || c.n - a.n || a.naam.localeCompare(c.naam, 'nl'));
   const af = zicht.reduce((s, r) => s + r.n, 0), iu = zicht.reduce((s, r) => s + r.iu.length, 0);
-  return {rijen: zicht, af, iu, dagen, pd: zicht.length ? Math.round(af / dagen / zicht.length * 10) / 10 : null,
+  return {rijen: zicht, af, iu, tot: af + iu, dagen, pd: zicht.length ? Math.round((af + iu) / dagen / zicht.length * 10) / 10 : null,
     doorloop: wvMediaan(zicht.flatMap(r => r.af).filter(x => x.aangemaakt && x.statusDatum).map(x => werkMs(x.aangemaakt, x.statusDatum) / werkdagMs()))};
 }
 const WV_VOLGT = '<span class="wv-volgt" title="Workflowhistorie wordt opgehaald">…</span>';
@@ -4102,14 +4104,26 @@ async function wvLogLaad(b){
   try{ let rs;
     try{ rs = await connectorAlles(INST.connWorkflowlog, `&filterfieldids=Workflow_omschrijving%2CBegindatum&filtervalues=Aanvraag%20ICT%2C${k}T00%3A00%3A00&operatortypes=1%2C2`); }
     catch(e){ rs = await connectorAlles(INST.connWorkflowlog, `&filterfieldids=Workflow_omschrijving&filtervalues=Aanvraag%20ICT&operatortypes=1`); }
+    rs = rs.filter(r => { const t = datum(r.Begindatum); return t && +t >= +vanaf; });
+    // in- en uitdiensten lopen via een eigen workflow: hun historie ophalen op dossieritem (40 per keer)
+    const iuSb = [...new Set(items.filter(x => x.inuit && x.sbid != null && (!x.afgesloten || +(x.aangemaakt || x.iuDatum || 0) >= +vanaf - 90 * DAG)).map(x => String(x.sbid)))];
+    for(let i = 0; i < iuSb.length; i += 40){ try{ rs = rs.concat(await connectorAlles(INST.connWorkflowlog, filterOf('Dossieritem', iuSb.slice(i, i + 40)))); }catch(e){} }
     if(WVL.sleutel !== k) return;
-    WVL.rijen = rs.map(r => ({sb: String(r.Dossieritem ?? ''), door: wvWie(r.Gebruiker_door), naar: wvWie(r.Gebruiker_naar), t: datum(r.Begindatum), taak: String(r.Taak_omschrijving ?? ''), act: String(r.Bijschrift ?? ''), at: +r.Actietype || 0}))
-      .filter(r => r.t && r.sb && +r.t >= +vanaf).sort((a, z) => +a.t - +z.t); }
+    const iuSet = new Set(iuSb), gezien = new Set();
+    WVL.rijen = rs.map(r => ({sb: String(r.Dossieritem ?? ''), door: wvWie(r.Gebruiker_door), naar: wvWie(r.Gebruiker_naar), t: datum(r.Begindatum), taak: String(r.Taak_omschrijving ?? ''), act: String(r.Bijschrift ?? ''), st: String(r.Status_omschrijving ?? ''), at: +r.Actietype || 0}))
+      .filter(r => { if(!r.t || !r.sb) return false; const s = [r.sb, +r.t, r.door, r.act].join('|'); if(gezien.has(s)) return false; gezien.add(s); return true; })
+      .map(r => ({...r, iu: iuSet.has(r.sb)})).sort((a, z) => +a.t - +z.t); }
   catch(e){ WVL.fout = e.message; WVL.rijen = []; }
   finally{ if(WVL.sleutel === k) WVL.bezig = false; }
   if(tab === 'werkverdeling') tekenWerkverdeling();
 }
 const wvPct = (a, n) => n ? Math.round(a / n * 100) : null;
+function wvIuAfronding(){
+  const m = new Map(); if(!WVL.rijen) return m;
+  const per = new Map(); WVL.rijen.filter(r => r.iu && r.door && !wvRuis(r)).forEach(r => { if(!per.has(r.sb)) per.set(r.sb, []); per.get(r.sb).push(r); });
+  per.forEach((l, sb) => { const af = [...l].reverse().find(r => /afhandel|afrond|gereed|verwerkt|klaar|sluit|afgehandeld|afgerond/i.test(r.act + ' ' + r.st)) || l[l.length - 1]; m.set(sb, {wie: af.door, t: af.t}); });
+  return m;
+}
 function wvHistorie(b, rijen){
   const L = WVL.rijen; if(!L) return null;
   const inR = t => +t >= +b.van && +t < +b.tot, perSb = new Map(); L.forEach(r => { if(!perSb.has(r.sb)) perSb.set(r.sb, []); perSb.get(r.sb).push(r); });
@@ -4125,14 +4139,14 @@ function wvHistorie(b, rijen){
     r.ftrN = metH.length; r.ftrOk = metH.filter(x => { const l = perSb.get(String(x.sbid)); return !l.some(wvIsHeropen) && !l.some(a => wvIsDoor(a) && zelfdePersoon(r.naam, a.door)); }).length;
     r.ftr = wvPct(r.ftrOk, r.ftrN);
     const e = eerste.filter(a => zelfdePersoon(r.naam, a.wie)); r.oppakN = e.length; r.norm = wvPct(e.filter(a => a.ok).length, e.length);
-    r.pdA = r.actief ? Math.round(r.n / r.actief * 10) / 10 : null;
+    r.pdA = r.actief ? Math.round(r.tot / r.actief * 10) / 10 : null;
   });
   const som = k => rijen.reduce((s, r) => s + (r[k] || 0), 0);
   return {ftr: wvPct(som('ftrOk'), som('ftrN')), door: rijen.reduce((s, r) => s + r.door.length, 0), norm: wvPct(eerste.filter(a => rijen.some(r => zelfdePersoon(r.naam, a.wie)) && a.ok).length, eerste.filter(a => rijen.some(r => zelfdePersoon(r.naam, a.wie))).length)};
 }
 const wvKleur = (p, goed, matig) => p == null ? 'var(--grijs)' : p >= goed ? 'var(--groen)' : p >= matig ? 'var(--oranje)' : 'var(--rood)';
 const wvPctHtml = (p, goed = 75, matig = 60) => p == null ? '<span class="zacht">–</span>' : `<span class="wv-pct"><b style="color:${wvKleur(p, goed, matig)}">${p}%</b><span class="wv-balk"><i style="width:${p}%;background:${wvKleur(p, goed, matig)}"></i></span></span>`;
-const wvZelfDoor = r => { const z = r.n, d = (r.door || []).length, t = z + d || 1; return `<span class="wv-pct"><span class="wv-balk wv-zd"><i style="width:${z / t * 100}%;background:var(--groen)"></i><i style="width:${d / t * 100}%;background:#E8590C"></i></span><small>${z} · ${d}</small></span>`; };
+const wvZelfDoor = r => { const z = r.tot, d = (r.door || []).length, t = z + d || 1; return `<span class="wv-pct"><span class="wv-balk wv-zd"><i style="width:${z / t * 100}%;background:var(--groen)"></i><i style="width:${d / t * 100}%;background:#E8590C"></i></span><small>${z} · ${d}</small></span>`; };
 function wvKop(b){
   return `<div class="rap-kop wv-kop"><div class="rap-periodes" role="group" aria-label="Periode">${WV_PERIODES.map(([k, t]) => `<button type="button" class="chipknop2" data-wvper="${k}" aria-pressed="${WV.periode === k}">${t}</button>`).join('')}</div>
     ${WV.periode === 'eigen' ? `<span class="wv-eigen"><input type="date" id="wv-van" value="${esc(WV.van)}" aria-label="Van"> t/m <input type="date" id="wv-tot" value="${esc(WV.tot)}" aria-label="Tot en met"></span>` : ''}
@@ -4155,42 +4169,42 @@ function tekenWerkverdeling(){
   $('#lijst').innerHTML = beheerTerug() + `<p class="ctrl-uitleg" style="margin-top:4px">Wie handelt wat af, en lost iemand zelf op of zet hij door? Alleen jij ziet dit scherm. Telt per verantwoordelijke op het moment van afhandelen.</p>
     <div class="rap">${wvKop(b)}
     <div class="rap-periodes wv-teams" role="group" aria-label="Team">${[['alle', 'Alle'], ...WV_TEAMS.map(t => [t, t])].map(([k, t]) => `<button type="button" class="chipknop2" data-wvteamf="${k}" aria-pressed="${WV.team === k}">${t}</button>`).join('')}</div>
-    <div class="rap-tegels wv-tegels">${tegel('Afgehandeld', c.af, `${c.rijen.length} collega’s · ${c.dagen} werkdagen`)}${h ? tegel('Per dag', wvGetal(c.rijen.reduce((t, r) => t + (r.actief || 0), 0) ? Math.round(c.af / c.rijen.reduce((t, r) => t + (r.actief || 0), 0) * 10) / 10 : null), 'afgehandeld per actieve dag') : tegel('Per werkdag', wvGetal(c.pd), 'per collega')}${tegel('Doorlooptijd', c.doorloop == null ? '–' : wvGetal(c.doorloop) + ' wd', 'mediaan, in werkdagen')}${tegel('First time right', h ? (h.ftr == null ? '–' : h.ftr + '%') : WV_VOLGT, 'zelf afgehandeld, niet doorgezet')}${tegel('Doorgezet naar collega', h ? h.door : WV_VOLGT, h && (c.af + h.door) ? `${wvPct(h.door, c.af + h.door)}% van al het werk` : '')}${tegel('Binnen norm', h ? (h.norm == null ? '–' : h.norm + '%') : WV_VOLGT, `als eerste opgepakt binnen ${INST.nieuwUren} werkuren`)}${tegel('In- en uitdiensten', c.iu, 'afgerond')}</div>
-    <div class="wv-tabel-wrap"><table class="wv-tabel"><thead><tr>${kolom('Medewerker')}${kolom('Team')}${kolom('Actief', 'num')}${kolom('Afgehandeld', 'num')}${kolom('Per dag', 'num')}${kolom('Doorlooptijd', 'num')}${kolom('First time right')}${kolom('Zelf · doorgezet')}${kolom('Ontvangen', 'num')}${kolom('Binnen norm')}${kolom('In/uit', 'num')}</tr></thead>
+    <div class="rap-tegels wv-tegels">${tegel('Afgehandeld', c.tot, `${c.af} meldingen · ${c.iu} in/uit · ${c.rijen.length} collega’s`)}${h ? tegel('Per dag', wvGetal(c.rijen.reduce((t, r) => t + (r.actief || 0), 0) ? Math.round(c.tot / c.rijen.reduce((t, r) => t + (r.actief || 0), 0) * 10) / 10 : null), 'afgehandeld per actieve dag') : tegel('Per werkdag', wvGetal(c.pd), 'per collega')}${tegel('Doorlooptijd', c.doorloop == null ? '–' : wvGetal(c.doorloop) + ' wd', 'mediaan, in werkdagen')}${tegel('First time right', h ? (h.ftr == null ? '–' : h.ftr + '%') : WV_VOLGT, 'zelf afgehandeld, niet doorgezet')}${tegel('Doorgezet naar collega', h ? h.door : WV_VOLGT, h && (c.tot + h.door) ? `${wvPct(h.door, c.tot + h.door)}% van al het werk` : '')}${tegel('Binnen norm', h ? (h.norm == null ? '–' : h.norm + '%') : WV_VOLGT, `als eerste opgepakt binnen ${INST.nieuwUren} werkuren`)}${tegel('In- en uitdiensten', c.iu, h ? 'afgerond, door wie het echt deed' : 'afgerond')}</div>
+    <div class="wv-tabel-wrap"><table class="wv-tabel"><thead><tr>${kolom('Medewerker')}${kolom('Team')}${kolom('Actief', 'num')}${kolom('Afgehandeld', 'num')}${kolom('Meldingen', 'num')}${kolom('In/uit', 'num')}${kolom('Per dag', 'num')}${kolom('Doorlooptijd', 'num')}${kolom('First time right')}${kolom('Zelf · doorgezet')}${kolom('Ontvangen', 'num')}${kolom('Binnen norm')}</tr></thead>
     <tbody>${c.rijen.map(r => `<tr data-wvwie="${esc(r.naam)}" tabindex="0" title="Details van ${esc(r.naam)}"><td><span class="wv-mens"><span class="wv-ini">${esc(initialen(r.naam))}</span>${esc(r.naam)}</span></td><td>${teamKnop(r)}</td>
-      <td class="num">${h ? r.actief + ' dgn' : WV_VOLGT}</td><td class="num"><b>${r.n}</b></td><td class="num">${h ? wvGetal(r.pdA) : wvGetal(r.pd)}</td><td class="num">${r.doorloop == null ? '–' : wvGetal(r.doorloop) + ' wd'}</td>
-      <td>${h ? wvPctHtml(r.ftr) : WV_VOLGT}</td><td>${h ? wvZelfDoor(r) : WV_VOLGT}</td><td class="num">${h ? r.ontv.length : WV_VOLGT}</td><td>${h ? wvPctHtml(r.norm, 85, 70) : WV_VOLGT}</td><td class="num">${r.iu.length}</td></tr>`).join('')
-      || `<tr><td colspan="11" class="hint">${WV.bezig ? 'Gegevens ophalen…' : 'Geen afgehandelde meldingen in deze periode.'}</td></tr>`}</tbody></table></div>
-    <p class="hint">Actief = dagen met minstens één actie in AFAS. Per dag = afgehandeld per actieve dag. Doorlooptijd = van instuurdatum tot afhandelen (mediaan, werkdagen). First time right = afgehandeld zonder het zelf door te zetten en zonder heropenen. Doorgezet = Toewijzen aan collega. Binnen norm = als eerste opgepakt binnen ${INST.nieuwUren} werkuren. Klik op een rij voor het detail; klik op het team om het in te stellen.</p>
+      <td class="num">${h ? r.actief + ' dgn' : WV_VOLGT}</td><td class="num"><b>${r.tot}</b></td><td class="num">${r.n}</td><td class="num">${r.iu.length}</td><td class="num">${h ? wvGetal(r.pdA) : wvGetal(r.pd)}</td><td class="num">${r.doorloop == null ? '–' : wvGetal(r.doorloop) + ' wd'}</td>
+      <td>${h ? wvPctHtml(r.ftr) : WV_VOLGT}</td><td>${h ? wvZelfDoor(r) : WV_VOLGT}</td><td class="num">${h ? r.ontv.length : WV_VOLGT}</td><td>${h ? wvPctHtml(r.norm, 85, 70) : WV_VOLGT}</td></tr>`).join('')
+      || `<tr><td colspan="12" class="hint">${WV.bezig ? 'Gegevens ophalen…' : 'Geen afgehandelde meldingen in deze periode.'}</td></tr>`}</tbody></table></div>
+    <p class="hint">Afgehandeld = meldingen plus in- en uitdiensten; een in-/uitdienst telt voor wie hem in AFAS afrondde, op de datum van afronden. Actief = dagen met minstens één actie in AFAS. Per dag = afgehandeld per actieve dag. Doorlooptijd = van instuurdatum tot afhandelen (mediaan, werkdagen). First time right = afgehandeld zonder het zelf door te zetten en zonder heropenen. Doorgezet = Toewijzen aan collega. Binnen norm = als eerste opgepakt binnen ${INST.nieuwUren} werkuren. Klik op een rij voor het detail; klik op het team om het in te stellen.</p>
     ${WVL.fout ? `<p class="fout">Workflowhistorie ophalen lukte niet (${esc(INST.connWorkflowlog)}): ${esc(WVL.fout)}</p>` : ''}</div>`;
 }
 function wvDetail(b, c){
   const r = c.rijen.find(x => zelfdePersoon(x.naam, WV.wie)) || {naam: WV.wie, af: [], iu: [], n: 0, pd: 0, doorloop: null, team: wvTeamVan(WV.wie), door: [], ontv: []}, h = c.h;
   const opSb = new Map(items.filter(x => x.sbid != null).map(x => [String(x.sbid), x]));
   const naarWie = h ? [...r.door.reduce((m, a) => m.set(a.naar, (m.get(a.naar) || 0) + 1), new Map())].sort((a, z) => z[1] - a[1]) : [];
-  const doorType = new Map(); if(h) r.door.forEach(a => { const x = opSb.get(a.sb), t = (x && x.type) || 'Onbekend'; doorType.set(t, (doorType.get(t) || 0) + 1); });
+  const doorType = new Map(); if(h) r.door.forEach(a => { const x = opSb.get(a.sb), t = x && x.inuit ? 'In- en uitdienst' : (x && x.type) || 'Onbekend'; doorType.set(t, (doorType.get(t) || 0) + 1); });
   const i = c.rijen.findIndex(x => zelfdePersoon(x.naam, WV.wie)), vorige = c.rijen[i - 1], volgende = c.rijen[i + 1];
   const tegel = (t, n, sub) => `<div class="rap-tegel"><span>${t}</span><b>${n}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
   // per week (of per dag bij een korte periode)
   const lengte = (+b.tot - +b.van) / DAG, stap = lengte > 14 ? 7 : 1, emmers = [];
   for(let t = +b.van; t < +b.tot && t < Date.now(); t += stap * DAG) emmers.push({van: t, tot: t + stap * DAG});
-  emmers.forEach(e => { e.n = r.af.filter(x => +x.statusDatum >= e.van && +x.statusDatum < e.tot).length; });
+  emmers.forEach(e => { e.n = r.af.filter(x => +x.statusDatum >= e.van && +x.statusDatum < e.tot).length + r.iu.filter(x => +x._wvT >= e.van && +x._wvT < e.tot).length; });
   const max = Math.max(1, ...emmers.map(e => e.n));
-  const zelfType = r.af.reduce((m, x) => m.set(x.type || 'Onbekend', (m.get(x.type || 'Onbekend') || 0) + 1), new Map());
+  const zelfType = [...r.af, ...r.iu].reduce((m, x) => { const t = x.inuit ? 'In- en uitdienst' : x.type || 'Onbekend'; return m.set(t, (m.get(t) || 0) + 1); }, new Map());
   const perType = [...new Set([...zelfType.keys(), ...doorType.keys()])].map(t => [t, zelfType.get(t) || 0, doorType.get(t) || 0]).sort((a, z) => (z[1] + z[2]) - (a[1] + a[2]));
-  const lijst = [...r.af, ...r.iu].sort((a, z) => +(z.statusDatum || z.iuDatum || 0) - +(a.statusDatum || a.iuDatum || 0));
+  const wanneer = x => x.inuit ? x._wvT : x.statusDatum, lijst = [...r.af, ...r.iu].sort((a, z) => +(wanneer(z) || 0) - +(wanneer(a) || 0));
   $('#lijst').innerHTML = `<p class="bh-terug"><button type="button" class="linkknop" data-wvterug>‹ Werkverdeling</button></p>
     <div class="rap">${wvKop(b)}
     <div class="wv-kopmens"><span class="wv-ini groot">${esc(initialen(r.naam))}</span><div><b>${esc(r.naam)}</b><small>${esc(r.team || 'geen team ingesteld')} · ${c.dagen} werkdagen in deze periode</small></div><span style="flex:1"></span>
       ${vorige ? `<button type="button" class="chipknop2" data-wvwie="${esc(vorige.naam)}">‹ ${esc(vorige.naam.split(' ')[0])}</button>` : ''}${volgende ? `<button type="button" class="chipknop2" data-wvwie="${esc(volgende.naam)}">${esc(volgende.naam.split(' ')[0])} ›</button>` : ''}</div>
-    <div class="rap-tegels wv-tegels">${tegel('Afgehandeld', r.n, h ? `${wvGetal(r.pdA)} per actieve dag · ${r.actief} dagen actief` : `${wvGetal(r.pd)} per werkdag · team ${wvGetal(c.pd)}`)}${tegel('Doorlooptijd', r.doorloop == null ? '–' : wvGetal(r.doorloop) + ' wd', `team ${c.doorloop == null ? '–' : wvGetal(c.doorloop) + ' wd'}`)}${tegel('First time right', h ? (r.ftr == null ? '–' : r.ftr + '%') : WV_VOLGT, h ? `team ${h.ftr == null ? '–' : h.ftr + '%'}` : '')}${tegel('Doorgezet', h ? r.door.length : WV_VOLGT, h ? 'naar een collega' : '')}${tegel('Ontvangen', h ? r.ontv.length : WV_VOLGT, h ? 'van collega’s' : '')}${tegel('Binnen norm', h ? (r.norm == null ? '–' : r.norm + '%') : WV_VOLGT, h ? `team ${h.norm == null ? '–' : h.norm + '%'} · ${r.oppakN} als eerste opgepakt` : '')}${tegel('In- en uitdiensten', r.iu.length, 'afgerond')}</div>
-    <div class="rap-raster"><div class="rap-kaart rap-breed"><h3>Afgehandeld per ${stap === 7 ? 'week' : 'dag'}</h3>
+    <div class="rap-tegels wv-tegels">${tegel('Afgehandeld', r.tot, `${r.n} meldingen · ${r.iu.length} in/uit · ` + (h ? `${wvGetal(r.pdA)} per actieve dag` : `${wvGetal(r.pd)} per werkdag`))}${tegel('Doorlooptijd', r.doorloop == null ? '–' : wvGetal(r.doorloop) + ' wd', `team ${c.doorloop == null ? '–' : wvGetal(c.doorloop) + ' wd'}`)}${tegel('First time right', h ? (r.ftr == null ? '–' : r.ftr + '%') : WV_VOLGT, h ? `team ${h.ftr == null ? '–' : h.ftr + '%'}` : '')}${tegel('Doorgezet', h ? r.door.length : WV_VOLGT, h ? 'naar een collega' : '')}${tegel('Ontvangen', h ? r.ontv.length : WV_VOLGT, h ? 'van collega’s' : '')}${tegel('Binnen norm', h ? (r.norm == null ? '–' : r.norm + '%') : WV_VOLGT, h ? `team ${h.norm == null ? '–' : h.norm + '%'} · ${r.oppakN} als eerste opgepakt` : '')}${tegel('In- en uitdiensten', r.iu.length, 'afgerond')}</div>
+    <div class="rap-raster"><div class="rap-kaart rap-breed"><h3>Afgehandeld per ${stap === 7 ? 'week' : 'dag'} <span class="hint">meldingen + in- en uitdiensten</span></h3>
       <div class="wv-staven">${emmers.map(e => `<div class="wv-staaf" title="${e.n} afgehandeld"><b>${e.n || ''}</b><i style="height:${Math.round(e.n / max * 100)}%"></i><small>${stap === 7 ? 'wk ' + weekNr(new Date(e.van)) : fmtDatum(new Date(e.van)).slice(0, 5)}</small></div>`).join('')}</div></div>
       <div class="rap-kaart"><h3>Per type melding</h3>${perType.length ? perType.map(([t, z, d]) => `<div class="wv-typerij"><span>${esc(t)}</span><span class="wv-balk wv-zd"><i style="width:${z / ((z + d) || 1) * 100}%;background:var(--groen)"></i><i style="width:${d / ((z + d) || 1) * 100}%;background:#E8590C"></i></span><b>${z} · ${d}</b></div>`).join('') : '<p class="hint">Niets afgehandeld in deze periode.</p>'}
         <p class="hint">Groen zelf afgehandeld · oranje doorgezet naar een collega</p></div>
       <div class="rap-kaart"><h3>Doorgezet naar</h3>${!h ? '<p class="hint">Workflowhistorie wordt opgehaald…</p>' : naarWie.length ? naarWie.map(([n, k]) => `<div class="wv-typerij"><span class="wv-mens"><span class="wv-ini">${esc(initialen(n))}</span>${esc(n)}</span><span></span><b>${k}</b></div>`).join('') : '<p class="hint">Niets doorgezet in deze periode.</p>'}</div>
       ${h && r.door.length ? `<div class="rap-kaart rap-breed"><h3>Doorgezette meldingen (${r.door.length})</h3><div class="wv-lijst">${[...r.door].reverse().map(a => { const x = opSb.get(a.sb); return `<button type="button" class="wv-melding"${x ? ` data-wvopen="${esc(x.nr)}"` : ''}><span class="nr">${esc(x ? nrT(x) : '#' + a.sb)}</span><span class="ond">${esc(x ? x.onderwerp || '' : 'melding niet in SubmIT geladen')}</span><span class="zacht">naar ${esc(a.naar)}</span><span class="zacht">${fmtDatum(a.t)}</span></button>`; }).join('')}</div></div>` : ''}
-      <div class="rap-kaart rap-breed"><h3>Afgehandeld in deze periode (${lijst.length})</h3>${lijst.length ? `<div class="wv-lijst">${lijst.map(x => `<button type="button" class="wv-melding" data-wvopen="${esc(x.nr)}"><span class="nr">${esc(nrT(x))}</span><span class="ond">${esc((x.inuit ? '[In-/uitdienst] ' : '') + (x.onderwerp || ''))}</span><span class="zacht">${esc(x.inuit ? (x.richting === 'uit' ? 'Uit dienst' : 'In dienst') : x.type || '')}</span><span class="zacht">${fmtDatum(x.statusDatum || x.iuDatum)}</span></button>`).join('')}</div>` : '<p class="hint">Geen meldingen.</p>'}</div></div></div>`;
+      <div class="rap-kaart rap-breed"><h3>Afgehandeld in deze periode (${lijst.length})</h3>${lijst.length ? `<div class="wv-lijst">${lijst.map(x => `<button type="button" class="wv-melding" data-wvopen="${esc(x.nr)}"><span class="nr">${esc(nrT(x))}</span><span class="ond">${esc((x.inuit ? '[In-/uitdienst] ' : '') + (x.onderwerp || ''))}</span><span class="zacht">${esc(x.inuit ? (x.richting === 'uit' ? 'Uit dienst' : 'In dienst') : x.type || '')}</span><span class="zacht">${fmtDatum(wanneer(x))}</span></button>`).join('')}</div>` : '<p class="hint">Geen meldingen.</p>'}</div></div></div>`;
 }
 const weekNr = d => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const dg = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - dg); const j = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - j) / DAG + 1) / 7); };
 document.addEventListener('click', e => {
@@ -8639,6 +8653,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.99', d: '29-10-2026', p: ['Werkverdeling: in- en uitdiensten tellen voor wie ze in AFAS echt afrondde, op de datum van afronden (uit de workflowhistorie). Afgehandeld is nu meldingen plus in- en uitdiensten; beide staan ook apart in de tabel.']},
   {v: 'v7.98', d: '29-10-2026', groot: true, p: ['To-do staat in hetzelfde blok als Changes en Projecten: titel en aantal bovenin, je lijsten links in het blok.', 'Werkverdeling compleet met de workflowhistorie uit AFAS: actieve dagen, first time right, zelf afgehandeld tegenover doorgezet, ontvangen van collega’s en als eerste opgepakt binnen de norm. In het detail: naar wie iemand doorzet en welke meldingen.']},
   {v: 'v7.97', d: '29-10-2026', p: ['To-do: je lijsten staan in een eigen paneel links in het to-do-vlak, niet meer in het menu. Het menu blijft kort.']},
   {v: 'v7.96', d: '29-10-2026', p: ['Werkverdeling: het proefblok haalt alleen ICT-workflows op en telt per actie hoe vaak die voorkomt.']},
@@ -8951,6 +8966,9 @@ function demoAfas(pad, opties){
       const ander = mensen.find(m => m !== x.verantw && (i % 3 === 0)) || '';
       if(ander){ r(t0, ander, 'Toewijzen aan mij', 108); r(t0 + UUR, ander, 'Toewijzen aan collega', 109, x.verantw); } else r(t0, x.verantw, 'Toewijzen aan mij', 108);
       if(x.afgesloten && x.statusDatum) r(+x.statusDatum, x.verantw, 'Afhandelen', 1); });
+    items.filter(x => x.inuit && x.sbid != null).forEach((x, i) => { const wie = i % 3 ? 'Glenn Brons' : (x.verantw || 'Kelly Groen'), t0 = Date.now() - (5 + i * 3) * DAG;
+      rows.push({Dossieritem: x.sbid, Gebruiker_door: wie, Gebruiker_naar: '', Begindatum: iso(t0), Workflow_omschrijving: 'ICT In- en uitdienst', Taak_omschrijving: 'Verwerken ICT', Bijschrift: 'Toewijzen aan mij', Actietype: 108});
+      if(x.afgesloten) rows.push({Dossieritem: x.sbid, Gebruiker_door: wie, Gebruiker_naar: '', Begindatum: iso(t0 + 2 * DAG), Workflow_omschrijving: 'ICT In- en uitdienst', Taak_omschrijving: 'Verwerken ICT', Bijschrift: 'Afgerond', Status_omschrijving: 'Afgerond', Actietype: 1}); });
     return {rows: rows.sort((a, z) => z.Begindatum.localeCompare(a.Begindatum))}; }
   if(pad.startsWith(`/connectors/${INST.connInUit}`)){ const d = n => new Date(Date.now() + n * DAG - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10) + 'T00:00:00Z';
     return {rows: [
