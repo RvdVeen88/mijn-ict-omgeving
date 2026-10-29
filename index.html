@@ -256,7 +256,10 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .taak.klaar .tdvink{background:var(--blauw-2);border-color:var(--blauw-2)}
 .taak.klaar .tdvink svg{opacity:1;color:#fff}
 .taak .titel{font-size:14.5px;cursor:default;min-width:0}
-.taak .titel small{display:block;font-size:12px;color:var(--grijs);margin-top:2px}
+.taak .titel small{display:inline;font-size:12px;color:var(--grijs);margin-left:10px}
+/* één regel per taak, net als de tabellen; opengeklapt staat alles volledig */
+.taak .titel{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.taak.open .titel{white-space:normal}.taak.open .titel small{display:block;margin:2px 0 0}
+.taak:not(:hover):not(.open) .naarafas{display:none}
 .taak .titel small .laat{color:var(--rood);font-weight:600}
 .tddl{font-size:12px;font-weight:600;color:var(--grijs);background:var(--achtergrond);border:1px solid var(--lijn);border-radius:999px;padding:2px 10px;white-space:nowrap}
 .tddl:empty{visibility:hidden;padding:0;border:0}.tddl.vandaag{color:var(--blauw);border-color:var(--lichtblauw);background:var(--lichtblauw-2)}.tddl.laat{color:var(--rood);border-color:var(--rood);background:transparent}
@@ -1632,7 +1635,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.00', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.01', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -6978,7 +6981,7 @@ function tdRij(t){
       <div class="acties">${t.melding ? `<button type="button" class="knop klein" data-tdactie="ticket">Melding ${esc(t.melding)} openen</button>` : ''}<button type="button" class="linkknop weg" data-tdactie="weg">Verwijderen</button></div></div>` : '';
   return `<div class="taak ${t.klaar ? 'klaar' : ''} ${TD.open === t.id ? 'open' : ''}" data-taak="${esc(t.id)}" draggable="${TD.open === t.id ? 'false' : 'true'}">
     <button type="button" class="tdvink" data-tdactie="vink" aria-label="${t.klaar ? 'Weer openzetten' : 'Afvinken'}">${TD_VINK}</button>
-    <span class="titel" data-tdactie="open">${esc(t.titel)}${sub.length ? `<small>${sub.join(' · ')}</small>` : ''}</span>${tdDl(t.deadline, t.klaar)}
+    <span class="titel" data-tdactie="open" title="${esc(t.titel)}">${esc(t.titel)}${sub.length ? `<small>${sub.join(' · ')}</small>` : ''}</span>${tdDl(t.deadline, t.klaar)}
     ${t.melding ? `<span class="gekoppeld">✓ melding ${esc(kaalNr(t.melding))}</span>` : t.klaar || t.ticket ? '<span></span>' : '<button type="button" class="naarafas" data-tdactie="naarafas" title="Maak van deze to-do een melding">+ Melding aanmaken</button>'}
     <button type="button" class="ster" data-tdactie="belangrijk" aria-pressed="${!!t.belangrijk}" title="${t.belangrijk ? 'Niet meer belangrijk' : 'Markeer als belangrijk'}">${TD_STER}</button>
     ${detail}</div>`;
@@ -8655,6 +8658,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.01', d: '29-10-2026', p: ['To-do: elke taak op één regel, net als Changes en Projecten; een lange titel wordt afgekapt (volledig bij de muis erop of als je de taak openklikt).']},
   {v: 'v8.00', d: '29-10-2026', p: ['Het wolkje “… is online/offline” naast het Team-icoon blijft niet meer hangen: het verdwijnt na 4 seconden, bij een klik, en verschijnt niet als SubmIT op de achtergrond staat.']},
   {v: 'v7.99', d: '29-10-2026', p: ['Werkverdeling: in- en uitdiensten tellen voor wie ze in AFAS echt afrondde, op de datum van afronden (uit de workflowhistorie). Afgehandeld is nu meldingen plus in- en uitdiensten; beide staan ook apart in de tabel.']},
   {v: 'v7.98', d: '29-10-2026', groot: true, p: ['To-do staat in hetzelfde blok als Changes en Projecten: titel en aantal bovenin, je lijsten links in het blok.', 'Werkverdeling compleet met de workflowhistorie uit AFAS: actieve dagen, first time right, zelf afgehandeld tegenover doorgezet, ontvangen van collega’s en als eerste opgepakt binnen de norm. In het detail: naar wie iemand doorzet en welke meldingen.']},
