@@ -81,7 +81,7 @@ button{cursor:default}
 .rail .r[aria-pressed="true"]{background:var(--rail-act);color:var(--rail-act-ink)}
 .rail .tel{position:absolute;top:3px;right:2px;font-size:10px;font-weight:700;background:#D92D20;color:#fff;border-radius:999px;padding:0 5px;line-height:15px;box-shadow:0 0 0 2px var(--vlak)}
 .rail .tel:empty{display:none}
-.rail #todo-knop.ontkoppeld{color:#E8890C}.rail #todo-knop.ontkoppeld svg{stroke-width:2.4}
+.it.ontkoppeld svg{color:#E8890C;stroke-width:2.4}
 .rail-onder{margin-top:auto;display:flex;flex-direction:column;gap:2px}
 
 .werk{flex:1;min-width:0;display:flex;flex-direction:column}
@@ -168,7 +168,13 @@ dialog.nieuwdlg{width:min(660px, calc(100vw - 32px))}
 .projtabel{table-layout:fixed}.projtabel td{max-width:none}.projtabel th:nth-child(1){width:90px}.projtabel th:nth-child(2){width:auto}.projtabel th:nth-child(3){width:140px}.projtabel th:nth-child(4){width:130px}.projtabel th:nth-child(5){width:130px}.projtabel th:nth-child(6),.projtabel th:nth-child(7){width:100px}.projtabel td:nth-child(2) small{max-width:none!important}
 .projtabel td.rood{color:var(--rood);font-weight:600}
 .trtag{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:5px;font-size:10px;font-weight:700;color:#fff;margin-right:7px;vertical-align:1px;flex:none}
-.trtag.c{background:var(--blauw)}.trtag.p{background:#E8590C}
+.trtag.c{background:var(--blauw)}.trtag.p{background:#E8590C}.trtag.m{background:#2E5FB0}.trtag.t{background:#B07800}
+#v-lijst{position:relative}#v-lijst.sleepdoel::after,#v-lijst.sleepnee::after{content:attr(data-sleeptekst);position:absolute;inset:0;z-index:20;display:grid;place-items:center;border:2.5px dashed var(--blauw-2);border-radius:30px;background:rgba(230,238,255,.82);color:var(--blauw);font-size:17px;font-weight:600;pointer-events:none}
+#v-lijst.sleepnee::after{border-color:var(--grijs);background:rgba(240,242,246,.85);color:var(--grijs)}
+:root[data-thema="donker"] #v-lijst.sleepdoel::after{background:rgba(20,30,52,.85)}
+.it[draggable="true"]{cursor:grab}
+.tdextra{display:flex;flex-direction:column;padding:0 6px 6px}.tdextra-rij{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;font:inherit;color:inherit;background:none;border:0;border-bottom:1px solid var(--lijn);padding:9px 16px;cursor:default}
+.tdextra-rij:hover{background:var(--achtergrond)}.tdx-titel{font-size:14px;min-width:0}.tdx-titel small{display:block;font-size:12px;color:var(--grijs)}.tdx-ster{font-style:normal;color:#F5B400;margin-right:6px}
 .trmini{display:flex;align-items:center;gap:2px;margin:-1px 14px 6px 40px;flex-wrap:wrap}.trmini i{flex:1;height:5px;border-radius:2px;background:var(--lichtblauw-2);min-width:10px}
 .trmini i.m{background:var(--lichtblauw)}.trmini i.v{background:var(--rood)}.trmini small{flex-basis:100%;font-size:10.5px;color:var(--grijs);margin-top:2px}
 .tl-drukte{cursor:default;background:var(--achtergrond)}.tl-drukte .tl-spoor{height:52px}
@@ -1484,7 +1490,6 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
     <button type="button" class="r plus" id="nieuw-knop" title="Nieuwe melding" aria-label="Nieuwe melding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><path class="acc" d="M17.5 3.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>
     <button type="button" class="r" id="team-knop" title="Team: wie is er online en wat gebeurt er" aria-label="Team" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path class="acc" d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 20a6.5 6.5 0 0 0-2.6-5.2"/></svg><span class="tel online" id="team-aantal"></span><span class="stip" id="team-stip" hidden></span></button>
     <span class="rail-scheid" aria-hidden="true"></span>
-    <button type="button" class="r" id="todo-knop" data-weergave="todo" title="To-do en notities" aria-label="To-do en notities"><img class="todo-logo" src="todo.png" alt="" hidden onload="this.hidden=false;this.nextElementSibling.style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span class="tel" id="todo-aantal"></span></button>
     <button type="button" class="r" id="kb-knop" title="Kennisbank: instructies zoeken, openen en meesturen" aria-label="Kennisbank"><img class="todo-logo" src="kennisbank.png" alt="" hidden onload="this.hidden=false;this.nextElementSibling.style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 4.9 6.6 4.4 3 5v13c3.6-.6 7 0 9 1.6"/><path d="M12 6.5c2-1.6 5.4-2.1 9-1.5v13c-3.6-.6-7 0-9 1.6z"/><path d="M12 6.5v13.1"/><path class="acc" d="M5.8 9c1.6-.2 3 .1 4 .6M5.8 12.2c1.6-.2 3 .1 4 .6M14.2 9.6c1-.5 2.4-.8 4-.6M14.2 12.8c1-.5 2.4-.8 4-.6"/></svg></button>
     <button type="button" class="r" id="rap-knop" data-weergave="rapport" title="Rapportage: aantallen, trends en een AI-analyse" aria-label="Rapportage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
   </nav>
@@ -1616,7 +1621,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v7.90', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v7.92', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2759,7 +2764,7 @@ $('#detail').addEventListener('close', () => { const p = $('#kbpaneel'); if(p &&
 function tekenNav(){
   const mini = id => `<span class="minischak" role="group" aria-label="Mij of alles">${['mij','alles'].map(v => `<span role="button" tabindex="0" data-mijalles="${id}" data-v="${v}" aria-pressed="${(v === 'mij') === schuifAan(id)}" title="${v === 'mij' ? 'Alleen mijn meldingen en wat bij niemand ligt' : 'Alle meldingen'}">${v === 'mij' ? 'Mij' : 'Alle'}</span>`).join('')}</span>`;
   const it = (id, t, n, o = {}) => { const ongL = o.ongLijst || (o.ongelezen ? open() : []), ong = ongL.filter(x => (x._sg || []).some(s => s.code === 'ongelezen')).length;   // bolletje alleen voor wat in deze weergave staat
-    return `<button type="button" class="it${o.cls ? ' ' + o.cls : ''}${o.rood && n ? ' rinkel' : ''}${(o.stuiter && n && profiel && profiel.rol === 'servicedesk') || ong ? ' stuiter' : ''}" data-weergave="${esc(id)}" aria-pressed="${tab === id || (id === 'beheer' && ['controle', 'beoordelingen', 'connectoren'].includes(tab))}" ${o.titel ? `title="${esc(o.titel)}" ` : ''}${ong ? `title="${ong} melding${ong === 1 ? '' : 's'} met iets nieuws voor jou"` : ''}>${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${o.mini || ''}${n == null ? (ong ? '<b class="stip leeg"></b>' : '') : `<b class="${o.rood && n ? 'rood' : ''}${ong ? ' stip' : ''}${o.laat ? ' laat' : ''}">${n}</b>`}</button>`; };
+    return `<button type="button"${o.sleep ? ` draggable="true" data-sleep="${o.sleep}"` : ''} class="it${o.cls ? ' ' + o.cls : ''}${o.rood && n ? ' rinkel' : ''}${(o.stuiter && n && profiel && profiel.rol === 'servicedesk') || ong ? ' stuiter' : ''}" data-weergave="${esc(id)}" aria-pressed="${tab === id || (id === 'beheer' && ['controle', 'beoordelingen', 'connectoren'].includes(tab))}" ${o.titel ? `title="${esc(o.titel)}" ` : ''}${ong ? `title="${ong} melding${ong === 1 ? '' : 's'} met iets nieuws voor jou"` : ''}>${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${o.mini || ''}${n == null ? (ong ? '<b class="stip leeg"></b>' : '') : `<b class="${o.rood && n ? 'rood' : ''}${ong ? ' stip' : ''}${o.laat ? ' laat' : ''}">${n}</b>`}</button>`; };
   const fav = favorieten(), isFav = a => fav.some(x => norm(x) === norm(a));
   const afd = afdelingen();
   const rijA = ([a, n]) => `<div class="afdrij"><button type="button" class="favknop ${isFav(a) ? 'aan' : ''}" data-fav="${esc(a)}" title="${isFav(a) ? 'Uit favorieten halen' : 'Als favoriet bovenaan zetten'}">★</button>${it('afd:' + a, a, zichtbaar('afd:' + a, weergave('afd:' + a).lijst).length)}</div>`;
@@ -2772,22 +2777,24 @@ function tekenNav(){
   // Mijn werk: alleen bij Aandacht en Trajecten kun je kiezen tussen jezelf en het team
   const keuze = (attr, nu, a, b, ta, tb) => `<span class="minischak" role="group">${[[a.toLowerCase(), a, ta], [b.toLowerCase(), b, tb]].map(([v, t, tt]) => `<span role="button" tabindex="0" ${attr}="${v}" aria-pressed="${nu === v}" title="${tt}">${t}</span>`).join('')}</span>`;
   const aandacht = VAST.find(v => v.id === 'norm'), nieuwM = VAST.find(v => v.id === 'nieuw'), hist = VAST.find(v => v.id === 'historie');
+  const TD_ICO = '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>';
   const TR_ICO = '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7 14h6M7 17h9"/>';
   const kr = kritiekOpen().length, pot = STORINGEN.length;
   const ovz = kr ? {...vast[0], cls: 'kritstoring', ico: '<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>', titel: `${kr} kritieke storing${kr === 1 ? '' : 'en'}: bekijk het overzicht`}
     : pot ? {...vast[0], cls: 'potstoring', ico: '<path d="M3 12h4l3-8 4 16 3-8h4"/>', titel: `Mogelijke storing: ${STORINGEN.map(g => g.nrs.length + '× ' + g.woord).join(', ')}`} : vast[0];
   $('#nav').innerHTML = `${it(vast[0].id, vast[0].t, null, ovz)}
-    <h4>Meldingen</h4>
-    ${(() => { const lm = zichtbaar(mijnM.id, mijnM.f()), lc = MCH.aan ? chMijnOpen() : [], nm = lm.length, nc = lc.length;   // + Changes aan: die tellen mee in het menu (getal en bolletje)
-      return it(mijnM.id, mijnM.t, nm + nc, {...mijnM, ongLijst: [...lm, ...lc], ...(nc ? {titel: `${nm} melding${nm === 1 ? '' : 'en'} + ${nc} change${nc === 1 ? '' : 's'}`} : {})}); })()}
+    <h4>Voor mij</h4>
+    ${(() => { const lm = zichtbaar(mijnM.id, mijnM.f()), x = extraTel('toegewezen');   // bijgeplust (+ Changes / + Projecten / + To-do) telt mee: getal en bolletje
+      return it(mijnM.id, 'Meldingen', lm.length + x.n, {...mijnM, sleep: 'meld', ongLijst: [...lm, ...x.ong], ...(x.n ? {titel: `${lm.length} melding${lm.length === 1 ? '' : 'en'}${x.tip}`} : {})}); })()}
+    ${(() => { const nc = chMijnOpen().length, np = PRJ.geladen ? projOpen().length : null, xc = extraTel('ch:mijn'), xp = extraTel('projecten');
+      return CHANGES.map(v => it(v.id, 'Changes', nc + xc.n, {...v, sleep: 'ch', ongLijst: [...chMijnOpen(), ...xc.ong], ...(xc.n ? {titel: `${nc} change${nc === 1 ? '' : 's'}${xc.tip}`} : {})})).join('')
+        + it('projecten', 'Projecten', np == null ? null : np + xp.n, {ico: TR_ICO, sleep: 'proj', ...(xp.n ? {titel: `${np} project${np === 1 ? '' : 'en'}${xp.tip}`} : {})})
+        + (() => { const ok = TD.status === 'ok', laden = !TD.status || TD.status === 'laden', n = ok ? TD.data.taken.filter(t => !t.klaar).length : null;   // To-do: zelfde menu, oranje icoon = nog niet gekoppeld
+          return it('todo', 'To-do', n || null, {ico: TD_ICO, sleep: 'todo', cls: !ok && !laden ? 'ontkoppeld' : '', titel: ok ? 'To-do en notities (sleep naar Meldingen, Changes of Projecten om je to-do’s daar erbij te zien)' : 'To-do · nog niet gekoppeld met Microsoft To Do: klik om te koppelen'}); })(); })()}
+    <h4>Team</h4>
     ${(() => { const l = zichtbaar(nieuwM.id, nieuwM.f()), laat = l.filter(nieuwTeLaat).length;   // te laat opgepakt: subtiel rood randje om het getal
       return it(nieuwM.id, nieuwM.t, l.length, laat ? {...nieuwM, laat, titel: `${laat} van de ${l.length} te laat opgepakt`} : nieuwM); })()}
     ${it(aandacht.id, 'Aandacht', zichtbaar(aandacht.id, aandacht.f()).length, {...aandacht, mini: keuze('data-wissel-werk', werkOns ? 'alle' : 'mij', 'Mij', 'Alle', 'Alleen jouw meldingen die aandacht nodig hebben', 'Alle meldingen die aandacht nodig hebben')})}
-    <h4>Changes &amp; projecten</h4>
-    ${(() => { const nc = chMijnOpen().length, np = PRJ.geladen ? projOpen().length : null, s = TL.samen;   // + Projecten / + Changes aan: samen tellen
-      const tip = `${nc} change${nc === 1 ? '' : 's'} + ${np || 0} project${np === 1 ? '' : 'en'}`;
-      return CHANGES.map(v => it(v.id, v.t, nc + (s ? np || 0 : 0), {...v, ongLijst: chMijnOpen(), ...(s ? {titel: tip} : {})})).join('')
-        + it('projecten', 'Mijn projecten', np == null ? null : np + (s ? nc : 0), s ? {ico: TR_ICO, titel: tip} : {ico: TR_ICO}); })()}
     <h4>Mijn afdelingen</h4>
     ${favL.map(rijA).join('') || '<p class="favhint"><b style="color:var(--inkt);font-weight:500">Geen afdeling geselecteerd</b><br>Zet een ★ bij een afdeling om hem hier te tonen.</p>'}
     <h4><button type="button" id="k-overige" aria-expanded="${restOpen}">${ico('<path d="M6 9l6 6 6-6"/>')}Andere afdelingen (${rest.length})</button></h4>
@@ -2950,33 +2957,63 @@ function tekenLijst(){
   $('#lijst-sub').textContent = l.length > 400 ? 'eerste 400 getoond; zoek of sorteer om te verfijnen' : '';
   if(tab === 'dicht' && !alleGeladen) $('#lijst-sub').textContent = 'Gesloten meldingen worden nog opgehaald…';
   if((dicht || alles || tab === 'zoek') && !alleDichtGeladen) $('#lijst-sub').textContent = 'Oudere gesloten meldingen worden opgehaald…';
-  const tlAan = alleenChanges() && chWeergave === 'tijdlijn' && !dicht;
-  $('#lijst-kol').innerHTML = kopKnoppen({od: kanDicht, dicht, alleOpen: tab === 'alle' ? !alles : undefined, samen: alleenChanges(), tl: alleenChanges() ? tlAan : undefined, plusCh: tab === 'toegewezen' ? MCH.aan : undefined, leeg: !l.length && !(tab === 'toegewezen' && MCH.aan), geenKol: tab.startsWith('inuit')});
+  const metTl = alleenChanges();   // lijst | tijdlijn alleen bij Mijn changes (Mijn projecten heeft hem ook)
+  const tlAan = metTl && chWeergave === 'tijdlijn' && !dicht;
+  $('#lijst-kol').innerHTML = kopKnoppen({od: kanDicht, dicht, alleOpen: tab === 'alle' ? !alles : undefined, extraView: EXTRA_VIEWS[tab] ? tab : undefined, tl: metTl ? tlAan : undefined, leeg: !l.length && !extraVan(tab).length, geenKol: tab.startsWith('inuit')});
   const extra = alleenChanges() && TL.samen ? zoekProj(dicht ? PRJ.lijst.filter(p => p.afgesloten) : projOpen()) : null;
-  if(tlAan){ $('#lijst-sub').textContent = ''; $('#lijst').innerHTML = samenTijdlijn(l, extra || []); $('#titel').textContent = ''; $('#subtitel').textContent = ''; return; }
+  if(tlAan){ $('#lijst-sub').textContent = ''; $('#lijst').innerHTML = samenTijdlijn(l, extra || [], extraHeeft(tab, 'meld') ? zichtbaar('toegewezen', weergave('toegewezen').lijst) : [], extraHeeft(tab, 'todo') ? tdOpenL() : []); $('#titel').textContent = ''; $('#subtitel').textContent = ''; return; }
   if(!heeftLocKolom && !verborgenKol.has('loc')) vulLocaties(l.slice(0, 400));
   $('#lijst').innerHTML = (l.length && tab === 'inuit' ? iuSecties(lid, l, dicht) : l.length ? tabel(lid, l, {zonder: [...(tab.startsWith('afd:') ? ['afd'] : []), ...(isDicht ? ['sig'] : []), ...(alleenEigen(tab) ? ['wie'] : [])], changes: alleenChanges() || soortVan(tab) === 'changes'}) : `<p class="leeg">${tab === 'zoek' && !w ? 'Typ bovenin wat je zoekt.' : dicht ? 'Geen afgehandelde meldingen.' : tab === 'zoek' ? 'Geen meldingen gevonden.' : 'Geen open meldingen.'}</p>`)
-    + (extra ? projSectie(extra, dicht) : '') + (tab === 'toegewezen' && MCH.aan ? chSectie(dicht, w, isDicht) : '') + (!dicht ? chOnderSectie(tab, w) : '');
+    + (tab === 'toegewezen' && MCH.aan ? chSectie(dicht, w, isDicht) : '') + (extraHeeft(tab, 'meld') ? meldSectie(dicht, w, isDicht) : '') + (extra ? projSectie(extra, dicht) : '')
+    + (tab === 'toegewezen' && extraHeeft(tab, 'proj') ? projSectie(zoekProj(dicht ? PRJ.lijst.filter(p => p.afgesloten) : projOpen()), dicht) : '') + (extraHeeft(tab, 'todo') && !dicht ? todoSectie(w) : '') + (!dicht ? chOnderSectie(tab, w) : '');
   $('#titel').textContent = ''; $('#subtitel').textContent = '';   // de naam staat al in het menu en boven de lijst
 }
 /* één kop voor elke lijst: Open|Afgehandeld · + Projecten/Changes · Filter+Kolommen (of periode bij tijdlijn) · lijst/tijdlijn */
-const TL = (() => { const s = opslag.get('mict-samen'); return {samen: s == null ? opslag.get('mict-tlsoort') === 'beide' : !!s}; })();
+/* Extra soorten in een weergave: + Meldingen / + Changes / + Projecten / + To-do (knop in de kop, of icoon uit het menu op de pagina slepen).
+   Per weergave onthouden (ook op andere pc's). Vervangt de oude losse knoppen + Changes (Mijn meldingen) en + Projecten/+ Changes. */
+const EXTRA_VIEWS = {toegewezen: ['ch', 'proj', 'todo'], 'ch:mijn': ['meld', 'proj', 'todo'], projecten: ['meld', 'ch', 'todo']};
+const EXTRA_NAAM = {meld: 'Meldingen', ch: 'Changes', proj: 'Projecten', todo: 'To-do'};
+let EXTRA = opslag.get('mict-extra');
+if(!EXTRA || typeof EXTRA !== 'object'){ const s0 = opslag.get('mict-samen'), samen = s0 == null ? opslag.get('mict-tlsoort') === 'beide' : !!s0;   // eenmalig overnemen van de oude knoppen
+  EXTRA = {toegewezen: opslag.get('mict-meldch') ? ['ch'] : [], 'ch:mijn': samen ? ['proj'] : [], projecten: samen ? ['ch'] : []}; }
+const extraVan = v => (EXTRA[v] || []).filter(k => (EXTRA_VIEWS[v] || []).includes(k));
+const extraHeeft = (v, k) => extraVan(v).includes(k);
+function extraZet(v, k, aan){ const l = new Set(extraVan(v)); aan ? l.add(k) : l.delete(k); EXTRA = {...EXTRA, [v]: [...l]}; opslag.set('mict-extra', EXTRA); }
+const TL = {get samen(){ return tab === 'projecten' ? extraHeeft('projecten', 'ch') : extraHeeft('ch:mijn', 'proj'); }, set samen(v){ extraZet('ch:mijn', 'proj', v); extraZet('projecten', 'ch', v); }};
 const PERIODES = [['maand', '6 weken'], ['kwartaal', 'Kwartaal'], ['halfjaar', 'Halfjaar']];
 const chMijnOpen = () => open().filter(isChange).filter(isMijn);
-const MCH = {aan: !!opslag.get('mict-meldch')};   // Mijn meldingen: je changes eronder tonen
-function kopKnoppen({od, dicht, alleOpen, samen, tl, proj = false, plusCh, leeg = false, geenKol = false}){
+const MCH = {get aan(){ return extraHeeft('toegewezen', 'ch'); }, set aan(v){ extraZet('toegewezen', 'ch', v); }};   // Mijn meldingen + Changes
+// wat er in een weergave is bijgeplust, telt mee in het menu
+function extraTel(v){ const l = extraVan(v); let n = 0, tip = '', ong = [];
+  const bij = (k, aantal, ev, mv, lijst) => { if(!l.includes(k)) return; n += aantal; tip += ` + ${aantal} ${aantal === 1 ? ev : mv}`; if(lijst) ong = ong.concat(lijst); };
+  bij('meld', zichtbaar('toegewezen', weergave('toegewezen').lijst).length, 'melding', 'meldingen', zichtbaar('toegewezen', weergave('toegewezen').lijst));
+  bij('ch', chMijnOpen().length, 'change', 'changes', chMijnOpen());
+  bij('proj', PRJ.geladen ? projOpen().length : 0, 'project', 'projecten');
+  bij('todo', tdOpenL().length, 'to-do', 'to-do’s');
+  return {n, tip, ong}; }
+const tdOpenL = () => TD.status === 'ok' && TD.data ? TD.data.taken.filter(t => !t.klaar) : [];
+function kopKnoppen({od, dicht, alleOpen, samen, tl, proj = false, plusCh, leeg = false, geenKol = false, extraView}){
   const odK = od ? `<span class="wkeuze tlsoort" role="group" aria-label="Open of afgehandeld"><button type="button" data-opendicht="0" aria-pressed="${!dicht}">Open</button><button type="button" data-opendicht="1" aria-pressed="${dicht}">${proj ? 'Afgerond' : 'Afgehandeld'}</button></span>` : '';
   const aK = alleOpen === undefined ? '' : `<span class="wkeuze tlsoort" role="group" aria-label="Alle of open"><button type="button" data-alleopen="0" aria-pressed="${!alleOpen}">Alle</button><button type="button" data-alleopen="1" aria-pressed="${alleOpen}">Open</button></span>`;
-  const sK = samen ? `<span class="wkeuze tlsoort"><button type="button" data-samen aria-pressed="${TL.samen}" title="${proj ? 'Jouw changes' : 'Jouw projecten'} meenemen in lijst en tijdlijn">+ ${proj ? 'Changes' : 'Projecten'}</button></span>` : '';
+  const sK = extraView && EXTRA_VIEWS[extraView] ? `<span class="wkeuze tlsoort" role="group" aria-label="Erbij tonen">${EXTRA_VIEWS[extraView].map(k => `<button type="button" data-extra="${k}" aria-pressed="${extraHeeft(extraView, k)}" title="${extraHeeft(extraView, k) ? 'Weer weghalen' : `Jouw ${EXTRA_NAAM[k].toLowerCase()} erbij tonen in lijst en tijdlijn (of sleep het icoon uit het menu naar de pagina)`}">+ ${EXTRA_NAAM[k]}</button>`).join('')}</span>` : '';
   const midden = tl ? `<span class="wkeuze tlsoort" role="group" aria-label="Periode">${PERIODES.map(([k, t]) => `<button type="button" data-projz="${k}" aria-pressed="${k === chZoom}">${t}</button>`).join('')}</span>` : leeg || geenKol ? '' : kolKnop_(proj);
   const wK = tl === undefined ? '' : `<span class="wkeuze"><button type="button" data-chw="lijst" aria-pressed="${!tl}" aria-label="Lijst" title="Lijst"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button><button type="button" data-chw="tijdlijn" aria-pressed="${tl}" aria-label="Tijdlijn" title="Tijdlijn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h9M7 12h11M5 18h8"/></svg></button></span>`;
-  const cK = plusCh === undefined ? '' : `<span class="wkeuze tlsoort"><button type="button" data-plusch aria-pressed="${plusCh}" title="Jouw changes onder je meldingen tonen">+ Changes</button></span>`;
   const xK = tl || leeg ? '' : `<button type="button" class="kolknop xlsknop" data-export title="Exporteren naar Excel: de getoonde kolommen, met je filters en sortering" aria-label="Exporteren naar Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M9 13l5 5M14 13l-5 5"/></svg></button>`;
-  return odK + aK + sK + cK + midden + wK + xK;
+  return odK + aK + sK + midden + wK + xK;
 }
 document.addEventListener('click', e => { const b = e.target.closest('[data-alleopen]'); if(!b) return; opslag.set('mict-alle-open', b.dataset.alleopen === '1'); teken(); });
-document.addEventListener('click', e => { if(!e.target.closest('[data-plusch]')) return; MCH.aan = !MCH.aan; opslag.set('mict-meldch', MCH.aan); teken(); });
-document.addEventListener('click', e => { if(!e.target.closest('[data-samen]')) return; TL.samen = !TL.samen; opslag.set('mict-samen', TL.samen); teken(); });
+document.addEventListener('click', e => { const b = e.target.closest('[data-extra]'); if(!b) return; extraZet(tab, b.dataset.extra, !extraHeeft(tab, b.dataset.extra)); teken(); });
+// slepen: een icoon uit het menu (Mijn meldingen, Mijn changes, Mijn projecten, To-do) op de pagina loslaten = erbij tonen
+let SLEEP = null;
+document.addEventListener('dragstart', e => { const b = e.target.closest && e.target.closest('[data-sleep]'); if(!b) return; SLEEP = b.dataset.sleep; try{ e.dataTransfer.setData('text/plain', EXTRA_NAAM[SLEEP]); e.dataTransfer.effectAllowed = 'copy'; }catch(err){} });
+document.addEventListener('dragend', () => { SLEEP = null; const v = $('#v-lijst'); if(v) v.classList.remove('sleepdoel', 'sleepnee'); });
+const sleepMag = () => !!SLEEP && !!EXTRA_VIEWS[tab] && EXTRA_VIEWS[tab].includes(SLEEP);
+$('#v-lijst').addEventListener('dragover', e => { if(!SLEEP) return; const v = $('#v-lijst');
+  if(sleepMag()){ e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; v.dataset.sleeptekst = extraHeeft(tab, SLEEP) ? `${EXTRA_NAAM[SLEEP]} staat er al` : `Loslaten: ${EXTRA_NAAM[SLEEP].toLowerCase()} erbij tonen`; v.classList.add('sleepdoel'); }
+  else { v.dataset.sleeptekst = 'Kan hier niet: sleep naar Mijn meldingen, Mijn changes of Mijn projecten'; v.classList.add('sleepnee'); } });
+$('#v-lijst').addEventListener('dragleave', e => { if(!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('sleepdoel', 'sleepnee'); });
+$('#v-lijst').addEventListener('drop', e => { const v = $('#v-lijst'); v.classList.remove('sleepdoel', 'sleepnee'); if(!sleepMag()) return; e.preventDefault();
+  const k = SLEEP; SLEEP = null; if(!extraHeeft(tab, k)){ extraZet(tab, k, true); toast(`${EXTRA_NAAM[k]} staan nu ook in deze weergave`); } teken(); });
 const zoekProj = l => { const w = norm(filt.zoek); return w ? l.filter(p => norm([p.code, p.onderwerp, p.leider, p.status, p.rol].join(' ')).includes(w)) : l; };
 const projStd = (a, b) => (a.rol !== 'Projectleider') - (b.rol !== 'Projectleider') || +(a.projEind || 9e15) - +(b.projEind || 9e15);
 const projTabel = (l, dicht) => l.length ? tabel('lijst:projecten', [...l].sort(projStd), {proj: true}) : `<p class="leeg">${dicht ? 'Geen afgeronde projecten.' : 'Geen open projecten.'}${PRJ.diag && !dicht ? `<br><small>Gelezen uit AFAS: ${esc(PRJ.diag)}</small>` : ''}</p>`;
@@ -2988,6 +3025,17 @@ function chOnderSectie(t, w){
   let l = chOnder(t); if(!l) return ''; if(w) l = l.filter(x => x.zoek.includes(w)); if(!l.length) return '';
   l = [...l].sort((a, b) => (b.aangemaakt || 0) - (a.aangemaakt || 0));
   return `<h3 class="subkop">${t === 'nieuw' ? 'Changes en verbeteracties zonder verantwoordelijke' : 'Changes en verbeteracties'} <b>${l.length}</b></h3>` + tabel('lijst:' + t + ':ch', l, {zonder: t.startsWith('afd:') ? ['afd'] : [], changes: true});
+}
+function meldSectie(dicht, w, isDicht){
+  let l = dicht ? dichtVan('toegewezen') : zichtbaar('toegewezen', weergave('toegewezen').lijst);
+  if(w) l = l.filter(x => x.zoek.includes(w)); l = [...l].sort((a, b) => (b.aangemaakt || 0) - (a.aangemaakt || 0));
+  return `<h3 class="subkop">Mijn meldingen <b>${l.length}</b></h3>` + (l.length ? tabel('lijst:extra:meld' + (dicht ? ':dicht' : ''), l, {zonder: ['wie', ...(isDicht ? ['sig'] : [])]}) : `<p class="leeg">${dicht ? 'Geen afgehandelde meldingen.' : 'Geen open meldingen.'}</p>`);
+}
+// to-do's als blok onder een lijst: klik opent de to-do (in To-do, om te bewerken)
+function todoSectie(w){
+  if(TD.status !== 'ok') return `<h3 class="subkop">To-do</h3><p class="leeg">${TD.status === 'laden' ? 'Microsoft To Do laden…' : 'Nog niet gekoppeld met Microsoft To Do. <button type="button" class="linkknop" data-weergave="todo">Koppelen</button>'}</p>`;
+  let l = tdOpenL(); if(w) l = l.filter(t => norm([t.titel, t.notitie].join(' ')).includes(w)); l = [...l].sort(tdSorteer);
+  return `<h3 class="subkop">To-do <b>${l.length}</b></h3>` + (l.length ? `<div class="tdextra">${l.map(t => `<button type="button" class="tdextra-rij" data-tdtl="${esc(t.id)}" title="Openen in To-do"><span class="tdx-titel">${t.belangrijk ? '<i class="tdx-ster" aria-label="belangrijk">★</i>' : ''}${esc(t.titel)}<small>${esc(tdLijstNaam(t.lijst))}${t.ticket || t.melding ? ' · melding ' + esc(kaalNr(t.ticket || t.melding)) : ''}</small></span>${tdDl(t.deadline)}</button>`).join('')}</div>` : '<p class="leeg">Geen open to-do’s.</p>');
 }
 function chSectie(dicht, w, isDicht){
   let l = dicht ? dichtVan('ch:mijn') : open().filter(isChange).filter(isMijn);
@@ -3001,18 +3049,23 @@ function tekenProjLijst(){
   const pl = zoekProj(PRJ.lijst.filter(p => !!p.afgesloten === dicht));
   const cl = TL.samen ? zichtbaar('ch:mijn', dicht ? dichtVan('ch:mijn') : weergave('ch:mijn').lijst).filter(x => !w || x.zoek.includes(w)) : null;
   $('#lijst-titel').textContent = 'Mijn projecten'; $('#lijst-n').hidden = false; $('#lijst-n').textContent = pl.length; $('#lijst-sub').textContent = PRJ.geladen ? '' : 'Projecten worden opgehaald…';
-  $('#lijst-kol').innerHTML = kopKnoppen({od: true, dicht, samen: true, tl: tlAan, proj: true});
+  $('#lijst-kol').innerHTML = kopKnoppen({od: true, dicht, extraView: 'projecten', tl: tlAan, proj: true});
   $('#titel').textContent = ''; $('#subtitel').textContent = '';
   if(PRJ.fout){ $('#lijst').innerHTML = `<p class="leeg">Projecten ophalen lukte niet: ${esc(PRJ.fout)}<br>Controleer bij <b>Connectoren &amp; velden</b> of GetConnector <code>${esc(INST.connProjecten)}</code> en UpdateConnector <code>PtProject</code> aan de app connector zijn toegevoegd.</p>`; return; }
-  if(tlAan){ $('#lijst').innerHTML = samenTijdlijn(cl || [], pl); return; }
-  $('#lijst').innerHTML = projTabel(pl, dicht) + (cl ? `<h3 class="subkop">Mijn changes <b>${cl.length}</b></h3>` + (cl.length ? tabel('lijst:ch:mijn' + (dicht ? ':dicht' : ''), cl, {zonder: dicht ? ['wie', 'sig'] : ['wie'], changes: true}) : `<p class="leeg">${dicht ? 'Geen afgehandelde changes.' : 'Geen open changes.'}</p>`) : '');
+  const ml = extraHeeft('projecten', 'meld') ? zichtbaar('toegewezen', weergave('toegewezen').lijst) : [], tl2 = extraHeeft('projecten', 'todo') ? tdOpenL() : [];
+  if(tlAan){ $('#lijst').innerHTML = samenTijdlijn(cl || [], pl, ml, tl2); return; }
+  $('#lijst').innerHTML = projTabel(pl, dicht) + (cl ? `<h3 class="subkop">Mijn changes <b>${cl.length}</b></h3>` + (cl.length ? tabel('lijst:ch:mijn' + (dicht ? ':dicht' : ''), cl, {zonder: dicht ? ['wie', 'sig'] : ['wie'], changes: true}) : `<p class="leeg">${dicht ? 'Geen afgehandelde changes.' : 'Geen open changes.'}</p>`) : '')
+    + (extraHeeft('projecten', 'meld') ? meldSectie(dicht, w, dicht) : '') + (extraHeeft('projecten', 'todo') && !dicht ? todoSectie(w) : '');
 }
 // één tijdlijn voor changes en projecten samen (met C/P-label zodra beide erin staan)
-function samenTijdlijn(c, p){
+function samenTijdlijn(c, p, m = [], t = []){
   c = c.map(x => Object.assign(x, {_tr: 'c'})); p = p.map(x => Object.assign(x, {_tr: 'p'}));
-  const lijst = [...c, ...p];
-  if(!lijst.length) return `<p class="leeg">${TL.samen ? 'Geen open changes of projecten.' : tab === 'projecten' ? 'Geen open projecten.' : 'Geen open changes.'}</p>`;
-  let h = tekenTijdlijn(lijst, {drukte: true, tag: TL.samen});
+  m = m.filter(x => x.gepland).map(x => Object.assign(x, {_tr: 'm'}));   // meldingen alleen met een planning
+  const tv = t.map(x => { const e = x.deadline ? new Date(x.deadline + 'T00:00:00') : null, nu = beginDag(new Date());
+    return {nr: 'td:' + x.id, onderwerp: x.titel, status: '', aangemaakt: null, projStart: e ? (e < nu ? e : nu) : null, projEind: e, _td: x, _tr: 't'}; });
+  const lijst = [...c, ...p, ...m, ...tv], soorten = new Set(lijst.map(x => x._tr));
+  if(!lijst.length) return `<p class="leeg">Niets met een datum in deze weergave.</p>`;
+  let h = tekenTijdlijn(lijst, {tag: soorten.size > 1, nr: x => x._td ? tdLijstNaam(x._td.lijst) : nrT(x)}).replace(/data-nr="td:/g, 'data-tdtl="');
   p.forEach(x => { h = h.split(`data-nr="${esc(x.code)}"`).join(`data-proj="${esc(x.code)}"`); });
   return h;
 }
@@ -3055,7 +3108,7 @@ function tekenTijdlijn(lijst, opt = {}){
         tekst = `<span class="tl-pct" style="left:calc(${r}% + 8px)">einddatum ontbreekt</span>`; } }
     if(f !== 'zonder' && (+(e || b) < +van || +b > +tot)) { balk = ''; tekst = `<span class="tl-pct" style="${+b > +tot ? 'right:8px' : 'left:8px'}">${+b > +tot ? 'later →' : '← eerder'}</span>`; }
     return `<div class="tl-rij" data-nr="${esc(x.nr)}" tabindex="0" role="button" title="${esc(x.onderwerp)} · ${esc(toonStatus(x.status) || '')}">
-      <div class="tl-label"><b>${opt.tag ? `<span class="trtag ${x._tr || 'c'}">${x._tr === 'p' ? 'P' : 'C'}</span>` : ''}${esc(x.onderwerp)}</b><small>${esc(opt.nr ? opt.nr(x) : nrT(x))} · ${x._tr === 'p' && x.rol ? esc(x.rol.toLowerCase()) + ' · ' : ''}${sub}</small></div>
+      <div class="tl-label"><b>${opt.tag ? `<span class="trtag ${x._tr || 'c'}">${({c: 'C', p: 'P', m: 'M', t: 'T'})[x._tr || 'c']}</span>` : ''}${esc(x.onderwerp)}</b><small>${esc(opt.nr ? opt.nr(x) : nrT(x))} · ${x._tr === 'p' && x.rol ? esc(x.rol.toLowerCase()) + ' · ' : ''}${sub}</small></div>
       <div class="tl-spoor" style="${raster}"><span class="tl-vandaag" style="left:${pos(nu)}%"></span>${balk}${tekst}</div></div>`;
   };
   const sorteerOp = {laat: x => +eindVan(x), loopt: x => +(eindVan(x) || 9e15), komt: x => +startVan(x), zonder: x => -(x.aangemaakt || 0)};
@@ -3066,7 +3119,7 @@ function tekenTijdlijn(lijst, opt = {}){
     ${opt.drukte ? (() => { const dw = trDrukte(lijst, van, weken), max = Math.max(DRUK, ...dw.map(d => d.n));
       return `<div class="tl-rij tl-drukte"><div class="tl-label"><b>Drukte per week</b><small>${dw.some(d => d.n >= DRUK) ? 'rood = ' + DRUK + ' of meer tegelijk' : 'geen drukke weken'}</small></div><div class="tl-spoor" style="${raster}">${dw.map(d => `<span class="tl-dk${d.n >= DRUK ? ' druk' : ''}" style="left:${pos(d.van)}%;width:${100 / weken}%" title="Week ${weeknr(d.van)}: ${d.c} change${d.c === 1 ? '' : 's'}, ${d.p} project${d.p === 1 ? '' : 'en'}"><i class="p" style="height:${d.p / max * 100}%"></i><i class="c" style="height:${d.c / max * 100}%"></i></span>`).join('')}<span class="tl-vandaag" style="left:${pos(nu)}%"></span></div></div>`; })() : ''}
     <div class="tl-body">${groepen}</div>
-    ${opt.geenLegenda ? '' : `<div class="tl-legenda"><span><i style="background:var(--blauw)"></i>Verstreken doorlooptijd</span><span><i style="background:var(--lichtblauw-2);border:1px solid var(--lichtblauw)"></i>Nog te gaan</span><span><i style="background:var(--rood)"></i>Einddatum verstreken</span>${opt.tag ? '<span><b class="trtag c">C</b> change <b class="trtag p" style="margin-left:8px">P</b> project</span>' : '<span>Einddatum = Einddatum project, anders Gepland</span>'}</div>`}
+    ${opt.geenLegenda ? '' : `<div class="tl-legenda"><span><i style="background:var(--blauw)"></i>Verstreken doorlooptijd</span><span><i style="background:var(--lichtblauw-2);border:1px solid var(--lichtblauw)"></i>Nog te gaan</span><span><i style="background:var(--rood)"></i>Einddatum verstreken</span>${opt.tag ? `<span>${[['c', 'C', 'change'], ['p', 'P', 'project'], ['m', 'M', 'melding'], ['t', 'T', 'to-do']].filter(([k]) => lijst.some(x => (x._tr || 'c') === k)).map(([k, l, n]) => `<b class="trtag ${k}" style="margin-left:8px">${l}</b> ${n}`).join(' ')}</span>` : '<span>Einddatum = Einddatum project, anders Gepland</span>'}</div>`}
   </div>`;
 }
 let tab = 'mij';
@@ -3249,7 +3302,7 @@ function tekenEcht(){
   if(tab === 'trajecten' || tab === 'ch:alle') tab = 'ch:mijn';
   if(tab === 'dichtalle') tab = 'mij';   // gesloten meldingen vind je via zoeken   // Alle changes vervallen: die staan al per afdeling
   $('#v-mij').hidden = tab !== 'mij' && tab !== 'connectoren'; $('#v-lijst').hidden = tab === 'mij' || tab === 'todo' || tab === 'connectoren'; $('#v-todo').hidden = tab !== 'todo';
-  $('#todo-knop').setAttribute('aria-pressed', tab === 'todo'); $('#meld-knop').setAttribute('aria-pressed', isLijstTab(tab)); $('#rap-knop').setAttribute('aria-pressed', tab === 'rapport');
+  $('#meld-knop').setAttribute('aria-pressed', isLijstTab(tab)); $('#rap-knop').setAttribute('aria-pressed', tab === 'rapport');
   if(isLijstTab(tab) && meldPlek.tab !== tab){ meldPlek.tab = tab; meldPlek.scroll = 0; }   // onthouden in welke lijst je was (nooit het overzicht) 
   $('#nav').hidden = tab === 'todo'; $('#menu-knop').hidden = tab === 'todo'; plaatsTdMenu();   // bij To-do hoort het meldingmenu er niet bij
   if(tab === 'mij'){ $('#titel').textContent = ''; tekenMij(); } else if(tab === 'connectoren') tekenConnectoren(); else if(tab === 'todo') tdTeken(); else tekenLijst();
@@ -6054,7 +6107,7 @@ const TOUR = [
   {el: '#detail .composer', titel: 'Reageren', tekst: 'Typ hier je reactie aan de melder. Wijzig je een veld, dan staat er “+ Standaardtekst invullen” (of druk Tab). Interne notitie = alleen voor ICT. Bijlage? Sleep een bestand op het venster of plak met Ctrl+V.', alleenMetDetail: true},
   {el: '#detail .onderbalk', titel: 'Opslaan', tekst: 'Opslaan (Ctrl+Enter) voert alles door; de melding blijft open. Met ← → ga je naar de vorige of volgende melding uit je lijst.', alleenMetDetail: true},
   {el: '#nieuw-knop', titel: 'Nieuwe melding', tekst: 'Maak een melding aan. Handig: sleep een mail uit Outlook in dit venster, dan worden onderwerp, toelichting en bijlagen overgenomen.', voor: () => { sluitDetailStil(); return wacht(200); }},
-  {el: '#todo-knop', titel: 'To-do en notities', tekst: 'Je eigen to-do’s, ook vanuit een melding. Ze staan in een eigen bestand op je OneDrive, dus alleen jij ziet ze.'},
+  {el: '#nav [data-weergave="todo"]', titel: 'To-do en notities', tekst: 'Je eigen to-do’s, ook vanuit een melding. Ze staan in een eigen bestand op je OneDrive, dus alleen jij ziet ze.'},
   {el: '.voet', titel: 'Altijd actueel', tekst: 'De gegevens verversen elke paar minuten vanzelf; klik op “Live · bijgewerkt om …” om nu te verversen. Staat hier een blauwe knop “Nieuwe versie”, klik dan om bij te werken.'},
   {el: '#ik', titel: 'Klaar!', tekst: 'Onder je initialen rechtsboven vind je licht/donker, to-do importeren, deze rondleiding en uitloggen. Veel werkplezier.'}
 ];
@@ -6796,14 +6849,11 @@ document.addEventListener('dblclick', e => { const b = e.target.closest('.tdlijs
 document.addEventListener('click', e => { const m = $('#tdmenu'); if(!m || m.hidden) return; const k = e.target.closest('[data-tdm]'); m.hidden = true;
   if(k){ if(k.dataset.tdm === 'hernoem') tdHernoem(m.dataset.lijst); else tdVerwijderLijst(m.dataset.lijst); } }, true);
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && $('#tdmenu') && !$('#tdmenu').hidden) $('#tdmenu').hidden = true; });
+let tdNavSleutel = '';
 function tdTeken(){
   if(tab === 'mij' && typeof profiel !== 'undefined' && profiel && !$('#v-mij').hidden) tekenMij();   // To-do op het overzicht bijwerken
   const aantal = TD.status === 'ok' ? TD.data.taken.filter(t => !t.klaar).length : 0;
-  $('#todo-aantal').textContent = aantal || '';
-    // koppeling: werkt hij, dan staat het aantal taken op het icoon; zo niet, dan kleurt het icoon zelf oranje
-  { const ok = TD.status === 'ok', laden = !TD.status || TD.status === 'laden';
-    $('#todo-knop').classList.toggle('ontkoppeld', !ok && !laden);
-    $('#todo-knop').title = ok ? 'To-do · Microsoft To Do' : 'To-do · nog niet gekoppeld met Microsoft To Do: klik om te koppelen'; }
+  { const k = (TD.status || '') + '|' + aantal; if(k !== tdNavSleutel){ tdNavSleutel = k; try{ tekenNav(); }catch(e){} } }   // getal en koppeling staan bij To-do in het menu
   if(tab !== 'todo') return;
   const v = $('#todo-verbind'), paneel = $('#todo-paneel'), bestand = $('#todo-bestand');
   $('#titel').textContent = ''; $('#subtitel').textContent = '';
@@ -6864,7 +6914,7 @@ function tdTijdlijn(l){
 document.addEventListener('click', e => {
   const w = e.target.closest('[data-tdw]'); if(w){ TD.weergave = w.dataset.tdw; opslag.set('mict-tdweergave', TD.weergave); tdTeken(); return; }
   const z = e.target.closest('[data-tdz]'); if(z){ chZoom = z.dataset.tdz; opslag.set('mict-chzoom', chZoom); tdTeken(); return; }
-  const r = e.target.closest('[data-tdtl]'); if(r){ TD.weergave = 'lijst'; opslag.set('mict-tdweergave', 'lijst'); TD.open = r.dataset.tdtl; tdTeken();   // in de lijst openen om te bewerken
+  const r = e.target.closest('[data-tdtl]'); if(r){ TD.weergave = 'lijst'; opslag.set('mict-tdweergave', 'lijst'); TD.open = r.dataset.tdtl; if(tab !== 'todo'){ tab = 'todo'; teken(); } tdTeken();   // in de lijst openen om te bewerken
     const el = document.querySelector(`#todo-open [data-taak="${CSS.escape(r.dataset.tdtl)}"]`); if(el) el.scrollIntoView({block: 'center'}); }
 });
 // de lijsten staan op brede schermen in de zijbalk (#tdnav), buiten #v-todo: daar dezelfde klik- en toetsafhandeling
@@ -7245,7 +7295,7 @@ document.addEventListener('keydown', e => { if(e.key === 'Enter' && (tab === 'pr
 // Wat je instelt staat in de browser én online, per AFAS-gebruiker. Bij inloggen halen we het op en voegen we samen
 // (per instelling wint de nieuwste); wijzig je iets, dan gaat het 3 seconden later mee. Zonder verbinding werkt alles gewoon lokaal.
 const SYNC_VAST = ['mict-thema', 'mict-soort', 'mict-kolommen-uit', 'mict-kolvolgorde', 'mict-kolbreedte', 'mict-chzoom', 'mict-chweergave', 'mict-werk-ons', 'mict-afd-ons',
-  'mict-venster-groot', 'mict-recente-melders', 'mict-tlsoort', 'mict-samen', 'mict-kolzelf', 'mict-regels', 'mict-tour-gezien', 'mict-gelezen', 'mict-interne-notities'];
+  'mict-venster-groot', 'mict-recente-melders', 'mict-tlsoort', 'mict-samen', 'mict-extra', 'mict-kolzelf', 'mict-regels', 'mict-tour-gezien', 'mict-gelezen', 'mict-interne-notities'];
 const SYNC_META = 'mict-sync-tijden';
 const syncUrl = () => INST.instellingenUrl || String(INST.tokenFunctie || '').replace(/afas-token\/?$/, 'ict-instellingen');
 const syncNaam = k => k.startsWith('mict-profiel-') ? 'profiel' : SYNC_VAST.includes(k) ? k : null;   // profiel staat lokaal per AFAS-sub, online gewoon 'profiel'
@@ -8421,6 +8471,8 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v7.92', d: '28-10-2026', groot: true, p: ['Nieuwe indeling van het menu: Voor mij (Meldingen, Changes, Projecten, To-do), Team (Nieuwe meldingen, Aandacht), Mijn afdelingen en Overig.', 'To-do staat nu in het menu, met het aantal open taken; de To-do-knop in de linkerbalk is weg. Slepen naar een lijst kan vanuit het menu.']},
+  {v: 'v7.91', d: '28-10-2026', groot: true, p: ['Alles op één pagina: bij Mijn meldingen, Mijn changes en Mijn projecten kun je andere soorten erbij zetten met + Meldingen, + Changes, + Projecten of + To-do. Of sleep het icoon uit het menu (of het To-do-icoon links) naar de pagina.', 'Wat je erbij zet, komt onder de lijst en in de tijdlijn (met een label C, P, M of T) en telt mee in het getal in het menu. SubmIT onthoudt het per pagina.', 'De balk Drukte per week is weg uit de tijdlijn.']},
   {v: 'v7.90', d: '28-10-2026', p: ['To-do: een geopende to-do klapt weer dicht als je ernaast klikt of op Esc drukt. Wat je hebt ingevuld, is dan al bewaard.']},
   {v: 'v7.89', d: '28-10-2026', p: ['Team: in- en uitloggen staat niet meer tussen de activiteiten. Wie er online is, zie je nog steeds.']},
   {v: 'v7.88', d: '28-10-2026', p: ['To-do: de deadline staat als label rechts in elke rij (vandaag blauw, te laat rood).', 'Nieuw: tijdlijn bij je to-do’s. Met de knop rechtsboven zie je per periode wanneer wat af moet; klik op een to-do om hem te bewerken.']},
