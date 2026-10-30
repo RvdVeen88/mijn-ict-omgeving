@@ -1635,7 +1635,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.01', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.02', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -4115,12 +4115,24 @@ async function wvLogLaad(b){
     const iuSet = new Set(iuSb), gezien = new Set();
     WVL.rijen = rs.map(r => ({sb: String(r.Dossieritem ?? ''), door: wvWie(r.Gebruiker_door), naar: wvWie(r.Gebruiker_naar), t: datum(r.Begindatum), taak: String(r.Taak_omschrijving ?? ''), act: String(r.Bijschrift ?? ''), st: String(r.Status_omschrijving ?? ''), at: +r.Actietype || 0}))
       .filter(r => { if(!r.t || !r.sb) return false; const s = [r.sb, +r.t, r.door, r.act].join('|'); if(gezien.has(s)) return false; gezien.add(s); return true; })
-      .map(r => ({...r, iu: iuSet.has(r.sb)})).sort((a, z) => +a.t - +z.t); }
+      .map(r => ({...r, iu: iuSet.has(r.sb)})).sort((a, z) => +a.t - +z.t);
+    await wvSbAanvullen(); }
   catch(e){ WVL.fout = e.message; WVL.rijen = []; }
   finally{ if(WVL.sleutel === k) WVL.bezig = false; }
   if(tab === 'werkverdeling') tekenWerkverdeling();
 }
 const wvPct = (a, n) => n ? Math.round(a / n * 100) : null;
+// oudere afgesloten meldingen kennen hun interne nummer (dossieritem) nog niet: aanvullen, anders koppelt de workflowhistorie niet
+async function wvSbAanvullen(){
+  const zet = m => m.forEach((sb, nk) => { const x = items.find(y => String(y.nr) === String(nk)); if(x && x.sbid == null) x.sbid = sb; });
+  const bekend = () => new Set(items.filter(x => x.sbid != null).map(x => String(x.sbid)));
+  // 1. meldingen in beeld zonder intern nummer (op meldingnummer)
+  const zonder = items.filter(x => !x.inuit && x.sbid == null && x.afgesloten && x.statusDatum && +x.statusDatum >= Date.now() - 400 * DAG).map(x => x.nr);
+  if(zonder.length){ try{ zet(await sbIdsVoor('Nummer', zonder)); }catch(e){} }
+  // 2. dossieritems uit de historie die nog niet te koppelen zijn (op dossieritem)
+  const k = bekend(), los = [...new Set((WVL.rijen || []).map(r => r.sb).filter(sb => !k.has(sb)))];
+  if(los.length){ try{ const m = await sbIdsVoor('Dossieritem', los); zet(m); WVL.sbNr = new Map([...(WVL.sbNr || new Map()), ...[...m].map(([nk, sb]) => [String(sb), nk])]); }catch(e){} }
+}
 function wvIuAfronding(){
   const m = new Map(); if(!WVL.rijen) return m;
   const per = new Map(); WVL.rijen.filter(r => r.iu && r.door && !wvRuis(r)).forEach(r => { if(!per.has(r.sb)) per.set(r.sb, []); per.get(r.sb).push(r); });
@@ -4206,7 +4218,7 @@ function wvDetail(b, c){
       <div class="rap-kaart"><h3>Per type melding</h3>${perType.length ? perType.map(([t, z, d]) => `<div class="wv-typerij"><span>${esc(t)}</span><span class="wv-balk wv-zd"><i style="width:${z / ((z + d) || 1) * 100}%;background:var(--groen)"></i><i style="width:${d / ((z + d) || 1) * 100}%;background:#E8590C"></i></span><b>${z} · ${d}</b></div>`).join('') : '<p class="hint">Niets afgehandeld in deze periode.</p>'}
         <p class="hint">Groen zelf afgehandeld · oranje doorgezet naar een collega</p></div>
       <div class="rap-kaart"><h3>Doorgezet naar</h3>${!h ? '<p class="hint">Workflowhistorie wordt opgehaald…</p>' : naarWie.length ? naarWie.map(([n, k]) => `<div class="wv-typerij"><span class="wv-mens"><span class="wv-ini">${esc(initialen(n))}</span>${esc(n)}</span><span></span><b>${k}</b></div>`).join('') : '<p class="hint">Niets doorgezet in deze periode.</p>'}</div>
-      ${h && r.door.length ? `<div class="rap-kaart rap-breed"><h3>Doorgezette meldingen (${r.door.length})</h3><div class="wv-lijst">${[...r.door].reverse().map(a => { const x = opSb.get(a.sb); return `<button type="button" class="wv-melding"${x ? ` data-wvopen="${esc(x.nr)}"` : ''}><span class="nr">${esc(x ? nrT(x) : '#' + a.sb)}</span><span class="ond">${esc(x ? x.onderwerp || '' : 'melding niet in SubmIT geladen')}</span><span class="zacht">naar ${esc(a.naar)}</span><span class="zacht">${fmtDatum(a.t)}</span></button>`; }).join('')}</div></div>` : ''}
+      ${h && r.door.length ? `<div class="rap-kaart rap-breed"><h3>Doorgezette meldingen (${r.door.length})</h3><div class="wv-lijst">${[...r.door].reverse().map(a => { const nk = WVL.sbNr && WVL.sbNr.get(a.sb), x = opSb.get(a.sb) || (nk ? items.find(y => String(y.nr) === String(nk)) : null); return `<button type="button" class="wv-melding"${x ? ` data-wvopen="${esc(x.nr)}"` : ''}><span class="nr">${esc(x ? nrT(x) : nk ? kaalNr(nk) : '–')}</span><span class="ond">${esc(x ? x.onderwerp || '' : nk ? 'melding ' + kaalNr(nk) : 'melding niet gevonden in AFAS')}</span><span class="zacht">naar ${esc(a.naar)}</span><span class="zacht">${fmtDatum(a.t)}</span></button>`; }).join('')}</div></div>` : ''}
       <div class="rap-kaart rap-breed"><h3>Afgehandeld in deze periode (${lijst.length})</h3>${lijst.length ? `<div class="wv-lijst">${lijst.map(x => `<button type="button" class="wv-melding" data-wvopen="${esc(x.nr)}"><span class="nr">${esc(nrT(x))}</span><span class="ond">${esc((x.inuit ? '[In-/uitdienst] ' : '') + (x.onderwerp || ''))}</span><span class="zacht">${esc(x.inuit ? (x.richting === 'uit' ? 'Uit dienst' : 'In dienst') : x.type || '')}</span><span class="zacht">${fmtDatum(wanneer(x))}</span></button>`).join('')}</div>` : '<p class="hint">Geen meldingen.</p>'}</div></div></div>`;
 }
 const weekNr = d => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const dg = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - dg); const j = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - j) / DAG + 1) / 7); };
@@ -8658,6 +8670,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.02', d: '30-10-2026', p: ['Werkverdeling: oudere afgesloten meldingen worden nu gekoppeld aan de workflowhistorie. Geen “melding niet in SubmIT geladen” meer, en ze tellen mee in first time right.']},
   {v: 'v8.01', d: '29-10-2026', p: ['To-do: elke taak op één regel, net als Changes en Projecten; een lange titel wordt afgekapt (volledig bij de muis erop of als je de taak openklikt).']},
   {v: 'v8.00', d: '29-10-2026', p: ['Het wolkje “… is online/offline” naast het Team-icoon blijft niet meer hangen: het verdwijnt na 4 seconden, bij een klik, en verschijnt niet als SubmIT op de achtergrond staat.']},
   {v: 'v7.99', d: '29-10-2026', p: ['Werkverdeling: in- en uitdiensten tellen voor wie ze in AFAS echt afrondde, op de datum van afronden (uit de workflowhistorie). Afgehandeld is nu meldingen plus in- en uitdiensten; beide staan ook apart in de tabel.']},
