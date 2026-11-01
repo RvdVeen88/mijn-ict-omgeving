@@ -560,6 +560,14 @@ textarea.aibezig{opacity:.55;transition:opacity .2s}#n-tx-ai{font-weight:500;col
 .it > b.telpuls{animation:telPuls .45s ease-out}
 @keyframes telOp{0%{opacity:0;transform:translateY(-50%) scale(.6)}15%{opacity:1;transform:translateY(-50%) scale(1.1)}30%{transform:translateY(-50%) scale(1)}75%{opacity:1}100%{opacity:0;transform:translateY(-150%)}}
 @keyframes telPuls{40%{transform:scale(1.25)}}
+.statstip{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:1px;flex:none}.statstip.r{background:#E5675E}.statstip.o{background:#E0A23E}.statstip.g{background:#4FB57F}.statstip.z{background:var(--greep)}
+.it[aria-pressed="true"] b .statstip{box-shadow:0 0 0 1.5px rgba(255,255,255,.55)}
+.statpop{position:fixed;z-index:90;width:250px;background:var(--vlak);color:var(--inkt);border:1px solid var(--lijn);border-radius:14px;padding:13px 14px 11px;box-shadow:0 16px 40px rgba(3,20,55,.28);display:flex;flex-direction:column;gap:9px;font-size:12.5px;pointer-events:none;opacity:0;transform:translateX(-4px);transition:opacity .12s,transform .12s}
+.statpop.aan{opacity:1;transform:none}
+.statpop-kop{display:flex;align-items:baseline;justify-content:space-between}.statpop-kop b{font-size:13px;font-weight:600}.statpop-kop span{color:var(--grijs);font-size:12px}
+.statpop-balk{display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden}.statpop-balk i.r{background:#E5675E}.statpop-balk i.o{background:#E0A23E}.statpop-balk i.g{background:#4FB57F}.statpop-balk i.z{background:var(--greep)}
+.statpop-rijen{display:grid;grid-template-columns:10px 1fr auto;gap:5px 8px;align-items:center}.statpop-rijen .statstip{margin:0}.statpop-rijen b{font-weight:600}.statpop .zacht{color:var(--grijs)}
+.statpop-voet{margin:2px 0 0;padding-top:8px;border-top:1px solid var(--lijn);color:var(--grijs);font-size:11.5px}
 .it b.stip{position:relative}.it b.stip::after{content:'';position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--goud);box-shadow:0 0 0 2px var(--vlak)}
 .it b.stip.leeg{background:none;min-width:0;padding:0;width:9px}
 .it[aria-pressed="true"]{background:var(--blauw);color:var(--opaccent);font-weight:600}
@@ -1636,7 +1644,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.03', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.04', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2777,11 +2785,35 @@ function plaatsTdMenu(){
 }
 SMAL.addEventListener('change', () => plaatsTdMenu());
 $('#detail').addEventListener('close', () => { const p = $('#kbpaneel'); if(p && p.parentElement === $('#detail') && !p.hidden) kbDicht(); });
+// status achter het getal (Changes, Projecten, To-do): stip = slechtste status; muis erop = de verdeling
+function navStat(soort){
+  const vandaag = +beginDag(new Date()), voor = d => d && +beginDag(d) < vandaag;
+  let l = [], k;
+  if(soort === 'proj'){ l = PRJ.geladen ? projOpen() : []; k = p => { const c = voortKleur(p.voortgang); return c === 'rood' ? 'r' : c === 'oranje' ? 'o' : c === 'groen' || c === 'blauw' ? 'g' : 'z'; }; }
+  else if(soort === 'ch'){ l = chMijnOpen(); k = x => /hold/i.test(x.status || '') ? 'o' : voor(x.projEind) ? 'r' : x.projEind ? 'g' : 'z'; }
+  else { l = tdOpenL(); k = t => t.deadline ? (t.deadline < tdIso(new Date()) ? 'r' : 'g') : 'z'; }
+  const s = {n: l.length, r: 0, o: 0, g: 0, z: 0}; l.forEach(x => s[k(x)]++);
+  s.namen = soort === 'proj' ? {t: 'Projecten', r: 'Loopt achter', o: 'On hold', g: 'Op schema', z: 'Zonder voortgang'}
+    : soort === 'ch' ? {t: 'Changes', r: 'Over de einddatum', o: 'On hold', g: 'Op schema', z: 'Zonder einddatum'} : {t: 'To-do', r: 'Over de deadline', o: 'On hold', g: 'Op tijd', z: 'Zonder deadline'};
+  s.kleur = s.r ? 'r' : s.o ? 'o' : s.g ? 'g' : ''; return s;
+}
+const navStatStip = soort => { const s = navStat(soort); return s.kleur ? `<i class="statstip ${s.kleur}" aria-hidden="true"></i>` : ''; };
+function statPop(b){
+  const s = navStat(b.dataset.stat), tip = (b.closest('[data-stattip]') || {dataset: {}}).dataset.stattip || '';
+  let p = $('#statpop'); if(!p){ document.body.insertAdjacentHTML('beforeend', '<div id="statpop" class="statpop" role="tooltip"></div>'); p = $('#statpop'); }
+  const rij = k => s[k] ? `<i class="statstip ${k}"></i><span${k === 'z' ? ' class="zacht"' : ''}>${s.namen[k]}</span><b${k === 'z' ? ' class="zacht"' : ''}>${s[k]}</b>` : '';
+  p.innerHTML = `<div class="statpop-kop"><b>${s.namen.t}</b><span>${s.n} open</span></div>`
+    + (s.n ? `<div class="statpop-balk">${['r', 'o', 'g', 'z'].filter(k => s[k]).map(k => `<i class="${k}" style="flex:${s[k]}"></i>`).join('')}</div><div class="statpop-rijen">${['r', 'o', 'g', 'z'].map(rij).join('')}</div>` : '<p class="hint" style="margin:0">Niets open.</p>')
+    + (tip && /\+|erbij/.test(tip) ? `<p class="statpop-voet">${esc(tip)}</p>` : '');
+  const r = b.getBoundingClientRect(); p.style.left = (r.right + 12) + 'px'; p.style.top = Math.max(8, Math.min(innerHeight - p.offsetHeight - 8, r.top + r.height / 2 - 40)) + 'px'; p.classList.add('aan');
+}
+document.addEventListener('mouseover', e => { const b = e.target.closest && e.target.closest('#nav b[data-stat]'); if(b) statPop(b); });
+document.addEventListener('mouseout', e => { const b = e.target.closest && e.target.closest('#nav b[data-stat]'); if(b && !b.contains(e.relatedTarget)){ const p = $('#statpop'); if(p) p.classList.remove('aan'); } });
 function tekenNav(){
   { const zij = $('#tdnav'); if(zij && $('#nav').contains(zij)) $('#nav').after(zij); }   // de to-do-lijsten bewaren: ze staan (bij To-do) in het menu
   const mini = id => `<span class="minischak" role="group" aria-label="Mij of alles">${['mij','alles'].map(v => `<span role="button" tabindex="0" data-mijalles="${id}" data-v="${v}" aria-pressed="${(v === 'mij') === schuifAan(id)}" title="${v === 'mij' ? 'Alleen mijn meldingen en wat bij niemand ligt' : 'Alle meldingen'}">${v === 'mij' ? 'Mij' : 'Alle'}</span>`).join('')}</span>`;
   const it = (id, t, n, o = {}) => { const ongL = o.ongLijst || (o.ongelezen ? open() : []), ong = ongL.filter(x => (x._sg || []).some(s => s.code === 'ongelezen')).length;   // bolletje alleen voor wat in deze weergave staat
-    return `<button type="button"${o.sleep ? ` draggable="true" data-sleep="${o.sleep}"` : ''} class="it${o.cls ? ' ' + o.cls : ''}${o.rood && n ? ' rinkel' : ''}${(o.stuiter && n && profiel && profiel.rol === 'servicedesk') || ong ? ' stuiter' : ''}" data-weergave="${esc(id)}" aria-pressed="${tab === id || (id === 'beheer' && ['controle', 'beoordelingen', 'connectoren', 'werkverdeling'].includes(tab))}" ${o.titel ? `title="${esc(o.titel)}" ` : ''}${ong ? `title="${ong} melding${ong === 1 ? '' : 's'} met iets nieuws voor jou"` : ''}>${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${o.mini || ''}${n == null ? (ong ? '<b class="stip leeg"></b>' : '') : `<b class="${o.rood && n ? 'rood' : ''}${ong ? ' stip' : ''}${o.laat ? ' laat' : ''}">${n}</b>`}</button>`; };
+    return `<button type="button"${o.sleep ? ` draggable="true" data-sleep="${o.sleep}"` : ''} class="it${o.cls ? ' ' + o.cls : ''}${o.rood && n ? ' rinkel' : ''}${(o.stuiter && n && profiel && profiel.rol === 'servicedesk') || ong ? ' stuiter' : ''}" data-weergave="${esc(id)}" aria-pressed="${tab === id || (id === 'beheer' && ['controle', 'beoordelingen', 'connectoren', 'werkverdeling'].includes(tab))}" ${o.titel && !o.stat ? `title="${esc(o.titel)}" ` : ''}${o.stat && o.titel ? `data-stattip="${esc(o.titel)}" ` : ''}${ong && !o.stat ? `title="${ong} melding${ong === 1 ? '' : 's'} met iets nieuws voor jou"` : ''}>${o.ico ? ico(o.ico) : ''}<span>${esc(t)}</span>${o.mini || ''}${n == null ? (ong ? '<b class="stip leeg"></b>' : '') : `<b class="${o.rood && n ? 'rood' : ''}${ong ? ' stip' : ''}${o.laat ? ' laat' : ''}"${o.stat ? ` data-stat="${o.stat}"` : ''}>${o.stat ? navStatStip(o.stat) : ''}${n}</b>`}</button>`; };
   const fav = favorieten(), isFav = a => fav.some(x => norm(x) === norm(a));
   const afd = afdelingen();
   const rijA = ([a, n]) => `<div class="afdrij"><button type="button" class="favknop ${isFav(a) ? 'aan' : ''}" data-fav="${esc(a)}" title="${isFav(a) ? 'Uit favorieten halen' : 'Als favoriet bovenaan zetten'}">★</button>${it('afd:' + a, a, zichtbaar('afd:' + a, weergave('afd:' + a).lijst).length)}</div>`;
@@ -2804,10 +2836,10 @@ function tekenNav(){
     ${(() => { const lm = zichtbaar(mijnM.id, mijnM.f()), x = extraTel('toegewezen');   // bijgeplust (+ Changes / + Projecten / + To-do) telt mee: getal en bolletje
       return it(mijnM.id, 'Meldingen', lm.length + x.n, {...mijnM, sleep: 'meld', ongLijst: [...lm, ...x.ong], ...(x.n ? {titel: `${lm.length} melding${lm.length === 1 ? '' : 'en'}${x.tip}`} : {})}); })()}
     ${(() => { const nc = chMijnOpen().length, np = PRJ.geladen ? projOpen().length : null, xc = extraTel('ch:mijn'), xp = extraTel('projecten');
-      return CHANGES.map(v => it(v.id, 'Changes', nc + xc.n, {...v, sleep: 'ch', ongLijst: [...chMijnOpen(), ...xc.ong], ...(xc.n ? {titel: `${nc} change${nc === 1 ? '' : 's'}${xc.tip}`} : {})})).join('')
-        + it('projecten', 'Projecten', np == null ? null : np + xp.n, {ico: TR_ICO, sleep: 'proj', ...(xp.n ? {titel: `${np} project${np === 1 ? '' : 'en'}${xp.tip}`} : {})})
+      return CHANGES.map(v => it(v.id, 'Changes', nc + xc.n, {...v, stat: 'ch', sleep: 'ch', ongLijst: [...chMijnOpen(), ...xc.ong], ...(xc.n ? {titel: `${nc} change${nc === 1 ? '' : 's'}${xc.tip}`} : {})})).join('')
+        + it('projecten', 'Projecten', np == null ? null : np + xp.n, {ico: TR_ICO, stat: 'proj', sleep: 'proj', ...(xp.n ? {titel: `${np} project${np === 1 ? '' : 'en'}${xp.tip}`} : {})})
         + (() => { const ok = TD.status === 'ok', laden = !TD.status || TD.status === 'laden', n = ok ? TD.data.taken.filter(t => !t.klaar).length : null;   // To-do: zelfde menu, oranje icoon = nog niet gekoppeld
-          return it('todo', 'To-do', n || null, {ico: TD_ICO, sleep: 'todo', cls: !ok && !laden ? 'ontkoppeld' : '', titel: ok ? 'To-do en notities (sleep naar Meldingen, Changes of Projecten om je to-do’s daar erbij te zien)' : 'To-do · nog niet gekoppeld met Microsoft To Do: klik om te koppelen'}); })(); })()}
+          return it('todo', 'To-do', n || null, {ico: TD_ICO, stat: 'todo', sleep: 'todo', cls: !ok && !laden ? 'ontkoppeld' : '', titel: ok ? 'To-do en notities (sleep naar Meldingen, Changes of Projecten om je to-do’s daar erbij te zien)' : 'To-do · nog niet gekoppeld met Microsoft To Do: klik om te koppelen'}); })(); })()}
     <h4>Team</h4>
     ${(() => { const l = zichtbaar(nieuwM.id, nieuwM.f()), laat = l.filter(nieuwTeLaat).length;   // te laat opgepakt: subtiel rood randje om het getal
       return it(nieuwM.id, nieuwM.t, l.length, laat ? {...nieuwM, laat, titel: `${laat} van de ${l.length} te laat opgepakt`} : nieuwM); })()}
@@ -8673,6 +8705,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.04', d: '01-11-2026', p: ['Menu: bij Changes, Projecten en To-do staat een kleine statusstip in het getal (rood iets achter, oranje on hold, groen op schema). Met de muis op het getal zie je de verdeling.']},
   {v: 'v8.03', d: '01-11-2026', p: ['To-do: de titel pas je aan door erop te klikken; het aparte veld Titel is weg. Enter of ernaast klikken bewaart.']},
   {v: 'v8.02', d: '30-10-2026', p: ['Werkverdeling: oudere afgesloten meldingen worden nu gekoppeld aan de workflowhistorie. Geen “melding niet in SubmIT geladen” meer, en ze tellen mee in first time right.']},
   {v: 'v8.01', d: '29-10-2026', p: ['To-do: elke taak op één regel, net als Changes en Projecten; een lange titel wordt afgekapt (volledig bij de muis erop of als je de taak openklikt).']},
