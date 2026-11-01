@@ -256,6 +256,7 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .taak.klaar .tdvink{background:var(--blauw-2);border-color:var(--blauw-2)}
 .taak.klaar .tdvink svg{opacity:1;color:#fff}
 .taak .titel{font-size:14.5px;cursor:default;min-width:0}
+.taak .titelinvoer{width:100%;font-size:14.5px;padding:1px 0 2px}
 .taak .titel small{display:inline;font-size:12px;color:var(--grijs);margin-left:10px}
 /* één regel per taak, net als de tabellen; opengeklapt staat alles volledig */
 .taak .titel{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.taak.open .titel{white-space:normal}.taak.open .titel small{display:block;margin:2px 0 0}
@@ -1635,7 +1636,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.02', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.03', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -6986,14 +6987,14 @@ function tdRij(t){
   const vandaag = tdIso(new Date()), laat = t.deadline && !t.klaar && t.deadline < vandaag;
   const sub = [['alle', 'belangrijk'].includes(TD.lijst) && esc(tdLijstNaam(t.lijst)), t.notitie && 'notitie', t.melding && `melding ${esc(kaalNr(t.melding))}`, t.ticket && `<a data-tdticket="${esc(t.ticket)}" title="Melding openen">melding ${esc(t.ticket)}</a>`].filter(Boolean);
   const detail = TD.open === t.id ? `<div class="taakdetail"><div class="kaart2">
-      <span>Titel</span><b><input class="datumkeuze" data-veld="titel" value="${esc(t.titel)}"></b>
       <span>Deadline</span><b><input type="date" class="datumkeuze" data-veld="deadline" value="${esc(t.deadline || '')}"></b>
       <span>Lijst</span><b><select class="afdkeuze" data-veld="lijst">${TD.data.lijsten.map(l => `<option value="${esc(l.id)}" ${l.id === t.lijst ? 'selected' : ''}>${esc(l.naam)}</option>`).join('')}</select></b>
       <span>Notitie</span><b><textarea class="toelinvoer" data-veld="notitie" rows="2">${esc(t.notitie || '')}</textarea></b></div>
       <div class="acties">${t.melding ? `<button type="button" class="knop klein" data-tdactie="ticket">Melding ${esc(t.melding)} openen</button>` : ''}<button type="button" class="linkknop weg" data-tdactie="weg">Verwijderen</button></div></div>` : '';
   return `<div class="taak ${t.klaar ? 'klaar' : ''} ${TD.open === t.id ? 'open' : ''}" data-taak="${esc(t.id)}" draggable="${TD.open === t.id ? 'false' : 'true'}">
     <button type="button" class="tdvink" data-tdactie="vink" aria-label="${t.klaar ? 'Weer openzetten' : 'Afvinken'}">${TD_VINK}</button>
-    <span class="titel" data-tdactie="open" title="${esc(t.titel)}">${esc(t.titel)}${sub.length ? `<small>${sub.join(' · ')}</small>` : ''}</span>${tdDl(t.deadline, t.klaar)}
+    ${TD.open === t.id ? `<span class="titel"><input class="ondinvoer titelinvoer" data-veld="titel" value="${esc(t.titel)}" aria-label="Titel van de to-do" spellcheck="true"></span>`   // open: de titel zelf is het invoerveld
+      : `<span class="titel" data-tdactie="open" title="${esc(t.titel)}">${esc(t.titel)}${sub.length ? `<small>${sub.join(' · ')}</small>` : ''}</span>`}${tdDl(t.deadline, t.klaar)}
     ${t.melding ? `<span class="gekoppeld">✓ melding ${esc(kaalNr(t.melding))}</span>` : t.klaar || t.ticket ? '<span></span>' : '<button type="button" class="naarafas" data-tdactie="naarafas" title="Maak van deze to-do een melding">+ Melding aanmaken</button>'}
     <button type="button" class="ster" data-tdactie="belangrijk" aria-pressed="${!!t.belangrijk}" title="${t.belangrijk ? 'Niet meer belangrijk' : 'Markeer als belangrijk'}">${TD_STER}</button>
     ${detail}</div>`;
@@ -7132,11 +7133,13 @@ tdOp('click', async e => {
   const w = a.dataset.tdactie;
   if(w === 'vink'){ t.klaar = !t.klaar; t.klaarOp = t.klaar ? new Date().toISOString() : ''; tdBewaar(); }
   else if(w === 'belangrijk'){ t.belangrijk = !t.belangrijk; tdBewaar(); }
-  else if(w === 'open'){ TD.open = TD.open === t.id ? null : t.id; tdTeken(); }
+  else if(w === 'open'){ TD.open = TD.open === t.id ? null : t.id; tdTeken();
+    const inp = TD.open && document.querySelector(`#todo-open [data-taak="${CSS.escape(t.id)}"] .titelinvoer`); if(inp){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } }
   else if(w === 'weg'){ if(!(await vraag('To-do verwijderen?', t.titel, 'Verwijderen', 'Annuleren', true))) return; TD.data.taken = TD.data.taken.filter(x => x !== t); TD.open = null; tdBewaar(); }
   else if(w === 'naarafas') todoNaarMelding(t);
   else if(w === 'ticket'){ const x = items.find(y => String(y.nr) === String(t.melding)); if(x){ navLijst = []; openDetail(x.nr); } else toast('Melding ' + t.melding + ' staat (nog) niet in de lijst.', true); }
 });
+tdOp('keydown', e => { if(e.key === 'Enter' && e.target.matches && e.target.matches('.titelinvoer')){ e.preventDefault(); e.target.blur(); } });
 tdOp('change', e => {
   const veld = e.target.dataset.veld, rij = e.target.closest('[data-taak]'); if(!veld || !rij) return;
   const t = tdTaak(rij.dataset.taak); if(!t) return;
@@ -8670,6 +8673,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.03', d: '01-11-2026', p: ['To-do: de titel pas je aan door erop te klikken; het aparte veld Titel is weg. Enter of ernaast klikken bewaart.']},
   {v: 'v8.02', d: '30-10-2026', p: ['Werkverdeling: oudere afgesloten meldingen worden nu gekoppeld aan de workflowhistorie. Geen “melding niet in SubmIT geladen” meer, en ze tellen mee in first time right.']},
   {v: 'v8.01', d: '29-10-2026', p: ['To-do: elke taak op één regel, net als Changes en Projecten; een lange titel wordt afgekapt (volledig bij de muis erop of als je de taak openklikt).']},
   {v: 'v8.00', d: '29-10-2026', p: ['Het wolkje “… is online/offline” naast het Team-icoon blijft niet meer hangen: het verdwijnt na 4 seconden, bij een klik, en verschijnt niet als SubmIT op de achtergrond staat.']},
