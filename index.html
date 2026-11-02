@@ -1169,6 +1169,12 @@ dialog#tour::backdrop{background:transparent}
 .vink.notitie{white-space:nowrap;flex:none;background:var(--goud-licht);border-radius:999px;padding:4px 12px 4px 8px;color:var(--bruin)}
 textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
 /* bijlagen */
+.bijlvoorbeeld{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 2px}.bijlvoorbeeld:empty{display:none}
+.bijlfig{margin:0;display:flex;flex-direction:column;gap:8px;max-width:min(100%,560px)}
+.bijlfig img{display:block;max-width:100%;max-height:300px;width:auto;height:auto;border:1px solid var(--lijn);border-radius:10px;background:var(--bg2);object-fit:contain}
+.bijlfig-laden{display:grid;place-items:center;width:240px;height:120px;border:1px dashed var(--lijn);border-radius:10px;color:var(--grijs);font-size:12px}
+.bijlfig figcaption .knop{display:inline-flex;align-items:center;gap:6px}.bijlfig figcaption svg{width:14px;height:14px}
+.reactiebijl .bijlfig{margin-top:8px}.reactiebijl .bijlfig img{max-height:220px}
 .bijlbalk{display:flex;align-items:center;gap:4px 8px;flex-wrap:wrap;padding:0 2px;border-radius:14px;background:transparent;border:1.5px dashed transparent;font-size:12px;min-height:22px;transition:min-height .15s,border-color .15s,background .15s,padding .15s}
 .bijlbalk .bijlchip{padding:1px 8px 1px 5px!important;font-size:11.5px!important}
 dialog#detail.sleept .bijlbalk{min-height:84px;padding:8px 16px;border-color:var(--blauw-2);background:var(--lichtblauw-2);position:relative}
@@ -1644,7 +1650,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.04', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.05', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -4773,10 +4779,33 @@ function verdeelBijlagen(x){
     + rc.map(([b, i]) => bijlChip(b, i, true)).join('')
     + (!los.length && !fouten.length ? `<span class="hint">${lijst.length ? 'staan bij de reacties' : 'geen'}</span>` : '')
     + (fouten.length ? `<span class="hint">${geenRechten ? `Bijlagen kunnen nog niet worden gelezen: laat de beheerder GetConnector ${fouten.map(f => esc(f.conn)).join(' en ')} aan de app connector koppelen.` : `Bijlagen ophalen lukte niet: ${fouten.map(f => esc(f.conn + ': ' + f.fout)).join('; ')}`}</span>` : '');
+  bijlVoorbeelden(x, lijst, los);
   const t = $('#bijl-titel'); if(t) t.textContent = lijst.length ? `Bijlagen (${lijst.length})` : 'Bijlagen';
   $('#d-bijl') && $('#d-bijl').classList.toggle('leeg', !lijst.length);
   $('#d-bijl') && $('#d-bijl').classList.toggle('nietsdaar', !los.length && !fouten.length);   // geen bijlagen: regel weg (komt terug bij slepen of als je er een klaarzet)
 }
+// afbeeldingen als voorbeeld in de melding (onder Bijlagen; bij een reactie onder die reactie); knop opent hem op ware grootte in een nieuw tabblad
+const isAfbeelding = n => /\.(png|jpe?g|gif|bmp|webp|svg)$/i.test(String(n || ''));
+let bijlUrls = [];
+function bijlVoorbeelden(x, lijst, los){
+  bijlUrls.forEach(u => URL.revokeObjectURL(u)); bijlUrls = [];
+  let vak = $('#bijl-voorbeeld'); const balk = $('#d-bijl');
+  if(!vak && balk){ balk.insertAdjacentHTML('afterend', '<div class="bijlvoorbeeld" id="bijl-voorbeeld"></div>'); vak = $('#bijl-voorbeeld'); }
+  const losI = new Set(los.map(([, i]) => i)), figuur = i => `<figure class="bijlfig" data-bijlfig="${i}"><span class="bijlfig-laden">voorbeeld laden…</span><figcaption><button type="button" class="knop klein" data-bijlnieuw="${i}">${ico('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>')}Bijlage in nieuw venster openen</button></figcaption></figure>`;
+  const plaatjes = lijst.map((b, i) => [b, i]).filter(([b]) => isAfbeelding(b.naam) && (!b.grootte || b.grootte < 8e6));
+  if(vak) vak.innerHTML = plaatjes.filter(([, i]) => losI.has(i)).slice(0, 6).map(([, i]) => figuur(i)).join('');
+  plaatjes.filter(([, i]) => !losI.has(i)).forEach(([b, i]) => { const c = document.querySelector(`#tijdlijn .reactiebijl [data-bijl="${i}"]`); if(c) c.closest('.reactiebijl').insertAdjacentHTML('beforeend', figuur(i)); });
+  document.querySelectorAll('[data-bijlfig]').forEach(async f => { const b = lijst[+f.dataset.bijlfig]; if(!b) return;
+    try{ const blob = await haalBestand(b); if(!huidig || huidig.x !== x || !f.isConnected) return; const u = URL.createObjectURL(blob); bijlUrls.push(u);
+      f.dataset.url = u; f.querySelector('.bijlfig-laden').outerHTML = `<img src="${u}" alt="${esc(b.naam)}" loading="lazy">`; }
+    catch(e){ const l = f.querySelector('.bijlfig-laden'); if(l) l.textContent = 'Voorbeeld niet beschikbaar'; } });
+}
+document.addEventListener('click', e => { const k = e.target.closest('[data-bijlnieuw]'); if(!k) return; e.preventDefault(); e.stopPropagation();
+  const f = k.closest('[data-bijlfig]'); if(f && f.dataset.url){ const w = window.open('', '_blank'); if(!w){ toast('Het nieuwe tabblad werd geblokkeerd door de browser', true); return; }
+    // als afbeelding tonen (niet als los document): een svg kan dan geen script uitvoeren
+    w.opener = null; const nm = f.querySelector('img') ? f.querySelector('img').alt : 'Bijlage';
+    w.document.write(`<!doctype html><meta charset="utf-8"><title>${esc(nm)}</title><body style="margin:0;background:#0E1626;min-height:100vh;display:grid;place-items:center"><img src="${f.dataset.url}" alt="${esc(nm)}" style="max-width:none">`); w.document.close(); }
+  else toast('Het voorbeeld wordt nog geladen', true); }, true);
 async function haalBestand(b){
   const pad = id => `/SubjectConnector/${encodeURIComponent(id)}/${encodeURIComponent(b.file)}`;
   let r;
@@ -8705,6 +8734,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.05', d: '02-11-2026', p: ['Melding: een afbeelding als bijlage zie je meteen als voorbeeld in de melding (ook bij een reactie). Met “Bijlage in nieuw venster openen” zie je hem op ware grootte in een apart tabblad.']},
   {v: 'v8.04', d: '01-11-2026', p: ['Menu: bij Changes, Projecten en To-do staat een kleine statusstip in het getal (rood iets achter, oranje on hold, groen op schema). Met de muis op het getal zie je de verdeling.']},
   {v: 'v8.03', d: '01-11-2026', p: ['To-do: de titel pas je aan door erop te klikken; het aparte veld Titel is weg. Enter of ernaast klikken bewaart.']},
   {v: 'v8.02', d: '30-10-2026', p: ['Werkverdeling: oudere afgesloten meldingen worden nu gekoppeld aan de workflowhistorie. Geen “melding niet in SubmIT geladen” meer, en ze tellen mee in first time right.']},
