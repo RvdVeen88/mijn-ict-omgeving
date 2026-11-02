@@ -1171,10 +1171,10 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
 /* bijlagen */
 .bijlvoorbeeld{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 2px}.bijlvoorbeeld:empty{display:none}
 .bijlfig{margin:0;display:flex;flex-direction:column;gap:8px;max-width:min(100%,560px)}
-.bijlfig img{display:block;max-width:100%;max-height:300px;width:auto;height:auto;border:1px solid var(--lijn);border-radius:10px;background:var(--bg2);object-fit:contain}
+.bijlfig img{display:block;align-self:flex-start;max-width:100%;max-height:300px;width:auto;height:auto;border:1px solid var(--lijn);border-radius:10px;background:var(--bg2);object-fit:contain}
 .bijlfig-laden{display:grid;place-items:center;width:240px;height:120px;border:1px dashed var(--lijn);border-radius:10px;color:var(--grijs);font-size:12px}
-.bijlfig figcaption .knop{display:inline-flex;align-items:center;gap:6px}.bijlfig figcaption svg{width:14px;height:14px}
-.reactiebijl .bijlfig{margin-top:8px}.reactiebijl .bijlfig img{max-height:220px}
+.bijlfig figcaption{align-self:flex-start}.bijlfig figcaption .knop{display:inline-flex;align-items:center;gap:6px}.bijlfig figcaption svg{width:14px;height:14px}
+.reactiebijl .bijlfig{margin-top:2px;flex-basis:100%}.reactiebijl .bijlfig img{max-height:220px}
 .bijlbalk{display:flex;align-items:center;gap:4px 8px;flex-wrap:wrap;padding:0 2px;border-radius:14px;background:transparent;border:1.5px dashed transparent;font-size:12px;min-height:22px;transition:min-height .15s,border-color .15s,background .15s,padding .15s}
 .bijlbalk .bijlchip{padding:1px 8px 1px 5px!important;font-size:11.5px!important}
 dialog#detail.sleept .bijlbalk{min-height:84px;padding:8px 16px;border-color:var(--blauw-2);background:var(--lichtblauw-2);position:relative}
@@ -1204,7 +1204,7 @@ dialog#detail.sleept .composer{outline:1.5px dashed var(--lijn);outline-offset:4
 .bijlchip.klaar{border-style:dashed;cursor:default;background:var(--lichtblauw-2)}
 .bijlchip .weg{border:0;background:none;color:var(--grijs);font-size:15px;line-height:1;cursor:default;padding:0 0 0 2px}
 .bijlchip .weg:hover{color:var(--rood,#c0392b)}
-.reactiebijl{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.reactiebijl{display:flex;flex-wrap:wrap;align-items:flex-start;gap:6px;margin-top:6px}
 .klaarzet:empty{display:none}
 .klaarzet{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .klaarzet::before{content:'Wordt toegevoegd bij Opslaan:';font-size:12px;color:var(--grijs)}
@@ -1650,7 +1650,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.05', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.06', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3486,14 +3486,16 @@ function rijIntern(r, sbid, tekst){
   if(/extern|melder|zichtbaar/.test(lab) && /^(false|0|nee|n)$/i.test(v)) return true;          // ja/nee-veld 'Zichtbaar voor melder' = nee
   return eigen;
 }
-const rijNaarReactie = (r, sbid) => { const k = reactieKol, tekst = kaal(r[k.tekst]); return {t: datum(r[k.datum]), tekst, wie: wieNaam(String(r[k.wie] ?? '').trim()), intern: rijIntern(r, sbid, tekst), rid: k.rid ? String(r[k.rid] ?? '') : ''}; };
+// een melder kan geen interne notitie schrijven: AFAS zet een reactie van de melder (bv. binnengekomen per mail) soms op 'Intern'; die tonen we als gewone reactie
+const vanMelder = (x, wie) => !!(x && wie && [x.melder, x.instuurder].some(m => m && zelfdePersoon(m, wie)) && !ictPersoon(x, wie) && !isIctStrikt(wie));
+const rijNaarReactie = (r, sbid, x) => { const k = reactieKol, tekst = kaal(r[k.tekst]), wie = wieNaam(String(r[k.wie] ?? '').trim()); return {t: datum(r[k.datum]), tekst, wie, intern: rijIntern(r, sbid, tekst) && !vanMelder(x, wie), rid: k.rid ? String(r[k.rid] ?? '') : ''}; };
 // heeft ICT (iemand anders dan de melder) ooit een zichtbare reactie gegeven?
 const ictReageerde = (x, l) => l.some(r => r.tekst && !r.intern && (norm(r.wie) !== norm(x.melder) || ictPersoon(x, r.wie)));
 async function haalReacties(x){
   if(!x.sbid) throw new Error(x.inuit ? 'Het interne nummer (Dossieritem) ontbreekt in ' + INST.connInUit + '. Laat de beheerder het veld Dossieritem aan die GetConnector toevoegen.' : 'Het interne nummer (Dossieritem) van deze melding is niet gevonden in ' + INST.connTickets + '.');
   const k = await zorgReactieKol(), [d] = await Promise.all([afas(`/connectors/${encodeURIComponent(INST.connReacties)}?skip=0&take=500${filterOp(k.sbid, x.sbid)}`), vulCodeNamen()]);
   if(!(d.rows || []).length) reactieDiag = `0 regels in ${INST.connReacties} voor ${k.sbid} = ${x.sbid}`;
-  return (d.rows || []).map(r => rijNaarReactie(r, x.sbid)).filter(r => r.tekst).sort((a, b) => (a.t || 0) - (b.t || 0));
+  return (d.rows || []).map(r => rijNaarReactie(r, x.sbid, x)).filter(r => r.tekst).sort((a, b) => (a.t || 0) - (b.t || 0));
 }
 /* meldingen waarvan de laatste reactie van de melder is: in één keer nagaan of ICT eerder al reageerde */
 let ictBezig = false; const ictGecheckt = new Map();
@@ -3510,7 +3512,7 @@ async function controleerIctReacties(){
     for(let i = 0; i < metSb.length; i += 40){
       const deel = metSb.slice(i, i + 40);
       const rows = DEMO ? (await afas(`/connectors/${INST.connReacties}`)).rows || [] : (await afas(`/connectors/${encodeURIComponent(INST.connReacties)}?skip=0&take=5000${filterOf(k.sbid, deel.map(x => x.sbid))}`)).rows || [];
-      deel.forEach(x => { const l = rows.filter(r => DEMO || String(r[k.sbid]) === String(x.sbid)).map(r => rijNaarReactie(r, x.sbid));
+      deel.forEach(x => { const l = rows.filter(r => DEMO || String(r[k.sbid]) === String(x.sbid)).map(r => rijNaarReactie(r, x.sbid, x));
         const ja = ictReageerde(x, l); if(ja) veranderd = true; zetIctReactie(x, ja); ictGecheckt.set(String(x.nr), +x.reactieDatum); });
     }
     if(veranderd && !$('#detail').open) teken();
@@ -8734,6 +8736,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.06', d: '02-11-2026', p: ['Bijlage bij een reactie: de bestandsknop werd uitgerekt tot een grote witte cirkel naast het voorbeeld. Nu staat de knop op één regel en het voorbeeld eronder.', 'Reacties van de melder werden soms als interne notitie getoond (AFAS zet bv. een reactie per mail op Intern). Een melder kan geen interne notitie schrijven, dus die staan nu als gewone reactie.']},
   {v: 'v8.05', d: '02-11-2026', p: ['Melding: een afbeelding als bijlage zie je meteen als voorbeeld in de melding (ook bij een reactie). Met “Bijlage in nieuw venster openen” zie je hem op ware grootte in een apart tabblad.']},
   {v: 'v8.04', d: '01-11-2026', p: ['Menu: bij Changes, Projecten en To-do staat een kleine statusstip in het getal (rood iets achter, oranje on hold, groen op schema). Met de muis op het getal zie je de verdeling.']},
   {v: 'v8.03', d: '01-11-2026', p: ['To-do: de titel pas je aan door erop te klikken; het aparte veld Titel is weg. Enter of ernaast klikken bewaart.']},
