@@ -1616,7 +1616,7 @@ const INST = Object.assign({
   ],
   // categorieën zoals in InSite, in deze volgorde; de pagina zoekt zelf in welk veld van de connector ze staan
   // subkeuze onder Afdeling: bij deze afdeling verschijnt een extra keuzelijst (veld in KnSubject; 'data' = waar SubmIT de waarde uit de lijst-connector leest)
-  subKeuzes: [{afdeling: '^afas$', label: 'Categorie', veld: '^afas.?afdeling$', data: 'module'}, {afdeling: '^emma\\b', label: 'Focusgebied', veld: '^focusgebied.?emma$', data: 'emma'}],
+  subKeuzes: [{afdeling: '^afas$', label: 'Categorie', veld: '^(sub.?afdeling.?afas|afas.?afdeling)$', data: 'module'}, {afdeling: '^emma\\b', label: 'Focusgebied', veld: '^(sub.?afdeling.?emma|focusgebied.?emma)$', data: 'emma'}],
   afdelingen: ['Radiologie','Maag Darm','Pijnzorg','Huid en Allergie','Infectieziekten','Algemeen','Emma','Emma [Changes]','AFAS','InPlanning','ICT','Projecten','Zorgadministratie','Power BI'],
   afdelingVeld: '',
   afdErbij: {'Radiologie':['Pijnzorg','Gynaecologie'], 'Maag Darm':['Huid en Allergie','Dermatologie','Allergologie']},   // ster op de sleutel geeft ook deze afdelingen een ster          // leeg = automatisch bepalen
@@ -1657,7 +1657,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.09', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.11', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -1856,8 +1856,8 @@ function maakItem(r, extra){
   const x = {
     nr: iuRij ? iuSleutel(r.Nummer) : r.Nummer, ...(iuRij ? {afasNr: r.Nummer} : {}), onderwerp: r.Onderwerp || '(geen onderwerp)', status: String(r.Status ?? '').replace(/\s+/g, ' ').trim(),
     verantw: String(r.Omschrijving_4 ?? '').trim(), melder: String(r.Omschrijving_2 ?? '').trim(), soort: String(r[INST.soortVeld] ?? '').trim(),
-    type: String(r.Type_ticket_ICT ?? '').trim(), categorie: String(r.Focusgebied_ICT ?? '').trim(), afdeling: String(r[afdVeld || 'AFAS_Afdeling'] ?? '').trim(), module: String(r.AFAS_Afdeling ?? '').trim(),
-    emma: String(r.Focusgebied_EMMA ?? '').trim(), prioriteit: String(r.Prioriteit_actie ?? '').trim(),
+    type: String(r.Type_ticket_ICT ?? '').trim(), categorie: String(r.Focusgebied_ICT ?? '').trim(), afdeling: String(r[afdVeld || 'AFAS_Afdeling'] ?? '').trim(), module: veldCi(r, 'Sub_afdeling_AFAS'),
+    emma: veldCi(r, 'Sub_afdeling_EMMA') || String(r.Focusgebied_EMMA ?? '').trim(), prioriteit: String(r.Prioriteit_actie ?? '').trim(),
     aangemaakt: datum(r.Instuurdatum), gepland: datum(r.Gepland), opgelost: datum(r.Storing_opgelost), reactieDatum: datum(r.Laatste_reactie), reactieDoor: String(r.Gebruiker_laatste_reactie ?? '').trim(),
     statusDatum: datum(r.Laatste_wijziging_externe_status), wijzigingDoor: String(r.Gebruiker_laatste_wijziging ?? '').trim(),
     afgerond: ja(r.Workflow_afgerond), kritiek: ja(r.Kritieke_storing), extern: String(r.Extern_ticket ?? '').trim(),
@@ -1915,6 +1915,8 @@ function openFilters(){
   const opStatus = dicht.length ? `&filterfieldids=${dicht.map(() => 'Status').join(',')};Status&filtervalues=${dicht.map(encodeURIComponent).join(',')};&operatortypes=${dicht.map(() => 7).join(',')};8` : '';
   return [...opWf, ...(opStatus ? [opStatus] : [])];
 }
+// veld uit een connectorrij zonder op hoofdletters te letten (Sub_afdeling_AFAS = Sub_Afdeling_AFAS)
+const veldCi = (r, naam) => { if(r[naam] != null) return String(r[naam]).trim(); const k = Object.keys(r).find(k => k.toLowerCase() === naam.toLowerCase()); return k ? String(r[k] ?? '').trim() : ''; };
 let afdVeld = '';
 /* welk veld bevat de afdeling (Radiologie, Emma, ICT, ...)? Het veld waarin de meeste bekende namen voorkomen. */
 function bepaalAfdVeld(rijen){
@@ -6202,7 +6204,7 @@ const CONN_KAART = () => [
     v('Kritieke_storing', 'Signaal Kritieke storing', 'opt'),
     v('Extern_ticket', 'Extern ticketnummer (leverancier) in het meldingvenster', 'opt'),
     v('Focusgebied_ICT', 'Alleen voor zoeken', 'opt'),
-    v('Focusgebied_EMMA', 'Alleen voor zoeken', 'opt'),
+    v('Sub_afdeling_AFAS', 'Categorie bij afdeling AFAS (subkeuze)', 'opt'), v('Sub_afdeling_EMMA', 'Focusgebied bij afdeling Emma (subkeuze)', 'opt'),
     v(LOC_KOL, 'Locatie (anders uit Kostendrager in Helpdesk_PowerBI)', 'opt', 'Locatie')]},
   {conn: INST.connTickets, sleutel: 'connTickets', soort: 'GET', nodig: 'ja', doel: 'Aanvulling per melding: intern nummer (nodig voor elke wijziging), melder, instuurder, toelichting en change-datums. Wordt per 40 meldingen opgevraagd.', velden: [
     v('Nummer', 'Meldingnummer (filter)'),
@@ -8790,6 +8792,8 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.11', d: '10-11-2026', p: ['Categorie en Focusgebied worden gelezen uit de nieuwe velden Sub_afdeling_AFAS en Sub_afdeling_EMMA in PowerBI_ICT_SLA_Dashboard, zodat de opgeslagen keuze bij een bestaande melding weer zichtbaar is.']},
+  {v: 'v8.10', d: '10-11-2026', p: ['Subkeuze bij de afdeling gebruikt nu de juiste AFAS-velden: Sub-afdeling AFAS (Categorie) en Sub-afdeling Emma (Focusgebied).']},
   {v: 'v8.09', d: '10-11-2026', p: ['Subkeuze bij de afdeling: kies je AFAS, dan verschijnt Categorie; kies je Emma, dan Focusgebied. Bij een nieuwe en een bestaande melding.']},
   {v: 'v8.08', d: '10-11-2026', p: ['Pdf-bijlagen zijn weer te bekijken en staan ook als voorbeeld in de melding.', 'Klik op een voorbeeld (afbeelding of pdf) om hem groot te bekijken.', 'Nieuwe melding: ook hier de knoppen Venster vergroten en Feedback melden naast Sluiten.']},
   {v: 'v8.07', d: '10-11-2026', p: ['Meer beheerders mogelijk: Beheer is te zien voor iedereen in de lijst beheerders (AFAS-gebruikerscodes). Toegevoegd: 88406.mhof.']},
@@ -9158,7 +9162,7 @@ function demoAfas(pad, opties){
     D.sla.push({Nummer:nr, Onderwerp:b.Fields.Ds, Status:'Nieuw', Omschrijving_4:({'88406.rvanderveen':'Robert van der Veen','88406.kgroen':'Kelly Groen','88406.gbrons':'Glenn Brons','88406.gleer':'Guillonard Leer'})[((b.Objects || []).find(o => o.KnS38) || {KnS38:{Element:{Fields:{}}}}).KnS38.Element.Fields.UVer] || '', Omschrijving_2:'Robert van der Veen', Omschrijving:'Aanvraag ICT', Type_ticket_ICT:'Incident', Focusgebied_ICT:'', AFAS_Afdeling:'', Omschrijving_3:INST.afdelingen[+afdC - 1] || 'ICT', Focusgebied_EMMA:'', Instuurdatum:new Date().toISOString().slice(0, 19), Gepland:null, Laatste_reactie:null, Gebruiker_laatste_reactie:'', Laatste_wijziging_externe_status:null, Workflow_afgerond:false, Kritieke_storing:false});
     return new Promise(r => setTimeout(() => r({results:{KnSubject:{SbId: 400000 + nr}}}), 400)); }
   if(pad === '/metainfo/update/KnSubject') return {name:'KnSubject', fields:[{fieldId:'StId', label:'Type dossier', dataType:'int', mandatory:true, values:[{id:'26', description:'Aanvraag ICT'},{id:'31', description:'Change'}]},{fieldId:'Ds', label:'Onderwerp', mandatory:true},{fieldId:'SbTx', label:'Toelichting'}],
-    objects:[{name:'KnSubjectLink', fields:[{fieldId:'SfTp', label:'Type bestemming'}]},{name:'KnS38', fields:[{fieldId:'UAfd', label:'Afdeling', dataType:'string', values:INST.afdelingen.map((n, i) => ({id:String(i + 1), description:n}))},{fieldId:'UVer', label:'Verantwoordelijke', values:[{id:'88406.rvanderveen', description:'Robert van der Veen'},{id:'88406.kgroen', description:'Kelly Groen'},{id:'88406.gbrons', description:'Glenn Brons'},{id:'88406.gleer', description:'Guillonard Leer'},{id:'88406.anders', description:'Iemand Buiten ICT'}]},{fieldId:'UGep', label:'Werkzaamheden gepland', dataType:'date'},{fieldId:'UPSt', label:'Begindatum project', dataType:'date'},{fieldId:'UDl', label:'Datalek', dataType:'boolean'},{fieldId:'UKr', label:'Kritieke storing', dataType:'boolean'},{fieldId:'UOp', label:'Storing opgelost', dataType:'date'},{fieldId:'UExt', label:'Extern ticket', dataType:'string'},{fieldId:'UCc', label:'CC', dataType:'string'},{fieldId:'UTel', label:'Bereikbaarheid', dataType:'string'},{fieldId:'UPEi', label:'Einddatum project', dataType:'date'},{fieldId:'ULoc', label:'Locatie', values:['Almere','Amsterdam','Breda','Utrecht','Hanzeplein','Almere SIC','Planetarium'].map((n, i) => ({id:'L' + i, description:n}))},{fieldId:'UAfC', label:'AFAS Afdeling', values:['Financieel','HRM','InSite','Ordermanagement','Payroll'].map((n, i) => ({id:'A' + i, description:n}))},{fieldId:'UFoE', label:'Focusgebied EMMA', values:['Agenda','Declaraties','Dossier','Medicatie','Patiëntportaal'].map((n, i) => ({id:'E' + i, description:n}))},{fieldId:'UTyp', label:'Type ticket ICT', values:[{id:'I', description:'Incident'},{id:'V', description:'Vraag'},{id:'C', description:'Change'},{id:'VA', description:'Verbeteractie'}]}]},{name:'KnS26', fields:[{fieldId:'UPrj', label:'Begindatum project', mandatory:true}]}]};
+    objects:[{name:'KnSubjectLink', fields:[{fieldId:'SfTp', label:'Type bestemming'}]},{name:'KnS38', fields:[{fieldId:'UAfd', label:'Afdeling', dataType:'string', values:INST.afdelingen.map((n, i) => ({id:String(i + 1), description:n}))},{fieldId:'UVer', label:'Verantwoordelijke', values:[{id:'88406.rvanderveen', description:'Robert van der Veen'},{id:'88406.kgroen', description:'Kelly Groen'},{id:'88406.gbrons', description:'Glenn Brons'},{id:'88406.gleer', description:'Guillonard Leer'},{id:'88406.anders', description:'Iemand Buiten ICT'}]},{fieldId:'UGep', label:'Werkzaamheden gepland', dataType:'date'},{fieldId:'UPSt', label:'Begindatum project', dataType:'date'},{fieldId:'UDl', label:'Datalek', dataType:'boolean'},{fieldId:'UKr', label:'Kritieke storing', dataType:'boolean'},{fieldId:'UOp', label:'Storing opgelost', dataType:'date'},{fieldId:'UExt', label:'Extern ticket', dataType:'string'},{fieldId:'UCc', label:'CC', dataType:'string'},{fieldId:'UTel', label:'Bereikbaarheid', dataType:'string'},{fieldId:'UPEi', label:'Einddatum project', dataType:'date'},{fieldId:'ULoc', label:'Locatie', values:['Almere','Amsterdam','Breda','Utrecht','Hanzeplein','Almere SIC','Planetarium'].map((n, i) => ({id:'L' + i, description:n}))},{fieldId:'UAfC', label:'Sub-afdeling AFAS', values:['ICT','HR','SA','Finance'].map((n, i) => ({id:'A' + i, description:n}))},{fieldId:'UFoE', label:'Sub-afdeling Emma', values:['Radiologie','Huid en Allergie','Maag Darm','Pijnzorg'].map((n, i) => ({id:'E' + i, description:n}))},{fieldId:'UTyp', label:'Type ticket ICT', values:[{id:'I', description:'Incident'},{id:'V', description:'Vraag'},{id:'C', description:'Change'},{id:'VA', description:'Verbeteractie'}]}]},{name:'KnS26', fields:[{fieldId:'UPrj', label:'Begindatum project', mandatory:true}]}]};
   if(opties.method === 'PUT' && pad === '/connectors/KnSubject'){ const el = JSON.parse(opties.body).KnSubject.Element, D = window._demo, r = D.sla.find(x => 400000 + x.Nummer === +el['@SbId']);
     const alle = {...el.Fields}; (el.Objects || []).forEach(o => Object.values(o).forEach(v => Object.assign(alle, v.Element.Fields)));
     if(r && alle.UVer) r.Omschrijving_4 = {'88406.rvanderveen':'Robert van der Veen','88406.kgroen':'Kelly Groen','88406.gbrons':'Glenn Brons','88406.gleer':'Guillonard Leer'}[alle.UVer] || alle.UVer;
@@ -9194,7 +9198,7 @@ function demoAfas(pad, opties){
   if(!window._demo){
     const r = [], mens = ['Robert van der Veen','Kelly Groen','Glenn Brons','Eleandro Martis','Mehmet Ceylan'];
     const add = (nr, o, st, v, extra = {}) => r.push({Nummer:nr, Onderwerp:o, Status:st, Omschrijving_4:v, Omschrijving_2:extra.melder || 'Anouk de Vries', Omschrijving:extra.soort || 'Aanvraag ICT',
-      Type_ticket_ICT:extra.type || 'Incident', Focusgebied_ICT:extra.cat || 'Werkplek', AFAS_Afdeling:'', Omschrijving_3:extra.afd || (extra.cat === 'Emma EPD' ? 'Emma' : 'ICT'), Focusgebied_EMMA:extra.emma || '', Instuurdatum:extra.in || d(4),
+      Type_ticket_ICT:extra.type || 'Incident', Focusgebied_ICT:extra.cat || 'Werkplek', AFAS_Afdeling:'', Omschrijving_3:extra.afd || (extra.cat === 'Emma EPD' ? 'Emma' : 'ICT'), Sub_afdeling_EMMA:extra.emma || '', Sub_afdeling_AFAS:extra.afasSub || '', Instuurdatum:extra.in || d(4),
       Gepland:extra.gepland || null, Laatste_reactie:extra.reactie || d(1), Gebruiker_laatste_reactie:extra.door || v, Laatste_wijziging_externe_status:extra.wijz || d(1), Workflow_afgerond:!!extra.af, Kritieke_storing:!!extra.krit, Locatie: extra.loc ?? (nr % 3 ? 'Almere' : '')});
     add(12601, 'Monitor blijft zwart na docking', 'In behandeling', mens[0], {reactie:d(6), wijz:d(6)});
     add(12602, 'Toegang gedeelde map Financiën', 'In behandeling', mens[0], {gepland:d(2)});
