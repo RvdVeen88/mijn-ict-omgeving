@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <!-- Beveiliging (vangnet): SubmIT mag alleen verbinding maken met AFAS, Microsoft (login, Graph, SharePoint) en de eigen Azure-functies.
      Verandert de AFAS-omgeving of de Function App van adres, pas dan connect-src hieronder aan. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://*.sharepoint.com https://graph.microsoft.com; connect-src 'self' https://88406.rest.afas.online https://func-dck-helpdesk-b8cpg3gmd6d5hsgp.westeurope-01.azurewebsites.net https://func-dck-kennis-bjdmb7b5aqb9bpdf.westeurope-01.azurewebsites.net https://login.microsoftonline.com https://graph.microsoft.com https://*.sharepoint.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://*.sharepoint.com https://graph.microsoft.com; connect-src 'self' https://88406.rest.afas.online https://func-dck-helpdesk-b8cpg3gmd6d5hsgp.westeurope-01.azurewebsites.net https://func-dck-kennis-bjdmb7b5aqb9bpdf.westeurope-01.azurewebsites.net https://login.microsoftonline.com https://graph.microsoft.com https://*.sharepoint.com; worker-src 'self'; manifest-src 'self'; object-src 'self' blob:; frame-src 'self' blob:; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#053787">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
@@ -1023,7 +1023,7 @@ dialog.lade .dlg-in{height:100%;max-height:100vh;box-sizing:border-box;overflow-
 dialog.lade .dlg-in > *{min-width:0;max-width:100%}
 dialog.lade .tijdlijn{max-height:none;overflow:visible}
 dialog#detail.lade{width:min(880px,calc(100vw - 32px))}
-dialog#detail.lade.groot{width:calc(100vw - 96px);height:100vh}
+dialog#detail.lade.groot,dialog#nieuw.lade.groot{width:calc(100vw - 96px);max-width:none;height:100vh}
 dialog.lade.nieuwdlg{width:min(880px,calc(100vw - 32px))}
 @media (prefers-reduced-motion:reduce){dialog.lade[open]{animation:none}}
 .kaart2 .lang{grid-column:1/-1;white-space:pre-wrap;font-weight:400;line-height:1.5;max-height:180px;overflow:auto;background:var(--vlak);border-radius:12px;padding:10px 12px}
@@ -1171,6 +1171,10 @@ textarea.intern{background:var(--goud-licht);border-color:var(--goud)}
 /* bijlagen */
 .bijlvoorbeeld{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 2px}.bijlvoorbeeld:empty{display:none}
 .bijlfig{margin:0;display:flex;flex-direction:column;gap:8px;max-width:min(100%,560px)}
+.bijlfig-img{all:unset;cursor:zoom-in;align-self:flex-start;display:block;border-radius:10px}.bijlfig-img:focus-visible{outline:2px solid var(--lichtblauw);outline-offset:2px}
+.bijlfig-pdf{position:relative;display:block;width:min(100%,420px);height:300px;border:1px solid var(--lijn);border-radius:10px;overflow:hidden;background:#fff}
+.bijlfig-pdf iframe{width:100%;height:100%;border:0;pointer-events:none}.bijlfig-klik{all:unset;position:absolute;inset:0;cursor:zoom-in}.bijlfig-klik:focus-visible{outline:2px solid var(--lichtblauw);outline-offset:-2px}
+.reactiebijl .bijlfig-pdf{height:240px}
 .bijlfig img{display:block;align-self:flex-start;max-width:100%;max-height:300px;width:auto;height:auto;border:1px solid var(--lijn);border-radius:10px;background:var(--bg2);object-fit:contain}
 .bijlfig-laden{display:grid;place-items:center;width:240px;height:120px;border:1px dashed var(--lijn);border-radius:10px;color:var(--grijs);font-size:12px}
 .bijlfig figcaption{align-self:flex-start}.bijlfig figcaption .knop{display:inline-flex;align-items:center;gap:6px}.bijlfig figcaption svg{width:14px;height:14px}
@@ -1611,6 +1615,8 @@ const INST = Object.assign({
     {naam:'Allergologie', zoek:'allerg', verborgen:true}
   ],
   // categorieën zoals in InSite, in deze volgorde; de pagina zoekt zelf in welk veld van de connector ze staan
+  // subkeuze onder Afdeling: bij deze afdeling verschijnt een extra keuzelijst (veld in KnSubject; 'data' = waar SubmIT de waarde uit de lijst-connector leest)
+  subKeuzes: [{afdeling: '^afas$', label: 'Categorie', veld: '^afas.?afdeling$', data: 'module'}, {afdeling: '^emma\\b', label: 'Focusgebied', veld: '^focusgebied.?emma$', data: 'emma'}],
   afdelingen: ['Radiologie','Maag Darm','Pijnzorg','Huid en Allergie','Infectieziekten','Algemeen','Emma','Emma [Changes]','AFAS','InPlanning','ICT','Projecten','Zorgadministratie','Power BI'],
   afdelingVeld: '',
   afdErbij: {'Radiologie':['Pijnzorg','Gynaecologie'], 'Maag Darm':['Huid en Allergie','Dermatologie','Allergologie']},   // ster op de sleutel geeft ook deze afdelingen een ster          // leeg = automatisch bepalen
@@ -1651,7 +1657,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.07', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.09', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -4026,10 +4032,13 @@ document.addEventListener('click', e => {
 /* ---- meldingvenster groter maken (onthouden per browser) ---- */
 const ICO_GROOT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>';
 const ICO_KLEIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7"/></svg>';
-$('#detail').classList.toggle('groot', !!opslag.get('mict-venster-groot'));
+// één keuze voor het meldingvenster en het venster Nieuwe melding
+const grootKnop = () => { const aan = $('#detail').classList.contains('groot'); return `<button type="button" class="grootknop" data-groot aria-label="Venster groter of kleiner" title="${aan ? 'Kleiner venster' : 'Venster vergroten'}">${aan ? ICO_KLEIN : ICO_GROOT}</button>`; };
+['#detail', '#nieuw'].forEach(s => $(s) && $(s).classList.toggle('groot', !!opslag.get('mict-venster-groot')));
 document.addEventListener('click', e => { const g = e.target.closest('[data-groot]'); if(!g) return;
-  const aan = $('#detail').classList.toggle('groot'); opslag.set('mict-venster-groot', aan);
-  g.innerHTML = aan ? ICO_KLEIN : ICO_GROOT; g.title = aan ? 'Kleiner venster' : 'Venster vergroten'; });
+  const aan = !$('#detail').classList.contains('groot'); opslag.set('mict-venster-groot', aan);
+  ['#detail', '#nieuw'].forEach(s => $(s) && $(s).classList.toggle('groot', aan));
+  document.querySelectorAll('[data-groot]').forEach(k => { k.innerHTML = aan ? ICO_KLEIN : ICO_GROOT; k.title = aan ? 'Kleiner venster' : 'Venster vergroten'; }); });
 /* ---- vorige / volgende melding uit de lijst waar je de melding opende ---- */
 let navLijst = [];
 function zetNavPijlen(x){
@@ -4619,7 +4628,7 @@ function openDetail(nr){
     ${!x.afgesloten && isNieuw(x) ? `<div class="checklist" id="d-check">${checklist(x)}</div>` : ''}
     <div class="kaarten">
       <div class="kaart2"><h3>Melding</h3><span>Instuurder</span><b id="d-inst" title="Wie de melding heeft aangemaakt (niet aan te passen)">${esc(instCache.get(String(x.nr)) || '…')}</b><span>Melder</span><b class="meldercel"><span id="d-melder">${esc(x.melder || '')}</span>${x.melder ? `<button type="button" class="melderinfo" id="d-melderinfo" aria-label="Gegevens van de melder" data-uitleg="Gegevens ophalen…"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 7.5h.01"></path></svg></button>` : ''}</b>${`<span>Bereikbaar</span><b class="telcel"><input id="d-tel" class="datumkeuze telkeuze" inputmode="tel" value="${esc(x.tel || '')}" data-oud="${esc(x.tel || '')}" placeholder="" title="Waar de melder nu bereikbaar is; wijzigt per keer" autocomplete="off">${x.tel && /\d{3}/.test(x.tel) ? belLink(x.tel).replace(/<\/svg>[^<]*<\/a>$/, '</svg></a>') : ''}</b>`}<span>Type melding</span><b>${x.afgesloten ? esc(x.type || '') : `<select id="d-type" class="afdkeuze" title="Klik om het type melding te wijzigen"><option value="">${esc(x.type || '')}</option></select>`}</b>${r('Ingestuurd', x.aangemaakt ? fmtDatum(x.aangemaakt) + ' ' + fmtTijd(x.aangemaakt) : '', {altijd:true})}<span>Locatie${x.afgesloten ? '' : '<i class="verpl" data-verpl="#d-loc" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(locVan(x)) : `<select id="d-loc" class="afdkeuze" title="Klik om de locatie te wijzigen"><option value="">${esc(x.locatie || '')}</option></select>`}</b></div>
-      <div class="kaart2"><h3>Behandeling</h3><span>Afdeling${x.afgesloten ? '' : '<i class="verpl" data-verpl="#d-afd" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.afdeling || '') : `<select id="d-afd" class="afdkeuze" title="Klik om de afdeling te wijzigen"><option>${esc(x.afdeling || '')}</option></select>`}</b><span>Verantwoordelijke</span><b>${x.afgesloten ? esc(x.verantw || '') : `<select id="d-verantw" class="afdkeuze" title="Klik om de verantwoordelijke te wijzigen"><option value="">${esc(x.verantw || '')}</option></select>${benIk(x.verantw) || st === 0 ? '' : '<button type="button" class="linkknop aanmij" id="d-aanmij">Toewijzen aan mij</button>'}`}</b><span>Status${x.afgesloten ? '' : '<i class="verpl" data-verpl="#d-status" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(toonStatus(x.status) || '–') : `<select id="d-status" class="afdkeuze" title="Klik om de status te wijzigen"><option value="">${esc(toonStatus(x.status) || '')}</option></select>`}</b>
+      <div class="kaart2"><h3>Behandeling</h3><span>Afdeling${x.afgesloten ? '' : '<i class="verpl" data-verpl="#d-afd" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(x.afdeling || '') : `<select id="d-afd" class="afdkeuze" title="Klik om de afdeling te wijzigen"><option>${esc(x.afdeling || '')}</option></select>`}</b>${x.afgesloten ? (subDef(x.afdeling) && x[subDef(x.afdeling).data] ? `<span>${esc(subDef(x.afdeling).label)}</span><b>${esc(x[subDef(x.afdeling).data])}</b>` : '') : `<span id="d-sub-l" hidden>Categorie</span><b hidden><select id="d-sub" class="afdkeuze"></select></b>`}<span>Verantwoordelijke</span><b>${x.afgesloten ? esc(x.verantw || '') : `<select id="d-verantw" class="afdkeuze" title="Klik om de verantwoordelijke te wijzigen"><option value="">${esc(x.verantw || '')}</option></select>${benIk(x.verantw) || st === 0 ? '' : '<button type="button" class="linkknop aanmij" id="d-aanmij">Toewijzen aan mij</button>'}`}</b><span>Status${x.afgesloten ? '' : '<i class="verpl" data-verpl="#d-status" title="Verplicht">*</i>'}</span><b>${x.afgesloten ? esc(toonStatus(x.status) || '–') : `<select id="d-status" class="afdkeuze" title="Klik om de status te wijzigen"><option value="">${esc(toonStatus(x.status) || '')}</option></select>`}</b>
         ${x.afgesloten ? r('Gepland', x.gepland ? fmtDatum(x.gepland) : '') : `<span>Gepland</span><b><input type="date" id="d-gepland" class="datumkeuze" value="${x.gepland ? isoD(x.gepland) : ''}" data-oud="${x.gepland ? isoD(x.gepland) : ''}" title="Datum waarop het werk gepland staat"></b>`}${x.afgesloten ? (heeftProjDatums(x) ? r('Startdatum', x.projStart ? fmtDatum(x.projStart) : '') + r('Deadline', x.projEind ? fmtDatum(x.projEind) : '') : '') : `<span class="dchg"${heeftProjDatums(x) ? '' : ' hidden'}>Startdatum</span><b class="dchg"${heeftProjDatums(x) ? '' : ' hidden'}><input type="date" id="d-pstart" class="datumkeuze" value="${x.projStart ? isoD(x.projStart) : ''}" data-oud="${x.projStart ? isoD(x.projStart) : ''}" title="Begindatum project van deze change"></b><span class="dchg"${heeftProjDatums(x) ? '' : ' hidden'}>Deadline</span><b class="dchg"${heeftProjDatums(x) ? '' : ' hidden'}><input type="date" id="d-peind" class="datumkeuze" value="${x.projEind ? isoD(x.projEind) : ''}" data-oud="${x.projEind ? isoD(x.projEind) : ''}" title="Einddatum project (deadline) van deze change"></b>`}<span>Extern ticket</span><b><input id="d-extern" class="datumkeuze" value="${esc(x.extern || '')}" data-oud="${esc(x.extern || '')}" autocomplete="off" title="Ticketnummer bij de leverancier"></b>${x.afgesloten ? (x.kritiek ? r('Kritieke storing', 'Ja') + opgelostRij(x) : '') + (x.datalek ? r('Datalek', 'Ja') : '') + r('CC', x.cc) : `<span>CC</span><b><input id="d-cc" class="datumkeuze cckeuze metpijl" value="${esc(x.cc || '')}" data-oud="${esc(x.cc || '')}" placeholder="" title="Medewerker die een kopie van de mails krijgt" autocomplete="off" spellcheck="false"></b>
           <span>Markeren</span><b class="vinkjes"><label class="vink"><input type="checkbox" id="d-kritiek" ${x.kritiek ? 'checked' : ''} data-oud="${x.kritiek ? 1 : 0}"> Kritieke storing</label><label class="vink"><input type="checkbox" id="d-datalek" ${x.datalek ? 'checked' : ''} data-oud="${x.datalek ? 1 : 0}"> Datalek</label></b>${opgelostRij(x)}`}</div>
     </div>
@@ -4788,25 +4797,28 @@ function verdeelBijlagen(x){
   $('#d-bijl') && $('#d-bijl').classList.toggle('nietsdaar', !los.length && !fouten.length);   // geen bijlagen: regel weg (komt terug bij slepen of als je er een klaarzet)
 }
 // afbeeldingen als voorbeeld in de melding (onder Bijlagen; bij een reactie onder die reactie); knop opent hem op ware grootte in een nieuw tabblad
-const isAfbeelding = n => /\.(png|jpe?g|gif|bmp|webp|svg)$/i.test(String(n || ''));
+const isAfbeelding = n => /\.(png|jpe?g|gif|bmp|webp|svg)$/i.test(String(n || '')), isPdfNaam = n => /\.pdf$/i.test(String(n || ''));
 let bijlUrls = [];
 function bijlVoorbeelden(x, lijst, los){
   bijlUrls.forEach(u => URL.revokeObjectURL(u)); bijlUrls = [];
   let vak = $('#bijl-voorbeeld'); const balk = $('#d-bijl');
   if(!vak && balk){ balk.insertAdjacentHTML('afterend', '<div class="bijlvoorbeeld" id="bijl-voorbeeld"></div>'); vak = $('#bijl-voorbeeld'); }
   const losI = new Set(los.map(([, i]) => i)), figuur = i => `<figure class="bijlfig" data-bijlfig="${i}"><span class="bijlfig-laden">voorbeeld laden…</span><figcaption><button type="button" class="knop klein" data-bijlnieuw="${i}">${ico('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>')}Bijlage in nieuw venster openen</button></figcaption></figure>`;
-  const plaatjes = lijst.map((b, i) => [b, i]).filter(([b]) => isAfbeelding(b.naam) && (!b.grootte || b.grootte < 8e6));
+  const plaatjes = lijst.map((b, i) => [b, i]).filter(([b]) => (isAfbeelding(b.naam) || isPdfNaam(b.naam)) && (!b.grootte || b.grootte < 8e6));
   if(vak) vak.innerHTML = plaatjes.filter(([, i]) => losI.has(i)).slice(0, 6).map(([, i]) => figuur(i)).join('');
   plaatjes.filter(([, i]) => !losI.has(i)).forEach(([b, i]) => { const c = document.querySelector(`#tijdlijn .reactiebijl [data-bijl="${i}"]`); if(c) c.closest('.reactiebijl').insertAdjacentHTML('beforeend', figuur(i)); });
   document.querySelectorAll('[data-bijlfig]').forEach(async f => { const b = lijst[+f.dataset.bijlfig]; if(!b) return;
     try{ const blob = await haalBestand(b); if(!huidig || huidig.x !== x || !f.isConnected) return; const u = URL.createObjectURL(blob); bijlUrls.push(u);
-      f.dataset.url = u; f.querySelector('.bijlfig-laden').outerHTML = `<img src="${u}" alt="${esc(b.naam)}" loading="lazy">`; }
+      f.dataset.url = u; f.dataset.naam = b.naam; f.querySelector('.bijlfig-laden').outerHTML = isPdfNaam(b.naam)
+        ? `<span class="bijlfig-pdf"><iframe src="${u}#toolbar=0&navpanes=0&view=FitH" title="${esc(b.naam)}" tabindex="-1"></iframe><button type="button" class="bijlfig-klik" data-bijl="${f.dataset.bijlfig}" title="Klik om groot te bekijken" aria-label="${esc(b.naam)} groot bekijken"></button></span>`
+        : `<button type="button" class="bijlfig-img" data-bijl="${f.dataset.bijlfig}" title="Klik om groot te bekijken"><img src="${u}" alt="${esc(b.naam)}" loading="lazy"></button>`; }
     catch(e){ const l = f.querySelector('.bijlfig-laden'); if(l) l.textContent = 'Voorbeeld niet beschikbaar'; } });
 }
 document.addEventListener('click', e => { const k = e.target.closest('[data-bijlnieuw]'); if(!k) return; e.preventDefault(); e.stopPropagation();
   const f = k.closest('[data-bijlfig]'); if(f && f.dataset.url){ const w = window.open('', '_blank'); if(!w){ toast('Het nieuwe tabblad werd geblokkeerd door de browser', true); return; }
     // als afbeelding tonen (niet als los document): een svg kan dan geen script uitvoeren
-    w.opener = null; const nm = f.querySelector('img') ? f.querySelector('img').alt : 'Bijlage';
+    w.opener = null; const nm = f.dataset.naam || 'Bijlage';
+    if(isPdfNaam(nm)){ w.location.href = f.dataset.url; return; }
     w.document.write(`<!doctype html><meta charset="utf-8"><title>${esc(nm)}</title><body style="margin:0;background:#0E1626;min-height:100vh;display:grid;place-items:center"><img src="${f.dataset.url}" alt="${esc(nm)}" style="max-width:none">`); w.document.close(); }
   else toast('Het voorbeeld wordt nog geladen', true); }, true);
 async function haalBestand(b){
@@ -4816,7 +4828,7 @@ async function haalBestand(b){
   catch(e){ // bij een reactie verwacht AFAS soms het reactienummer in plaats van het dossieritem
     if(b.rid && /404/.test(e.message)){ try{ r = await afas(pad(b.rid)); }catch(e2){ throw e; } } else throw e; }
   const bin = atob(r.filedata || r.FileData || ''), u = new Uint8Array(bin.length); for(let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
-  return new Blob([u], {type: r.mimetype || raadMime(r.filename || b.naam)});
+  return new Blob([u], {type: (r.mimetype && !/octet-stream/i.test(r.mimetype) ? r.mimetype : '') || raadMime(r.filename || b.naam)});
 }
 let bekijkUrl = null;
 /* Word-bestand (.docx) als leesbare voorvertoning: zip uitpakken in de browser (DecompressionStream), word/document.xml lezen.
@@ -5042,7 +5054,7 @@ function veldGewijzigd(el){
   if(el.tagName === 'SELECT' && !el.value) return false;
   return el.dataset.oud !== undefined && String(el.value).trim() !== String(el.dataset.oud);
 }
-const WIJZIG_VELDEN = ['#d-type', '#d-extern', '#d-ond', '#d-opgelost', '#d-toel', '#d-afd', '#d-verantw', '#d-status', '#d-loc', '#d-gepland', '#d-cc', '#d-tel', '#d-pstart', '#d-peind', '#d-kritiek', '#d-datalek'];
+const WIJZIG_VELDEN = ['#d-sub', '#d-type', '#d-extern', '#d-ond', '#d-opgelost', '#d-toel', '#d-afd', '#d-verantw', '#d-status', '#d-loc', '#d-gepland', '#d-cc', '#d-tel', '#d-pstart', '#d-peind', '#d-kritiek', '#d-datalek'];
 function zetKnoppen(){
   const d = $('#detail'); if(!d || !d.open || !huidig || huidig.bezig) return;
   let iets = false;
@@ -5143,6 +5155,7 @@ async function vulAfdKeuze(x){
     sel.innerHTML = (x.afdeling && l.some(w => norm(w.naam) === norm(x.afdeling)) ? '' : `<option value="">${esc(x.afdeling || '')}</option>`) + l.map(w => `<option ${norm(w.naam) === norm(x.afdeling) ? 'selected' : ''}>${esc(w.naam)}</option>`).join('');
     // niet meteen opslaan: eerst bevestigen (een reactie in het tekstveld gaat mee)
     sel.onchange = () => { sel.classList.toggle('gewijzigd', !!sel.value && norm(sel.value) !== norm(x.afdeling)); if(sel.value) sel.classList.remove('mist'); };
+    tekenSubDetail(x);
     sel.onchangeOud = () => { const b = $('#d-afd-ok');
       if(!sel.value || norm(sel.value) === norm(x.afdeling)){ if(b) b.remove(); return; }
       if(!b) sel.insertAdjacentHTML('afterend', `<span id="d-afd-ok" class="afdbevestig"><button type="button" class="knop vol klein" id="d-afd-opslaan">Opslaan</button><button type="button" class="linkknop" id="d-afd-terug">Annuleren</button></span>`);
@@ -5202,6 +5215,40 @@ async function laadSubjMeta(){
     status: zoek(/^(externe )?status$/, f => waardenVan(f.values).length > 0), locatie: zoek(/^locatie$/),
     datalek: zoek(/^datalek$/), kritiek: zoek(/^kritieke storing$/), extern: zoek(/^extern(e)? ticket/), opgelost: zoek(/storing opgelost|opgelost op|storing verholpen/), cc: zoek(/^cc$/), type: zoek(/^type( ticket)?( ict)?$|^type melding$/) || zoek(/type ticket/), tel: zoek(/^(bereikbaarheid|bereikbaar|telefoon(nr|nummer)?)/), toel: zoek(/^toelichting$/),
     projStart: zoek(/(begin|start)\s*datum\s*project|project\s*(begin|start)/, f => /date/i.test(f.dataType || 'date')), projEind: zoek(/eind\s*datum\s*project|project\s*eind|^deadline/, f => /date/i.test(f.dataType || 'date')), alle});
+}
+/* subkeuze bij een afdeling (AFAS → Categorie, Emma → Focusgebied): welke definitie hoort bij deze afdeling, en welk AFAS-veld is het? */
+const subDef = afd => (INST.subKeuzes || []).find(d => afd && new RegExp(d.afdeling, 'i').test(String(afd).trim())) || null;
+function subVeld(alle, d){
+  const tabel = INST.vrijeVelden || 'KnS38', re = new RegExp(d.veld, 'i');
+  const l = alle.filter(f => re.test(norm(f.label)) || re.test(norm(String(f.code || f.fieldId || '').replace(/_/g, ' '))));
+  return l.find(f => f.pad === tabel) || l[0] || null;
+}
+const subOpties = (f, huidigeWaarde) => { const w = waardenVan(f.values).sort((a, b) => a.naam.localeCompare(b.naam, 'nl')), nu = w.find(x => norm(x.naam) === norm(huidigeWaarde) || norm(x.code) === norm(huidigeWaarde));
+  return {nu, html: `<option value="">${huidigeWaarde && !nu ? esc(huidigeWaarde) : 'Kies…'}</option>` + w.map(x => `<option value="${esc(x.code)}" ${x === nu ? 'selected' : ''}>${esc(x.naam)}</option>`).join('')}; };
+// bestaande melding: rij onder Afdeling tonen/verbergen en vullen
+async function tekenSubDetail(x){
+  const sel = $('#d-sub'), lab = $('#d-sub-l'); if(!sel || !lab) return;
+  const afd = ($('#d-afd') && $('#d-afd').value) || x.afdeling, d = subDef(afd), rijen = [lab, sel.closest('b')];
+  if(!d){ rijen.forEach(e => e.hidden = true); sel.dataset.oud = sel.value = ''; sel.innerHTML = ''; return; }
+  try{ const m = await laadSubjMeta(), f = subVeld(m.alle, d); if(!huidig || huidig.x !== x) return;
+    if(!f){ rijen.forEach(e => e.hidden = true); console.warn('SubmIT: veld voor ' + d.label + ' niet gevonden in KnSubject'); return; }
+    if(sel.dataset.def === d.label && sel.options.length) { rijen.forEach(e => e.hidden = false); return; }
+    const {nu, html} = subOpties(f, x[d.data]); lab.firstChild.textContent = d.label; sel.innerHTML = html; sel.dataset.def = d.label; sel.dataset.oud = nu ? nu.code : ''; sel.title = d.label;
+    sel.classList.remove('gewijzigd'); rijen.forEach(e => e.hidden = false);
+  }catch(e){ rijen.forEach(el => el.hidden = true); }
+}
+document.addEventListener('change', e => {
+  if(e.target.id === 'd-afd' && huidig) tekenSubDetail(huidig.x);
+  if(e.target.id === 'd-sub') e.target.classList.toggle('gewijzigd', !!e.target.value && e.target.value !== e.target.dataset.oud);
+  if(e.target.name === 'afd' && e.target.closest('#n-form')) tekenSubNieuw();
+});
+// nieuwe melding: zelfde rij onder Afdeling
+function tekenSubNieuw(){
+  const f = $('#n-form'); if(!f || !nieuwMeta) return; const sel = f.sub, lab = $('#n-sub-l'); if(!sel || !lab) return;
+  const afd = f.afd ? (f.afd.tagName === 'SELECT' ? (f.afd.options[f.afd.selectedIndex] || {}).textContent : f.afd.value) : '', d = subDef(afd), veld = d && subVeld(nieuwMeta.alle || [], d), rijen = [lab, sel.closest('b')];
+  if(!d || !veld){ rijen.forEach(e => e.hidden = true); sel.innerHTML = ''; sel.dataset.def = ''; return; }
+  if(sel.dataset.def !== d.label){ lab.firstChild.textContent = d.label; sel.innerHTML = subOpties(veld, '').html; sel.dataset.def = d.label; }
+  rijen.forEach(e => e.hidden = false);
 }
 ['input', 'change'].forEach(ev => document.addEventListener(ev, e => { const t = e.target; if(t.type === 'date' || t.type === 'datetime-local') t.setAttribute('value', t.value); }, true));
 async function zetVelden(x, w){
@@ -5401,7 +5448,7 @@ async function laadNieuwMeta(){
   const pads = new Set(['', 'KnSubject', ...[afd, type].filter(Boolean).map(f => f.pad)]);
   const bekend = new Set(['StId','Ds','SbTx','SbId'].concat([afd, type, loc, tel].filter(Boolean).map(f => f.code)));
   const extra = alle.filter(f => f.verplicht && mag(f) && pads.has(f.pad) && !bekend.has(f.code) && !/^(UsId|Da|EmId|SfId|SfTp)$/.test(f.code));
-  return (nieuwMeta = {stId, typen, afd, type, loc, tel, extra});
+  return (nieuwMeta = {stId, typen, afd, type, loc, tel, extra, alle});
 }
 function keuze(f, naam, std){
   const w = waardenVan(f.values).sort((a, b) => a.naam.localeCompare(b.naam, 'nl'));
@@ -5410,7 +5457,7 @@ function keuze(f, naam, std){
   return `<select name="${naam}"><option value="">Kies…</option>${w.map(x => `<option value="${esc(x.code)}" ${x.code === kies.code ? 'selected' : ''}>${esc(x.naam)}</option>`).join('')}</select>`;
 }
 async function nieuweMelding(opt = {}){
-  const d = $('#nieuw'), kop = `<div class="dlg-kop"><div><h2>Nieuwe melding</h2></div><button class="sluit" data-sluitnieuw aria-label="Sluiten">×</button></div>`;
+  const d = $('#nieuw'), kop = `<div class="dlg-kop"><div><h2>Nieuwe melding</h2></div>${grootKnop()}${fbKnop()}<button class="sluit" data-sluitnieuw aria-label="Sluiten">×</button></div>`;
   $('#nieuw-in').innerHTML = kop + '<p class="leeg">Velden ophalen uit AFAS…</p>'; d.dataset.gewijzigd = ''; nieuwBijl = []; d.showModal();
   let m;
   try{ m = await laadNieuwMeta(); }
@@ -5419,7 +5466,7 @@ async function nieuweMelding(opt = {}){
   // zelfde opbouw als een bestaande melding: titel bovenin, kaarten Melding | Behandeling, toelichting, bijlagen, knoppen
   const kz = (f, naam, std) => keuze(f, naam, std).replace('<select ', '<select class="afdkeuze" ').replace('<input ', '<input class="datumkeuze" ');
   $('#nieuw-in').innerHTML = `<form class="nform nmeld" id="n-form" onsubmit="return false">
-    <div class="dlg-kop"><div><h2 id="n-titel">Nieuwe melding</h2></div><button type="button" class="sluit" data-sluitnieuw aria-label="Sluiten">×</button></div>
+    <div class="dlg-kop"><div><h2 id="n-titel">Nieuwe melding</h2></div>${grootKnop()}${fbKnop()}<button type="button" class="sluit" data-sluitnieuw aria-label="Sluiten">×</button></div>
     <div class="kaarten">
       <div class="kaart2"><h3>Melding</h3>
         <span>Melder</span><b><input name="melder" id="n-melder" class="datumkeuze metpijl" autocomplete="off" spellcheck="false" placeholder="Zoek op naam of nummer"><input type="hidden" name="melderId"><small class="hint" id="n-melder-hint">Medewerkers ophalen…</small></b>
@@ -5428,7 +5475,7 @@ async function nieuweMelding(opt = {}){
         ${m.loc ? `<span>Locatie<i class="verpl" data-verpl="#n-form [name=loc]" title="Verplicht">*</i></span><b>${kz(m.loc, 'loc', '')}</b>` : ''}
       </div>
       <div class="kaart2"><h3>Behandeling</h3>
-        ${m.afd ? `<span>Afdeling<i class="verpl" data-verpl="#n-form [name=afd]" title="Verplicht">*</i></span><b>${kz(m.afd, 'afd', stdAfd)}</b>` : ''}
+        ${m.afd ? `<span>Afdeling<i class="verpl" data-verpl="#n-form [name=afd]" title="Verplicht">*</i></span><b>${kz(m.afd, 'afd', stdAfd)}</b><span id="n-sub-l" hidden>Categorie</span><b hidden><select name="sub" class="afdkeuze"></select></b>` : ''}
         <span>Verantwoordelijke</span><b><input name="beh" id="n-beh" class="datumkeuze metpijl" autocomplete="off" spellcheck="false" placeholder=""><input type="hidden" name="behCode"><small class="hint" id="n-beh-hint">Leeg = de melding komt bij Nieuwe meldingen.</small></b>
         <span>Gepland</span><b><input type="date" name="gepland" class="datumkeuze" title="Datum waarop het werk gepland staat"></b>
         <span class="nchg" hidden>Startdatum</span><b class="nchg" hidden><input type="date" name="pstart" class="datumkeuze"></b>
@@ -5448,7 +5495,7 @@ async function nieuweMelding(opt = {}){
   </form>`;
   { const mi = $('#n-form').melder; mi.addEventListener('click', () => { if(mi.dataset.std === '1') mi.select(); }); const o = $('#n-form').ond;
     o.addEventListener('input', () => zetVerplicht()); zetVerplicht(); o.focus(); }   // kop blijft "Nieuwe melding": het onderwerp staat er al onder
-  koppelMelder(); koppelBehandelaar(opt.ikVerantw);
+  tekenSubNieuw(); koppelMelder(); koppelBehandelaar(opt.ikVerantw);
   koppelCc($('#n-form').cc);
 }
 async function maakMelding(){
@@ -5463,6 +5510,7 @@ async function maakMelding(){
   const zet = (veld, v) => { if(veld && v !== '') w[veldCode(veld)] = veld.dataType === 'int' && !isNaN(+v) ? +v : v; };
   { const leeg = [m.afd && f.afd && !f.afd.value ? 'Afdeling' : '', m.loc && f.loc && !f.loc.value ? 'Locatie' : ''].filter(Boolean);
     if(leeg.length){ fout.textContent = `Vul ${leeg.join(' en ')} in; ${leeg.length === 1 ? 'dit veld is' : 'deze velden zijn'} verplicht.`; (leeg[0] === 'Afdeling' ? f.afd : f.loc).focus(); return; } }
+  if(f.sub && !f.sub.closest('b').hidden && f.sub.value){ const d = (INST.subKeuzes || []).find(d => d.label === f.sub.dataset.def), v = d && subVeld(m.alle || [], d); if(v) zet(v, f.sub.value); }
   if(m.afd && f.afd) zet(m.afd, f.afd.value); if(m.loc && f.loc) zet(m.loc, f.loc.value); if(m.type && f.type) zet(m.type, f.type.value);
   if((f.gepland && f.gepland.value) || (f.pstart && f.pstart.value) || (f.peind && f.peind.value)){ const sm = await laadSubjMeta().catch(() => ({})), chg = !document.querySelector('#n-form .nchg[hidden]');
     [['gepland', sm.gepland], ...(chg ? [['pstart', sm.projStart], ['peind', sm.projEind]] : [])].forEach(([n, veld]) => { if(veld && f[n] && f[n].value) w[veldCode(veld)] = f[n].value; }); }
@@ -5843,6 +5891,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
   if(ss && ss.value.startsWith('a:') && knopActie == null) actieIdx = +ss.value.slice(2);
   const nieuweStatus = ss && ss.value && !ss.value.startsWith('a:') && ss.value !== ss.dataset.oud ? ss.value : '', statusNaam = nieuweStatus ? ss.options[ss.selectedIndex].textContent : '';
   const ls = $('#d-loc'), nieuweLoc = ls && ls.value && ls.value !== ls.dataset.oud ? {code: ls.value, naam: ls.options[ls.selectedIndex].textContent} : null;
+  const dsb = $('#d-sub'), nieuwSub = dsb && !dsb.closest('b').hidden && dsb.value && dsb.value !== dsb.dataset.oud ? {code: dsb.value, naam: dsb.options[dsb.selectedIndex].textContent} : null;
   const ty = $('#d-type'), nieuwType = ty && ty.value && ty.value !== ty.dataset.oud ? {code: ty.value, naam: ty.options[ty.selectedIndex].textContent} : null;
   const gs = $('#d-gepland'), nieuwGepland = gs && gs.value !== gs.dataset.oud ? {datum: gs.value} : null;
   const dk = $('#d-kritiek'), dd = $('#d-datalek'), dc = $('#d-cc');
@@ -5855,7 +5904,7 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
   const tl = $('#d-toel'), nieuweToel = tl && tl.tagName === 'TEXTAREA' && tl.dataset.oud !== undefined && tl.value.trim() !== tl.dataset.oud.trim() ? tl.value.trim() : null;
   const ps = $('#d-pstart'), pe = $('#d-peind'), nieuwProj = (ps && ps.value !== ps.dataset.oud) || (pe && pe.value !== pe.dataset.oud) ? {start: ps ? ps.value : '', eind: pe ? pe.value : '', startGew: !!ps && ps.value !== ps.dataset.oud, eindGew: !!pe && pe.value !== pe.dataset.oud} : null;
   const vs = $('#d-verantw'), nieuweVerantw = vs && vs.value && vs.value !== vs.dataset.oud ? {code: vs.value, naam: vs.options[vs.selectedIndex].textContent} : null;
-  if(!nieuweAfd && !nieuweStatus && !nieuweVerantw && !nieuwGepland && !nieuwProj && nieuwKritiek === null && nieuwOpgelost === null && nieuwOnd === null && nieuwExtern === null && nieuwDatalek === null && nieuwCc === null && nieuwTel === null && nieuweToel === null && !nieuweLoc && !nieuwType && actieIdx == null && !tekst && !bijlT.length){ if(sluiten === 'volgende'){ if(volgNr) openDetail(volgNr); else $('#detail').close(); return; } $('#d-fout').textContent = 'Er is niets gewijzigd: pas een veld aan, schrijf een reactie of voeg een bijlage toe.'; return; }
+  if(!nieuwSub && !nieuweAfd && !nieuweStatus && !nieuweVerantw && !nieuwGepland && !nieuwProj && nieuwKritiek === null && nieuwOpgelost === null && nieuwOnd === null && nieuwExtern === null && nieuwDatalek === null && nieuwCc === null && nieuwTel === null && nieuweToel === null && !nieuweLoc && !nieuwType && actieIdx == null && !tekst && !bijlT.length){ if(sluiten === 'volgende'){ if(volgNr) openDetail(volgNr); else $('#detail').close(); return; } $('#d-fout').textContent = 'Er is niets gewijzigd: pas een veld aan, schrijf een reactie of voeg een bijlage toe.'; return; }
   const act = actieIdx != null && huidig.wf ? huidig.wf.acties[actieIdx] : null;
   { const plek = tekst.match(/\[(vul aan|stand van zaken|datum)\]/); if(plek){ $('#d-fout').textContent = `Vul in de reactie eerst "${plek[0]}" aan.`; const t = $('#tekst'); if(t){ t.focus(); const i = t.value.indexOf(plek[0]); if(i >= 0) t.setSelectionRange(i, i + plek[0].length); } return; } }
   // verplicht bij opslaan: afdeling, locatie en status
@@ -5890,6 +5939,10 @@ async function opslaanAlles(knopActie = null, sluiten = true){   // sluiten: tru
     if(nieuweToel !== null){ stap = 'toelichting'; const m = await laadSubjMeta(); await zetVelden(x, {[m.toel ? veldCode(m.toel) : 'SbTx']: nieuweToel}); x.toelichting = nieuweToel; toelCache.set(String(x.nr), nieuweToel); gedaan.push('toelichting aangepast'); }
     if(nieuwType){ stap = 'type melding'; const m = await laadSubjMeta(); if(!m.type) throw new Error('Het veld Type melding is niet gevonden in AFAS (UpdateConnector KnSubject).');
       await zetVelden(x, {[veldCode(m.type)]: m.type.dataType === 'int' && !isNaN(+nieuwType.code) ? +nieuwType.code : nieuwType.code}); lok.type = nieuwType.naam; gedaan.push('type ' + nieuwType.naam); }
+    // 1a. subkeuze bij de afdeling (Categorie bij AFAS, Focusgebied bij Emma)
+    if(nieuwSub){ const d = (INST.subKeuzes || []).find(d => d.label === dsb.dataset.def); stap = d ? d.label.toLowerCase() : 'subkeuze'; const m = await laadSubjMeta(), f = d && subVeld(m.alle, d);
+      if(!f) throw new Error(`Het veld ${d ? d.label : ''} is niet gevonden in AFAS (UpdateConnector KnSubject).`);
+      await zetVelden(x, {[veldCode(f)]: f.dataType === 'int' && !isNaN(+nieuwSub.code) ? +nieuwSub.code : nieuwSub.code}); lok[d.data] = nieuwSub.naam; gedaan.push(d.label.toLowerCase() + ' ' + nieuwSub.naam); }
     // 1b. locatie (veld)
     if(nieuweLoc){ stap = 'locatie'; const m = await laadSubjMeta(); await zetVelden(x, {[veldCode(m.locatie)]: m.locatie.dataType === 'int' && !isNaN(+nieuweLoc.code) ? +nieuweLoc.code : nieuweLoc.code}); lok.locatie = nieuweLoc.naam; gedaan.push('locatie ' + nieuweLoc.naam); }
     // 2. status als veld (alleen als AFAS een statusveld heeft)
@@ -8737,6 +8790,8 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.09', d: '10-11-2026', p: ['Subkeuze bij de afdeling: kies je AFAS, dan verschijnt Categorie; kies je Emma, dan Focusgebied. Bij een nieuwe en een bestaande melding.']},
+  {v: 'v8.08', d: '10-11-2026', p: ['Pdf-bijlagen zijn weer te bekijken en staan ook als voorbeeld in de melding.', 'Klik op een voorbeeld (afbeelding of pdf) om hem groot te bekijken.', 'Nieuwe melding: ook hier de knoppen Venster vergroten en Feedback melden naast Sluiten.']},
   {v: 'v8.07', d: '10-11-2026', p: ['Meer beheerders mogelijk: Beheer is te zien voor iedereen in de lijst beheerders (AFAS-gebruikerscodes). Toegevoegd: 88406.mhof.']},
   {v: 'v8.06', d: '02-11-2026', p: ['Bijlage bij een reactie: de bestandsknop werd uitgerekt tot een grote witte cirkel naast het voorbeeld. Nu staat de knop op één regel en het voorbeeld eronder.', 'Reacties van de melder werden soms als interne notitie getoond (AFAS zet bv. een reactie per mail op Intern). Een melder kan geen interne notitie schrijven, dus die staan nu als gewone reactie.']},
   {v: 'v8.05', d: '02-11-2026', p: ['Melding: een afbeelding als bijlage zie je meteen als voorbeeld in de melding (ook bij een reactie). Met “Bijlage in nieuw venster openen” zie je hem op ware grootte in een apart tabblad.']},
@@ -9103,7 +9158,7 @@ function demoAfas(pad, opties){
     D.sla.push({Nummer:nr, Onderwerp:b.Fields.Ds, Status:'Nieuw', Omschrijving_4:({'88406.rvanderveen':'Robert van der Veen','88406.kgroen':'Kelly Groen','88406.gbrons':'Glenn Brons','88406.gleer':'Guillonard Leer'})[((b.Objects || []).find(o => o.KnS38) || {KnS38:{Element:{Fields:{}}}}).KnS38.Element.Fields.UVer] || '', Omschrijving_2:'Robert van der Veen', Omschrijving:'Aanvraag ICT', Type_ticket_ICT:'Incident', Focusgebied_ICT:'', AFAS_Afdeling:'', Omschrijving_3:INST.afdelingen[+afdC - 1] || 'ICT', Focusgebied_EMMA:'', Instuurdatum:new Date().toISOString().slice(0, 19), Gepland:null, Laatste_reactie:null, Gebruiker_laatste_reactie:'', Laatste_wijziging_externe_status:null, Workflow_afgerond:false, Kritieke_storing:false});
     return new Promise(r => setTimeout(() => r({results:{KnSubject:{SbId: 400000 + nr}}}), 400)); }
   if(pad === '/metainfo/update/KnSubject') return {name:'KnSubject', fields:[{fieldId:'StId', label:'Type dossier', dataType:'int', mandatory:true, values:[{id:'26', description:'Aanvraag ICT'},{id:'31', description:'Change'}]},{fieldId:'Ds', label:'Onderwerp', mandatory:true},{fieldId:'SbTx', label:'Toelichting'}],
-    objects:[{name:'KnSubjectLink', fields:[{fieldId:'SfTp', label:'Type bestemming'}]},{name:'KnS38', fields:[{fieldId:'UAfd', label:'Afdeling', dataType:'string', values:INST.afdelingen.map((n, i) => ({id:String(i + 1), description:n}))},{fieldId:'UVer', label:'Verantwoordelijke', values:[{id:'88406.rvanderveen', description:'Robert van der Veen'},{id:'88406.kgroen', description:'Kelly Groen'},{id:'88406.gbrons', description:'Glenn Brons'},{id:'88406.gleer', description:'Guillonard Leer'},{id:'88406.anders', description:'Iemand Buiten ICT'}]},{fieldId:'UGep', label:'Werkzaamheden gepland', dataType:'date'},{fieldId:'UPSt', label:'Begindatum project', dataType:'date'},{fieldId:'UDl', label:'Datalek', dataType:'boolean'},{fieldId:'UKr', label:'Kritieke storing', dataType:'boolean'},{fieldId:'UOp', label:'Storing opgelost', dataType:'date'},{fieldId:'UExt', label:'Extern ticket', dataType:'string'},{fieldId:'UCc', label:'CC', dataType:'string'},{fieldId:'UTel', label:'Bereikbaarheid', dataType:'string'},{fieldId:'UPEi', label:'Einddatum project', dataType:'date'},{fieldId:'ULoc', label:'Locatie', values:['Almere','Amsterdam','Breda','Utrecht','Hanzeplein','Almere SIC','Planetarium'].map((n, i) => ({id:'L' + i, description:n}))},{fieldId:'UTyp', label:'Type ticket ICT', values:[{id:'I', description:'Incident'},{id:'V', description:'Vraag'},{id:'C', description:'Change'},{id:'VA', description:'Verbeteractie'}]}]},{name:'KnS26', fields:[{fieldId:'UPrj', label:'Begindatum project', mandatory:true}]}]};
+    objects:[{name:'KnSubjectLink', fields:[{fieldId:'SfTp', label:'Type bestemming'}]},{name:'KnS38', fields:[{fieldId:'UAfd', label:'Afdeling', dataType:'string', values:INST.afdelingen.map((n, i) => ({id:String(i + 1), description:n}))},{fieldId:'UVer', label:'Verantwoordelijke', values:[{id:'88406.rvanderveen', description:'Robert van der Veen'},{id:'88406.kgroen', description:'Kelly Groen'},{id:'88406.gbrons', description:'Glenn Brons'},{id:'88406.gleer', description:'Guillonard Leer'},{id:'88406.anders', description:'Iemand Buiten ICT'}]},{fieldId:'UGep', label:'Werkzaamheden gepland', dataType:'date'},{fieldId:'UPSt', label:'Begindatum project', dataType:'date'},{fieldId:'UDl', label:'Datalek', dataType:'boolean'},{fieldId:'UKr', label:'Kritieke storing', dataType:'boolean'},{fieldId:'UOp', label:'Storing opgelost', dataType:'date'},{fieldId:'UExt', label:'Extern ticket', dataType:'string'},{fieldId:'UCc', label:'CC', dataType:'string'},{fieldId:'UTel', label:'Bereikbaarheid', dataType:'string'},{fieldId:'UPEi', label:'Einddatum project', dataType:'date'},{fieldId:'ULoc', label:'Locatie', values:['Almere','Amsterdam','Breda','Utrecht','Hanzeplein','Almere SIC','Planetarium'].map((n, i) => ({id:'L' + i, description:n}))},{fieldId:'UAfC', label:'AFAS Afdeling', values:['Financieel','HRM','InSite','Ordermanagement','Payroll'].map((n, i) => ({id:'A' + i, description:n}))},{fieldId:'UFoE', label:'Focusgebied EMMA', values:['Agenda','Declaraties','Dossier','Medicatie','Patiëntportaal'].map((n, i) => ({id:'E' + i, description:n}))},{fieldId:'UTyp', label:'Type ticket ICT', values:[{id:'I', description:'Incident'},{id:'V', description:'Vraag'},{id:'C', description:'Change'},{id:'VA', description:'Verbeteractie'}]}]},{name:'KnS26', fields:[{fieldId:'UPrj', label:'Begindatum project', mandatory:true}]}]};
   if(opties.method === 'PUT' && pad === '/connectors/KnSubject'){ const el = JSON.parse(opties.body).KnSubject.Element, D = window._demo, r = D.sla.find(x => 400000 + x.Nummer === +el['@SbId']);
     const alle = {...el.Fields}; (el.Objects || []).forEach(o => Object.values(o).forEach(v => Object.assign(alle, v.Element.Fields)));
     if(r && alle.UVer) r.Omschrijving_4 = {'88406.rvanderveen':'Robert van der Veen','88406.kgroen':'Kelly Groen','88406.gbrons':'Glenn Brons','88406.gleer':'Guillonard Leer'}[alle.UVer] || alle.UVer;
