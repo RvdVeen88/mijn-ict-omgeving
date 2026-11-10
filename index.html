@@ -1646,11 +1646,12 @@ const INST = Object.assign({
   connCollegas: 'PowerBI_ICT_Collegas',   // GetConnector op alle AFAS-gebruikers (Gebruiker + Naam + Geblokkeerd): codes voor Verantwoordelijke; wie ICT is bepaalt het organigram (Laag 4)
   ictLaag4: 'GROEMANDZI',   // terugval als de medewerkersconnector (nog) geen Kostenplaats heeft
   ictKostenplaats: 'ICT',   // ICT-collega = medewerker met deze kostenplaats (kolom Kostenplaats in de medewerkersconnector)
+  beheerders: ['88406.rvanderveen', '88406.mhof'],   // AFAS-gebruikerscodes (of namen) die Beheer zien: Controle, Werkverdeling, Beoordelingen, AI-index; aan te vullen in mijn-ict-config.js
   beheerder: 'Robert van der Veen',   // alleen deze persoon ziet Controle              // organigram Laag 4 = valt onder Manager Digitale Zorg & ICT: dat zijn de ICT-medewerkers
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.06', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.07', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -4079,7 +4080,7 @@ document.addEventListener('visibilitychange', () => { if(!document.hidden) check
 /* ================= Controle (alleen de beheerder): staat elke open melding bij een ICT-collega? =================
    Eén regel: de verantwoordelijke moet in de ICT-lijst staan, dezelfde lijst als bij het kiezen van een verantwoordelijke
    (ICT-collega's uit de AFAS-connector / organigram Laag 4). Leeg, uit dienst of geen ICT-collega = niet in orde. */
-const isBeheerder = () => !!profiel && !!INST.beheerder && benIk(INST.beheerder);
+const isBeheerder = () => !!profiel && [INST.beheerder, ...(INST.beheerders || [])].filter(Boolean).some(benIk);
 /* ================= Beheer: alles wat alleen de beheerder doet, op één plek ================= */
 const BH_ICO = '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>';
 const beheerAandacht = () => { try{ return (CTRL.ict ? controleBevindingen().length : 0) + (PB.defs ? pbAchter().length : 0); }catch(e){ return 0; } };
@@ -8736,6 +8737,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.07', d: '10-11-2026', p: ['Meer beheerders mogelijk: Beheer is te zien voor iedereen in de lijst beheerders (AFAS-gebruikerscodes). Toegevoegd: 88406.mhof.']},
   {v: 'v8.06', d: '02-11-2026', p: ['Bijlage bij een reactie: de bestandsknop werd uitgerekt tot een grote witte cirkel naast het voorbeeld. Nu staat de knop op één regel en het voorbeeld eronder.', 'Reacties van de melder werden soms als interne notitie getoond (AFAS zet bv. een reactie per mail op Intern). Een melder kan geen interne notitie schrijven, dus die staan nu als gewone reactie.']},
   {v: 'v8.05', d: '02-11-2026', p: ['Melding: een afbeelding als bijlage zie je meteen als voorbeeld in de melding (ook bij een reactie). Met “Bijlage in nieuw venster openen” zie je hem op ware grootte in een apart tabblad.']},
   {v: 'v8.04', d: '01-11-2026', p: ['Menu: bij Changes, Projecten en To-do staat een kleine statusstip in het getal (rood iets achter, oranje on hold, groen op schema). Met de muis op het getal zie je de verdeling.']},
