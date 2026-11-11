@@ -1657,7 +1657,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.11', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.12', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -4423,7 +4423,13 @@ function tekenBeoordelingen(){
   const tijdlijn = PB.defs.length ? `<div class="pb-tijdlijn"><div class="pb-rij pb-kop"><span></span><div class="pb-spoor">${maanden.map(m => `<span class="pb-maand" style="left:${m.l}%">${m.t}</span>`).join('')}<i class="pb-vandaag" style="left:${pos(nu)}%" title="Vandaag"></i></div></div>${rijen}
     <p class="pb-legenda"><i class="pb-stip blauw"></i>gepland <i class="pb-stip oranje"></i>melding open <i class="pb-stip groen"></i>afgehandeld <i class="pb-stip rood"></i>achter</p></div>` : '';
   // lijst
-  const lijst = PB.defs.length ? `<div class="tw"><table class="tabel pb-tabel"><thead><tr><th>Taak</th><th>Afdeling</th><th>Verantwoordelijke</th><th>Interval</th><th>Volgende</th><th>Laatste melding</th><th>Status</th></tr></thead><tbody>${PB.defs.map(d => {
+  // lijst: standaard op Volgende (eerstvolgende bovenaan, uitgezette taken onderaan); klik op een kolomkop = sorteren, zoals in de andere tabellen
+  const srt = PB.srt || {k: 'volg', op: 1}, intDagen = d => (+d.aantal || 1) * (d.eenheid === 'dagen' ? 1 : 30.4);
+  const pbStatOrde = d => { const st = PB.status[d.id] || {}, l = pbMeldingen(d)[0]; return !d.actief ? 9 : achter.includes(d) ? 0 : st.fout ? 1 : l && !l.afgesloten ? 2 : 3; };
+  const sleutel = {titel: d => d.titel || '', afd: d => d.afdeling || '', verantw: d => d.verantwNaam || '', int: d => intDagen(d), volg: d => pbVolgende(d) || '9999', laatst: d => { const l = pbMeldingen(d)[0]; return l ? tdIso(l.aangemaakt) || '' : ''; }, stat: d => pbStatOrde(d)}[srt.k] || (d => d.titel || '');
+  const pbDefs = PB.defs.slice().sort((a, b) => { const x = sleutel(a), y = sleutel(b); return (srt.k === 'volg' ? (!a.actief) - (!b.actief) : 0) || srt.op * (typeof x === 'number' ? x - y : String(x).localeCompare(String(y), 'nl')) || (a.titel || '').localeCompare(b.titel || '', 'nl'); });
+  const th = (k, t) => `<th data-pbsort="${k}" ${srt.k === k ? `aria-sort="${srt.op > 0 ? 'ascending' : 'descending'}"` : ''} style="cursor:pointer">${t}${srt.k === k ? `<span class="pijl">${srt.op > 0 ? '▲' : '▼'}</span>` : ''}</th>`;
+  const lijst = PB.defs.length ? `<div class="tw"><table class="tabel pb-tabel"><thead><tr>${th('titel', 'Taak')}${th('afd', 'Afdeling')}${th('verantw', 'Verantwoordelijke')}${th('int', 'Interval')}${th('volg', 'Volgende')}${th('laatst', 'Laatste melding')}${th('stat', 'Status')}</tr></thead><tbody>${pbDefs.map(d => {
       const st = PB.status[d.id] || {}, l = pbMeldingen(d)[0], isAchter = achter.includes(d);
       const stat = !d.actief ? '<span class="chip">uit</span>' : isAchter ? '<span class="chip rood">achter</span>' : st.fout ? `<span class="chip rood" title="${esc(st.fout)}">fout bij aanmaken</span>` : l && !l.afgesloten ? '<span class="chip oranje">loopt</span>' : '<span class="chip groen">op schema</span>';
       return `<tr data-pbbewerk="${esc(d.id)}"><td><b>${esc(d.titel)}</b></td><td>${esc(d.afdeling || '')}</td><td>${d.verantwNaam ? esc(d.verantwNaam) : '<span class="zacht">Nieuw, servicedesk wijst toe</span>'}</td><td>${esc(pbElke(d))}</td><td>${esc(pbDatum(pbVolgende(d)))}</td><td>${l ? `<a href="#" data-pbmelding="${esc(l.nr)}">${esc(nrT(l))}</a> · ${l.afgesloten ? 'afgehandeld' : 'open'}` : st.open ? 'dossieritem ' + esc(st.open) : '–'}</td><td>${stat}</td></tr>`; }).join('')}</tbody></table></div>` : `<div class="pb-leeg"><p><b>Nog geen periodieke taken.</b></p><p>Denk aan: toegangsrechten per systeem nalopen, een back-up terugzetten, uitdiensttreders controleren, leveranciers evalueren, certificaten en licenties nalopen.</p></div>`;
@@ -6535,6 +6541,7 @@ document.addEventListener('click', e => {
   if(e.target.closest('.kolgreep') || (window._negeerKlik && Date.now() - window._negeerKlik < 300)) return;
   if(e.target.closest('[data-kolpassend]')){ $('#kolkeuze').hidden = true; zetZelf(null); zetBreedtes(besteBreedtes()); toast('Kolommen passend gemaakt'); return; }
   if(e.target.closest('[data-kolbreedstd]')){ $('#kolkeuze').hidden = true; zetZelf(null); zetBreedtes({}); return; }
+  const pbth = e.target.closest('th[data-pbsort]'); if(pbth){ const k = pbth.dataset.pbsort, s = PB.srt || {k: 'volg', op: 1}; PB.srt = s.k === k ? {k, op: -s.op} : {k, op: k === 'laatst' ? -1 : 1}; teken(); return; }
   const th = e.target.closest('th[data-sort]'); if(th){ const id = th.closest('table').dataset.tabel, k = th.dataset.sort, s = sortering[id];
     sortering[id] = s && s.k === k ? (s.op > 0 ? {k, op:-1} : undefined) : {k, op: ['in','reactie','gepland','sig','pstart','peind','p-start','p-eind','iu-in','iu-indienst','iu-uitdienst','h-wanneer'].includes(k) ? -1 : 1}; teken(); return; }
   const tdv = e.target.closest('.vb-todo [data-tdnaar]'); if(tdv){ const id = tdv.dataset.tdnaar, t = id && (tdv.dataset.tdbron === 'planner' ? null : tdTaak(id));
@@ -8792,6 +8799,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.12', d: '11-11-2026', p: ['Beheer › Periodieke taken: de lijst staat op Volgende (eerstvolgende bovenaan, uitgezette taken onderaan). Klik op een kolomkop om anders te sorteren.']},
   {v: 'v8.11', d: '10-11-2026', p: ['Categorie en Focusgebied worden gelezen uit de nieuwe velden Sub_afdeling_AFAS en Sub_afdeling_EMMA in PowerBI_ICT_SLA_Dashboard, zodat de opgeslagen keuze bij een bestaande melding weer zichtbaar is.']},
   {v: 'v8.10', d: '10-11-2026', p: ['Subkeuze bij de afdeling gebruikt nu de juiste AFAS-velden: Sub-afdeling AFAS (Categorie) en Sub-afdeling Emma (Focusgebied).']},
   {v: 'v8.09', d: '10-11-2026', p: ['Subkeuze bij de afdeling: kies je AFAS, dan verschijnt Categorie; kies je Emma, dan Focusgebied. Bij een nieuwe en een bestaande melding.']},
