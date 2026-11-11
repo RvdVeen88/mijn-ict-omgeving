@@ -909,7 +909,7 @@ tr.flits td{animation:flits 2.4s ease-out}
 .rail .r .tel.online{background:var(--groen)}
 .rail .r .stip{position:absolute;bottom:7px;right:7px;width:9px;height:9px;border-radius:50%;background:var(--goud);box-shadow:0 0 0 2px var(--rail-bg)}
 .rail .r .stip[hidden]{display:none}
-.teampaneel{position:fixed;left:92px;top:90px;right:auto;width:min(380px,calc(100vw - 110px));max-height:calc(100vh - 110px);overflow:auto;padding:8px}
+.ikmenu.teampaneel,.teampaneel{position:fixed;z-index:60;left:92px;top:90px;right:auto;width:min(380px,calc(100vw - 110px));max-height:calc(100vh - 110px);overflow:auto;padding:8px}
 .teampaneel .teammeer{display:block;margin:4px 12px 6px;font-size:13px}
 .teampaneel h4{font-size:15px;color:var(--blauw);margin:6px 12px 2px}
 .teampaneel .act{cursor:default;flex-direction:row;align-items:flex-start;gap:10px;padding:7px 12px;text-align:left}
@@ -1657,7 +1657,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.12', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.13', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -8702,14 +8702,18 @@ function tekenTeam(){
   const p = $('#teampaneel'); if(!p || p.hidden) return;
   const alle = [...STROOM.values()].sort((a, b) => b.t - a.t), lijst = p._alles ? alle : alle.slice(0, 10), meer = alle.length - lijst.length;
   p.innerHTML = `<div id="ik-online"></div><hr><h5>Vandaag in het team</h5>` + (lijst.length ? lijst.map(e => `<button type="button" class="act${!doorMijPersoon(e) && e.t > (p._gezien || 0) ? ' nieuw' : ''}" ${e.nr ? `data-onlnr="${esc(e.nr)}" title="Melding ${esc(kaalNr(e.nr))} openen"` : 'tabindex="-1"'}>${avatar(e.door, e.soort === 'kritiek' ? 'k' : e.soort === 'gesloten' ? 'g' : '', e.code)}<span><span><b>${esc(doorMij(e) ? 'Jij' : String(e.door || '').split(' ')[0])}</b> ${STROOM_ZIN[e.soort] ? STROOM_ZIN[e.soort](e) : esc(e.soort)}</span><small>${geleden(e.t)}${e.onderwerp ? ' · ' + esc(e.onderwerp) : ''}</small></span></button>`).join('') : '<p class="onl-leeg">Nog niets gebeurd vandaag.</p>') + (meer > 0 ? `<button type="button" class="linkknop teammeer" data-teammeer>Alle activiteiten (${alle.length})</button>` : '');
-  tekenOnline();
+  tekenOnline(); plaatsTeam();
 }
+// teampaneel altijd volledig in beeld (ook als de pagina naar beneden gescrold is): naast de knop, binnen het venster
+function plaatsTeam(){ const p = $('#teampaneel'), k = $('#team-knop'); if(!p || p.hidden || !k) return; const r = k.getBoundingClientRect();
+  p.style.top = Math.max(16, Math.min(r.top, innerHeight - p.offsetHeight - 16)) + 'px'; p.style.left = (r.right + 14) + 'px'; }
+addEventListener('resize', plaatsTeam);
 function wisselTeam(){
   let p = $('#teampaneel');
   if(!p){ document.body.insertAdjacentHTML('beforeend', '<div class="ikmenu teampaneel" id="teampaneel" role="dialog" aria-label="Team" hidden></div>'); p = $('#teampaneel'); }
   p.hidden = !p.hidden; $('#team-knop').setAttribute('aria-pressed', !p.hidden);
   if(!p.hidden){ const r = $('#team-knop').getBoundingClientRect(); p.style.top = Math.max(16, Math.min(r.top, innerHeight - 420)) + 'px'; p.style.left = (r.right + 14) + 'px';
-    p._alles = false; p._gezien = +opslag.get('mict-team-gezien') || 0; opslag.set('mict-team-gezien', Date.now()); tekenTeam(); seinAanwezig(); }
+    p._alles = false; p._gezien = +opslag.get('mict-team-gezien') || 0; opslag.set('mict-team-gezien', Date.now()); tekenTeam(); seinAanwezig(); plaatsTeam(); }
 }
 // telefoon/tablet: het menu schuift van links in; na een keuze gaat het weer dicht
 document.addEventListener('click', e => {
@@ -8799,6 +8803,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.13', d: '11-11-2026', p: ['Team-paneel staat altijd volledig in beeld, ook als je in een lange lijst naar beneden bent gescrold.']},
   {v: 'v8.12', d: '11-11-2026', p: ['Beheer › Periodieke taken: de lijst staat op Volgende (eerstvolgende bovenaan, uitgezette taken onderaan). Klik op een kolomkop om anders te sorteren.']},
   {v: 'v8.11', d: '10-11-2026', p: ['Categorie en Focusgebied worden gelezen uit de nieuwe velden Sub_afdeling_AFAS en Sub_afdeling_EMMA in PowerBI_ICT_SLA_Dashboard, zodat de opgeslagen keuze bij een bestaande melding weer zichtbaar is.']},
   {v: 'v8.10', d: '10-11-2026', p: ['Subkeuze bij de afdeling gebruikt nu de juiste AFAS-velden: Sub-afdeling AFAS (Categorie) en Sub-afdeling Emma (Focusgebied).']},
