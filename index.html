@@ -1235,6 +1235,11 @@ dialog#detail.sleept .composer{outline:1.5px dashed var(--lijn);outline-offset:4
 .bekijkkop b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bekijkin{flex:1;min-height:0;overflow:auto;display:grid;place-items:center;background:var(--achtergrond)}
 .bekijkin img{max-width:100%;max-height:100%;object-fit:contain}
+.bekijkin.zoom{display:block;text-align:center}.bekijkin.zoom img{max-width:none;max-height:none;margin:12px auto;display:block}
+.zoombalk{display:inline-flex;align-items:center;gap:2px;margin-left:auto;background:var(--achtergrond);border-radius:999px;padding:2px}
+.zoombalk button{all:unset;cursor:pointer;min-width:30px;height:28px;padding:0 8px;box-sizing:border-box;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;color:var(--inkt)}
+.zoombalk button:hover{background:var(--vlak)}.zoombalk button[aria-pressed="true"]{background:var(--blauw);color:#fff}.zoombalk button:focus-visible{outline:2px solid var(--blauw-2)}
+.zoombalk output{min-width:46px;text-align:center;font-size:12px;color:var(--grijs)}.zoombalk + .knop{margin-left:6px}
 .bekijkin iframe{width:100%;height:100%;border:0;background:#fff}
 .bekijkin pre{align-self:start;justify-self:stretch;margin:0;padding:16px;white-space:pre-wrap;font-size:12.5px;overflow-wrap:anywhere}
 
@@ -1668,7 +1673,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.17', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.18', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -4896,6 +4901,25 @@ async function docxNaarHtml(blob){
   if(!uit) throw new Error('leeg');
   return uit + '<p class="hint docx-noot">Voorvertoning zonder opmaak en afbeeldingen. Download het bestand voor het origineel.</p>';
 }
+// zoomen in een afbeelding: Passend, 100% (ware grootte) en stapjes in/uit; ook met + − 0 1 en Ctrl+scrollwiel
+let zoomNu = 'pas';
+function zoomZet(z){
+  const d = $('#bekijk'), im = d && d.querySelector('.bekijkin img'), vak = d && d.querySelector('.bekijkin'); if(!im || !im.naturalWidth) return;
+  const pas = Math.min(1, vak.clientWidth / im.naturalWidth, vak.clientHeight / im.naturalHeight), huidigZ = zoomNu === 'pas' ? pas : zoomNu;
+  const STAP = [0.1, 0.25, 0.33, 0.5, 0.67, 0.75, 0.9, 1, 1.25, 1.5, 2, 3, 4, 6, 8];
+  if(z === '+') z = STAP.find(s => s > huidigZ + 0.001) || 8; else if(z === '-') z = [...STAP].reverse().find(s => s < huidigZ - 0.001) || 0.1;
+  const vanPas = zoomNu === 'pas'; zoomNu = z === 'pas' ? 'pas' : +z;
+  const f = zoomNu === 'pas' ? pas : zoomNu, rx = vak.scrollLeft + vak.clientWidth / 2, ry = vak.scrollTop + vak.clientHeight / 2, oud = im.getBoundingClientRect().width || 1;
+  vak.classList.toggle('zoom', zoomNu !== 'pas'); im.style.width = zoomNu === 'pas' ? '' : Math.round(im.naturalWidth * f) + 'px';
+  if(zoomNu !== 'pas' && vanPas){ vak.scrollLeft = 0; vak.scrollTop = 0; }   // vanuit Passend: linksboven beginnen (schermafdrukken lees je van linksboven)
+  else if(zoomNu !== 'pas'){ const k = im.getBoundingClientRect().width / oud; vak.scrollLeft = rx * k - vak.clientWidth / 2; vak.scrollTop = ry * k - vak.clientHeight / 2; }
+  d.querySelectorAll('[data-zoom]').forEach(k => k.setAttribute('aria-pressed', (k.dataset.zoom === 'pas' && zoomNu === 'pas') || (k.dataset.zoom === '1' && zoomNu === 1) ? 'true' : 'false'));
+  const o = $('#zoom-pct'); if(o) o.textContent = Math.round(f * 100) + '%';
+}
+document.addEventListener('click', e => { const k = e.target.closest && e.target.closest('#bekijk [data-zoom]'); if(k) zoomZet(k.dataset.zoom); });
+document.addEventListener('keydown', e => { if(!$('#bekijk') || !$('#bekijk').open || !$('#bekijk .zoombalk') || e.ctrlKey || e.metaKey || /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  const z = {'+': '+', '=': '+', '-': '-', '0': 'pas', '1': '1'}[e.key]; if(z){ e.preventDefault(); zoomZet(z); } });
+document.addEventListener('wheel', e => { if(!(e.ctrlKey || e.metaKey) || !(e.target.closest && e.target.closest('#bekijk .bekijkin')) || !$('#bekijk .zoombalk')) return; e.preventDefault(); zoomZet(e.deltaY < 0 ? '+' : '-'); }, {passive: false});
 async function toonBestand(b){
   const d = $('#bekijk');
   const kop = extra => `<div class="bekijkkop"><span>${bestIcoon(b.naam)}</span><b title="${esc(b.naam)}">${esc(b.naam)}</b>${b.grootte ? `<small class="hint">${b._echt ? fmtGrootteB(b.grootte) : fmtGrootte(b.grootte)}</small>` : ''}${extra}<button type="button" class="sluit" data-bekijkdicht aria-label="Sluiten">×</button></div>`;
@@ -4903,7 +4927,7 @@ async function toonBestand(b){
   if(!d.open) d.showModal();
   try{
     const blob = await haalBestand(b); if(!d.open) return;
-    if(bekijkUrl) URL.revokeObjectURL(bekijkUrl); bekijkUrl = URL.createObjectURL(blob);
+    if(bekijkUrl) URL.revokeObjectURL(bekijkUrl); bekijkUrl = URL.createObjectURL(blob); zoomNu = 'pas';
     const t = blob.type || raadMime(b.naam);
     const isWord = /wordprocessingml/.test(t) || /\.docx$/i.test(b.naam), isOffice = /officedocument|ms-excel|msword|ms-powerpoint/.test(t) || /\.(xlsx?|pptx?|doc)$/i.test(b.naam);
     let woord = ''; if(isWord){ try{ woord = await docxNaarHtml(blob); }catch(e){ woord = ''; } }
@@ -4920,7 +4944,9 @@ async function toonBestand(b){
     // grootte: AFAS geeft die soms in kB in plaats van bytes; vergelijk met het echte bestand en onthoud dat
     if(b.grootte && blob.size > 2048){ const kb = blob.size / 1024; if(Math.abs(kb - b.grootte) <= Math.max(2, b.grootte * .15)) opslag.set('mict-bijl-kb', true); else if(Math.abs(blob.size - b.grootte) <= 64) opslag.set('mict-bijl-kb', false); }
     b.grootte = blob.size; b._echt = true;
-    d.innerHTML = kop(`<a class="knop vol klein" href="${bekijkUrl}" download="${esc(b.naam)}">Downloaden</a>`) + `<div class="bekijkin">${inhoud}</div>`;
+    const zb = /^image\//.test(t) ? `<span class="zoombalk" role="toolbar" aria-label="Zoomen"><button type="button" data-zoom="pas" aria-pressed="true" title="Passend in het venster (0)">Passend</button><button type="button" data-zoom="1" aria-pressed="false" title="Ware grootte, 100% (1)">100%</button><button type="button" data-zoom="-" aria-label="Uitzoomen" title="Uitzoomen (−)">−</button><output id="zoom-pct">–</output><button type="button" data-zoom="+" aria-label="Inzoomen" title="Inzoomen (+)">+</button></span>` : '';
+    d.innerHTML = kop(`${zb}<a class="knop vol klein" href="${bekijkUrl}" download="${esc(b.naam)}">Downloaden</a>`) + `<div class="bekijkin">${inhoud}</div>`;
+    if(zb){ const im = d.querySelector('.bekijkin img'); im.onload = () => zoomZet('pas'); if(im.complete) zoomZet('pas'); }
   }catch(e){
     const uitleg = /404/.test(e.message) ? 'Het bestand is niet beschikbaar in AFAS, of je hebt er geen rechten op.'
       : /niet ondersteund|geautoriseerd|403/i.test(e.message) ? 'Bestanden openen kan nog niet: laat de beheerder AppConnectorSubject (SubjectConnector) aan de app connector toevoegen (tabblad Connectoren).' : '';
@@ -8838,6 +8864,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.18', d: '13-11-2026', p: ['Afbeelding bekijken: knoppen Passend, 100% (ware grootte) en in-/uitzoomen; ook met de toetsen + − 0 1 en Ctrl+scrollwiel.']},
   {v: 'v8.17', d: '13-11-2026', p: ['Tijdlijnen: lagere regels (de tweede regel loopt niet meer door op een derde) en de kolom met namen is breder of smaller te slepen via het streepje bovenaan; dubbelklik zet hem terug.']},
   {v: 'v8.16', d: '13-11-2026', p: ['Mailvoorbeeld rustiger: linkadressen van plaatjes en logo’s zijn weg, handtekeningen en eerdere berichten in de mail zijn ingeklapt (klik om ze te tonen).']},
   {v: 'v8.15', d: '13-11-2026', p: ['Mail als bijlage (.msg of .eml): klik erop en je ziet meteen de mail (van, aan, datum, onderwerp en tekst), zonder Outlook.', 'Mail omzetten naar melding: de toelichting is nu een korte omschrijving van de mail, met de vermelding dat AI hem maakte.']},
