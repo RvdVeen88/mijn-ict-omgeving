@@ -645,6 +645,10 @@ body.regels-extra .tabel .cn-badge{padding-top:0;padding-bottom:0}
 .tabel .chip.ongelezen{display:inline-flex}
 .chip[data-uitleg]{cursor:default}
 .tabel tr[draggable="true"]{cursor:default}
+.mail-voorbeeld{background:var(--vlak);color:var(--inkt);max-width:900px;margin:16px auto;padding:22px 26px;border-radius:14px;text-align:left;width:100%;box-sizing:border-box;align-self:flex-start}
+.mail-voorbeeld h3{font-size:18px;margin:0 0 12px;color:var(--inkt)}.mail-voorbeeld dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid var(--lijn);font-size:13px}
+.mail-voorbeeld dt{color:var(--grijs)}.mail-voorbeeld dd{margin:0;overflow-wrap:anywhere}.mail-tekst{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.55}
+.knop.metico{display:inline-flex;align-items:center;gap:7px}.knop.metico > svg{width:16px;height:16px;flex:none}
 kbd{font:inherit;font-size:10.5px;font-weight:600;opacity:.7;margin-left:8px;border:1px solid currentColor;border-radius:4px;padding:0 4px}
 .checklist{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--oranje-licht);border-radius:12px;padding:8px 14px;font-size:13px}
 .checklist b{color:var(--oranje);font-weight:700}
@@ -1657,7 +1661,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.13', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.15', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3258,6 +3262,8 @@ function maakLinkveld(ta){
   div.className = 'linkveld ' + ta.className; if(ta.id) div.dataset.voor = ta.id; div.contentEditable = ta.disabled ? 'false' : 'true'; div.setAttribute('role', 'textbox'); div.setAttribute('aria-multiline', 'true');
   div.setAttribute('aria-label', ta.getAttribute('aria-label') || ta.placeholder || 'Tekst'); div.dataset.placeholder = ta.placeholder || ''; div.spellcheck = true;
   ['font', 'fontSize', 'lineHeight', 'color', 'background', 'backgroundColor', 'border', 'borderRadius', 'padding', 'boxSizing', 'width', 'minHeight', 'maxHeight'].forEach(k => { div.style[k] = cs[k]; });
+  // vult het veld de hele breedte, dan meegroeien met het venster (bv. bij Venster vergroten) in plaats van een vaste breedte in pixels
+  { const pw = ta.parentElement && ta.parentElement.clientWidth; if(!ta.offsetWidth || (pw && Math.abs(ta.offsetWidth - pw) < 3) || /100%/.test(ta.style.width)) div.style.width = '100%'; }
   if(!parseFloat(cs.minHeight)) div.style.minHeight = (Math.max(2, +ta.rows || 2) * 1.5) + 'em';
   if(cs.resize !== 'none') div.style.resize = 'vertical';
   ta.after(div); ta.style.display = 'none'; ta._div = div;
@@ -4665,7 +4671,7 @@ function openDetail(nr){
     </div>
     <div class="onderbalk"><div class="actiebalk" id="actiebalk">${st === 0 ? '<button class="knop" data-snel="oppak" title="Kan meteen: wacht zo nodig even op de workflow uit AFAS">Toewijzen aan mij</button>' : ''}</div>
       <span class="mailvooraf" id="mailvooraf" hidden></span>
-      <span class="opslaanknoppen"><button type="button" class="knop" id="k-afhandel" data-afhandel title="Status op Afgehandeld; je reactie (als je die schreef) gaat mee naar de melder">Afhandelen</button><button type="button" class="knop vol" id="k-opslaan" title="Alles doorvoeren; de melding blijft open (Ctrl+Enter). Naar de vorige of volgende melding ga je met de pijltjes."><span class="opslaanmail" hidden>✉ </span>Opslaan <kbd>Ctrl+Enter</kbd></button></span></div>
+      <span class="opslaanknoppen"><button type="button" class="knop metico" id="k-opslaan" title="Alles doorvoeren; de melding blijft open (Ctrl+Enter). Naar de vorige of volgende melding ga je met de pijltjes.">${ICO_OPSLAAN}<span class="opslaanmail" hidden>✉ </span>Opslaan <kbd>Ctrl+Enter</kbd></button><button type="button" class="knop vol metico" id="k-afhandel" data-afhandel title="Status op Afgehandeld; je reactie (als je die schreef) gaat mee naar de melder (Ctrl+Shift+Enter)">${ICO_AFHANDEL}Afhandelen <kbd>Ctrl+Shift+Enter</kbd></button></span></div>
     <p class="fout" id="d-fout"></p>
     <div class="tijdlijn" id="tijdlijn"><h3>Reacties</h3><p class="hint"><span class="spin" style="display:inline-block;vertical-align:-4px;margin-right:6px"></span>Reacties ophalen…</p></div>`}`;
   if(x.iu){   // in- en uitdienst: alleen wat bij dit type hoort, zoals in AFAS
@@ -4885,8 +4891,13 @@ async function toonBestand(b){
     const t = blob.type || raadMime(b.naam);
     const isWord = /wordprocessingml/.test(t) || /\.docx$/i.test(b.naam), isOffice = /officedocument|ms-excel|msword|ms-powerpoint/.test(t) || /\.(xlsx?|pptx?|doc)$/i.test(b.naam);
     let woord = ''; if(isWord){ try{ woord = await docxNaarHtml(blob); }catch(e){ woord = ''; } }
+    // Outlook-mail (.msg) of .eml: meteen de mail tonen (van, aan, datum, onderwerp, tekst); alleen als tekst, er draait niets mee
+    let mailV = ''; if(/\.(msg|eml)$/i.test(b.naam)){ try{ const m = await leesMail(new File([blob], b.naam)), rij = (l, v) => v ? `<dt>${l}</dt><dd>${esc(v)}</dd>` : '';
+      const tx = String(m.tekst || '').replace(/\r\n/g, '\n').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+      mailV = `<div class="mail-voorbeeld"><h3>${esc(m.onderwerp || '(geen onderwerp)')}</h3><dl>${rij('Van', [m.van, m.vanMail && !String(m.van).includes(m.vanMail) ? `<${m.vanMail}>` : ''].filter(Boolean).join(' '))}${rij('Aan', m.aan)}${rij('CC', m.cc)}${rij('Verzonden', m.datum && !isNaN(m.datum) ? `${fmtDatum(m.datum)} ${fmtTijd(m.datum)}` : '')}</dl><div class="mail-tekst">${esc(tx.slice(0, 200000)) || '<span class="hint">Deze mail heeft geen leesbare tekst.</span>'}</div></div>`; }catch(e){ mailV = ''; } }
     const inhoud = /^image\//.test(t) ? `<img src="${bekijkUrl}" alt="${esc(b.naam)}">`
       : t === 'application/pdf' ? `<iframe src="${bekijkUrl}" title="${esc(b.naam)}"></iframe>`
+      : mailV ? mailV
       : woord ? `<div class="docx-voorbeeld">${woord}</div>`
       : !isOffice && /^text\/|^application\/(json|xml)$|\+(json|xml)$/.test(t) && !/officedocument/.test(t) ? `<pre>${esc((await blob.text()).slice(0, 200000))}</pre>`
       : `<div class="bekijk-geen"><span>${bestIcoon(b.naam)}</span><p><b>${esc(b.naam)}</b><br>Van dit bestand kan geen voorbeeld worden getoond. Download het om het te openen${isOffice ? ' in Word of Excel' : ''}.</p><a class="knop vol" href="${bekijkUrl}" download="${esc(b.naam)}">Downloaden</a></div>`;
@@ -4971,7 +4982,11 @@ async function feedback(){
   let shot = null;
   toast('Schermafdruk maken…');
   try{ await laadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
-    const opt = {scale: Math.min(window.devicePixelRatio || 1, 1.5), logging: false, useCORS: true};
+    // html2canvas kent de kleurnotatie color(srgb …) niet (die maakt de browser van color-mix in de stijl): in de kopie omzetten naar rgba, anders mislukt de schermafdruk
+    const rgba = v => String(v).replace(/color\(srgb\s+([\d.e-]+)\s+([\d.e-]+)\s+([\d.e-]+)(?:\s*\/\s*([\d.e-]+%?))?\)/g, (m, r, g, b, a) => `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, ${a == null ? 1 : /%$/.test(a) ? parseFloat(a) / 100 : +a})`);
+    const KLEUR_PROPS = ['color', 'backgroundColor', 'backgroundImage', 'borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor', 'outlineColor', 'boxShadow', 'textDecorationColor', 'fill', 'stroke', 'caretColor'];
+    const onclone = doc => doc.querySelectorAll('*').forEach(el => { const cs = doc.defaultView.getComputedStyle(el); KLEUR_PROPS.forEach(k => { const v = cs[k]; if(v && v.includes('color(')) el.style[k] = rgba(v); }); });
+    const opt = {scale: Math.min(window.devicePixelRatio || 1, 1.5), logging: false, useCORS: true, onclone};
     // wat je ziet: eerst de pagina (zonder vensters), dan het open venster er op zijn plek overheen
     const c = await html2canvas(document.body, {...opt, backgroundColor: getComputedStyle(document.body).backgroundColor, ignoreElements: el => el.tagName === 'DIALOG' || el.id === 'toast', x: scrollX, y: scrollY, width: innerWidth, height: innerHeight, windowWidth: innerWidth, windowHeight: innerHeight});
     const dlg = [...document.querySelectorAll('dialog[open]')].pop();
@@ -4979,7 +4994,7 @@ async function feedback(){
       const dc = await html2canvas(dlg, {...opt, backgroundColor: null, ignoreElements: el => el.id === 'toast'});
       ctx.fillStyle = 'rgba(3,31,77,.25)'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(dc, r.left * sc, r.top * sc, r.width * sc, r.height * sc); }
     const b = await new Promise(r => c.toBlob(r, 'image/png')); if(b) shot = new File([b], `schermafdruk-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.png`, {type: 'image/png'});
-  }catch(e){ console.warn('Schermafdruk', e); }
+  }catch(e){ console.warn('Schermafdruk', e); toast('De schermafdruk lukte niet; voeg zelf een schermafbeelding toe met Ctrl+V', true); }
   [$('#detail'), $('#projdlg')].forEach(d => { if(d && d.open) d.close(); });
   await nieuweMelding();
   const f = $('#n-form'); if(!f) return;
@@ -6602,9 +6617,13 @@ document.addEventListener('drop', e => {
   if(x.reactieDatum && Date.now() - x.reactieDatum < 15 * 60e3) zetAfdeling(x, naam, rect);
   else vraagReactie(x, naam, rect);
 });
-/* Ctrl+Enter (Cmd+Enter op Mac) = opslaan in het venster dat openstaat */
+/* knoppen onderaan de melding: Opslaan (licht, diskette) links, Afhandelen (blauw, doos met vinkje) rechts */
+const ICO_OPSLAAN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>';
+const ICO_AFHANDEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><path d="M1 3h22v5H1z"/><path d="M9 14l2 2 4-4"/></svg>';
+/* Ctrl+Enter (Cmd+Enter op Mac) = opslaan in het venster dat openstaat; Ctrl+Shift+Enter = melding afhandelen */
 document.addEventListener('keydown', e => {
   if(e.key !== 'Enter' || !(e.ctrlKey || e.metaKey)) return;
+  if(e.shiftKey){ if($('#detail').open && !$('#vraag').open){ const k = $('#k-afhandel'); if(k && !k.disabled){ e.preventDefault(); k.click(); } } return; }
   const vr = $('#vraag'), sv = $('#sleepvraag');
   if(vr.open){ e.preventDefault(); vr.querySelector('[data-v="ja"]').click(); return; }
   if(sv.open){ e.preventDefault(); const met = sv.querySelector('[data-sv="met"]'); (met && !met.disabled ? met : sv.querySelector('[data-sv="zonder"]')).click(); return; }
@@ -8803,6 +8822,8 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.15', d: '13-11-2026', p: ['Mail als bijlage (.msg of .eml): klik erop en je ziet meteen de mail (van, aan, datum, onderwerp en tekst), zonder Outlook.', 'Mail omzetten naar melding: de toelichting is nu een korte omschrijving van de mail, met de vermelding dat AI hem maakte.']},
+  {v: 'v8.14', d: '13-11-2026', p: ['Melding: Afhandelen staat rechts als blauwe knop (Ctrl+Shift+Enter), Opslaan links als lichte knop; beide met een icoon.', 'Feedback: de schermafdruk gaat weer mee (lukte niet meer bij een open melding).', 'Mail omzetten naar melding: de afzender wordt beter herkend als melder (ook op mailadres en bij "Achternaam, Voornaam").', 'Venster vergroten: de toelichting groeit mee met de breedte van het venster.']},
   {v: 'v8.13', d: '11-11-2026', p: ['Team-paneel staat altijd volledig in beeld, ook als je in een lange lijst naar beneden bent gescrold.']},
   {v: 'v8.12', d: '11-11-2026', p: ['Beheer › Periodieke taken: de lijst staat op Volgende (eerstvolgende bovenaan, uitgezette taken onderaan). Klik op een kolomkop om anders te sorteren.']},
   {v: 'v8.11', d: '10-11-2026', p: ['Categorie en Focusgebied worden gelezen uit de nieuwe velden Sub_afdeling_AFAS en Sub_afdeling_EMMA in PowerBI_ICT_SLA_Dashboard, zodat de opgeslagen keuze bij een bestaande melding weer zichtbaar is.']},
@@ -9021,7 +9042,7 @@ function leesMsg(buf){
   if(p){ const d = stroom(p), pv = new DataView(d.buffer, d.byteOffset, d.byteLength);
     for(let o = 32; o + 16 <= d.length; o += 16){ const tag = pv.getUint32(o, true); if(tag === 0x00390040 || tag === 0x0E060040){ const lo = pv.getUint32(o + 8, true), hi = pv.getUint32(o + 12, true); datum = new Date((hi * 4294967296 + lo) / 1e4 - 11644473600000); if(tag === 0x00390040) break; } } }
   const html = prop('1013', true);
-  return {onderwerp: prop('0037'), tekst: prop('1000') || (html ? kaal(html) : ''), van: prop('0C1A') || prop('0042'), vanMail: prop('5D01') || prop('0C1F') || prop('0065'), datum};
+  return {onderwerp: prop('0037'), tekst: prop('1000') || (html ? kaal(html) : ''), van: prop('0C1A') || prop('0042'), vanMail: ['5D01', '5D02', '0C1F', '0065'].map(prop).find(v => /@/.test(v || '')) || '', aan: prop('0E04') || '', cc: prop('0E03') || '', datum};
 }
 function leesEml(tekst){
   const dekod = s => String(s || '').replace(/=\?([^?]+)\?([bq])\?([^?]*)\?=/gi, (m, cs, enc, d) => { try{ const bytes = /b/i.test(enc) ? Uint8Array.from(atob(d), c => c.charCodeAt(0)) : Uint8Array.from(d.replace(/_/g, ' ').replace(/=([0-9a-f]{2})/gi, (x, h) => String.fromCharCode(parseInt(h, 16))), c => c.charCodeAt(0)); return new TextDecoder(cs).decode(bytes); }catch(e){ return d; } }).replace(/\?=\s+=\?/g, '');
@@ -9038,7 +9059,7 @@ function leesEml(tekst){
     return new RegExp(soort, 'i').test(ct) && !/attachment/i.test(h['content-disposition'] || '') ? decodeer(body, h) : ''; };
   const {h} = deel(tekst), van = dekod(h.from || '');
   const tekstDeel = zoek(tekst, 'text/plain'), htmlDeel = tekstDeel ? '' : zoek(tekst, 'text/html');
-  return {onderwerp: dekod(h.subject || ''), tekst: tekstDeel || kaal(htmlDeel), van: van.replace(/<[^>]*>/, '').replace(/"/g, '').trim(), vanMail: (van.match(/<([^>]+)>/) || [, ''])[1], datum: h.date ? new Date(h.date) : null};
+  return {onderwerp: dekod(h.subject || ''), tekst: tekstDeel || kaal(htmlDeel), van: van.replace(/<[^>]*>/, '').replace(/"/g, '').trim(), vanMail: (van.match(/<([^>]+)>/) || [, ''])[1], aan: dekod(h.to || '').replace(/"/g, ''), cc: dekod(h.cc || '').replace(/"/g, ''), datum: h.date ? new Date(h.date) : null};
 }
 async function leesMail(f){
   if(/\.msg$/i.test(f.name)) return leesMsg(await f.arrayBuffer());
@@ -9056,7 +9077,15 @@ async function mailNaarMelding(f){
   // melder: de afzender, als die eenduidig in de medewerkerslijst staat
   let gevonden = '';
   try{ const lijst = await laadMedewerkers(), n = norm(m.van);
-    const kand = lijst.filter(x => n && (norm(x.vol) === n || norm(x.naam) === n));
+    // 1) op mailadres (zeker), 2) op naam, ook als "Achternaam, Voornaam" of met tussenvoegsel ergens anders, 3) op het deel vóór de @ (bv. r.vanderveen of robert.vanderveen)
+    const ml = String(m.vanMail || '').toLowerCase().trim(), mailOk = /@/.test(ml) && !/^\/o=/i.test(ml);
+    const zak = v => String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\(.*?\)|\[.*?\]/g, ' ').replace(/[^a-z]+/g, ' ').trim().split(' ').filter(Boolean).sort().join(' ');
+    const plat = v => String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '');
+    let kand = mailOk ? lijst.filter(x => x.mail && x.mail.toLowerCase() === ml) : [];
+    if(kand.length !== 1 && n) kand = lijst.filter(x => norm(x.vol) === n || norm(x.naam) === n);
+    if(kand.length !== 1 && m.van){ const z = zak(m.van); kand = lijst.filter(x => z && (zak(x.vol) === z || zak(x.naam) === z)); }
+    if(kand.length !== 1 && mailOk){ const lok = plat(ml.split('@')[0]);
+      kand = lijst.filter(x => { const d = String(x.vol || '').split(/\s+/), vn = d[0] || '', rest = plat(d.slice(1).join('')); return lok && rest && (lok === plat(vn) + rest || lok === plat(vn).slice(0, 1) + rest); }); }
     if(kand.length === 1){ const x = kand[0]; $('#n-melder').value = `${x.naam} (${x.id})`; f2.melderId.value = x.id; $('#n-melder').dataset.std = '0'; stelLocatieVoor(x); gevonden = x.vol; } }catch(e){}
   const h = $('#n-melder-hint'); if(h) h.textContent = gevonden ? `Melder overgenomen uit de mail: ${gevonden}.` : (m.van ? `Afzender "${m.van}" niet gevonden als medewerker; kies de melder zelf.` : h.textContent);
   $('#nieuw').dataset.gewijzigd = '1'; f2.ond.focus();
@@ -9064,16 +9093,26 @@ async function mailNaarMelding(f){
   const ruw = f2.tx.value, h3 = f2.tx.closest('.toelblok') && [...f2.tx.closest('.toelblok').querySelectorAll('h3')].find(h => /Toelichting/.test(h.textContent));
   let st = $('#n-tx-ai'); if(!st && h3){ h3.insertAdjacentHTML('beforeend', ' <small class="hint" id="n-tx-ai"></small>'); st = $('#n-tx-ai'); }
   if(st) st.innerHTML = `${AI_ICO(12)} AI maakt een overzichtelijke toelichting van de mail…`; f2.tx.classList.add('aibezig');
-  const bron = [`Bron: e-mail${m.van ? ' van ' + m.van : ''}`, m.datum && !isNaN(m.datum) ? `verzonden ${fmtDatum(m.datum)} ${fmtTijd(m.datum)}` : '', 'als bijlage toegevoegd'].filter(Boolean).join(', ') + '.';
+  const bron = [`(Toelichting gemaakt door AI uit de e-mail${m.van ? ' van ' + m.van : ''}`, m.datum && !isNaN(m.datum) ? `verzonden ${fmtDatum(m.datum)} ${fmtTijd(m.datum)}` : '', 'de mail zit als bijlage bij de melding)'].filter(Boolean).join(', ');
   try{
     const j = await aiApi({soort: 'mail', mail: {onderwerp: m.onderwerp || '', van: m.van || '', tekst: mailAnoniem(schoon).slice(0, 12000)}});
     if(!$('#n-form') || f2.tx.value !== ruw) return;   // venster dicht of de collega typt al zelf: niet overschrijven
     if(!j.toelichting) throw new Error('geen antwoord');
-    f2.tx.value = j.toelichting.trim() + '\n\n' + bron; f2.tx.dispatchEvent(new Event('input')); { const lv = f2.tx.parentElement.querySelector('.linkveld') || f2.tx; lv.style.maxHeight = '420px'; }   // hele toelichting in beeld (tot 420px)
+    f2.tx.value = mailKort(j.toelichting) + '\n\n' + bron; f2.tx.dispatchEvent(new Event('input')); { const lv = f2.tx.parentElement.querySelector('.linkveld') || f2.tx; lv.style.maxHeight = '420px'; }   // hele toelichting in beeld (tot 420px)
     if(st) st.innerHTML = `${AI_ICO(12)} door AI gemaakt uit de mail; controleer en vul aan`;
     toast('Mail omgezet: onderwerp ingevuld, toelichting door AI gemaakt');
   }catch(e){ if(st) st.textContent = 'AI lukte niet; de tekst van de mail staat erin.'; toast('Mail omgezet: onderwerp en toelichting zijn ingevuld'); }
   finally{ f2.tx.classList.remove('aibezig'); }
+}
+// AI-toelichting uit een mail: alleen de korte omschrijving (vraag/probleem en gevraagde actie), zonder het blok Details (betrokkenen, systemen enz.)
+function mailKort(t){
+  const tx = String(t || '').replace(/\r\n/g, '\n').trim(), kop = /^\s*(vraag\s*\/\s*probleem|probleem|vraag|details|gevraagde actie|actie|betrokkenen?)\s*:\s*$/i;
+  if(!tx.split('\n').some(l => kop.test(l))) return tx;
+  const delen = {}; let nu = '_'; tx.split('\n').forEach(l => { const m = l.match(kop); if(m){ nu = m[1].toLowerCase().replace(/\s+/g, ' '); return; } (delen[nu] = delen[nu] || []).push(l); });
+  const pak = (...k) => k.map(x => (delen[x] || []).join('\n').trim()).find(Boolean) || '';
+  const zin = s => s.split('\n').map(l => l.replace(/^\s*[-•*]\s*/, '').trim()).filter(Boolean).join(' ');
+  const uit = [zin(pak('vraag / probleem', 'vraag/probleem', 'probleem', 'vraag', '_')), zin(pak('gevraagde actie', 'actie'))].filter(Boolean).join('\n\n');
+  return uit || tx;
 }
 // alleen mailadressen, telefoonnummers en lange nummers eruit; namen blijven (die horen in de toelichting)
 const mailAnoniem = t => String(t || '').replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '[e-mailadres]').replace(/(\+31|0)[\d\s-]{8,12}\d/g, '[telefoonnummer]').replace(/\b\d{9,}\b/g, '[nummer]');
