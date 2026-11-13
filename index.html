@@ -647,6 +647,9 @@ body.regels-extra .tabel .cn-badge{padding-top:0;padding-bottom:0}
 .tabel tr[draggable="true"]{cursor:default}
 .mail-voorbeeld{background:var(--vlak);color:var(--inkt);max-width:900px;margin:16px auto;padding:22px 26px;border-radius:14px;text-align:left;width:100%;box-sizing:border-box;align-self:flex-start}
 .mail-voorbeeld h3{font-size:18px;margin:0 0 12px;color:var(--inkt)}.mail-voorbeeld dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid var(--lijn);font-size:13px}
+.mail-hand,.mail-draad{margin-top:8px;white-space:pre-wrap}.mail-hand > summary,.mail-draad > summary{cursor:pointer;color:var(--grijs);font-size:12.5px;white-space:normal;list-style-position:inside}
+.mail-hand{color:var(--grijs);font-size:12.5px}.mail-eerder{margin-top:18px;padding-top:10px;border-top:1px solid var(--lijn);white-space:normal}
+.mail-draad{background:var(--achtergrond);border-radius:10px;padding:8px 12px}.mail-draad > summary{color:var(--inkt);font-weight:500}.mail-draad[open] > summary{margin-bottom:8px}
 .mail-voorbeeld dt{color:var(--grijs)}.mail-voorbeeld dd{margin:0;overflow-wrap:anywhere}.mail-tekst{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.55}
 .knop.metico{display:inline-flex;align-items:center;gap:7px}.knop.metico > svg{width:16px;height:16px;flex:none}
 kbd{font:inherit;font-size:10.5px;font-weight:600;opacity:.7;margin-left:8px;border:1px solid currentColor;border-radius:4px;padding:0 4px}
@@ -1661,7 +1664,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.15', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.16', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -4894,7 +4897,7 @@ async function toonBestand(b){
     // Outlook-mail (.msg) of .eml: meteen de mail tonen (van, aan, datum, onderwerp, tekst); alleen als tekst, er draait niets mee
     let mailV = ''; if(/\.(msg|eml)$/i.test(b.naam)){ try{ const m = await leesMail(new File([blob], b.naam)), rij = (l, v) => v ? `<dt>${l}</dt><dd>${esc(v)}</dd>` : '';
       const tx = String(m.tekst || '').replace(/\r\n/g, '\n').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
-      mailV = `<div class="mail-voorbeeld"><h3>${esc(m.onderwerp || '(geen onderwerp)')}</h3><dl>${rij('Van', [m.van, m.vanMail && !String(m.van).includes(m.vanMail) ? `<${m.vanMail}>` : ''].filter(Boolean).join(' '))}${rij('Aan', m.aan)}${rij('CC', m.cc)}${rij('Verzonden', m.datum && !isNaN(m.datum) ? `${fmtDatum(m.datum)} ${fmtTijd(m.datum)}` : '')}</dl><div class="mail-tekst">${esc(tx.slice(0, 200000)) || '<span class="hint">Deze mail heeft geen leesbare tekst.</span>'}</div></div>`; }catch(e){ mailV = ''; } }
+      mailV = `<div class="mail-voorbeeld"><h3>${esc(m.onderwerp || '(geen onderwerp)')}</h3><dl>${rij('Van', [m.van, m.vanMail && !String(m.van).includes(m.vanMail) ? `<${m.vanMail}>` : ''].filter(Boolean).join(' '))}${rij('Aan', m.aan)}${rij('CC', m.cc)}${rij('Verzonden', m.datum && !isNaN(m.datum) ? `${fmtDatum(m.datum)} ${fmtTijd(m.datum)}` : '')}</dl><div class="mail-tekst">${tx ? mailOpmaak(tx.slice(0, 200000), m.onderwerp) : '<span class="hint">Deze mail heeft geen leesbare tekst.</span>'}</div></div>`; }catch(e){ mailV = ''; } }
     const inhoud = /^image\//.test(t) ? `<img src="${bekijkUrl}" alt="${esc(b.naam)}">`
       : t === 'application/pdf' ? `<iframe src="${bekijkUrl}" title="${esc(b.naam)}"></iframe>`
       : mailV ? mailV
@@ -8822,6 +8825,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.16', d: '13-11-2026', p: ['Mailvoorbeeld rustiger: linkadressen van plaatjes en logo’s zijn weg, handtekeningen en eerdere berichten in de mail zijn ingeklapt (klik om ze te tonen).']},
   {v: 'v8.15', d: '13-11-2026', p: ['Mail als bijlage (.msg of .eml): klik erop en je ziet meteen de mail (van, aan, datum, onderwerp en tekst), zonder Outlook.', 'Mail omzetten naar melding: de toelichting is nu een korte omschrijving van de mail, met de vermelding dat AI hem maakte.']},
   {v: 'v8.14', d: '13-11-2026', p: ['Melding: Afhandelen staat rechts als blauwe knop (Ctrl+Shift+Enter), Opslaan links als lichte knop; beide met een icoon.', 'Feedback: de schermafdruk gaat weer mee (lukte niet meer bij een open melding).', 'Mail omzetten naar melding: de afzender wordt beter herkend als melder (ook op mailadres en bij "Achternaam, Voornaam").', 'Venster vergroten: de toelichting groeit mee met de breedte van het venster.']},
   {v: 'v8.13', d: '11-11-2026', p: ['Team-paneel staat altijd volledig in beeld, ook als je in een lange lijst naar beneden bent gescrold.']},
@@ -9103,6 +9107,30 @@ async function mailNaarMelding(f){
     toast('Mail omgezet: onderwerp ingevuld, toelichting door AI gemaakt');
   }catch(e){ if(st) st.textContent = 'AI lukte niet; de tekst van de mail staat erin.'; toast('Mail omgezet: onderwerp en toelichting zijn ingevuld'); }
   finally{ f2.tx.classList.remove('aibezig'); }
+}
+/* mailvoorbeeld rustiger maken: linkadressen achter tekst weg, handtekeningen en eerdere berichten in de draad ingeklapt (klik om te tonen). Alles blijft tekst (esc). */
+function mailOpmaak(tx, onderwerp){
+  let t = String(tx).replace(/[ \t]*<mailto:[^<>\s]+>/gi, '')          // <mailto:…> achter een adres
+    .replace(/[ \t]*<https?:\/\/[^<>\s]+>/gi, '')                                      // <https://…> achter tekst of plaatje
+    .replace(/<([^<>\s]+@[^<>\s]+)\s+>/g, '<$1>').replace(/\[cid:[^\]]*\]/gi, '').replace(/^[ \t]+$/gm, '').replace(/\n{3,}/g, '\n\n').trim();
+  const r = t.split('\n'), delen = []; let st = 0;
+  for(let i = 1; i < r.length; i++){
+    if(/^\s*(van|from)\s*:\s*\S/i.test(r[i]) && r.slice(i + 1, i + 5).some(l => /^\s*(verzonden|sent|datum|date)\s*:/i.test(l))){
+      delen.push(r.slice(st, i).join('\n')); st = i; }
+    else if(/^-{2,}\s*(original message|oorspronkelijk bericht|doorgestuurd bericht|forwarded message)/i.test(r[i])){ delen.push(r.slice(st, i).join('\n')); st = i + 1; }
+  }
+  delen.push(r.slice(st).join('\n'));
+  // handtekening: vanaf de afsluitende groet; de groet en de naam blijven staan, de rest ingeklapt
+  const groet = /^\s*(met\s+)?(vriendelijke|hartelijke|beste|warme)?\s*groet(en)?\b|^\s*m\.?v\.?g\.?\s*,?\s*$|^\s*(kind|best|warm)\s+regards\b|^\s*regards\b|^\s*groetjes\b/i;
+  const deel = d => { const l = d.trim().split('\n'); const g = l.findIndex(x => groet.test(x));
+    if(g < 0 || l.length - g <= 3) return esc(l.join('\n'));
+    let n = g + 1; while(n < l.length && !l[n].trim()) n++;   // naam na de groet
+    const zicht = l.slice(0, n + 1).join('\n'), rest = l.slice(n + 1).join('\n').trim();
+    return esc(zicht) + (rest ? `<details class="mail-hand"><summary>Handtekening</summary>${esc(rest)}</details>` : ''); };
+  const kopVan = d => { const l = d.trim().split('\n'), v = (l.find(x => /^\s*(van|from)\s*:/i.test(x)) || '').replace(/^\s*(van|from)\s*:\s*/i, ''), z = (l.find(x => /^\s*(verzonden|sent|datum|date)\s*:/i.test(x)) || '').replace(/^\s*(verzonden|sent|datum|date)\s*:\s*/i, '');
+    return [v, z].filter(Boolean).join(' · ') || 'Eerder bericht'; };
+  const eerder = delen.slice(1).filter(d => d.trim());
+  return deel(delen[0]) + (eerder.length ? `<div class="mail-eerder"><small class="hint">${eerder.length === 1 ? 'Eerder bericht in deze mail' : eerder.length + ' eerdere berichten in deze mail'}</small>${eerder.map((d, i) => `<details class="mail-draad"${i === 0 && (/^\s*(fw|fwd|doorst|tr)\s*:/i.test(onderwerp || '') || delen[0].replace(/\s+/g, ' ').length < 250) ? ' open' : ''}><summary>${esc(kopVan(d))}</summary>${deel(d)}</details>`).join('')}</div>` : '');
 }
 // AI-toelichting uit een mail: alleen de korte omschrijving (vraag/probleem en gevraagde actie), zonder het blok Details (betrokkenen, systemen enz.)
 function mailKort(t){
