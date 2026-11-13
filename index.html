@@ -1045,7 +1045,10 @@ dialog.lade.nieuwdlg{width:min(880px,calc(100vw - 32px))}
 .tl-schaal{position:relative;height:66px}
 .tl-maand{position:absolute;top:8px;font-size:13px;font-weight:600;color:var(--blauw);padding-left:8px;border-left:1.5px solid var(--lichtblauw);height:56px;white-space:nowrap}
 .tl-week{position:absolute;bottom:22px;font-size:11.5px;color:var(--grijs);transform:translateX(4px);white-space:nowrap}
-.tl-rij{display:grid;grid-template-columns:var(--links) 1fr;min-height:42px;cursor:default}
+.tl-rij{display:grid;grid-template-columns:var(--links) 1fr;min-height:38px;cursor:default}
+.tl-kop .hoek{position:relative}.tl-greep{position:absolute;top:0;bottom:-2px;right:-5px;width:10px;cursor:col-resize;z-index:3;touch-action:none}
+.tl-greep::after{content:'';position:absolute;top:18%;bottom:18%;left:4px;width:2px;border-radius:2px;background:var(--lijn);transition:background .15s}
+.tl-greep:hover::after,.chtijdlijn.tl-rekt .tl-greep::after{background:var(--blauw-2)}.chtijdlijn.tl-rekt{user-select:none;cursor:col-resize}
 .tl-fase{display:flex;align-items:center;gap:8px;padding:12px 26px 4px;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fk)}
 .tl-fase i{width:9px;height:9px;border-radius:50%;background:var(--fk)}
 .tl-spoor{background-image:linear-gradient(90deg,var(--lijn) 1px,transparent 1px)}
@@ -1069,7 +1072,8 @@ dialog.lade.nieuwdlg{width:min(880px,calc(100vw - 32px))}
 .tl-rij:hover{background:var(--achtergrond)}
 .tl-label{padding:4px 14px 4px 26px;display:flex;flex-direction:column;justify-content:center;min-width:0}
 .tl-label b{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tl-label small{font-size:12px;color:var(--grijs)}
+.tl-label small{font-size:12px;color:var(--grijs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35}
+.tl-label b{line-height:1.3}
 .tl-label.hoog{border-left-color:var(--rood)} .tl-label.normaal{border-left-color:var(--blauw-2)}
 .tl-spoor{position:relative;overflow:hidden}
 .tl-raster{position:absolute;top:0;bottom:0;border-left:1px solid var(--lijn);pointer-events:none}
@@ -1664,7 +1668,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.16', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.17', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3144,6 +3148,14 @@ function samenTijdlijn(c, p, m = [], t = []){
 }
 /* tijdlijn van changes: balk van begindatum tot einddatum (project); zonder einddatum de geplande datum */
 const weeknr = d => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())), dg = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - dg); const j = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - j) / DAG + 1) / 7); };
+// namenkolom van de tijdlijn breder/smaller slepen; onthouden en voor alle tijdlijnen gelijk
+document.addEventListener('pointerdown', e => { const g = e.target.closest && e.target.closest('.tl-greep'); if(!g) return; e.preventDefault();
+  const tl = g.closest('.chtijdlijn'), x0 = e.clientX, w0 = tl.querySelector('.tl-kop .hoek').getBoundingClientRect().width, max = Math.max(300, tl.getBoundingClientRect().width - 320);
+  tl.classList.add('tl-rekt'); let w = w0;
+  const zet = ev => { w = Math.round(Math.min(max, Math.max(160, w0 + ev.clientX - x0))); document.querySelectorAll('.chtijdlijn').forEach(t => t.style.setProperty('--links', w + 'px')); };
+  const los = () => { tl.classList.remove('tl-rekt'); removeEventListener('pointermove', zet); removeEventListener('pointerup', los); opslag.set('mict-tl-links', w); };
+  addEventListener('pointermove', zet); addEventListener('pointerup', los); });
+document.addEventListener('dblclick', e => { if(!(e.target.closest && e.target.closest('.tl-greep'))) return; opslag.set('mict-tl-links', 0); document.querySelectorAll('.chtijdlijn').forEach(t => t.style.removeProperty('--links')); });
 function tekenTijdlijn(lijst, opt = {}){
   const weken = {maand:6, kwartaal:13, halfjaar:26}[chZoom] || 13, nu = beginDag(new Date()), nuMs = Date.now();
   const van = new Date(nu); van.setDate(van.getDate() - ((van.getDay() + 6) % 7) - 7 * Math.max(1, Math.round(weken / 6)));
@@ -3187,8 +3199,9 @@ function tekenTijdlijn(lijst, opt = {}){
   const sorteerOp = {laat: x => +eindVan(x), loopt: x => +(eindVan(x) || 9e15), komt: x => +startVan(x), zonder: x => -(x.aangemaakt || 0)};
   const groepen = FASEN.map(([k, t, kl]) => { const g = lijst.filter(x => fase(x) === k).sort((a, b) => sorteerOp[k](a) - sorteerOp[k](b));
     return g.length ? `<div class="tl-fase" style="--fk:${kl}"><i></i>${t} · ${g.length}</div>${g.map(rij).join('')}` : ''; }).join('');
-  return `<div class="chtijdlijn">
-    <div class="tl-kop"><div class="hoek"></div><div class="tl-schaal">${schaal}</div></div>
+  const lw = +opslag.get('mict-tl-links') || 0;   // zelf ingestelde breedte van de namenkolom (geldt voor alle tijdlijnen)
+  return `<div class="chtijdlijn"${lw && innerWidth > 800 ? ` style="--links:${lw}px"` : ''}>
+    <div class="tl-kop"><div class="hoek"><span class="tl-greep" title="Sleep om de kolom met namen breder of smaller te maken (dubbelklik = standaard)"></span></div><div class="tl-schaal">${schaal}</div></div>
     ${opt.drukte ? (() => { const dw = trDrukte(lijst, van, weken), max = Math.max(DRUK, ...dw.map(d => d.n));
       return `<div class="tl-rij tl-drukte"><div class="tl-label"><b>Drukte per week</b><small>${dw.some(d => d.n >= DRUK) ? 'rood = ' + DRUK + ' of meer tegelijk' : 'geen drukke weken'}</small></div><div class="tl-spoor" style="${raster}">${dw.map(d => `<span class="tl-dk${d.n >= DRUK ? ' druk' : ''}" style="left:${pos(d.van)}%;width:${100 / weken}%" title="Week ${weeknr(d.van)}: ${d.c} change${d.c === 1 ? '' : 's'}, ${d.p} project${d.p === 1 ? '' : 'en'}"><i class="p" style="height:${d.p / max * 100}%"></i><i class="c" style="height:${d.c / max * 100}%"></i></span>`).join('')}<span class="tl-vandaag" style="left:${pos(nu)}%"></span></div></div>`; })() : ''}
     <div class="tl-body">${groepen}</div>
@@ -7642,7 +7655,7 @@ document.addEventListener('keydown', e => { if(e.key === 'Enter' && (tab === 'pr
 /* ================= instellingen online: overal dezelfde instellingen (Azure Function ict-instellingen) ================= */
 // Wat je instelt staat in de browser én online, per AFAS-gebruiker. Bij inloggen halen we het op en voegen we samen
 // (per instelling wint de nieuwste); wijzig je iets, dan gaat het 3 seconden later mee. Zonder verbinding werkt alles gewoon lokaal.
-const SYNC_VAST = ['mict-wv-team', 'mict-thema', 'mict-soort', 'mict-kolommen-uit', 'mict-kolvolgorde', 'mict-kolbreedte', 'mict-chzoom', 'mict-chweergave', 'mict-werk-ons', 'mict-afd-ons',
+const SYNC_VAST = ['mict-wv-team', 'mict-tl-links', 'mict-thema', 'mict-soort', 'mict-kolommen-uit', 'mict-kolvolgorde', 'mict-kolbreedte', 'mict-chzoom', 'mict-chweergave', 'mict-werk-ons', 'mict-afd-ons',
   'mict-venster-groot', 'mict-recente-melders', 'mict-tlsoort', 'mict-samen', 'mict-extra', 'mict-kolzelf', 'mict-regels', 'mict-tour-gezien', 'mict-gelezen', 'mict-interne-notities'];
 const SYNC_META = 'mict-sync-tijden';
 const syncUrl = () => INST.instellingenUrl || String(INST.tokenFunctie || '').replace(/afas-token\/?$/, 'ict-instellingen');
@@ -8825,6 +8838,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.17', d: '13-11-2026', p: ['Tijdlijnen: lagere regels (de tweede regel loopt niet meer door op een derde) en de kolom met namen is breder of smaller te slepen via het streepje bovenaan; dubbelklik zet hem terug.']},
   {v: 'v8.16', d: '13-11-2026', p: ['Mailvoorbeeld rustiger: linkadressen van plaatjes en logo’s zijn weg, handtekeningen en eerdere berichten in de mail zijn ingeklapt (klik om ze te tonen).']},
   {v: 'v8.15', d: '13-11-2026', p: ['Mail als bijlage (.msg of .eml): klik erop en je ziet meteen de mail (van, aan, datum, onderwerp en tekst), zonder Outlook.', 'Mail omzetten naar melding: de toelichting is nu een korte omschrijving van de mail, met de vermelding dat AI hem maakte.']},
   {v: 'v8.14', d: '13-11-2026', p: ['Melding: Afhandelen staat rechts als blauwe knop (Ctrl+Shift+Enter), Opslaan links als lichte knop; beide met een icoon.', 'Feedback: de schermafdruk gaat weer mee (lukte niet meer bij een open melding).', 'Mail omzetten naar melding: de afzender wordt beter herkend als melder (ook op mailadres en bij "Achternaam, Voornaam").', 'Venster vergroten: de toelichting groeit mee met de breedte van het venster.']},
