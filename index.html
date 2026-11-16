@@ -410,6 +410,10 @@ main{flex:1;padding:6px 28px 20px;display:flex;flex-direction:column;gap:18px;mi
 .subkop.rood{color:var(--rood)}.subkop.rood b{background:var(--rood-licht);color:var(--rood)}
 .subkop.oranje{color:var(--oranje)}.subkop.oranje b{background:var(--oranje-licht);color:var(--oranje)}
 .ctrl-uitleg{margin:-4px 0 6px;padding:0 26px;color:var(--grijs);font-size:12.5px;max-width:900px}
+.mb-blok{margin:0 26px 18px;padding:18px 22px}.mb-cijfers{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:18px}
+.mb-c{background:var(--achtergrond);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}.mb-c b{font-size:30px;font-weight:500;line-height:1.1;color:var(--inkt)}.mb-c span{font-size:12.5px;color:var(--grijs)}
+.mb-c.blauw b{color:var(--blauw-2)}.mb-c.oranje b{color:var(--oranje,#c77700)}.mb-tabel{max-width:760px}.mb-tabel td.getal,.mb-tabel th.getal{text-align:right;width:90px}
+.mb-ong{color:var(--blauw-2)}.mb-balkcel{width:40%}.mb-balk{display:block;height:6px;border-radius:3px;background:var(--lichtblauw);min-width:2px}.mb-zonder td{color:var(--grijs)}
 .ctrl-kop{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:4px 26px 12px;color:var(--grijs);font-size:13px}
 .ctrl-kop .chip{cursor:default}
 .ctrl-bundel{margin:0 26px 6px;border:1px solid var(--lijn);border-radius:12px}.ctrl-bundel>summary{cursor:pointer;padding:10px 14px;font-size:13.5px;list-style-position:inside}.ctrl-bundel[open]>summary{border-bottom:1px solid var(--lijn)}.ctrl-bundel .tw{margin:0}
@@ -769,6 +773,20 @@ select.afdkeuze:hover{border-bottom-color:var(--blauw-2)}
 .kolknop + .kolknop{margin-left:6px}
 .kolknop[aria-pressed="true"]{color:var(--blauw);background:var(--vlak);box-shadow:0 1px 3px rgba(3,31,77,.15)}
 .tabel .kolfilter[hidden]{display:none}
+.tabel th .mfknop{all:unset;cursor:pointer;display:inline-grid;place-items:center;width:22px;height:22px;margin:-3px 6px -3px -4px;border-radius:6px;color:var(--grijs);vertical-align:middle}
+.tabel th .mfknop svg{width:14px;height:14px}.tabel th .mfknop:hover{background:var(--achtergrond);color:var(--blauw)}.tabel th .mfknop.aan{color:#fff;background:var(--blauw-2)}.tabel th .mfknop:focus-visible{outline:2px solid var(--blauw-2)}
+.mfmenu{position:fixed;z-index:70;min-width:240px;max-width:340px;max-height:60vh;overflow:auto;background:var(--vlak);color:var(--inkt);border:1px solid var(--lijn);border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.22);padding:6px}
+.mfmenu button{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:13.5px}
+.mfmenu button:hover,.mfmenu button:focus-visible{background:var(--achtergrond)}.mfmenu button[aria-checked="true"]{font-weight:600;color:var(--blauw)}
+.mfmenu button[aria-checked="true"]::before{content:'✓';width:12px}.mfmenu button[aria-checked="false"]::before{content:'';width:12px}
+.mfmenu .mfnaam{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mfmenu small{font-size:11px;color:var(--grijs);font-weight:400}
+.mfmenu .mfbew{display:grid;place-items:center;width:24px;height:24px;border-radius:6px;color:var(--grijs);opacity:.5}.mfmenu .mfbew:hover{opacity:1;background:var(--vlak);color:var(--blauw)}.mfmenu svg{width:14px;height:14px;flex:none}
+.mfmenu hr{border:0;border-top:1px solid var(--lijn);margin:6px 4px}.mfmenu .mfleeg{margin:6px 10px;color:var(--grijs);font-size:12.5px}
+#mfdlg{width:min(720px,calc(100vw - 32px))}.mf-uitleg{margin:0;color:var(--grijs);font-size:12.5px;line-height:1.5}
+.mf-velden{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px 18px;max-height:52vh;overflow:auto;padding:2px}
+.mf-velden label{display:grid;grid-template-columns:130px 1fr;align-items:center;gap:10px;font-size:13px}.mf-velden label span{color:var(--grijs)}
+.mf-velden input{border:1px solid var(--lijn);border-radius:10px;padding:7px 10px;font:inherit;font-size:13px;background:var(--achtergrond);color:var(--inkt);min-width:0}.mf-velden input:focus{outline:0;border-color:var(--blauw-2);background:var(--vlak)}
+.mf-start{display:flex;align-items:center;gap:8px;font-size:13px}.mf-start input{accent-color:var(--blauw)}.mf-knoppen{display:flex;gap:8px;align-items:center}
 #kolkeuze{position:fixed;z-index:70;background:var(--vlak);border:1.5px solid var(--lijn);border-radius:16px;box-shadow:0 12px 32px rgba(3,31,77,.18);padding:12px 16px;min-width:220px;display:flex;flex-direction:column;gap:6px}
 #kolkeuze[hidden]{display:none}
 #kolkeuze h4{margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--grijs)}
@@ -1616,6 +1634,7 @@ const INST = Object.assign({
   omgeving: '88406',
   clientId: '91a1c1c2-bbaa-4075-a1cc-09252fd9c561',
   tokenFunctie: 'https://func-dck-helpdesk-b8cpg3gmd6d5hsgp.westeurope-01.azurewebsites.net/api/afas-token',
+  ictMailbox: 'ict@dcklinieken.nl',   // gedeelde mailbox: aantallen in Postvak IN onder Team › ICT-mailbox (Microsoft Graph, Mail.ReadBasic.Shared)
   kennisUrl: 'https://func-dck-kennis-bjdmb7b5aqb9bpdf.westeurope-01.azurewebsites.net/api/ict-kennis',   // AI-index in een eigen Function App (func-dck-kennis): zwaar zoekwerk houdt het inloggen nooit op
   connIk: 'PowerBI_ICT_Gebruikers',     // GetConnector op gebruikers met filter Gebruiker = [Gebruiker]: geeft alleen de ingelogde gebruiker terug
   // Functioneel beheer: domeinen, met zoekwoorden in focusgebied/afdeling/systeem van een melding, en wat er automatisch bij hoort
@@ -1673,7 +1692,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.18', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.20', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2680,9 +2699,77 @@ const keuzeWaarde = (c, x) => { const v = kolTekst(c, x).trim(); return v && v !
 const kfActief = v => Array.isArray(v) ? v.length > 0 : !!(v && v.trim()) && (['leeg', 'nietleeg'].includes(kfParse(v).op) || !!kfParse(v).term);
 const kolTekst = (c, x) => c.k === 'sig' ? (x._sg || []).map(s => s.tekst).join(' ') : String(c.html(x)).replace(/<title>[^<]*<\/title>/g, '').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
 const kfLabel = (uit, opt) => { if(!Array.isArray(uit) || !uit.length) return 'Alle'; const aan = opt.filter(v => !uit.includes(v)); return !aan.length ? 'Niets' : aan.length === 1 ? aan[0] : `${aan.length} van ${opt.length}`; };
+/* ================= eigen filters (zoals in AFAS): trechter vóór de eerste kolomkop =================
+   Een filter = waarden per kolom (zelfde notatie als de filterregel: ; = of, = gelijk aan, ! niet, =[] leeg, !=[] niet leeg).
+   Per lijst opgeslagen, mee naar je andere apparaten; één filter per lijst kan "uitvoeren bij openen". */
+const tabelAlleKol = {}, mfGestart = new Set();
+const mfAlle = () => opslag.get('mict-mfilters') || {};
+const mfVan = id => (mfAlle()[id] || []);
+const mfBewaar = (id, l) => { const a = mfAlle(); if(l.length) a[id] = l; else delete a[id]; opslag.set('mict-mfilters', a); };
+const mfGelijk = (a, b) => { const x = Object.entries(a || {}).filter(([, v]) => kfActief(v)), y = Object.entries(b || {}).filter(([, v]) => kfActief(v)); return x.length === y.length && x.every(([k, v]) => String(b[k]).trim() === String(v).trim()); };
+const mfActief = id => { const kf = kolFilter[id]; return kf && Object.values(kf).some(kfActief) ? mfVan(id).find(f => mfGelijk(f.velden, kf)) : null; };
+function mfBijOpenen(id){ if(mfGestart.has(id)) return; mfGestart.add(id); const st = mfVan(id).find(f => f.start); if(st && !Object.values(kolFilter[id] || {}).some(kfActief)) kolFilter[id] = {...st.velden}; }
+function mfMenu(knop){
+  const id = knop.dataset.mf, l = mfVan(id), act = mfActief(id), heeft = Object.values(kolFilter[id] || {}).some(kfActief);
+  let m = $('#mfmenu'); if(!m){ document.body.insertAdjacentHTML('beforeend', '<div id="mfmenu" class="mfmenu" role="menu" hidden></div>'); m = $('#mfmenu'); }
+  m.dataset.tabel = id;
+  m.innerHTML = (l.length ? l.map(f => `<button type="button" role="menuitemradio" aria-checked="${act === f}" data-mfkies="${esc(f.id)}"><span class="mfnaam">${esc(f.naam)}</span>${f.start ? '<small title="Uitvoeren bij openen">bij openen</small>' : ''}<span class="mfbew" data-mfbewerk="${esc(f.id)}" role="button" title="Filter bewerken" aria-label="${esc(f.naam)} bewerken">${ico('<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>')}</span></button>`).join('') : '<p class="mfleeg">Nog geen eigen filters voor deze lijst.</p>')
+    + '<hr>' + (heeft && !act ? `<button type="button" role="menuitem" data-mfnieuw="huidig">${ico('<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>')}Huidige filters opslaan…</button>` : '')
+    + `<button type="button" role="menuitem" data-mfnieuw="leeg">${ico('<path d="M12 5v14M5 12h14"/>')}Filter aanmaken</button>`
+    + (heeft ? `<button type="button" role="menuitem" data-mfwis>${ico('<path d="M18 6L6 18M6 6l12 12"/>')}Filters wissen</button>` : '');
+  m.hidden = false; const r = knop.getBoundingClientRect();
+  m.style.left = Math.min(innerWidth - m.offsetWidth - 12, Math.max(12, r.left)) + 'px'; m.style.top = Math.min(innerHeight - m.offsetHeight - 12, r.bottom + 6) + 'px';
+  (m.querySelector('[aria-checked="true"]') || m.querySelector('button')).focus();
+}
+const mfDicht = () => { const m = $('#mfmenu'); if(m) m.hidden = true; };
+function mfDialoog(id, f){
+  const kol = tabelAlleKol[id] || [], nieuw = !f || !f.id, v = (f && f.velden) || {};
+  let d = $('#mfdlg'); if(!d){ document.body.insertAdjacentHTML('beforeend', '<dialog id="mfdlg" aria-label="Filter"></dialog>'); d = $('#mfdlg'); }
+  d.innerHTML = `<form class="dlg-in" id="mf-form" onsubmit="return false"><div class="dlg-kop"><div><small>Filter · ${esc($('#lijst-titel') ? $('#lijst-titel').textContent : '')}</small><h2><input name="naam" class="ondinvoer" maxlength="40" required placeholder="Naam van het filter, bijv. Eleandro open" value="${esc((f && f.naam) || '')}" aria-label="Naam van het filter"></h2></div><button type="button" class="sluit" data-mfdicht aria-label="Sluiten">×</button></div>
+    <p class="mf-uitleg">Vul in waarop je wilt filteren; lege velden doen niet mee. Meerdere waarden scheid je met <b>;</b> (één ervan). Begin met <b>=</b> voor precies gelijk, <b>!</b> voor niet, <b>=[]</b> voor leeg en <b>!=[]</b> voor niet leeg.</p>
+    <div class="mf-velden">${kol.map(c => `<label><span>${esc(c.t)}</span><input name="kf_${esc(c.k)}" value="${esc(Array.isArray(v[c.k]) ? '' : v[c.k] || '')}" autocomplete="off"></label>`).join('')}</div>
+    <label class="mf-start"><input type="checkbox" name="start" ${f && f.start ? 'checked' : ''}><span>Uitvoeren bij openen van deze lijst</span></label>
+    <div class="vraag-knoppen mf-knoppen">${nieuw ? '' : '<button type="button" class="knop" data-mfweg>Verwijderen</button>'}<span style="flex:1"></span><button type="button" class="knop" data-mfdoe="uitvoeren" title="Toepassen zonder op te slaan">Uitvoeren</button><button type="button" class="knop vol" data-mfdoe="opslaan">Opslaan en uitvoeren</button></div></form>`;
+  d.dataset.tabel = id; d.dataset.fid = (f && f.id) || ''; d.showModal(); d.querySelector('[name=naam]').focus();
+}
+function mfLees(){ const d = $('#mfdlg'), fm = $('#mf-form'), velden = {};
+  fm.querySelectorAll('[name^="kf_"]').forEach(i => { if(kfActief(i.value)) velden[i.name.slice(3)] = i.value.trim(); });
+  return {id: d.dataset.tabel, fid: d.dataset.fid, naam: fm.naam.value.trim(), start: fm.start.checked, velden}; }
+// trechter: in de capture-fase, zodat een klik niet ook de kolom sorteert
+document.addEventListener('click', e => { const k = e.target.closest && e.target.closest('[data-mf]'); if(!k) return; e.preventDefault(); e.stopPropagation();
+  const m = $('#mfmenu'); if(m && !m.hidden && m.dataset.tabel === k.dataset.mf) mfDicht(); else mfMenu(k); }, true);
+document.addEventListener('click', e => {
+  const m = $('#mfmenu');
+  if(m && !m.hidden && e.target.closest('#mfmenu')){ const id = m.dataset.tabel;
+    const bw = e.target.closest('[data-mfbewerk]'); if(bw){ mfDicht(); mfDialoog(id, mfVan(id).find(f => f.id === bw.dataset.mfbewerk)); return; }
+    const kz = e.target.closest('[data-mfkies]'); if(kz){ const f = mfVan(id).find(f => f.id === kz.dataset.mfkies); mfDicht(); if(f){ kolFilter[id] = {...f.velden}; teken(); } return; }
+    const nw = e.target.closest('[data-mfnieuw]'); if(nw){ mfDicht(); mfDialoog(id, nw.dataset.mfnieuw === 'huidig' ? {velden: {...(kolFilter[id] || {})}} : null); return; }
+    if(e.target.closest('[data-mfwis]')){ mfDicht(); delete kolFilter[id]; teken(); return; }
+    return; }
+  if(m && !m.hidden) mfDicht();
+  const d = $('#mfdlg'); if(!d || !d.open) return;
+  if(e.target.closest('[data-mfdicht]')){ d.close(); return; }
+  if(e.target.closest('[data-mfweg]')){ const id = d.dataset.tabel, f = mfVan(id).find(x => x.id === d.dataset.fid);
+    vraag('Filter verwijderen?', `“${f ? f.naam : ''}” wordt verwijderd. Je huidige filtering blijft staan.`, 'Verwijderen').then(ok => { if(!ok) return; mfBewaar(id, mfVan(id).filter(x => x.id !== d.dataset.fid)); d.close(); teken(); toast('Filter verwijderd'); }); return; }
+  const doe = e.target.closest('[data-mfdoe]'); if(!doe) return;
+  const w = mfLees();
+  if(doe.dataset.mfdoe === 'opslaan'){
+    if(!w.naam){ $('#mf-form').naam.focus(); toast('Geef het filter een naam', true); return; }
+    if(!Object.keys(w.velden).length){ toast('Vul minstens één veld in', true); return; }
+    let l = mfVan(w.id).map(x => w.start ? {...x, start: false} : x);   // maar één filter per lijst bij openen
+    const f = {id: w.fid || 'f' + Date.now().toString(36), naam: w.naam, velden: w.velden, start: w.start};
+    l = w.fid ? l.map(x => x.id === w.fid ? f : x) : [...l, f]; l.sort((a, b) => a.naam.localeCompare(b.naam, 'nl')); mfBewaar(w.id, l); toast('Filter “' + f.naam + '” opgeslagen');
+  }
+  kolFilter[w.id] = {...w.velden}; d.close(); teken();
+});
+document.addEventListener('keydown', e => { const m = $('#mfmenu'); if(!m || m.hidden) return;
+  if(e.key === 'Escape'){ e.preventDefault(); mfDicht(); const k = document.querySelector(`[data-mf="${CSS.escape(m.dataset.tabel)}"]`); if(k) k.focus(); return; }
+  if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); const b = [...m.querySelectorAll('button')], i = b.indexOf(document.activeElement); b[(i + (e.key === 'ArrowDown' ? 1 : -1) + b.length) % b.length].focus(); } });
+document.addEventListener('keydown', e => { if(e.key === 'Enter' && e.target.closest && e.target.closest('#mf-form') && e.target.tagName === 'INPUT' && e.target.type !== 'checkbox'){ e.preventDefault(); const k = document.querySelector('#mf-form [data-mfdoe="opslaan"]'); if(k) k.click(); } });
 const tabelVolgorde = {}, tabelExport = {};   // tabelExport: per tabel de kolommen en de hele gefilterde, gesorteerde lijst (voor Excel)
 function tabel(id, l, opties = {}){
   const zonder = new Set(opties.zonder || []), kol = opVolgorde(opties.set || kolSet(opties.proj)).filter(c => c.ch ? opties.changes : !zonder.has(c.k) && (VAST_KOL.has(c.k) || !verborgenKol.has(c.k)));   // Startdatum en Deadline: altijd bij changes
+  mfBijOpenen(id); tabelAlleKol[id] = opVolgorde(opties.set || kolSet(opties.proj)).filter(c => (c.ch ? opties.changes : !zonder.has(c.k)) && c.t && c.k !== 'sig');
   const kf = kolFilter[id] || {}, actief = Object.entries(kf).filter(([, v]) => kfActief(v));
   const opties_ = {}; kol.filter(c => KEUZE.has(c.k)).forEach(c => opties_[c.k] = [...new Set(l.map(x => keuzeWaarde(c, x)))].sort((a, b) => (a === LEEG) - (b === LEEG) || a.localeCompare(b, 'nl')));
   Object.entries(opties_).forEach(([k, v]) => keuzeOpties[id + '|' + k] = v);
@@ -2693,11 +2780,12 @@ function tabel(id, l, opties = {}){
   if(s && elkeKol(s.k)){ const c = elkeKol(s.k); l = [...l].sort((a, b) => { const x = c.w(a), y = c.w(b); return (x < y ? -1 : x > y ? 1 : 0) * s.op || (+b.aangemaakt || 0) - (+a.aangemaakt || 0); }); }
   const max = opties.max && !blokOpen.has(id) ? opties.max : 400, zicht = l.slice(0, max);
   tabelVolgorde[id] = l.map(x => String(x.nr)); tabelExport[id] = {kol, l};   // voor vorige/volgende in het ticket: de hele lijst in deze volgorde, ook wat (nog) niet getoond wordt
-  return `<div class="tw"><table class="tabel" data-tabel="${id}"><thead><tr>${kol.map(c => `<th data-sort="${c.k}" ${breedteVan(c) ? `style="width:${breedteVan(c)}"` : ''} class="${c.cls.replace(/(^|\s)(nr|ond|sig|zacht)(?=\s|$)/g, '$1').trim()}" ${s && s.k === c.k ? `aria-sort="${s.op > 0 ? 'ascending' : 'descending'}"` : ''}>${c.t}${s && s.k === c.k ? `<span class="pijl">${s.op > 0 ? '▲' : '▼'}</span>` : ''}<span class="kolgreep" data-greep="${c.k}" title="Sleep om de breedte aan te passen · dubbelklik = passend"></span></th>`).join('')}</tr>
+  const mfA = mfActief(id);
+  return `<div class="tw"><table class="tabel" data-tabel="${id}"><thead><tr>${kol.map((c, i) => `<th data-sort="${c.k}" ${breedteVan(c) ? `style="width:${breedteVan(c)}"` : ''} class="${c.cls.replace(/(^|\s)(nr|ond|sig|zacht)(?=\s|$)/g, '$1').trim()}" ${s && s.k === c.k ? `aria-sort="${s.op > 0 ? 'ascending' : 'descending'}"` : ''}>${i === 0 ? `<button type="button" class="mfknop${actief.length ? ' aan' : ''}" data-mf="${esc(id)}" aria-haspopup="true" title="${esc(mfA ? 'Filter: ' + mfA.naam : actief.length ? 'Filters actief · filter opslaan of kiezen' : 'Filters: kies een opgeslagen filter of maak er een')}" aria-label="Filters">${ico('<path d="M3 5h18l-7 8v6l-4 2v-8z"/>')}</button>` : ''}${c.t}${s && s.k === c.k ? `<span class="pijl">${s.op > 0 ? '▲' : '▼'}</span>` : ''}<span class="kolgreep" data-greep="${c.k}" title="Sleep om de breedte aan te passen · dubbelklik = passend"></span></th>`).join('')}</tr>
     <tr class="kolfilter${kfOpen && kfOpen.id === id ? ' open' : ''}">${kol.map(c => `<th class="${c.cls.replace(/(^|\s)(nr|ond|sig|zacht)(?=\s|$)/g, '$1').trim()}">${KEUZE.has(c.k) ? `<button type="button" class="kfknop${kfActief(kf[c.k]) ? ' aan' : ''}" data-kf="${c.k}" data-keuze aria-haspopup="true" aria-label="Filter op ${c.t}">${esc(kfLabel(kf[c.k], opties_[c.k] || []))}</button>` : (() => { const v = typeof kf[c.k] === 'string' ? kf[c.k] : '', o = KF_OPS.find(o => o.op === kfParse(v).op);
       return `<span class="kfveld"><button type="button" class="kfop${o.op !== 'bevat' ? ' aan' : ''}" data-kfop="${c.k}" title="Filteroptie: ${o.t}" aria-label="Filteroptie voor ${esc(c.t || 'kolom')}: ${o.t}">${ico(o.ico)}</button><input size="3" data-kf="${c.k}" value="${esc(v)}" placeholder="Filter…" aria-label="Filter op ${c.t}" class="${kfActief(v) ? 'aan' : ''}"></span>`; })()}</th>`).join('')}</tr></thead>
     <tbody>${!zicht.length ? `<tr class="geenrij"><td colspan="${kol.length}">Geen ${opties.proj ? 'projecten' : 'meldingen'} met deze filters. <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></td></tr>` : ''}${zicht.map(x => opties.set ? `<tr class="${x._dicht || (opties.klik && x.afgesloten) ? 'dicht' : ''}"${x.nr && (x._x || opties.klik) ? ` data-nr="${esc(x.nr)}"` : ''}>${kol.map(c => `<td class="${c.cls}" title="${esc(kolTekst(c, x))}">${c.html(x)}</td>`).join('')}</tr>` : opties.proj ? `<tr class="${x.afgesloten ? 'dicht' : ''}" data-proj="${esc(x.code)}" tabindex="0">${kol.map(c => `<td class="${c.cls}" title="${esc(kolTekst(c, x))}">${c.html(x)}</td>`).join('')}</tr>` : `<tr draggable="${x.afgesloten ? 'false' : 'true'}" class="${KLEUR[ernst(x)]}${kritiekActief(x) ? ' kritiekrij' : ''}${x.afgesloten ? ' dicht' : ''}${(x._sg || []).some(s => s.code === 'ongelezen') ? ' ongelezen' : ''}" data-nr="${esc(x.nr)}">${kol.map(c => `<td class="${c.cls}"${c.k === 'sig' ? '' : ` title="${esc(kolTekst(c, x))}"`}>${c.html(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
-    ${actief.length ? `<p class="filterinfo">${l.length} van ${totaal} na filteren · <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></p>` : ''}
+    ${actief.length ? `<p class="filterinfo">${mfA ? `<b>Filter: ${esc(mfA.naam)}</b> · ` : ''}${l.length} van ${totaal} na filteren · <button type="button" class="linkknop" data-wisfilter="${esc(id)}">Filters wissen</button></p>` : ''}
     ${l.length > max ? `<button type="button" class="meer" data-blok="${id}">${blokOpen.has(id) ? 'Minder tonen' : `Alle ${l.length} tonen`}</button>` : ''}`;
 }
 
@@ -2875,6 +2963,8 @@ function tekenNav(){
     ${(() => { const l = zichtbaar(nieuwM.id, nieuwM.f()), laat = l.filter(nieuwTeLaat).length;   // te laat opgepakt: subtiel rood randje om het getal
       return it(nieuwM.id, nieuwM.t, l.length, laat ? {...nieuwM, laat, titel: `${laat} van de ${l.length} te laat opgepakt`} : nieuwM); })()}
     ${it(aandacht.id, 'Aandacht', zichtbaar(aandacht.id, aandacht.f()).length, {...aandacht, mini: keuze('data-wissel-werk', werkOns ? 'alle' : 'mij', 'Mij', 'Alle', 'Alleen jouw meldingen die aandacht nodig hebben', 'Alle meldingen die aandacht nodig hebben')})}
+    ${INST.ictMailbox ? (() => { if(!MB.t && !MB.bezig && !MB.gevraagd){ MB.gevraagd = true; setTimeout(() => mbLaad(true), 0); }
+      return it('mailbox', 'ICT-mailbox', MB.d ? MB.d.totaal : null, {ico: MB_ICO, cls: MB.soort ? 'ontkoppeld' : '', titel: MB.d ? `${MB.d.totaal} in Postvak IN van ${INST.ictMailbox} · ${MB.d.ongelezen} ongelezen` : MB.fout ? 'ICT-mailbox: ' + MB.fout : 'ICT-mailbox: aantallen ophalen…'}); })() : ''}
     <h4>Mijn afdelingen</h4>
     ${favL.map(rijA).join('') || '<p class="favhint"><b style="color:var(--inkt);font-weight:500">Geen afdeling geselecteerd</b><br>Zet een ★ bij een afdeling om hem hier te tonen.</p>'}
     <h4><button type="button" id="k-overige" aria-expanded="${restOpen}">${ico('<path d="M6 9l6 6 6-6"/>')}Andere afdelingen (${rest.length})</button></h4>
@@ -3016,6 +3106,7 @@ function tekenLijst(){
   if(tab === 'controle'){ if(isBeheerder()) return tekenControle(); tab = 'mij'; return teken(); }
   if(tab === 'werkverdeling'){ if(isBeheerder()) return tekenWerkverdeling(); tab = 'mij'; return teken(); }
   if(tab === 'beoordelingen'){ if(isBeheerder()) return tekenBeoordelingen(); tab = 'mij'; return teken(); }
+  if(tab === 'mailbox') return tekenMailbox();
   if(tab === 'projecten') return tekenProjLijst();
   const v = weergave(tab), w = norm(filt.zoek), kanDicht = dichtVan(tab) !== null, dicht = kanDicht && toonDicht();
   const alles = alleAlles();
@@ -4422,6 +4513,64 @@ const pbKeer = (def, k) => { const n = Math.max(1, +def.aantal || 1); return pbP
 function pbKeren(def, van, tot){ const uit = [], eerst = pbVolgende(def); if(!eerst || !def.start) return uit;
   if(eerst >= van && eerst <= tot) uit.push(eerst);
   for(let k = 1; k < 2000; k++){ const v = pbKeer(def, k); if(v > tot) break; if(v > eerst && v >= van) uit.push(v); } return uit; }
+/* ================= Team › ICT-mailbox: aantallen in Postvak IN van de gedeelde mailbox =================
+   Via Microsoft Graph met je eigen Microsoft-koppeling (recht Mail.ReadBasic.Shared): alleen aantallen, ongelezen en labels (categorieën); geen tekst of bijlagen.
+   Ververst elke 5 minuten zolang SubmIT zichtbaar is. Wie geen toegang tot de mailbox heeft, ziet dat netjes in plaats van cijfers. */
+const MB_ICO = '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>';
+const MB = {scope: 'openid offline_access Mail.ReadBasic.Shared', sleutel: () => 'mict-msmb-' + (sub || 'demo'), d: null, fout: '', soort: '', bezig: false, t: 0, gevraagd: false};
+const mbOutlook = () => `https://outlook.office.com/mail/${encodeURIComponent(INST.ictMailbox)}/inbox`;
+async function mbGeldig(){
+  const t = opslag.get(MB.sleutel()); if(t && Date.now() < t.tot) return t.at;
+  const rt = (t && t.rt) || (msOpgeslagen() || {}).rt;
+  if(!rt) throw Object.assign(new Error('nog niet gekoppeld met Microsoft'), {soort: 'koppel'});
+  try{ return (await msToken({grant_type: 'refresh_token', refresh_token: rt}, MB.scope, MB.sleutel())).at; }
+  catch(e){ throw Object.assign(new Error(/AADSTS65001|consent/i.test(e.message) ? 'nog geen toestemming voor het lezen van de mailbox' : e.message), {soort: 'koppel'}); }
+}
+async function mbLaad(stil){
+  if(MB.bezig || !INST.ictMailbox) return; MB.bezig = true; if(!stil && tab === 'mailbox') tekenMailbox();
+  try{
+    if(DEMO){ await new Promise(r => setTimeout(r, 300)); MB.d = {totaal: 42, ongelezen: 7, labels: [['Glenn', 6, 1], ['Eleandro', 4, 0], ['Mehmet', 3, 2], ['Robert', 1, 0]], zonder: 28, zonderOng: 4}; }
+    else{
+      const h = {Authorization: 'Bearer ' + await mbGeldig()}, basis = `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(INST.ictMailbox)}/mailFolders/inbox`;
+      const r = await fetch(basis + '?$select=totalItemCount,unreadItemCount', {headers: h});
+      if(r.status === 401) throw Object.assign(new Error('Microsoft-koppeling verlopen'), {soort: 'koppel'});
+      if(r.status === 403 || r.status === 404) throw Object.assign(new Error('je hebt geen toegang tot ' + INST.ictMailbox), {soort: 'toegang'});
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      const f = await r.json(), per = new Map(); let zonder = 0, zonderOng = 0, url = basis + '/messages?$select=categories,isRead&$top=1000';
+      for(let i = 0; url && i < 30; i++){   // alleen labels en gelezen/ongelezen per mail ophalen, per 1000
+        const q = await fetch(url, {headers: h}); if(!q.ok) throw new Error('HTTP ' + q.status); const j = await q.json();
+        (j.value || []).forEach(m => { const c = m.categories || []; if(!c.length){ zonder++; if(!m.isRead) zonderOng++; }
+          c.forEach(n => { const p = per.get(n) || [0, 0]; p[0]++; if(!m.isRead) p[1]++; per.set(n, p); }); });
+        url = j['@odata.nextLink'] || ''; }
+      MB.d = {totaal: f.totalItemCount, ongelezen: f.unreadItemCount, labels: [...per].map(([n, [a, o]]) => [n, a, o]).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'nl')), zonder, zonderOng};
+    }
+    MB.fout = ''; MB.soort = ''; MB.t = Date.now();
+  }catch(e){ MB.fout = e.message || 'ophalen lukte niet'; MB.soort = e.soort || 'fout'; MB.t = Date.now(); }
+  MB.bezig = false; try{ tekenNav(); }catch(e){} if(tab === 'mailbox') tekenMailbox();
+}
+setInterval(() => { if(profiel && !document.hidden && INST.ictMailbox && MB.soort !== 'koppel') mbLaad(true); }, 5 * 60e3);
+function tekenMailbox(){
+  if(!MB.t && !MB.bezig) mbLaad();
+  $('#lijst-titel').textContent = 'ICT-mailbox'; $('#lijst-n').hidden = !MB.d; $('#lijst-n').textContent = MB.d ? MB.d.totaal : '';
+  $('#titel').textContent = ''; $('#subtitel').textContent = ''; $('#lijst-sub').textContent = ''; $('#lijst-kol').innerHTML = '';
+  ['#f-mijn', '#f-mijalles', '#f-soort', '#f-changes', '#f-weergave', '#f-zoom'].forEach(sel => { const e = $(sel); if(e) e.hidden = true; });
+  const kop = `<div class="ctrl-kop"><span>${MB.bezig ? 'Ophalen…' : MB.t && !MB.fout ? 'Bijgewerkt ' + fmtTijd(new Date(MB.t)) + ' · ververst elke 5 minuten' : ''}</span><span class="pb-knoppen"><button type="button" class="linkknop" data-mbvernieuw ${MB.bezig ? 'disabled' : ''}>Vernieuwen</button><a class="knop vol klein" href="${mbOutlook()}" target="_blank" rel="noopener">Openen in Outlook</a></span></div>`;
+  const uitleg = `<p class="ctrl-uitleg">Postvak IN van <b>${esc(INST.ictMailbox)}</b> (geen submappen). Een mail hangt aan iemand via een label (categorie) in Outlook. SubmIT leest alleen aantallen en labels, geen inhoud.</p>`;
+  let body;
+  if(MB.fout && MB.soort === 'koppel') body = `<div class="blok mb-blok"><p>De ICT-mailbox kan nog niet worden gelezen: ${esc(MB.fout)}.</p><p><button type="button" class="knop vol" data-mbkoppel>Koppelen met Microsoft</button></p><p class="hint">Je logt eenmalig in met je DC-account en geeft toestemming om de mailbox te lezen (alleen aantallen en labels).</p></div>`;
+  else if(MB.fout) body = `<div class="blok mb-blok"><p>${MB.soort === 'toegang' ? `Je hebt geen toegang tot <b>${esc(INST.ictMailbox)}</b>. Vraag de beheerder om je toegang tot de gedeelde mailbox te geven.` : 'Ophalen lukte niet: ' + esc(MB.fout)}</p></div>`;
+  else if(!MB.d) body = `<div class="blok mb-blok"><p class="hint">Aantallen ophalen…</p></div>`;
+  else { const d = MB.d, c = (n, t, kl = '') => `<div class="mb-c ${kl}"><b>${n}</b><span>${t}</span></div>`, mx = Math.max(1, ...d.labels.map(l => l[1]), d.zonder);
+    const rij = (n, a, o, kl = '') => `<tr class="${kl}"><td>${esc(n)}</td><td class="getal">${a}</td><td class="getal">${o ? `<b class="mb-ong">${o}</b>` : '<span class="hint">0</span>'}</td><td class="mb-balkcel"><i class="mb-balk" style="width:${Math.round(a / mx * 100)}%"></i></td></tr>`;
+    body = `<div class="blok mb-blok"><div class="mb-cijfers">${c(d.totaal, 'Totaal in Postvak IN')}${c(d.ongelezen, 'Ongelezen', d.ongelezen ? 'blauw' : '')}${c(d.labels.reduce((s, l) => s + l[1], 0), 'Met een label')}${c(d.zonder, 'Zonder label', d.zonder ? 'oranje' : '')}</div>
+      <table class="tabel mb-tabel"><thead><tr><th>Label (aan wie)</th><th class="getal">Mails</th><th class="getal">Ongelezen</th><th></th></tr></thead><tbody>${d.labels.map(([n, a, o]) => rij(n, a, o)).join('')}${rij('Zonder label', d.zonder, d.zonderOng, 'mb-zonder')}</tbody></table>
+      ${d.labels.length ? '<p class="hint" style="margin:10px 0 0">Een mail met twee labels telt bij beide mee.</p>' : ''}</div>`; }
+  $('#lijst').innerHTML = uitleg + kop + body;
+}
+document.addEventListener('click', async e => {
+  if(e.target.closest('[data-mbvernieuw]')){ mbLaad(); return; }
+  if(e.target.closest('[data-mbkoppel]')){ try{ await msKoppel('openid offline_access User.Read Tasks.ReadWrite ' + MB.scope.replace('openid offline_access ', ''), MB.sleutel()); MB.fout = ''; MB.soort = ''; mbLaad(); }catch(err){ toast('Koppelen lukte niet: ' + err.message, true); } }
+});
 function tekenBeoordelingen(){
   if(!PB.defs && !PB.bezig && !PB.fout) pbLaad();
   $('#lijst-titel').textContent = 'Periodieke taken'; $('#lijst-n').hidden = !PB.defs; $('#lijst-n').textContent = (PB.defs || []).filter(d => d.actief).length;
@@ -7681,7 +7830,7 @@ document.addEventListener('keydown', e => { if(e.key === 'Enter' && (tab === 'pr
 /* ================= instellingen online: overal dezelfde instellingen (Azure Function ict-instellingen) ================= */
 // Wat je instelt staat in de browser én online, per AFAS-gebruiker. Bij inloggen halen we het op en voegen we samen
 // (per instelling wint de nieuwste); wijzig je iets, dan gaat het 3 seconden later mee. Zonder verbinding werkt alles gewoon lokaal.
-const SYNC_VAST = ['mict-wv-team', 'mict-tl-links', 'mict-thema', 'mict-soort', 'mict-kolommen-uit', 'mict-kolvolgorde', 'mict-kolbreedte', 'mict-chzoom', 'mict-chweergave', 'mict-werk-ons', 'mict-afd-ons',
+const SYNC_VAST = ['mict-wv-team', 'mict-mfilters', 'mict-tl-links', 'mict-thema', 'mict-soort', 'mict-kolommen-uit', 'mict-kolvolgorde', 'mict-kolbreedte', 'mict-chzoom', 'mict-chweergave', 'mict-werk-ons', 'mict-afd-ons',
   'mict-venster-groot', 'mict-recente-melders', 'mict-tlsoort', 'mict-samen', 'mict-extra', 'mict-kolzelf', 'mict-regels', 'mict-tour-gezien', 'mict-gelezen', 'mict-interne-notities'];
 const SYNC_META = 'mict-sync-tijden';
 const syncUrl = () => INST.instellingenUrl || String(INST.tokenFunctie || '').replace(/afas-token\/?$/, 'ict-instellingen');
@@ -8864,6 +9013,8 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.20', d: '16-11-2026', p: ['Eigen filters, zoals in AFAS: klik op de trechter vóór de eerste kolomkop. Maak een filter op elke kolom (ook verborgen kolommen), sla hem op onder een naam en kies hem later weer; één filter per lijst kan uitvoeren bij openen. Ook je huidige kolomfilters kun je zo opslaan.']},
+  {v: 'v8.19', d: '16-11-2026', p: ['Nieuw onder Team: ICT-mailbox. Zie hoeveel mails er in Postvak IN van ict@dcklinieken.nl staan, hoeveel ongelezen zijn en hoeveel er per label (aan wie) hangen. Ververst elke 5 minuten.']},
   {v: 'v8.18', d: '13-11-2026', p: ['Afbeelding bekijken: knoppen Passend, 100% (ware grootte) en in-/uitzoomen; ook met de toetsen + − 0 1 en Ctrl+scrollwiel.']},
   {v: 'v8.17', d: '13-11-2026', p: ['Tijdlijnen: lagere regels (de tweede regel loopt niet meer door op een derde) en de kolom met namen is breder of smaller te slepen via het streepje bovenaan; dubbelklik zet hem terug.']},
   {v: 'v8.16', d: '13-11-2026', p: ['Mailvoorbeeld rustiger: linkadressen van plaatjes en logo’s zijn weg, handtekeningen en eerdere berichten in de mail zijn ingeklapt (klik om ze te tonen).']},
