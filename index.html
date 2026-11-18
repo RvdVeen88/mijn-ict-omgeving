@@ -1730,7 +1730,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.27', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.28', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3351,22 +3351,22 @@ function tekenTijdlijn(lijst, opt = {}){
     if(e && +e < +nu) return 'laat'; if(b && +b > nuMs) return 'komt'; return 'loopt'; };
   const FASEN = [['laat', 'Te laat', 'var(--rood)'], ['loopt', 'Loopt', 'var(--blauw)'], ['komt', 'Komt eraan', 'var(--blauw-2)'], ['zonder', 'Nog niet gepland', 'var(--grijs)']].map(([k, t, c]) => [k, (opt.fasen || {})[k] || t, c]);
   const rij = x => {
-    const f = fase(x), b = startVan(x) || x.aangemaakt, e = eindVan(x);
+    const f = fase(x), b = startVan(x) || x.aangemaakt, e = eindVan(x), dl = x._tr === 'p' ? 'einde' : 'deadline';   // projecten: einde, al het andere: deadline (zo heet het in de melding)
     let balk = '', tekst = '', sub = '';
     if(f === 'zonder'){ sub = 'geen begin- of einddatum'; }
-    else if(f === 'laat'){ const l = pos(b), r = pos(nu); sub = 'einde ' + kort(e);
+    else if(f === 'laat'){ const l = pos(b), r = pos(nu); sub = `${dl} ` + kort(e);
       balk = `<span class="tl-bk laat" style="left:${l}%;width:${Math.max(0.8, r - l)}%"><span style="width:100%"></span></span>`;
       tekst = `<span class="tl-pct laat" style="left:calc(${r}% + 8px)">${wd(werkMs(e, nuMs))} werkdagen over tijd</span>`; }
     else if(f === 'komt'){ const l = pos(b), r = e ? pos(new Date(+beginDag(e) + DAG)) : Math.min(100, l + 8); sub = 'start ' + kort(b);
       balk = `<span class="tl-bk${e ? '' : ' open'}" style="left:${l}%;width:${Math.max(0.8, r - l)}%"></span>`;
-      tekst = `<span class="tl-pct" style="left:calc(${r}% + 8px)">${[wacht(x) || `over ${wd(werkMs(nuMs, b))} werkdagen`, !e && 'einddatum ontbreekt'].filter(Boolean).join(' · ')}</span>`; }
+      tekst = `<span class="tl-pct" style="left:calc(${r}% + 8px)">${[wacht(x) || `over ${wd(werkMs(nuMs, b))} werkdagen`, !e && `${dl} ontbreekt`].filter(Boolean).join(' · ')}</span>`; }
     else { const l = pos(b);
-      if(e){ const r = pos(new Date(+beginDag(e) + DAG)), p = Math.round(Math.min(1, Math.max(0, (nuMs - b) / (+e + DAG - b))) * 100); sub = 'tot ' + kort(e);
-        balk = `<span class="tl-bk" style="left:${l}%;width:${Math.max(0.8, r - l)}%"><span style="width:${p}%"></span></span>`;
+      if(e){ const r = pos(new Date(+beginDag(e) + DAG)), p = Math.round(Math.min(1, Math.max(0, (nuMs - b) / (+e + DAG - b))) * 100), bw = Math.max(0.8, r - l), vul = Math.min(100, Math.max(0, (pos(nu) - l) / bw * 100)); sub = `${dl} ` + kort(e);
+        balk = `<span class="tl-bk" style="left:${l}%;width:${bw}%"><span style="width:${vul}%"></span></span>`;   // donkerblauw loopt precies tot de lijn van vandaag
         tekst = `<span class="tl-pct" style="left:calc(${r}% + 8px)">${[opt.resterend ? (wd(werkMs(nuMs, +e + DAG)) <= 1 ? 'vandaag af' : `nog ${wd(werkMs(nuMs, +e + DAG))} werkdagen`) : p + '%', wacht(x)].filter(Boolean).join(' · ')}</span>`; }
-      else { const r = Math.min(100, pos(nu) + 10); sub = 'geen einddatum';
+      else { const r = Math.min(100, pos(nu) + 10); sub = `geen ${dl}`;
         balk = `<span class="tl-bk open" style="left:${l}%;width:${Math.max(0.8, r - l)}%"><span style="width:${Math.max(0, (pos(nu) - l) / Math.max(0.8, r - l) * 100)}%"></span></span>`;
-        tekst = `<span class="tl-pct" style="left:calc(${r}% + 8px)">einddatum ontbreekt</span>`; } }
+        tekst = `<span class="tl-pct" style="left:calc(${r}% + 8px)">${dl} ontbreekt</span>`; } }
     if(f !== 'zonder' && (+(e || b) < +van || +b > +tot)) { balk = ''; tekst = `<span class="tl-pct" style="${+b > +tot ? 'right:8px' : 'left:8px'}">${+b > +tot ? 'later →' : '← eerder'}</span>`; }
     return `<div class="tl-rij" data-nr="${esc(x.nr)}" tabindex="0" role="button" title="${esc(x.onderwerp)} · ${esc(toonStatus(x.status) || '')}">
       <div class="tl-label"><b>${opt.tag ? `<span class="trtag ${x._tr || 'c'}">${({c: 'C', p: 'P', m: 'M', t: 'T'})[x._tr || 'c']}</span>` : ''}${esc(x.onderwerp)}</b><small>${esc(opt.nr ? opt.nr(x) : nrT(x))} · ${x._tr === 'p' && x.rol ? esc(x.rol.toLowerCase()) + ' · ' : ''}${sub}</small></div>
@@ -3384,7 +3384,7 @@ function tekenTijdlijn(lijst, opt = {}){
     ${opt.drukte ? (() => { const dw = trDrukte(lijst, van, weken), max = Math.max(DRUK, ...dw.map(d => d.n));
       return `<div class="tl-rij tl-drukte"><div class="tl-label"><b>Drukte per week</b><small>${dw.some(d => d.n >= DRUK) ? 'rood = ' + DRUK + ' of meer tegelijk' : 'geen drukke weken'}</small></div><div class="tl-spoor" style="${raster}">${dw.map(d => `<span class="tl-dk${d.n >= DRUK ? ' druk' : ''}" style="left:${pos(d.van)}%;width:${100 / weken}%" title="Week ${weeknr(d.van)}: ${d.c} change${d.c === 1 ? '' : 's'}, ${d.p} project${d.p === 1 ? '' : 'en'}"><i class="p" style="height:${d.p / max * 100}%"></i><i class="c" style="height:${d.c / max * 100}%"></i></span>`).join('')}<span class="tl-vandaag" style="left:${pos(nu)}%"></span></div></div>`; })() : ''}
     <div class="tl-body">${groepen}</div>
-    ${opt.geenLegenda ? '' : `<div class="tl-legenda"><span><i style="background:var(--blauw)"></i>Verstreken doorlooptijd</span><span><i style="background:var(--lichtblauw-2);border:1px solid var(--lichtblauw)"></i>Nog te gaan</span><span><i style="background:var(--rood)"></i>Einddatum verstreken</span>${opt.tag ? `<span>${[['c', 'C', 'change'], ['p', 'P', 'project'], ['m', 'M', 'melding'], ['t', 'T', 'to-do']].filter(([k]) => lijst.some(x => (x._tr || 'c') === k)).map(([k, l, n]) => `<b class="trtag ${k}" style="margin-left:8px">${l}</b> ${n}`).join(' ')}</span>` : '<span>Einddatum = Einddatum project, anders Gepland</span>'}</div>`}
+    ${opt.geenLegenda ? '' : `<div class="tl-legenda"><span><i style="background:var(--blauw)"></i>Al geweest (tot vandaag)</span><span><i style="background:var(--lichtblauw-2);border:1px solid var(--lichtblauw)"></i>Nog te gaan</span><span><i style="background:var(--rood)"></i>Deadline verstreken</span>${opt.tag ? `<span>${[['c', 'C', 'change'], ['p', 'P', 'project'], ['m', 'M', 'melding'], ['t', 'T', 'to-do']].filter(([k]) => lijst.some(x => (x._tr || 'c') === k)).map(([k, l, n]) => `<b class="trtag ${k}" style="margin-left:8px">${l}</b> ${n}`).join(' ')}</span>` : '<span>Deadline = het veld Deadline in de melding, anders Gepland</span>'}</div>`}
   </div>`;
 }
 let tab = 'mij';
@@ -3392,7 +3392,11 @@ let tab = 'mij';
    Tot AFAS de wijziging teruggeeft (max. 3 minuten) houdt de pagina de eigen waarde vast. */
 const lokaalNieuw = new Map();
 // altijd een nieuw object in lokaalNieuw: anders slaat pasLokaalToe een tweede wijziging aan dezelfde melding over
-function onthoudLokaal(x, v, duur = 3 * 60e3){ meldActiviteitVan(x, v);
+// een status die 'afgesloten' betekent (Afgehandeld, Gesloten, …): dezelfde regel als bij het inlezen uit AFAS
+const isDichtStatus = st => { const s = norm(st); return !!s && (lijst(INST.st_afgesloten).includes(s) || /^(afgehandeld|gesloten|afgesloten|geannuleerd|vervallen|ingetrokken)\b/.test(s)); };
+function onthoudLokaal(x, v, duur = 3 * 60e3){
+  if(v.status && v.afgesloten === undefined && isDichtStatus(v.status)) v = {...v, afgesloten: true};   // status naar Afgehandeld via een workflowstap: dan ook echt dicht
+  meldActiviteitVan(x, v);
   if((v.verantw && !benIk(v.verantw)) || v.afgesloten){ x.taakBij = (x.taakBij || []).filter(n => !benIk(n)); mijnTaken = mijnTaken.filter(t => String(t.SubjectId) !== String(x.sbid)); }   // doorgezet of afgehandeld: jouw taak is weg
   const k = String(x.nr), oud = lokaalNieuw.get(k) || {velden:{}}, o = {velden: {...oud.velden, ...v}, tot: oud.tot}; o.tot = Math.max(o.tot || 0, Date.now() + duur); lokaalNieuw.set(k, o); pasLokaalToe(); }
 const zelfde = (k, a, b) => (!a && !b) ? true : k === 'afgesloten' ? !!a === !!b : (k === 'gepland' || k === 'projStart' || k === 'projEind' || k === 'reactieDatum') ? (!!a && !!b && Math.abs(+a - +b) < (k === 'reactieDatum' ? 10 * 60e3 : DAG)) : norm(a) === norm(b);
@@ -9161,6 +9165,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.28', d: '19-11-2026', p: ['Tijdlijnen: het donkerblauwe deel van een balk loopt nu precies tot de lijn van vandaag (geweest = donkerblauw, nog te gaan = lichtblauw).', 'Tijdlijnen: “einddatum” heet nu “deadline”, zoals in de melding (bij projecten blijft het “einde”).', 'Een melding die via een workflowstap op Afgehandeld kwam, bleef soms als open in je lijsten staan tot je de pagina herlaadde. Nu is hij meteen dicht.']},
   {v: 'v8.27', d: '19-11-2026', p: ['Changes: de deadline (Einddatum project) bleef na herladen leeg, omdat SubmIT de lege kolom Einddatum las. Nu eerst de projectkolom, daarna pas de algemene.']},
   {v: 'v8.26', d: '19-11-2026', p: ['Projecten gegroepeerd op jouw rol: Opdrachtgever, Projectleider, overige rollen en als laatste Projectlid; binnen elke rol eerst wat te laat is, dan op einddatum. In de lijst en in de tijdlijn.']},
   {v: 'v8.25', d: '18-11-2026', p: ['Profielfoto’s (avatars) overal iets groter: rechtsboven, in Team en de activiteiten, wie er online is, bij reacties en wie er meekijkt.']},
