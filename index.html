@@ -1730,7 +1730,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.28', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.29', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -7760,7 +7760,12 @@ function benIkLos(naam){
 async function laadProjecten(){
   if(!INST.connProjecten || !profiel) return;
   try{
-    const k = await projKolommen(), rijen = await connectorAlles(INST.connProjecten), groep = {};
+    const k0 = await projKolommen(), rijen = await connectorAlles(INST.connProjecten), groep = {}, k = {...k0};
+    // is de naamkolom overal leeg (bv. 'Naam' leeg, de persoon staat in 'Team'), neem dan de kolom die wél namen bevat
+    const heeftWaarden = id => id && rijen.some(r => String(r[id] ?? '').trim());
+    if(!heeftWaarden(k.wie)){ const bezet = new Set([k.nr, k.naam, k.rol, k.status, k.start, k.eind, k.leider, k.opdrachtgever].filter(Boolean));
+      const alt = (k0._alle || []).find(f => !bezet.has(f.id) && /^(team|teamlid|naam|medewerker|persoon|deelnemer|lid|projectlid|naam teamlid|naam medewerker)$/i.test(String(f.label).trim()) && heeftWaarden(f.id));
+      if(alt) k.wie = alt.id; }
     if(k.status && k.faseCode) rijen.forEach(r => { const n = String(r[k.status] ?? '').trim(), c = String(r[k.faseCode] ?? '').trim(); if(n && c) PRJ.faseCodes[n] = c; });
     if(k.status) PRJ.fasenGezien = [...new Set(rijen.map(r => String(r[k.status] ?? '').trim()).filter(Boolean))];
     rijen.forEach(r => { const nr = String(r[k.nr || k.naam] ?? '').trim(); if(nr) (groep[nr] = groep[nr] || []).push(r); });
@@ -9165,6 +9170,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.29', d: '19-11-2026', p: ['Mijn projecten: is de kolom Naam in de projectconnector leeg, dan zoekt SubmIT de teamleden in de kolom die wél namen bevat (bv. Team). Zo verschijnen ook projecten waarin je opdrachtgever of projectlid bent.']},
   {v: 'v8.28', d: '19-11-2026', p: ['Tijdlijnen: het donkerblauwe deel van een balk loopt nu precies tot de lijn van vandaag (geweest = donkerblauw, nog te gaan = lichtblauw).', 'Tijdlijnen: “einddatum” heet nu “deadline”, zoals in de melding (bij projecten blijft het “einde”).', 'Een melding die via een workflowstap op Afgehandeld kwam, bleef soms als open in je lijsten staan tot je de pagina herlaadde. Nu is hij meteen dicht.']},
   {v: 'v8.27', d: '19-11-2026', p: ['Changes: de deadline (Einddatum project) bleef na herladen leeg, omdat SubmIT de lege kolom Einddatum las. Nu eerst de projectkolom, daarna pas de algemene.']},
   {v: 'v8.26', d: '19-11-2026', p: ['Projecten gegroepeerd op jouw rol: Opdrachtgever, Projectleider, overige rollen en als laatste Projectlid; binnen elke rol eerst wat te laat is, dan op einddatum. In de lijst en in de tijdlijn.']},
