@@ -77,6 +77,13 @@ button{cursor:default}
 .rail .r .todo-logo{width:22px;height:22px;object-fit:contain}
 .rail #mb-knop .mb-tal{position:absolute;right:-3px;bottom:-2px;font-size:10px;font-weight:600;line-height:15px;min-width:15px;padding:0 4px;box-sizing:border-box;text-align:center;border-radius:999px;background:var(--grijs-2,#5b6782);color:#fff;border:2px solid var(--achtergrond)}
 .rail #mb-knop .mb-tal.let{background:var(--oranje,#d98c1f)}
+.mbballon{all:unset;box-sizing:border-box;position:fixed;z-index:76;display:flex;align-items:center;gap:10px;max-width:320px;padding:10px 14px 10px 10px;background:var(--vlak);color:var(--inkt);border:1px solid var(--lijn);border-radius:14px;box-shadow:0 14px 36px rgba(0,0,0,.22);cursor:pointer;font-size:12.5px}
+.mbballon::before{content:'';position:absolute;left:-7px;top:50%;width:12px;height:12px;background:var(--vlak);border-left:1px solid var(--lijn);border-bottom:1px solid var(--lijn);transform:translateY(-50%) rotate(45deg)}
+.mbballon img{width:26px;height:26px;flex:none}.mbballon span{display:flex;flex-direction:column;min-width:0}.mbballon small{font-size:11px;color:var(--grijs)}.mbballon b{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mbballon em{font-style:normal;color:var(--inkt);opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mbballon:focus-visible{outline:2px solid var(--blauw-2)}
+.mbballon.in{animation:mbIn .35s cubic-bezier(.2,.8,.3,1.2) both}.mbballon.weg{animation:mbUit .35s ease both}
+@keyframes mbIn{from{opacity:0;transform:translateX(-10px) scale(.96)}to{opacity:1;transform:none}}@keyframes mbUit{to{opacity:0;transform:translateX(-8px)}}
+@media (prefers-reduced-motion: reduce){.mbballon.in,.mbballon.weg{animation:none}}
 .mbpop{position:fixed;z-index:75;width:268px;background:var(--vlak);color:var(--inkt);border:1px solid var(--lijn);border-radius:14px;padding:14px;box-shadow:0 16px 40px rgba(0,0,0,.25);font-size:12.5px;display:flex;flex-direction:column;gap:10px;pointer-events:none}
 .mbpop p{margin:0;line-height:1.45}.mbpop-kop{display:flex;align-items:center;gap:8px}.mbpop-kop img{width:18px;height:18px}.mbpop-kop b{font-size:13px;font-weight:600}.mbpop-kop span{margin-left:auto;color:var(--grijs)}
 .mbpop-balk{display:flex;height:6px;border-radius:3px;overflow:hidden;gap:2px}.mbpop-balk i{display:block;min-width:2px}
@@ -1723,7 +1730,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.23', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.24', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -4614,6 +4621,39 @@ async function mbLaad(stil){
   MB.bezig = false; try{ tekenNav(); }catch(e){} if(tab === 'mailbox') tekenMailbox();
 }
 setInterval(() => { if(profiel && !document.hidden && INST.ictMailbox && MB.soort !== 'koppel') mbLaad(true); }, 5 * 60e3);
+/* nieuwe mail: elke minuut alleen de nieuwste mails ophalen (afzender, onderwerp, tijd); bij iets nieuws een ballonnetje naast het Outlook-icoon.
+   Bij het openen van SubmIT geen ballonnetjes voor wat er al lag; niet bij Niet storen en niet op het rustscherm (onderwerpen kunnen persoonsgegevens bevatten). */
+MB.laatst = '';
+async function mbNieuw(){
+  if(!profiel || !INST.ictMailbox || MB.soort === 'koppel' || MB.soort === 'toegang' || MB.nieuwBezig) return; MB.nieuwBezig = true;
+  try{
+    let l;
+    if(DEMO) l = (window._demoMail || []);
+    else { const h = {Authorization: 'Bearer ' + await mbGeldig()};
+      const q = await fetch(`https://graph.microsoft.com/v1.0/users/${encodeURIComponent(INST.ictMailbox)}/mailFolders/inbox/messages?$select=from,subject,receivedDateTime&$orderby=receivedDateTime desc&$top=10`, {headers: h});
+      if(!q.ok) throw new Error('HTTP ' + q.status); l = ((await q.json()).value || []); }
+    l = l.map(m => ({van: (m.from && m.from.emailAddress && (m.from.emailAddress.name || m.from.emailAddress.address)) || 'Onbekend', onderwerp: m.subject || '(geen onderwerp)', t: m.receivedDateTime || ''})).sort((a, b) => b.t.localeCompare(a.t));
+    if(!MB.laatst){ MB.laatst = (l[0] && l[0].t) || new Date().toISOString(); return; }   // eerste keer: alleen onthouden
+    const nieuw = l.filter(m => m.t > MB.laatst); if(!nieuw.length) return;
+    MB.laatst = nieuw[0].t;
+    if(MB.d){ MB.d.totaal += nieuw.length; MB.d.ongelezen += nieuw.length; MB.d.zonder += nieuw.length; mbRail(); }   // getal meteen bij; de volledige telling volgt bij de 5-minutenronde
+    mbBallon(nieuw);
+  }catch(e){ /* stil: de 5-minutenronde meldt fouten al */ }
+  finally{ MB.nieuwBezig = false; }
+}
+setInterval(mbNieuw, 60e3); setTimeout(mbNieuw, 8e3);
+function mbBallon(nieuw){
+  const k = $('#mb-knop'); if(!k || k.hidden || nietStoren || ($('#rustscherm') && $('#rustscherm').open)) return;
+  let b = $('#mbballon'); if(!b){ document.body.insertAdjacentHTML('beforeend', '<button type="button" id="mbballon" class="mbballon" hidden></button>'); b = $('#mbballon'); }
+  const m = nieuw[0];
+  b.innerHTML = `<img src="${k.querySelector('img').src}" alt=""><span><small>${nieuw.length > 1 ? nieuw.length + ' nieuwe mails · nieuwste van' : 'Nieuwe mail van'}</small><b>${esc(m.van)}</b><em>${esc(kort(m.onderwerp, 70))}</em></span>`;
+  b.setAttribute('aria-label', `Nieuwe mail in de ICT-mailbox van ${m.van}: ${m.onderwerp}. Klik om te openen in Outlook.`);
+  b.hidden = false; b.classList.remove('weg'); void b.offsetWidth; b.classList.add('in');
+  const r = k.getBoundingClientRect(); b.style.left = (r.right + 12) + 'px'; b.style.top = Math.max(12, Math.min(r.top + r.height / 2 - b.offsetHeight / 2, innerHeight - b.offsetHeight - 12)) + 'px';
+  clearTimeout(b._t); b._t = setTimeout(mbBallonWeg, 9000);
+}
+function mbBallonWeg(){ const b = $('#mbballon'); if(!b || b.hidden) return; if(b.matches(':hover')){ clearTimeout(b._t); b._t = setTimeout(mbBallonWeg, 2000); return; } b.classList.add('weg'); setTimeout(() => { b.hidden = true; b.classList.remove('in', 'weg'); }, 350); }
+document.addEventListener('click', e => { if(!(e.target.closest && e.target.closest('#mbballon'))) return; window.open(mbOutlook(), '_blank', 'noopener'); const b = $('#mbballon'); b.hidden = true; });
 /* ICT-mailbox in de linkerbalk (Outlook-icoon onder de Kennisbank): getal = totaal in Postvak IN, muis erop = verdeling per label, klik = openen in Outlook */
 function mbRail(){
   const k = $('#mb-knop'); if(!k) return; k.hidden = false;
@@ -9110,6 +9150,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.24', d: '18-11-2026', p: ['Nieuwe mail in de ICT-mailbox: elke minuut gecontroleerd; komt er iets binnen, dan zie je naast het Outlook-icoon kort van wie en het onderwerp (klik = openen in Outlook). Niet bij Niet storen en niet op het rustscherm.']},
   {v: 'v8.23', d: '18-11-2026', p: ['Rustscherm nieuw ingedeeld (breder): links vast de klok, de datum, wat je aandacht vraagt en de ICT-mailbox; rechts wisselt elke 5 seconden een blok (cijfers, aandacht, to-do, werkzaamheden, team, mailbox). Achtergrond: het SubmIT-kleurverloop dat heel langzaam verschuift.']},
   {v: 'v8.22', d: '18-11-2026', p: ['Rustscherm: dezelfde rustige achtergrond als SubmIT, meer langzaam bewegende details (ringen, lichtpuntjes, ademende klok met minutenlijn), de ICT-mailbox met het aantal mails en per label, en onderaan wisselend wat er vandaag in het team gebeurt.']},
   {v: 'v8.21', d: '18-11-2026', p: ['ICT-mailbox staat nu als Outlook-icoon in de linkerbalk (onder de Kennisbank): het getal is het totaal in Postvak IN, met de muis erop zie je de verdeling per label en ongelezen, klik opent de mailbox in Outlook. Het menu-item onder Team is weg.']},
