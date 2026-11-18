@@ -1730,7 +1730,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.25', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.26', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3260,8 +3260,13 @@ $('#v-lijst').addEventListener('dragleave', e => { if(!e.currentTarget.contains(
 $('#v-lijst').addEventListener('drop', e => { const v = $('#v-lijst'); v.classList.remove('sleepdoel', 'sleepnee'); if(!sleepMag()) return; e.preventDefault();
   const k = SLEEP; SLEEP = null; if(!extraHeeft(tab, k)){ extraZet(tab, k, true); toast(`${EXTRA_NAAM[k]} staan nu ook in deze weergave`); } teken(); });
 const zoekProj = l => { const w = norm(filt.zoek); return w ? l.filter(p => norm([p.code, p.onderwerp, p.leider, p.status, p.rol].join(' ')).includes(w)) : l; };
-const projStd = (a, b) => (a.rol !== 'Projectleider') - (b.rol !== 'Projectleider') || +(a.projEind || 9e15) - +(b.projEind || 9e15);
-const projTabel = (l, dicht) => l.length ? tabel('lijst:projecten', [...l].sort(projStd), {proj: true}) : `<p class="leeg">${dicht ? 'Geen afgeronde projecten.' : 'Geen open projecten.'}${PRJ.diag && !dicht ? `<br><small>Gelezen uit AFAS: ${esc(PRJ.diag)}</small>` : ''}</p>`;
+// projecten op jouw rol: eerst waar je de meeste invloed hebt (opdrachtgever, projectleider), projectlid als laatste; binnen de rol eerst te laat, dan op einddatum
+const projRolRang = x => { const r = norm(x.rol); return /opdrachtgever|sponsor/.test(r) ? 0 : /projectleider|projectmanager/.test(r) ? 1 : !r || /projectlid|teamlid|^lid$|medewerker/.test(r) ? 3 : 2; };
+const projRolGroep = x => { const k = projRolRang(x); return k === 0 ? 'Opdrachtgever' : k === 1 ? 'Projectleider' : k === 3 ? 'Projectlid' : (x.rol || 'Overige rol'); };
+const projLaat = x => !!(x.projEind && +x.projEind < +vandaagBegin());
+const projStd = (a, b) => projRolRang(a) - projRolRang(b) || projLaat(b) - projLaat(a) || +(a.projEind || 9e15) - +(b.projEind || 9e15);
+const projTabel = (l, dicht) => l.length ? (() => { const g = new Map(); [...l].sort(projStd).forEach(x => { const k = projRolGroep(x); if(!g.has(k)) g.set(k, []); g.get(k).push(x); });
+    return [...g].map(([k, v]) => `<h3 class="subkop">${esc(k)} <b>${v.length}</b></h3>` + tabel('lijst:projecten', v, {proj: true})).join(''); })() : `<p class="leeg">${dicht ? 'Geen afgeronde projecten.' : 'Geen open projecten.'}${PRJ.diag && !dicht ? `<br><small>Gelezen uit AFAS: ${esc(PRJ.diag)}</small>` : ''}</p>`;
 const projSectie = (l, dicht) => `<h3 class="subkop">Mijn projecten <b>${l.length}</b></h3>` + (PRJ.fout ? `<p class="leeg">Projecten ophalen lukte niet (${esc(PRJ.fout)}); zie Connectoren &amp; velden.</p>` : projTabel(l, dicht));
 // Nieuwe meldingen en afdelingen: changes en verbeteracties eronder, zodat niets buiten beeld valt (tellen niet mee in het getal, net als op het SLA-dashboard)
 const chOnder = t => t === 'nieuw' ? open().filter(x => isChange(x) && !x.inuit && !String(x.verantw || '').trim())
@@ -3310,7 +3315,7 @@ function samenTijdlijn(c, p, m = [], t = []){
     return {nr: 'td:' + x.id, onderwerp: x.titel, status: '', aangemaakt: null, projStart: e ? (e < nu ? e : nu) : null, projEind: e, _td: x, _tr: 't'}; });
   const lijst = [...c, ...p, ...m, ...tv], soorten = new Set(lijst.map(x => x._tr));
   if(!lijst.length) return `<p class="leeg">Niets met een datum in deze weergave.</p>`;
-  let h = tekenTijdlijn(lijst, {tag: soorten.size > 1, nr: x => x._td ? tdLijstNaam(x._td.lijst) : nrT(x)}).replace(/data-nr="td:/g, 'data-tdtl="');
+  let h = tekenTijdlijn(lijst, {tag: soorten.size > 1, nr: x => x._td ? tdLijstNaam(x._td.lijst) : nrT(x), groep: soorten.size === 1 && soorten.has('p') ? {rang: projRolRang, naam: projRolGroep} : null}).replace(/data-nr="td:/g, 'data-tdtl="');
   p.forEach(x => { h = h.split(`data-nr="${esc(x.code)}"`).join(`data-proj="${esc(x.code)}"`); });
   return h;
 }
@@ -3365,7 +3370,10 @@ function tekenTijdlijn(lijst, opt = {}){
       <div class="tl-spoor" style="${raster}"><span class="tl-vandaag" style="left:${pos(nu)}%"></span>${balk}${tekst}</div></div>`;
   };
   const sorteerOp = {laat: x => +eindVan(x), loopt: x => +(eindVan(x) || 9e15), komt: x => +startVan(x), zonder: x => -(x.aangemaakt || 0)};
-  const groepen = FASEN.map(([k, t, kl]) => { const g = lijst.filter(x => fase(x) === k).sort((a, b) => sorteerOp[k](a) - sorteerOp[k](b));
+  const fRang = Object.fromEntries(FASEN.map(([k], i) => [k, i]));
+  const groepen = opt.groep ? (() => { const m = new Map(); [...lijst].sort((a, b) => opt.groep.rang(a) - opt.groep.rang(b) || fRang[fase(a)] - fRang[fase(b)] || sorteerOp[fase(a)](a) - sorteerOp[fase(b)](b)).forEach(x => { const k = opt.groep.naam(x); if(!m.has(k)) m.set(k, []); m.get(k).push(x); });
+      return [...m].map(([k, g]) => { const laat = g.filter(x => fase(x) === 'laat').length; return `<div class="tl-fase" style="--fk:var(--blauw)"><i></i>${esc(k)} · ${g.length}${laat ? ` <span style="color:var(--rood);margin-left:6px">${laat} te laat</span>` : ''}</div>${g.map(rij).join('')}`; }).join(''); })()
+    : FASEN.map(([k, t, kl]) => { const g = lijst.filter(x => fase(x) === k).sort((a, b) => sorteerOp[k](a) - sorteerOp[k](b));
     return g.length ? `<div class="tl-fase" style="--fk:${kl}"><i></i>${t} · ${g.length}</div>${g.map(rij).join('')}` : ''; }).join('');
   const lw = +opslag.get('mict-tl-links') || 0;   // zelf ingestelde breedte van de namenkolom (geldt voor alle tijdlijnen)
   return `<div class="chtijdlijn"${lw && innerWidth > 800 ? ` style="--links:${lw}px"` : ''}>
@@ -9150,6 +9158,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.26', d: '19-11-2026', p: ['Projecten gegroepeerd op jouw rol: Opdrachtgever, Projectleider, overige rollen en als laatste Projectlid; binnen elke rol eerst wat te laat is, dan op einddatum. In de lijst en in de tijdlijn.']},
   {v: 'v8.25', d: '18-11-2026', p: ['Profielfoto’s (avatars) overal iets groter: rechtsboven, in Team en de activiteiten, wie er online is, bij reacties en wie er meekijkt.']},
   {v: 'v8.24', d: '18-11-2026', p: ['Nieuwe mail in de ICT-mailbox: elke minuut gecontroleerd; komt er iets binnen, dan zie je naast het Outlook-icoon kort van wie en het onderwerp (klik = openen in Outlook). Niet bij Niet storen en niet op het rustscherm.']},
   {v: 'v8.23', d: '18-11-2026', p: ['Rustscherm nieuw ingedeeld (breder): links vast de klok, de datum, wat je aandacht vraagt en de ICT-mailbox; rechts wisselt elke 5 seconden een blok (cijfers, aandacht, to-do, werkzaamheden, team, mailbox). Achtergrond: het SubmIT-kleurverloop dat heel langzaam verschuift.']},
