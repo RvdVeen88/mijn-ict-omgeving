@@ -75,6 +75,15 @@ button{cursor:default}
 :root[data-thema="donker"] #nieuw-knop{--acc:#7FA6FF}:root[data-thema="donker"] #meld-knop{--acc:#6E9BFF}
 @media (prefers-color-scheme: dark){:root:not([data-thema="licht"]) #nieuw-knop{--acc:#7FA6FF}:root:not([data-thema="licht"]) #meld-knop{--acc:#6E9BFF}}
 .rail .r .todo-logo{width:22px;height:22px;object-fit:contain}
+.rail #mb-knop .mb-tal{position:absolute;right:-3px;bottom:-2px;font-size:10px;font-weight:600;line-height:15px;min-width:15px;padding:0 4px;box-sizing:border-box;text-align:center;border-radius:999px;background:var(--grijs-2,#5b6782);color:#fff;border:2px solid var(--achtergrond)}
+.rail #mb-knop .mb-tal.let{background:var(--oranje,#d98c1f)}
+.mbpop{position:fixed;z-index:75;width:268px;background:var(--vlak);color:var(--inkt);border:1px solid var(--lijn);border-radius:14px;padding:14px;box-shadow:0 16px 40px rgba(0,0,0,.25);font-size:12.5px;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.mbpop p{margin:0;line-height:1.45}.mbpop-kop{display:flex;align-items:center;gap:8px}.mbpop-kop img{width:18px;height:18px}.mbpop-kop b{font-size:13px;font-weight:600}.mbpop-kop span{margin-left:auto;color:var(--grijs)}
+.mbpop-balk{display:flex;height:6px;border-radius:3px;overflow:hidden;gap:2px}.mbpop-balk i{display:block;min-width:2px}
+.mbpop-rijen{display:grid;grid-template-columns:8px 1fr auto auto;gap:5px 10px;align-items:center}.mbpop-rijen > i{width:8px;height:8px;border-radius:50%}
+.mbpop-rijen small{font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--grijs)}.mbpop-rijen small:nth-of-type(n+2){text-align:right}
+.mbpop-rijen span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mbpop-rijen span.grijs{color:var(--grijs)}.mbpop-rijen b{text-align:right;font-weight:600}.mbpop-rijen em{font-style:normal;text-align:right;color:var(--blauw-2)}
+.mbpop-voet{color:var(--grijs);font-size:11.5px;border-top:1px solid var(--lijn);padding-top:8px}
 .rail .r:hover{background:var(--rail-hover);color:var(--rail-act)}
 .rail .r.plus{color:var(--blauw)}
 .rail .r.plus .acc{stroke-width:2}
@@ -1557,6 +1566,7 @@ i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:
     <button type="button" class="r" id="team-knop" title="Team: wie is er online en wat gebeurt er" aria-label="Team" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path class="acc" d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 20a6.5 6.5 0 0 0-2.6-5.2"/></svg><span class="tel online" id="team-aantal"></span><span class="stip" id="team-stip" hidden></span></button>
     <span class="rail-scheid" aria-hidden="true"></span>
     <button type="button" class="r" id="kb-knop" title="Kennisbank: instructies zoeken, openen en meesturen" aria-label="Kennisbank"><img class="todo-logo" src="kennisbank.png" alt="" hidden onload="this.hidden=false;this.nextElementSibling.style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 4.9 6.6 4.4 3 5v13c3.6-.6 7 0 9 1.6"/><path d="M12 6.5c2-1.6 5.4-2.1 9-1.5v13c-3.6-.6-7 0-9 1.6z"/><path d="M12 6.5v13.1"/><path class="acc" d="M5.8 9c1.6-.2 3 .1 4 .6M5.8 12.2c1.6-.2 3 .1 4 .6M14.2 9.6c1-.5 2.4-.8 4-.6M14.2 12.8c1-.5 2.4-.8 4-.6"/></svg></button>
+    <button type="button" class="r" id="mb-knop" hidden aria-label="ICT-mailbox" aria-describedby="mbpop"><img class="todo-logo" src="data:image/png;base64,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" alt=""><b class="mb-tal" hidden></b></button>
     <button type="button" class="r" id="rap-knop" data-weergave="rapport" title="Rapportage: aantallen, trends en een AI-analyse" aria-label="Rapportage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
   </nav>
   <aside class="nav" id="nav"></aside><div class="tdnav" id="tdnav" role="group" aria-label="To-do-lijsten" hidden></div><div class="navscherm" id="navscherm"></div>
@@ -1692,7 +1702,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.20', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.21', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2963,8 +2973,7 @@ function tekenNav(){
     ${(() => { const l = zichtbaar(nieuwM.id, nieuwM.f()), laat = l.filter(nieuwTeLaat).length;   // te laat opgepakt: subtiel rood randje om het getal
       return it(nieuwM.id, nieuwM.t, l.length, laat ? {...nieuwM, laat, titel: `${laat} van de ${l.length} te laat opgepakt`} : nieuwM); })()}
     ${it(aandacht.id, 'Aandacht', zichtbaar(aandacht.id, aandacht.f()).length, {...aandacht, mini: keuze('data-wissel-werk', werkOns ? 'alle' : 'mij', 'Mij', 'Alle', 'Alleen jouw meldingen die aandacht nodig hebben', 'Alle meldingen die aandacht nodig hebben')})}
-    ${INST.ictMailbox ? (() => { if(!MB.t && !MB.bezig && !MB.gevraagd){ MB.gevraagd = true; setTimeout(() => mbLaad(true), 0); }
-      return it('mailbox', 'ICT-mailbox', MB.d ? MB.d.totaal : null, {ico: MB_ICO, cls: MB.soort ? 'ontkoppeld' : '', titel: MB.d ? `${MB.d.totaal} in Postvak IN van ${INST.ictMailbox} · ${MB.d.ongelezen} ongelezen` : MB.fout ? 'ICT-mailbox: ' + MB.fout : 'ICT-mailbox: aantallen ophalen…'}); })() : ''}
+    ${INST.ictMailbox ? (mbRail(), '') : ''}
     <h4>Mijn afdelingen</h4>
     ${favL.map(rijA).join('') || '<p class="favhint"><b style="color:var(--inkt);font-weight:500">Geen afdeling geselecteerd</b><br>Zet een ★ bij een afdeling om hem hier te tonen.</p>'}
     <h4><button type="button" id="k-overige" aria-expanded="${restOpen}">${ico('<path d="M6 9l6 6 6-6"/>')}Andere afdelingen (${rest.length})</button></h4>
@@ -4524,7 +4533,7 @@ async function mbGeldig(){
   const rt = (t && t.rt) || (msOpgeslagen() || {}).rt;
   if(!rt) throw Object.assign(new Error('nog niet gekoppeld met Microsoft'), {soort: 'koppel'});
   try{ return (await msToken({grant_type: 'refresh_token', refresh_token: rt}, MB.scope, MB.sleutel())).at; }
-  catch(e){ throw Object.assign(new Error(/AADSTS65001|consent/i.test(e.message) ? 'nog geen toestemming voor het lezen van de mailbox' : e.message), {soort: 'koppel'}); }
+  catch(e){ throw Object.assign(new Error(/AADSTS65001|consent/i.test(e.message) ? 'nog geen toestemming voor het lezen van de mailbox' : /AADSTS700084|AADSTS70008|expired|verlopen/i.test(e.message) ? 'je Microsoft-koppeling is verlopen (na 24 uur)' : e.message), {soort: 'koppel'}); }
 }
 async function mbLaad(stil){
   if(MB.bezig || !INST.ictMailbox) return; MB.bezig = true; if(!stil && tab === 'mailbox') tekenMailbox();
@@ -4549,6 +4558,38 @@ async function mbLaad(stil){
   MB.bezig = false; try{ tekenNav(); }catch(e){} if(tab === 'mailbox') tekenMailbox();
 }
 setInterval(() => { if(profiel && !document.hidden && INST.ictMailbox && MB.soort !== 'koppel') mbLaad(true); }, 5 * 60e3);
+/* ICT-mailbox in de linkerbalk (Outlook-icoon onder de Kennisbank): getal = totaal in Postvak IN, muis erop = verdeling per label, klik = openen in Outlook */
+function mbRail(){
+  const k = $('#mb-knop'); if(!k) return; k.hidden = false;
+  if(!MB.t && !MB.bezig && !MB.gevraagd){ MB.gevraagd = true; setTimeout(() => mbLaad(true), 0); }
+  const tal = k.querySelector('.mb-tal'), koppel = MB.soort === 'koppel';
+  tal.hidden = !(MB.d || MB.fout); tal.textContent = koppel || (MB.fout && !MB.d) ? '!' : MB.d ? (MB.d.totaal > 999 ? '999+' : MB.d.totaal) : ''; tal.classList.toggle('let', !!(koppel || (MB.fout && !MB.d)));
+  k.title = ''; k.setAttribute('aria-label', MB.d ? `ICT-mailbox: ${MB.d.totaal} in Postvak IN, ${MB.d.ongelezen} ongelezen` : 'ICT-mailbox');
+  if($('#mbpop') && !$('#mbpop').hidden) mbPop();
+}
+function mbPop(){
+  let p = $('#mbpop'); if(!p){ document.body.insertAdjacentHTML('beforeend', '<div id="mbpop" class="mbpop" role="tooltip" hidden></div>'); p = $('#mbpop'); }
+  const d = MB.d, kl = ['#2F6FEB', '#5B8DEF', '#7FB3F5', '#A9CBF7', '#C9DCF9'], kop = `<div class="mbpop-kop"><img src="${$('#mb-knop img').src}" alt=""><b>ICT-mailbox</b><span>${d ? d.totaal + ' in Postvak IN' : ''}</span></div>`;
+  let body;
+  if(MB.soort === 'koppel') body = `<p>Nog niet gekoppeld: ${esc(MB.fout)}.</p><p class="mbpop-voet">Klik om eenmalig te koppelen met Microsoft</p>`;
+  else if(MB.fout && !d) body = `<p>${MB.soort === 'toegang' ? 'Je hebt geen toegang tot ' + esc(INST.ictMailbox) + '.' : 'Ophalen lukte niet: ' + esc(MB.fout)}</p><p class="mbpop-voet">Klik om de mailbox te openen in Outlook</p>`;
+  else if(!d) body = '<p class="mbpop-voet">Aantallen ophalen…</p>';
+  else { const l = d.labels.slice(0, 8), rest = d.labels.slice(8), restA = rest.reduce((s, x) => s + x[1], 0), restO = rest.reduce((s, x) => s + x[2], 0), tot = Math.max(1, d.labels.reduce((s, x) => s + x[1], 0) + d.zonder);
+    const rij = (n, a, o, c, grijs) => `<i style="background:${c}"></i><span${grijs ? ' class="grijs"' : ''}>${esc(n)}</span><b>${a}</b><em>${o || '–'}</em>`;
+    body = `<div class="mbpop-balk">${l.map((x, i) => `<i style="flex:${x[1]};background:${kl[Math.min(i, kl.length - 1)]}"></i>`).join('')}${restA ? `<i style="flex:${restA};background:${kl[4]}"></i>` : ''}<i style="flex:${d.zonder || 0.0001};background:var(--lijn)"></i></div>
+      <div class="mbpop-rijen"><span></span><small>Label</small><small>Mails</small><small>Ongelezen</small>${l.map((x, i) => rij(x[0], x[1], x[2], kl[Math.min(i, kl.length - 1)])).join('')}${rest.length ? rij(`${rest.length} andere labels`, restA, restO, kl[4]) : ''}${rij('Zonder label', d.zonder, d.zonderOng, 'var(--lijn)', true)}</div>
+      <p class="mbpop-voet">${d.ongelezen} ongelezen · klik om te openen in Outlook · bijgewerkt ${fmtTijd(new Date(MB.t))}</p>`; }
+  p.innerHTML = kop + body; p.hidden = false;
+  const r = $('#mb-knop').getBoundingClientRect(); p.style.left = (r.right + 12) + 'px'; p.style.top = Math.max(12, Math.min(r.top + r.height / 2 - p.offsetHeight / 2, innerHeight - p.offsetHeight - 12)) + 'px';
+}
+const mbPopDicht = () => { const p = $('#mbpop'); if(p) p.hidden = true; };
+document.addEventListener('mouseover', e => { if(e.target.closest && e.target.closest('#mb-knop')) mbPop(); });
+document.addEventListener('mouseout', e => { if(e.target.closest && e.target.closest('#mb-knop') && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('#mb-knop'))) mbPopDicht(); });
+document.addEventListener('focusin', e => { if(e.target.id === 'mb-knop') mbPop(); });
+document.addEventListener('focusout', e => { if(e.target.id === 'mb-knop') mbPopDicht(); });
+document.addEventListener('click', async e => { if(!(e.target.closest && e.target.closest('#mb-knop'))) return; mbPopDicht();
+  if(MB.soort === 'koppel'){ try{ await msKoppel('openid offline_access User.Read Tasks.ReadWrite ' + MB.scope.replace('openid offline_access ', ''), MB.sleutel()); MB.fout = ''; MB.soort = ''; mbLaad(); }catch(err){ toast('Koppelen lukte niet: ' + err.message, true); } return; }
+  window.open(mbOutlook(), '_blank', 'noopener'); if(MB.t && Date.now() - MB.t > 60e3) mbLaad(true); });
 function tekenMailbox(){
   if(!MB.t && !MB.bezig) mbLaad();
   $('#lijst-titel').textContent = 'ICT-mailbox'; $('#lijst-n').hidden = !MB.d; $('#lijst-n').textContent = MB.d ? MB.d.totaal : '';
@@ -9013,6 +9054,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.21', d: '18-11-2026', p: ['ICT-mailbox staat nu als Outlook-icoon in de linkerbalk (onder de Kennisbank): het getal is het totaal in Postvak IN, met de muis erop zie je de verdeling per label en ongelezen, klik opent de mailbox in Outlook. Het menu-item onder Team is weg.']},
   {v: 'v8.20', d: '16-11-2026', p: ['Eigen filters, zoals in AFAS: klik op de trechter vóór de eerste kolomkop. Maak een filter op elke kolom (ook verborgen kolommen), sla hem op onder een naam en kies hem later weer; één filter per lijst kan uitvoeren bij openen. Ook je huidige kolomfilters kun je zo opslaan.']},
   {v: 'v8.19', d: '16-11-2026', p: ['Nieuw onder Team: ICT-mailbox. Zie hoeveel mails er in Postvak IN van ict@dcklinieken.nl staan, hoeveel ongelezen zijn en hoeveel er per label (aan wie) hangen. Ververst elke 5 minuten.']},
   {v: 'v8.18', d: '13-11-2026', p: ['Afbeelding bekijken: knoppen Passend, 100% (ware grootte) en in-/uitzoomen; ook met de toetsen + − 0 1 en Ctrl+scrollwiel.']},
