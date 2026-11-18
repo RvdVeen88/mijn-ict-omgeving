@@ -1393,29 +1393,49 @@ i.stil{position:relative;overflow:visible}
 i.stil::before{content:'';position:absolute;z-index:2;top:-3px;right:-3px;width:12px;height:12px;border-radius:50%;box-sizing:border-box;border:2px solid var(--vlak);background:linear-gradient(#fff,#fff) center/5px 1.6px no-repeat,var(--rood);box-shadow:0 0 0 .5px rgba(0,0,0,.08)}
 
 /* rustscherm */
-#rustscherm{position:fixed;inset:0;width:100vw;height:100vh;max-width:none;max-height:none;margin:0;padding:0;border:0;border-radius:0!important;box-shadow:none!important;outline:none;background:var(--achtergrond);color:var(--inkt);opacity:0;transition:opacity .45s ease;overflow:auto;cursor:none}
+#rustscherm{position:fixed;inset:0;width:100vw;height:100vh;max-width:none;max-height:none;margin:0;padding:0;border:0;border-radius:0!important;box-shadow:none!important;outline:none;background:linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 45%,var(--bg3) 100%);color:var(--inkt);opacity:0;transition:opacity .45s ease;overflow:auto;cursor:none}
 #rustscherm::backdrop{background:transparent}
 #rustscherm.aan{opacity:1}#rustscherm.weg{opacity:0}
 #rustscherm .rs-in{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:6vh 32px 40px;pointer-events:none;animation:rsZweef 48s ease-in-out infinite alternate}
 @keyframes rsZweef{0%{transform:translate(0,0)}33%{transform:translate(14px,-10px)}66%{transform:translate(-12px,8px)}100%{transform:translate(8px,12px)}}
 /* zen: zachte, trage kleurvlekken (huisstijlblauw) en een paar zwevende lichtpuntjes; heel langzaam, nooit druk */
 .rs-zen{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
-.rs-zen i{position:absolute;width:62vmax;height:62vmax;border-radius:50%;filter:blur(70px);opacity:.16;will-change:transform;animation:rsDrift 90s ease-in-out infinite alternate}
-.rs-zen i:nth-child(1){background:#2F6FEB;left:-18vmax;top:-22vmax}
-.rs-zen i:nth-child(2){background:#053787;right:-22vmax;top:8vh;animation-duration:110s;animation-delay:-30s}
-.rs-zen i:nth-child(3){background:#6F9BEA;left:18vw;bottom:-30vmax;animation-duration:130s;animation-delay:-60s}
-.rs-zen i:nth-child(4){background:#14B87A;right:12vw;bottom:-36vmax;opacity:.07;animation-duration:150s;animation-delay:-90s}
-@keyframes rsDrift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(8vw,-6vh) scale(1.12)}100%{transform:translate(-6vw,7vh) scale(.94)}}
+.rs-zen u{position:absolute;border-radius:50%;border:1px solid var(--blauw);opacity:.07;will-change:transform;animation:rsRing 120s linear infinite}
+.rs-zen u:nth-of-type(1){width:70vmax;height:70vmax;left:-30vmax;top:-34vmax}
+.rs-zen u:nth-of-type(2){width:46vmax;height:46vmax;right:-14vmax;top:18vh;border-style:dashed;opacity:.06;animation-duration:180s;animation-direction:reverse}
+.rs-zen u:nth-of-type(3){width:30vmax;height:30vmax;left:30vw;bottom:-18vmax;opacity:.05;animation-duration:150s}
+.rs-zen u:nth-of-type(4){width:90vmax;height:90vmax;right:-48vmax;bottom:-60vmax;opacity:.04;animation-duration:240s;animation-direction:reverse}
+@keyframes rsRing{0%{transform:rotate(0) translate(0,0)}50%{transform:rotate(180deg) translate(2vw,-2vh)}100%{transform:rotate(360deg) translate(0,0)}}
 .rs-zen b{position:absolute;bottom:-12px;width:6px;height:6px;border-radius:50%;background:var(--blauw);opacity:0;animation:rsStijg 34s linear infinite}
-.rs-zen b:nth-of-type(1){left:12%;animation-delay:0s}.rs-zen b:nth-of-type(2){left:28%;animation-delay:-9s;animation-duration:41s;width:4px;height:4px}
-.rs-zen b:nth-of-type(3){left:47%;animation-delay:-20s;animation-duration:38s}.rs-zen b:nth-of-type(4){left:63%;animation-delay:-5s;animation-duration:46s;width:5px;height:5px}
-.rs-zen b:nth-of-type(5){left:79%;animation-delay:-27s;width:4px;height:4px}.rs-zen b:nth-of-type(6){left:91%;animation-delay:-14s;animation-duration:44s}
+.rs-zen b:nth-of-type(1){left:6%;animation-delay:0s}.rs-zen b:nth-of-type(2){left:14%;animation-delay:-9s;animation-duration:41s;width:4px;height:4px}
+.rs-zen b:nth-of-type(3){left:23%;animation-delay:-20s;animation-duration:38s}.rs-zen b:nth-of-type(4){left:31%;animation-delay:-5s;animation-duration:46s;width:5px;height:5px}
+.rs-zen b:nth-of-type(5){left:39%;animation-delay:-27s;width:3px;height:3px}.rs-zen b:nth-of-type(6){left:47%;animation-delay:-14s;animation-duration:44s}
+.rs-zen b:nth-of-type(7){left:55%;animation-delay:-31s;animation-duration:52s;width:4px;height:4px}.rs-zen b:nth-of-type(8){left:63%;animation-delay:-3s;animation-duration:39s;width:3px;height:3px}
+.rs-zen b:nth-of-type(9){left:71%;animation-delay:-18s;animation-duration:47s}.rs-zen b:nth-of-type(10){left:79%;animation-delay:-25s;width:5px;height:5px}
+.rs-zen b:nth-of-type(11){left:87%;animation-delay:-8s;animation-duration:43s;width:3px;height:3px}.rs-zen b:nth-of-type(12){left:94%;animation-delay:-36s;animation-duration:50s;width:4px;height:4px}
+.rs-zen b:nth-of-type(3n){background:#14B87A}.rs-zen b:nth-of-type(4n){background:#6F9BEA}
 @keyframes rsStijg{0%{transform:translate(0,0);opacity:0}12%{opacity:.35}50%{transform:translate(18px,-55vh)}88%{opacity:.25}100%{transform:translate(-10px,-108vh);opacity:0}}
-:root[data-thema="donker"] .rs-zen i{opacity:.22}:root[data-thema="donker"] .rs-zen i:nth-child(4){opacity:.08}
+:root[data-thema="donker"] .rs-zen u{opacity:.12}
+/* klok: dubbele punt ademt mee, dunne lijn vult zich per minuut */
+#rustscherm .rs-dp{animation:rsDp 2s ease-in-out infinite}@keyframes rsDp{50%{opacity:.25}}
+#rustscherm .rs-sec{display:block;width:min(260px,40vw);height:2px;border-radius:2px;background:var(--lijn);margin:-12px 0 26px;overflow:hidden}
+#rustscherm .rs-sec i{display:block;height:100%;width:100%;background:var(--blauw-2);transform-origin:left;animation:rsSec 60s linear infinite}@keyframes rsSec{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+#rustscherm .rs-top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
+/* ICT-mailbox op het rustscherm */
+#rustscherm .rs-mb{display:flex;flex-direction:column;gap:8px;padding:16px 18px;border-radius:18px;background:color-mix(in srgb,var(--vlak) 55%,transparent);border:1px solid var(--lijn);min-width:230px;margin-top:10px;animation:rsMb 9s ease-in-out infinite}
+@keyframes rsMb{50%{transform:translateY(-4px)}}
+#rustscherm .rs-mb-kop{display:flex;align-items:center;gap:10px}#rustscherm .rs-mb-kop img{width:26px;height:26px}
+#rustscherm .rs-mb-kop b{font-size:34px;font-weight:300;line-height:1;color:var(--blauw)}#rustscherm .rs-mb-kop span{font-size:12.5px;color:var(--grijs);line-height:1.3}
+#rustscherm .rs-mb-l{display:flex;flex-wrap:wrap;gap:5px}#rustscherm .rs-mb-l span{font-size:11.5px;padding:2px 9px;border-radius:999px;background:var(--achtergrond);color:var(--inkt)}#rustscherm .rs-mb-l em{font-style:normal;color:var(--blauw-2);font-weight:600;margin-left:3px}
+/* teamactiviteit: één regel tegelijk, zacht wisselend */
+#rustscherm .rs-tick{position:fixed;left:0;right:0;bottom:64px;z-index:1;display:flex;justify-content:center;pointer-events:none}
+#rustscherm .rs-tick span{display:inline-flex;align-items:center;gap:8px;max-width:min(720px,90vw);font-size:13.5px;color:var(--inkt);background:color-mix(in srgb,var(--vlak) 60%,transparent);border:1px solid var(--lijn);border-radius:999px;padding:7px 16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:rsTick 7s ease-in-out both}
+#rustscherm .rs-tick small{color:var(--grijs)}#rustscherm .rs-tick .rs-zin{all:unset}#rustscherm .rs-in{padding-bottom:150px}#rustscherm .rs-tick i{width:7px;height:7px;border-radius:50%;background:#14B87A;flex:none;animation:rsDp 2s ease-in-out infinite}
+@keyframes rsTick{0%{opacity:0;transform:translateY(10px)}12%,85%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-8px)}}
 #rustscherm .rs-klok{font-size:clamp(56px,9vw,120px);font-weight:300;color:var(--blauw);letter-spacing:-.02em;line-height:1;margin-bottom:24px}
 #rustscherm .rs-hint{margin-top:40px;color:var(--grijs);font-size:13px;text-align:center;animation:rsPuls 3s ease-in-out infinite}
 @keyframes rsPuls{50%{opacity:.4}}
-@media (prefers-reduced-motion: reduce){#rustscherm{transition:none}#rustscherm .rs-hint,#rustscherm .rs-in,.rs-zen i{animation:none}.rs-zen b{display:none}}
+@media (prefers-reduced-motion: reduce){#rustscherm{transition:none}#rustscherm .rs-hint,#rustscherm .rs-in,.rs-zen u,#rustscherm .rs-mb,#rustscherm .rs-dp,#rustscherm .rs-sec i,#rustscherm .rs-tick span{animation:none}.rs-zen b{display:none}}
 
 /* periodieke beoordelingen */
 .pb-knoppen{display:flex;gap:12px;align-items:center}.pb-blok{padding:0 26px}
@@ -1702,7 +1722,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.21', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.22', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -3064,8 +3084,18 @@ function rustInhoud(){
   const d = $('#rustscherm'); if(!d) return;
   const nu = new Date(), tijd = `${String(nu.getHours()).padStart(2, '0')}:${String(nu.getMinutes()).padStart(2, '0')}`;
   let html = ''; try{ html = voorbladHtml(); }catch(e){}
-  if(!d.querySelector('.rs-in')) d.innerHTML = '<div class="rs-zen" aria-hidden="true"><i></i><i></i><i></i><i></i><b></b><b></b><b></b><b></b><b></b><b></b></div><div class="rs-in" inert></div>';
-  d.querySelector('.rs-in').innerHTML = `<div class="rs-klok">${tijd}</div>${html}<p class="rs-hint">Beweeg je muis om verder te gaan</p>`;
+  if(!d.querySelector('.rs-in')) d.innerHTML = '<div class="rs-zen" aria-hidden="true"><u></u><u></u><u></u><u></u>' + '<b></b>'.repeat(12) + '</div><div class="rs-in" inert></div><div class="rs-tick" aria-hidden="true"></div>';
+  const [hh, mm] = tijd.split(':'), mb = INST.ictMailbox && MB.d ? MB.d : null;
+  const mbHtml = mb ? `<div class="rs-mb"><div class="rs-mb-kop"><img src="${$('#mb-knop img') ? $('#mb-knop img').src : ''}" alt=""><b>${mb.totaal}</b><span>mails in de<br>ICT-mailbox${mb.ongelezen ? ` · ${mb.ongelezen} ongelezen` : ''}</span></div>${mb.labels.length ? `<div class="rs-mb-l">${mb.labels.slice(0, 6).map(([n, a, o]) => `<span>${esc(n)} <em>${a}</em></span>`).join('')}${mb.zonder ? `<span>zonder label <em>${mb.zonder}</em></span>` : ''}</div>` : ''}</div>` : '';
+  d.querySelector('.rs-in').innerHTML = `<div class="rs-top"><div><div class="rs-klok">${hh}<span class="rs-dp">:</span>${mm}</div><span class="rs-sec"><i style="animation-delay:-${nu.getSeconds() + nu.getMilliseconds() / 1000}s"></i></span></div>${mbHtml}</div>${html}<p class="rs-hint">Beweeg je muis om verder te gaan</p>`;
+}
+// rustscherm: om de 7 seconden één activiteit van vandaag in het team (nieuwste eerst, daarna rond)
+let rustTickI = 0, rustTickT = null;
+function rustTick(){
+  const t = $('#rustscherm .rs-tick'); if(!t) return;
+  const l = [...STROOM.values()].sort((a, b) => b.t - a.t).slice(0, 12); if(!l.length){ t.innerHTML = ''; return; }
+  const e = l[rustTickI++ % l.length], zin = STROOM_ZIN[e.soort] ? STROOM_ZIN[e.soort](e) : esc(e.soort);
+  t.innerHTML = `<span><i></i><b>${esc(doorMij(e) ? 'Jij' : String(e.door || '').split(' ')[0])}</b><span class="rs-zin">${zin}</span><small>· ${geleden(e.t)}${e.onderwerp ? ' · ' + esc(kort(e.onderwerp, 60)) : ''}</small></span>`;
 }
 function rustToon(){
   if(!rustAan || !profiel || document.hidden || !$('#app') || $('#app').hidden) return rustReset();
@@ -3073,9 +3103,10 @@ function rustToon(){
     d.addEventListener('cancel', e => { if(e.target !== d) return; e.preventDefault(); rustWeg(); }); d.addEventListener('click', () => rustWeg()); }
   rustInhoud(); rustSinds = Date.now(); d.classList.remove('weg'); d.tabIndex = -1; d.showModal(); d.focus(); requestAnimationFrame(() => d.classList.add('aan'));
   clearInterval(rustKlok); rustKlok = setInterval(rustInhoud, 30e3);   // tijd en cijfers blijven actueel
+  rustTickI = 0; rustTick(); clearInterval(rustTickT); rustTickT = setInterval(rustTick, 7e3);
 }
 function rustWeg(){
-  const d = $('#rustscherm'); clearInterval(rustKlok); if(!d || !d.open) return rustReset();
+  const d = $('#rustscherm'); clearInterval(rustKlok); clearInterval(rustTickT); if(!d || !d.open) return rustReset();
   d.classList.remove('aan'); d.classList.add('weg'); setTimeout(() => { if(d.classList.contains('weg')){ d.close(); d.classList.remove('weg'); } }, 450);
   clearTimeout(rustTimer); if(rustAan) rustTimer = setTimeout(rustToon, RUST_MIN * 60e3);
 }
@@ -9054,6 +9085,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.22', d: '18-11-2026', p: ['Rustscherm: dezelfde rustige achtergrond als SubmIT, meer langzaam bewegende details (ringen, lichtpuntjes, ademende klok met minutenlijn), de ICT-mailbox met het aantal mails en per label, en onderaan wisselend wat er vandaag in het team gebeurt.']},
   {v: 'v8.21', d: '18-11-2026', p: ['ICT-mailbox staat nu als Outlook-icoon in de linkerbalk (onder de Kennisbank): het getal is het totaal in Postvak IN, met de muis erop zie je de verdeling per label en ongelezen, klik opent de mailbox in Outlook. Het menu-item onder Team is weg.']},
   {v: 'v8.20', d: '16-11-2026', p: ['Eigen filters, zoals in AFAS: klik op de trechter vóór de eerste kolomkop. Maak een filter op elke kolom (ook verborgen kolommen), sla hem op onder een naam en kies hem later weer; één filter per lijst kan uitvoeren bij openen. Ook je huidige kolomfilters kun je zo opslaan.']},
   {v: 'v8.19', d: '16-11-2026', p: ['Nieuw onder Team: ICT-mailbox. Zie hoeveel mails er in Postvak IN van ict@dcklinieken.nl staan, hoeveel ongelezen zijn en hoeveel er per label (aan wie) hangen. Ververst elke 5 minuten.']},
