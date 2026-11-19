@@ -1708,7 +1708,7 @@ const INST = Object.assign({
   connProjecten: 'PowerBI_PBI_Team',
   msClientId: 'c7ab5576-02c4-439c-89a6-f70e613d0b71',          // Entra-app SubmIT (openbaar id, geen geheim): To-do via Microsoft To Do
   msTenant: '0ceb8564-e296-4331-9dce-d837ea00eab8',
-  connProjUpdates: 'PowerBI_PBI_Projectupdates',               // eerdere updates (dossieritems) per project, voor de reacties in het projectvenster
+  connProjUpdates: 'PowerBI_PBI_Projectvoortgang',             // updates (dossieritems) en de reacties daarop per project, voor het verloop in het projectvenster
   connProjectInfo: 'PowerBI_PBI_Projecten',                  // per project: code, omschrijving, projectleider, status, datums, voortgang, prioriteit                          // projecten uit het projectbureau (Mijn projecten); leeg = uit
   projUpdStId: 77,                                            // type dossieritem 'Update projectvoortgang'
   projFaseCodes: 'Verkenning=110, Pilot=120, Realisatie=200, Afgerond=300, On Hold=400, Evaluatie en Borging=500, Opschaling=600, Implementatie=700, Vervallen=990',
@@ -1730,7 +1730,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.30', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.31', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -7889,18 +7889,28 @@ async function haalProjUpdates(p){
   if(!INST.connProjUpdates) throw new Error('Geen GetConnector voor projectupdates ingesteld.');
   const eerst = ((await afas(`/connectors/${encodeURIComponent(INST.connProjUpdates)}?skip=0&take=1`)).rows || [])[0];
   if(!eerst) return [];
+  // PowerBI_PBI_Projectvoortgang: Project · Instuurdatum · Onderwerp · Toelichting · (Omschrijving_2/_3) · Reactiedatum · Reactie — één regel per reactie, het dossieritem herhaalt zich
   const keys = Object.keys(eerst), kk = re => keys.find(x => re.test(norm(x).replace(/_/g, ' ').trim()));
-  const k = {pr: kk(/^(project|projectcode|projectnummer)$/), tekst: kk(/^(toelichting|tekst|inhoud|bericht|update)$/) || kk(/toelichting|tekst/), datum: kk(/^(datum|instuurdatum|aangemaakt op|datum aanmaak)/), wie: kk(/^(aangemaakt door|medewerker|instuurder|gebruiker|naam)/), ond: kk(/^(onderwerp|omschrijving)$/)};
-  if(!k.pr || !k.tekst) throw new Error(`In ${INST.connProjUpdates} ontbreekt ${!k.pr ? 'het veld Project' : 'de tekst van de update'} (kolommen: ${keys.join(', ')}).`);
-  const rows = DEMO ? ((await afas(`/connectors/${INST.connProjUpdates}`)).rows || []).filter(r => String(r[k.pr]) === String(p.code)) : (await afas(`/connectors/${encodeURIComponent(INST.connProjUpdates)}?skip=0&take=500${filterOp(k.pr, p.prId || p.code)}`)).rows || [];
-  return rows.map(r => ({t: datum(r[k.datum]), tekst: kaal(r[k.tekst]), wie: wieNaam(String(r[k.wie] ?? '').trim()), ond: k.ond ? String(r[k.ond] ?? '').trim() : ''})).filter(r => r.tekst).sort((a, b) => (a.t || 0) - (b.t || 0));
+  const k = {pr: kk(/^(project|projectcode|projectnummer|project id)$/), tekst: kk(/^(toelichting|tekst|inhoud|bericht|update)$/) || kk(/toelichting/),
+    datum: kk(/^(instuurdatum|datum|aangemaakt op|datum aanmaak|datum toegevoegd)$/), wie: kk(/^(aangemaakt door|ingevoerd door|instuurder|medewerker|gebruiker|naam)$/), ond: kk(/^(onderwerp)$/),
+    rTekst: kk(/^(reactie|tekst reactie|reactietekst)$/), rDatum: kk(/^(reactiedatum|datum reactie)$/), rWie: kk(/^(reactie door|ingevoerd door reactie|medewerker reactie|naam reactie|reactie medewerker)$/)};
+  if(!k.pr || !(k.tekst || k.rTekst)) throw new Error(`In ${INST.connProjUpdates} ontbreekt ${!k.pr ? 'het veld Project' : 'de tekst van de update'} (kolommen: ${keys.join(', ')}).`);
+  const rows = DEMO ? ((await afas(`/connectors/${INST.connProjUpdates}`)).rows || []).filter(r => String(r[k.pr]) === String(p.code)) : (await afas(`/connectors/${encodeURIComponent(INST.connProjUpdates)}?skip=0&take=2000${filterOp(k.pr, p.prId || p.code)}`)).rows || [];
+  const uit = [], gezien = new Set();
+  rows.forEach(r => {
+    const t = datum(r[k.datum]), tekst = k.tekst ? kaal(r[k.tekst]) : '', ond = k.ond ? String(r[k.ond] ?? '').trim() : '', sleutel = [+t || '', ond, tekst].join('|');
+    if((tekst || ond) && !gezien.has(sleutel)){ gezien.add(sleutel); uit.push({t, tekst: tekst || ond, wie: k.wie ? wieNaam(String(r[k.wie] ?? '').trim()) : '', ond: tekst ? ond : '', soort: 'update'}); }
+    const rt = k.rTekst ? kaal(r[k.rTekst]) : '';
+    if(rt){ const rd = datum(r[k.rDatum]), rs = [+rd || '', rt].join('|'); if(!gezien.has('r' + rs)){ gezien.add('r' + rs); uit.push({t: rd || t, tekst: rt, wie: k.rWie ? wieNaam(String(r[k.rWie] ?? '').trim()) : '', ond: '', soort: 'reactie'}); } }
+  });
+  return uit.sort((a, b) => (a.t || 0) - (b.t || 0));
 }
 async function toonProjUpdates(p){
   const el = $('#p-tijdlijn'); if(!el) return;
   try{
     const l = await haalProjUpdates(p); if(!$('#projdlg').open || el !== $('#p-tijdlijn')) return;
-    el.innerHTML = `<h3>Reacties (${l.length}) <small class="hint">nieuwste bovenaan</small></h3>` + (l.length ? [...l].reverse().map(r => `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''}">${avatar(r.wie)}
-      <div class="wolk"><div class="kopje"><b>${esc(r.wie || 'Onbekend')}</b><span>${r.t ? fmtDatum(r.t) + ' ' + fmtTijd(r.t) : ''}</span></div><div class="tekst">${metLinks(r.tekst)}</div></div></div>`).join('') : '<p class="hint">Nog geen reacties.</p>');
+    el.innerHTML = `<h3>Updates en reacties (${l.length}) <small class="hint">nieuwste bovenaan</small></h3>` + (l.length ? [...l].reverse().map(r => `<div class="bericht ${benIk(r.wie) ? 'vanmij' : ''}">${avatar(r.wie)}
+      <div class="wolk"><div class="kopje"><b>${esc(r.wie || (r.soort === 'reactie' ? 'Reactie' : 'Update'))}</b>${r.ond && !/^update projectvoortgang$/i.test(r.ond) ? `<span class="hint">${esc(r.ond)}</span>` : ''}<span>${r.t ? fmtDatum(r.t) + (r.t.getHours() || r.t.getMinutes() ? ' ' + fmtTijd(r.t) : '') : ''}</span></div><div class="tekst">${metLinks(r.tekst)}</div></div></div>`).join('') : '<p class="hint">Nog geen updates of reacties.</p>');
   }catch(e){ el.innerHTML = `<h3>Reacties</h3>${p.laatste ? `<div class="bericht"><i>?</i><div class="wolk"><div class="kopje"><b>Laatste update</b><span>${p.laatsteOp ? fmtDatum(p.laatsteOp) : ''}</span></div><div class="tekst">${esc(p.laatste)}</div></div></div>` : ''}<p class="hint" style="font-size:11.5px">Eerdere updates ophalen lukte niet: ${esc(e.message)} Laat GetConnector ${esc(INST.connProjUpdates)} maken en aan de app connector koppelen (zie Connectoren &amp; velden).</p>`; }
 }
 const waardeBij = (l, naam) => (l || []).find(v => norm(v.naam) === norm(naam)) || (l || []).find(v => norm(v.code) === norm(naam));
@@ -9172,6 +9182,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.31', d: '19-11-2026', p: ['Projectvenster: het verloop van updates en reacties komt nu uit de GetConnector PowerBI_PBI_Projectvoortgang (de foutmelding over PowerBI_PBI_Projectupdates is weg).']},
   {v: 'v8.30', d: '19-11-2026', p: ['Mijn projecten: de kolommen van de projectteam-connector werden niet gevonden (AFAS gaf andere veldcodes dan in de gegevens staan). Nu gekoppeld op volgorde, zodat Naam, Rol en Project goed gelezen worden.']},
   {v: 'v8.29', d: '19-11-2026', p: ['Mijn projecten: is de kolom Naam in de projectconnector leeg, dan zoekt SubmIT de teamleden in de kolom die wél namen bevat (bv. Team). Zo verschijnen ook projecten waarin je opdrachtgever of projectlid bent.']},
   {v: 'v8.28', d: '19-11-2026', p: ['Tijdlijnen: het donkerblauwe deel van een balk loopt nu precies tot de lijn van vandaag (geweest = donkerblauw, nog te gaan = lichtblauw).', 'Tijdlijnen: “einddatum” heet nu “deadline”, zoals in de melding (bij projecten blijft het “einde”).', 'Een melding die via een workflowstap op Afgehandeld kwam, bleef soms als open in je lijsten staan tot je de pagina herlaadde. Nu is hij meteen dicht.']},
@@ -9590,7 +9601,7 @@ function demoAfas(pad, opties){
     return {rows: window._demoProj}; }
   if(pad.startsWith(`/connectors/${INST.connProjUpdates}`)){ const d = (n, u) => new Date(Date.now() + n * DAG + (u || 10) * 36e5).toISOString().slice(0, 19);
     window._demoUpd = window._demoUpd || [['P-0142', -40, 'Robert van der Veen', 'Planning per locatie rond; Utrecht start in week 38.'], ['P-0142', -20, 'Kelly Groen', 'Utrecht klaar, twee werkplekken nagezet i.v.m. printers.'], ['P-0142', -3, 'Robert van der Veen', 'Utrecht en Breda zijn over; Hanzeplein volgt in week 44.'],
-      ['P-0157', -30, 'Kelly Groen', 'Allergologie live, eerste reacties positief.'], ['P-0157', -8, 'Kelly Groen', 'Allergologie live; Dermatologie wacht op inrichting Timeff.']].map(([Project, n, Aangemaakt_door, Toelichting]) => ({Project, Datum: d(n), Aangemaakt_door, Onderwerp: 'Update projectvoortgang', Toelichting}));
+      ['P-0157', -30, 'Kelly Groen', 'Allergologie live, eerste reacties positief.'], ['P-0157', -8, 'Kelly Groen', 'Allergologie live; Dermatologie wacht op inrichting Timeff.']].map(([Project, n, , Toelichting], i) => ({Project, Instuurdatum: d(n), Onderwerp: 'Update projectvoortgang', Toelichting, Omschrijving_2: null, Omschrijving_3: null, Reactiedatum: i === 1 ? d(n + 2, 14) : null, Reactie: i === 1 ? 'Top, dan plan ik Breda in voor week 41.' : null}));
     return {rows: window._demoUpd}; }
   if(pad === '/metainfo/update/PtProject') return {name:'PtProject', fields:[{fieldId:'PrId', label:'Project'},{fieldId:'PrSt', label:'Projectfase', values:['Verkenning','Pilot','Realisatie','Implementatie','Afgerond'].map(n => ({id:n, description:n}))},{fieldId:'UVoort', label:'Voortgang', values:['Op schema','Loopt achter','Loopt voor','On Hold','Te Plannen','Afgerond','Vervallen'].map(n => ({id:n, description:n}))},{fieldId:'UGereed', label:'Datum gereed planning', dataType:'date'}]};
   if(pad === '/connectors/PtProject'){ const f = JSON.parse(opties.body).PtProject.Element.Fields; (window._demoProj || []).filter(r => r.Projectnummer === f.PrId).forEach(r => { if(f.PrSt) r.Projectfase = f.PrSt; if(f.UVoort) r.Voortgang = f.UVoort; if('UGereed' in f) r.Datum_gereed_planning = f.UGereed; });
