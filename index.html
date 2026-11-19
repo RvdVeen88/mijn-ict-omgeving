@@ -1730,7 +1730,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.31', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.32', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -7892,7 +7892,7 @@ async function haalProjUpdates(p){
   // PowerBI_PBI_Projectvoortgang: Project · Instuurdatum · Onderwerp · Toelichting · (Omschrijving_2/_3) · Reactiedatum · Reactie — één regel per reactie, het dossieritem herhaalt zich
   const keys = Object.keys(eerst), kk = re => keys.find(x => re.test(norm(x).replace(/_/g, ' ').trim()));
   const k = {pr: kk(/^(project|projectcode|projectnummer|project id)$/), tekst: kk(/^(toelichting|tekst|inhoud|bericht|update)$/) || kk(/toelichting/),
-    datum: kk(/^(instuurdatum|datum|aangemaakt op|datum aanmaak|datum toegevoegd)$/), wie: kk(/^(aangemaakt door|ingevoerd door|instuurder|medewerker|gebruiker|naam)$/), ond: kk(/^(onderwerp)$/),
+    datum: kk(/^(instuurdatum|datum|aangemaakt op|datum aanmaak|datum toegevoegd)$/), wie: kk(/^(aangemaakt door|ingevoerd door|instuurder|medewerker|gebruiker|naam)$/) || keys.find(x => /^omschrijving_2$/i.test(x)), ond: kk(/^(onderwerp)$/),   // in PowerBI_PBI_Projectvoortgang staat de schrijver in Omschrijving_2
     rTekst: kk(/^(reactie|tekst reactie|reactietekst)$/), rDatum: kk(/^(reactiedatum|datum reactie)$/), rWie: kk(/^(reactie door|ingevoerd door reactie|medewerker reactie|naam reactie|reactie medewerker)$/)};
   if(!k.pr || !(k.tekst || k.rTekst)) throw new Error(`In ${INST.connProjUpdates} ontbreekt ${!k.pr ? 'het veld Project' : 'de tekst van de update'} (kolommen: ${keys.join(', ')}).`);
   const rows = DEMO ? ((await afas(`/connectors/${INST.connProjUpdates}`)).rows || []).filter(r => String(r[k.pr]) === String(p.code)) : (await afas(`/connectors/${encodeURIComponent(INST.connProjUpdates)}?skip=0&take=2000${filterOp(k.pr, p.prId || p.code)}`)).rows || [];
@@ -7901,7 +7901,7 @@ async function haalProjUpdates(p){
     const t = datum(r[k.datum]), tekst = k.tekst ? kaal(r[k.tekst]) : '', ond = k.ond ? String(r[k.ond] ?? '').trim() : '', sleutel = [+t || '', ond, tekst].join('|');
     if((tekst || ond) && !gezien.has(sleutel)){ gezien.add(sleutel); uit.push({t, tekst: tekst || ond, wie: k.wie ? wieNaam(String(r[k.wie] ?? '').trim()) : '', ond: tekst ? ond : '', soort: 'update'}); }
     const rt = k.rTekst ? kaal(r[k.rTekst]) : '';
-    if(rt){ const rd = datum(r[k.rDatum]), rs = [+rd || '', rt].join('|'); if(!gezien.has('r' + rs)){ gezien.add('r' + rs); uit.push({t: rd || t, tekst: rt, wie: k.rWie ? wieNaam(String(r[k.rWie] ?? '').trim()) : '', ond: '', soort: 'reactie'}); } }
+    if(rt){ const rd = datum(r[k.rDatum]), rs = [+rd || '', rt].join('|'); if(!gezien.has('r' + rs)){ gezien.add('r' + rs); uit.push({t: rd || t, tekst: rt, wie: wieNaam(String(r[k.rWie || k.wie] ?? '').trim()), ond: '', soort: 'reactie'}); } }
   });
   return uit.sort((a, b) => (a.t || 0) - (b.t || 0));
 }
@@ -9182,6 +9182,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.32', d: '19-11-2026', p: ['Projectvenster: bij elke update en reactie staat nu wie hem schreef (uit Omschrijving_2), met profielfoto.']},
   {v: 'v8.31', d: '19-11-2026', p: ['Projectvenster: het verloop van updates en reacties komt nu uit de GetConnector PowerBI_PBI_Projectvoortgang (de foutmelding over PowerBI_PBI_Projectupdates is weg).']},
   {v: 'v8.30', d: '19-11-2026', p: ['Mijn projecten: de kolommen van de projectteam-connector werden niet gevonden (AFAS gaf andere veldcodes dan in de gegevens staan). Nu gekoppeld op volgorde, zodat Naam, Rol en Project goed gelezen worden.']},
   {v: 'v8.29', d: '19-11-2026', p: ['Mijn projecten: is de kolom Naam in de projectconnector leeg, dan zoekt SubmIT de teamleden in de kolom die wél namen bevat (bv. Team). Zo verschijnen ook projecten waarin je opdrachtgever of projectlid bent.']},
@@ -9601,7 +9602,7 @@ function demoAfas(pad, opties){
     return {rows: window._demoProj}; }
   if(pad.startsWith(`/connectors/${INST.connProjUpdates}`)){ const d = (n, u) => new Date(Date.now() + n * DAG + (u || 10) * 36e5).toISOString().slice(0, 19);
     window._demoUpd = window._demoUpd || [['P-0142', -40, 'Robert van der Veen', 'Planning per locatie rond; Utrecht start in week 38.'], ['P-0142', -20, 'Kelly Groen', 'Utrecht klaar, twee werkplekken nagezet i.v.m. printers.'], ['P-0142', -3, 'Robert van der Veen', 'Utrecht en Breda zijn over; Hanzeplein volgt in week 44.'],
-      ['P-0157', -30, 'Kelly Groen', 'Allergologie live, eerste reacties positief.'], ['P-0157', -8, 'Kelly Groen', 'Allergologie live; Dermatologie wacht op inrichting Timeff.']].map(([Project, n, , Toelichting], i) => ({Project, Instuurdatum: d(n), Onderwerp: 'Update projectvoortgang', Toelichting, Omschrijving_2: null, Omschrijving_3: null, Reactiedatum: i === 1 ? d(n + 2, 14) : null, Reactie: i === 1 ? 'Top, dan plan ik Breda in voor week 41.' : null}));
+      ['P-0157', -30, 'Kelly Groen', 'Allergologie live, eerste reacties positief.'], ['P-0157', -8, 'Kelly Groen', 'Allergologie live; Dermatologie wacht op inrichting Timeff.']].map(([Project, n, , Toelichting], i) => ({Project, Instuurdatum: d(n), Onderwerp: 'Update projectvoortgang', Toelichting, Omschrijving_2: i === 1 ? 'Kelly Groen' : 'Robert van der Veen', Omschrijving_3: null, Reactiedatum: i === 1 ? d(n + 2, 14) : null, Reactie: i === 1 ? 'Top, dan plan ik Breda in voor week 41.' : null}));
     return {rows: window._demoUpd}; }
   if(pad === '/metainfo/update/PtProject') return {name:'PtProject', fields:[{fieldId:'PrId', label:'Project'},{fieldId:'PrSt', label:'Projectfase', values:['Verkenning','Pilot','Realisatie','Implementatie','Afgerond'].map(n => ({id:n, description:n}))},{fieldId:'UVoort', label:'Voortgang', values:['Op schema','Loopt achter','Loopt voor','On Hold','Te Plannen','Afgerond','Vervallen'].map(n => ({id:n, description:n}))},{fieldId:'UGereed', label:'Datum gereed planning', dataType:'date'}]};
   if(pad === '/connectors/PtProject'){ const f = JSON.parse(opties.body).PtProject.Element.Fields; (window._demoProj || []).filter(r => r.Projectnummer === f.PrId).forEach(r => { if(f.PrSt) r.Projectfase = f.PrSt; if(f.UVoort) r.Voortgang = f.UVoort; if('UGereed' in f) r.Datum_gereed_planning = f.UGereed; });
