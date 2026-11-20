@@ -892,6 +892,13 @@ dialog#detail.groot .kaart2 select.afdkeuze,dialog#detail.groot .kaart2 input.da
 .todoknop:hover{color:var(--blauw);background:var(--lichtblauw-2)}
 .todoknop svg{width:20px;height:20px}
 .todoknop + .grootknop{margin-left:6px}
+.pmknop{display:inline-grid;place-items:center;width:26px;height:24px;margin-left:6px;vertical-align:-6px;border:0;background:transparent;border-radius:7px;padding:0;position:relative;cursor:default;flex:none}
+.pmcel{display:flex;align-items:center;min-width:0;gap:2px}.pmcel > span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.pmcel .pmknop{margin-left:4px;vertical-align:0}
+@media (max-width:700px){.pmcel{align-items:flex-start}.pmcel > span{white-space:normal}}
+.pmknop:hover,.pmknop:focus-visible{background:var(--rail-hover)}.pmknop svg{width:19px;height:19px}
+.pmknop.leeg{opacity:.38;filter:grayscale(1)}.pmknop.leeg:hover{opacity:.6}
+.pmknop.let::after{content:'';position:absolute;right:2px;top:2px;width:7px;height:7px;border-radius:50%;background:var(--oranje,#d98c1f);box-shadow:0 0 0 1.5px var(--vlak)}
+.dlg-kop > .pmknop{margin-left:auto;width:32px;height:32px}.dlg-kop > .pmknop svg{width:21px;height:21px}.dlg-kop > .pmknop + .afasknop{margin-left:0}
 .afasknop{margin-left:auto;border:0;background:transparent;color:var(--grijs);padding:4px;border-radius:8px;cursor:default;display:grid;place-items:center}
 .afasknop svg{width:17px;height:17px}
 .afasknop:hover{color:var(--blauw);background:var(--lichtblauw-2)}
@@ -1711,6 +1718,7 @@ const INST = Object.assign({
   msClientId: 'c7ab5576-02c4-439c-89a6-f70e613d0b71',          // Entra-app SubmIT (openbaar id, geen geheim): To-do via Microsoft To Do
   msTenant: '0ceb8564-e296-4331-9dce-d837ea00eab8',
   connProjUpdates: 'PowerBI_PBI_Projectvoortgang',             // updates (dossieritems) en de reacties daarop per project, voor het verloop in het projectvenster
+  projectmappen: 'https://dcklinieken.sharepoint.com/sites/Werksite/Gedeelde%20documenten/Staf/ICT/10.%20Projecten',   // Werksite › Staf › ICT › 10. Projecten: per project een map '000148 Projectnaam' (in 6. Lopend, 7. On hold of ZZ_ Archief)
   connProjectInfo: 'PowerBI_PBI_Projecten',                  // per project: code, omschrijving, projectleider, status, datums, voortgang, prioriteit                          // projecten uit het projectbureau (Mijn projecten); leeg = uit
   projUpdStId: 77,                                            // type dossieritem 'Update projectvoortgang'
   projFaseCodes: 'Verkenning=110, Pilot=120, Realisatie=200, Afgerond=300, On Hold=400, Evaluatie en Borging=500, Opschaling=600, Implementatie=700, Vervallen=990',
@@ -1732,7 +1740,7 @@ const INST = Object.assign({
   ictOe: 'ict|digitale zorg',            // organisatorische eenheid van het ICT-team (voor Toewijzen aan collega)   // medewerkers om als melder te kiezen: Medewerker, Roepnaam, Voorvoegsel, Achternaam, Organisatorische eenheid, Geblokkeerd
   verversMinuten: 5
 }, window.MIJNICT_CONFIG || {});
-const VERSIE = 'v8.34', VERSIE_DATUM = '26-10-2026';
+const VERSIE = 'v8.35', VERSIE_DATUM = '26-10-2026';
 const ICO_AFAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 const AFAS_TICKET_URL = 'https://88406.afasinsite.nl/aanvraag-ict/beoordelen-aanvraag-ict?SbId={sbid}';
 async function openInAfas(x){
@@ -2464,7 +2472,7 @@ const KOLOMMEN = [
 const projChip = (t, kl) => t ? `<span class="cn-badge ${kl}">${esc(t)}</span>` : '';
 const PROJ_KOLOMMEN = [
   {k:'p-nr', bw:'80px', t:'Nr.', w:x => norm(x.code), html:x => esc(x.code), cls:'nr'},
-  {k:'p-naam', t:'Project', w:x => norm(x.onderwerp), html:x => esc(x.onderwerp), cls:'ond'},
+  {k:'p-naam', t:'Project', w:x => norm(x.onderwerp), html:x => INST.projectmappen ? `<span class="pmcel"><span>${esc(x.onderwerp)}</span>${pmKnop(x)}</span>` : esc(x.onderwerp), cls:'ond'},
   {k:'p-rol', bw:'120px', t:'Jouw rol', w:x => norm(x.rol), html:x => projChip(x.rol, x.rol === 'Projectleider' ? '' : 'grijs'), cls:''},
   {k:'p-leider', bw:'140px', t:'Projectleider', w:x => norm(x.leider), html:x => esc(x.leider || ''), cls:'zacht'},
   {k:'p-fase', bw:'110px', t:'Fase', w:x => norm(x.status), html:x => esc(x.status || ''), cls:''},
@@ -7298,6 +7306,56 @@ async function kbBestand(d){
   return new File([await res.blob()], d.name, {type: res.headers.get('Content-Type') || 'application/octet-stream'});
 }
 const kbTitel = d => d.name.replace(/\.[a-z0-9]{2,5}$/i, '');
+/* ================= Projectmappen (Werksite › Staf › ICT › 10. Projecten) =================
+   Alleen lezen, met dezelfde Microsoft-koppeling als de Kennisbank (Files.Read.All). Eerst het AFAS-veld Projectmap,
+   anders de map waarvan de naam met het projectnummer begint (000148 Printix). Staat de map in een andere submap dan de
+   status zegt (lopend · on hold · afgerond), dan krijgt het mapje een oranje stip; verplaatsen doe je zelf in SharePoint. */
+const PM = {kaart: null, subs: {}, t: 0, bezig: false, fout: '', soort: ''};
+const PM_SUB = {lopend: '6. Lopend', hold: '7. On hold', archief: 'ZZ_ Archief'};
+const pmNr = s => { const m = String(s || '').trim().match(/^[a-z]{0,3}-?(\d{3,})(?!\d)/i); return m ? String(+m[1]) : ''; };   // '000148 Printix', '000148' en 'P-0148' → '148'; '6. Lopend' → ''
+const pmSoll = p => p.afgesloten ? 'archief' : /hold/i.test((p.voortgang || '') + ' ' + (p.status || '')) ? 'hold' : 'lopend';
+const pmSoort = naam => /archief|afgerond/i.test(naam) ? 'archief' : /hold/i.test(naam) ? 'hold' : /lopend/i.test(naam) ? 'lopend' : '';
+const ICO_MAP = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 6.6c0-1.2.9-2.1 2.1-2.1h4.3c.6 0 1.1.2 1.5.6l1.6 1.6h7.4c1.2 0 2.1.9 2.1 2.1v.7h-19z" fill="#D9951A"/><path d="M2.5 8.6h19v8.8c0 1.2-.9 2.1-2.1 2.1H4.6c-1.2 0-2.1-.9-2.1-2.1z" fill="#FFC83D"/><path d="M2.5 8.6h19v1.6h-19z" fill="#FFDB7A"/></svg>';
+async function pmLaad(){
+  if(PM.bezig || (PM.kaart && Date.now() - PM.t < 10 * 60e3)) return;
+  PM.bezig = true;
+  try{
+    const kaart = new Map(), subs = {};
+    if(DEMO){
+      (PRJ.alle || []).forEach((p, i) => { if(i > 1) return; const s = i === 0 ? pmSoll(p) : (pmSoll(p) === 'lopend' ? 'archief' : 'lopend');
+        kaart.set(pmNr(p.code), {naam: `${p.code} ${p.onderwerp}`, url: 'https://dcklinieken.sharepoint.com/sites/Werksite', sub: PM_SUB[s]}); });
+    } else {
+      const enc = 'u!' + btoa(unescape(encodeURIComponent(INST.projectmappen))).replace(/=+$/, '').replace(/\//g, '_').replace(/\+/g, '-');
+      const root = await graph(`/shares/${enc}/driveItem?$select=id,name,parentReference`, {}, kbGeldig), drive = root.parentReference.driveId;
+      const mappen = async id => { const l = []; let url = `/drives/${drive}/items/${id}/children?$select=id,name,webUrl,folder&$top=200`;
+        while(url){ const j = await graph(url, {}, kbGeldig); l.push(...(j.value || [])); url = j['@odata.nextLink'] || ''; } return l.filter(x => x.folder); };
+      const voeg = (f, sub) => { const n = pmNr(f.name); if(n && !kaart.has(n)) kaart.set(n, {naam: f.name, url: f.webUrl, sub}); };
+      const top = await mappen(root.id);
+      top.forEach(f => { const s = pmSoort(f.name); if(s && !pmNr(f.name)) subs[s] = f.name; voeg(f, ''); });
+      await pool(top.filter(f => !pmNr(f.name)), 4, async s => (await mappen(s.id)).forEach(f => voeg(f, s.name)));
+    }
+    PM.kaart = kaart; PM.subs = subs; PM.fout = ''; PM.soort = '';
+  }catch(e){ PM.fout = e.message; PM.soort = e.soort || ''; if(!PM.kaart) PM.kaart = new Map(); }
+  PM.t = Date.now(); PM.bezig = false;
+  document.querySelectorAll('[data-pmap]').forEach(b => { const p = (PRJ.alle || []).find(x => x.code === b.dataset.pmap) || (PRJ.lijst || []).find(x => x.code === b.dataset.pmap); if(p) b.outerHTML = pmKnop(p); });
+}
+function pmKnop(p){
+  if(!INST.projectmappen || !p || !p.code) return '';
+  if(!PM.bezig && (!PM.kaart || Date.now() - PM.t > 10 * 60e3)) setTimeout(pmLaad);
+  const f = PM.kaart && pmNr(p.code) ? PM.kaart.get(pmNr(p.code)) : null, veld = /^https?:\/\//i.test(p.mapUrl || '') ? p.mapUrl : '';
+  const url = veld || (f && f.url) || '', soll = pmSoll(p), ist = f && f.sub ? pmSoort(f.sub) : '', fout = !!(ist && ist !== soll);
+  const hoort = PM.subs[soll] || PM_SUB[soll];
+  const titel = url ? `Projectmap openen${f ? ': ' + (f.sub ? f.sub + ' › ' : '') + f.naam : ''}${fout ? ` · let op: bij deze status hoort hij in ${hoort}` : ''}`
+    : !PM.kaart ? 'Projectmap zoeken…'
+    : PM.soort === 'koppel' ? 'Projectmappen: koppel eerst de Kennisbank (dezelfde Microsoft-koppeling)'
+    : PM.fout ? 'Projectmappen ophalen lukte niet: ' + PM.fout
+    : `Geen projectmap gevonden in Werksite › Staf › ICT › 10. Projecten (een map die met ${p.code} begint, bv. "${p.code} ${p.onderwerp}" in ${hoort})`;
+  return `<button type="button" class="pmknop${url ? '' : ' leeg'}${fout ? ' let' : ''}" data-pmap="${esc(p.code)}"${url ? ` data-url="${esc(url)}"` : ' aria-disabled="true"'} title="${esc(titel)}" aria-label="${esc(titel)}">${ICO_MAP}</button>`;
+}
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-pmap]'); if(!b) return; e.stopPropagation(); e.preventDefault();
+  if(b.dataset.url) window.open(b.dataset.url, '_blank', 'noopener'); else toast(b.title); }, true);
+document.addEventListener('keydown', e => { if(e.key === 'Enter' && e.target.closest && e.target.closest('[data-pmap]')) e.stopPropagation(); }, true);
+
 const kbLinkTekst = d => `${kbTitel(d)}: ${d.webUrl}`;
 const kbItems = new Map();
 function kbRij(d){
@@ -7760,7 +7818,8 @@ const PROJ_HERKEN = {
   gereedWerkelijk:/^(werkelijke datum gereed|datum gereed werkelijk|werkelijk gereed)$/,
   bericht:/^(laatste update|laatste bericht|laatste reactie|update|toelichting voortgang|stand van zaken|opmerking|laatste opmerking|statusupdate|status update)$/,
   berichtDatum:/^(datum laatste update|datum update|datum laatste bericht|datum laatste reactie|laatst gewijzigd|gewijzigd op|datum gewijzigd)$/,
-  aangemaakt:/^(aangemaakt|aangemaakt op|datum aangemaakt|aanmaakdatum|invoerdatum)$/ };
+  aangemaakt:/^(aangemaakt|aangemaakt op|datum aangemaakt|aanmaakdatum|invoerdatum)$/,
+  map:/^(projectmap|project map|link projectmap|map project)$/ };
 async function projKolommen(){
   if(PRJ.kol) return PRJ.kol;
   let vl;
@@ -7816,7 +7875,7 @@ async function laadProjecten(){
         projStart: k.start ? datum(r0[k.start]) : null, projEind: k.eind ? datum(r0[k.eind]) : null, aangemaakt: k.aangemaakt ? datum(r0[k.aangemaakt]) : null,
         gereedPlanning: k.gereedPlanning ? datum(r0[k.gereedPlanning]) : null, gereedWerkelijk: k.gereedWerkelijk ? datum(r0[k.gereedWerkelijk]) : null,
         leider: k.leider ? String(r0[k.leider] ?? '').trim() : '', laatste: k.bericht ? String(r0[k.bericht] ?? '').trim() : '', laatsteOp: k.berichtDatum ? datum(r0[k.berichtDatum]) : null,
-        team: k.wie ? [...new Set(rs.map(r => String(r[k.wie] ?? '').trim()).filter(Boolean))] : [], afgesloten, emmer: ''});
+        team: k.wie ? [...new Set(rs.map(r => String(r[k.wie] ?? '').trim()).filter(Boolean))] : [], afgesloten, emmer: '', mapUrl: k.map ? String(rs.map(r => r[k.map]).find(v => /^https?:\/\//i.test(String(v || '').trim())) || '').trim() : ''});
     });
     // projectgegevens uit PowerBI_PBI_Projecten: echte projectcode (nodig voor bijwerken), naam, projectleider, status, datums
     PRJ.infoFout = '';
@@ -7824,7 +7883,7 @@ async function laadProjecten(){
       const info = await connectorAlles(INST.connProjectInfo), keys = Object.keys(info[0] || {});
       const kk = n => keys.find(x => norm(x).replace(/_/g, ' ').trim() === norm(n).replace(/_/g, ' ').trim());
       const f = {code: kk('Project'), naam: kk('Omschrijving'), leider: kk('Projectleider'), statusCode: kk('Projectstatus code'), status: kk('Projectstatus') || kk('Projectstatus_'),
-        start: kk('Begindatum'), gereedPlanning: kk('Datum gereed planning'), gereedWerkelijk: kk('Werkelijke datum gereed'), voortgang: kk('Voortgang'), prio: kk('Prioriteit')};
+        map: kk('Projectmap') || kk('Project map'), start: kk('Begindatum'), gereedPlanning: kk('Datum gereed planning'), gereedWerkelijk: kk('Werkelijke datum gereed'), voortgang: kk('Voortgang'), prio: kk('Prioriteit')};
       const t = (r, k) => k ? String(r[k] ?? '').trim() : '';
       const opCode = new Map(), opNaam = new Map();
       info.forEach(r => { if(t(r, f.code)) opCode.set(norm(t(r, f.code)), r); if(t(r, f.naam)) opNaam.set(norm(t(r, f.naam)), r);
@@ -7833,6 +7892,7 @@ async function laadProjecten(){
       const vulAan = (p, r) => {
         p.code = p.nr = t(r, f.code) || p.code; p.prId = t(r, f.code); p.onderwerp = t(r, f.naam) || p.onderwerp; p.leider = t(r, f.leider) || p.leider;
         p.status = t(r, f.status) || p.status; p.voortgang = t(r, f.voortgang) || p.voortgang; p.prioriteit = t(r, f.prio);
+        if(/^https?:\/\//i.test(t(r, f.map))) p.mapUrl = t(r, f.map);
         if(f.start && r[f.start]) p.projStart = datum(r[f.start]);
         if(f.gereedPlanning && r[f.gereedPlanning]){ p.gereedPlanning = datum(r[f.gereedPlanning]); p.projEind = p.projEind || p.gereedPlanning; }
         if(f.gereedWerkelijk && r[f.gereedWerkelijk]) p.gereedWerkelijk = datum(r[f.gereedWerkelijk]);
@@ -7952,7 +8012,7 @@ function openProject(code){
   const dlg = $('#projdlg'), iso = d => d ? isoD(d) : '';
   const voorstel = voortgangVoorstel(p);
   $('#projdlg-in').innerHTML = `<div class="dlg-kop"><div><small>Project ${esc(p.code)} · jij bent ${esc(p.rol.toLowerCase())}</small><h2>${esc(p.onderwerp)}</h2></div>
-      ${INST.projectUrl ? `<button type="button" class="afasknop" id="p-afas" title="Project openen in AFAS InSite (nieuw tabblad)" aria-label="Project openen in AFAS">${ICO_AFAS}</button>` : ''}${fbKnop()}<button class="sluit" data-psluit aria-label="Sluiten">×</button></div>
+      ${pmKnop(p)}${INST.projectUrl ? `<button type="button" class="afasknop" id="p-afas" title="Project openen in AFAS InSite (nieuw tabblad)" aria-label="Project openen in AFAS">${ICO_AFAS}</button>` : ''}${fbKnop()}<button class="sluit" data-psluit aria-label="Sluiten">×</button></div>
     <form id="p-form" onsubmit="return false" style="display:flex;flex-direction:column;gap:14px">
     <div class="kaarten">
       <div class="kaart2"><h3>Project</h3><span>Projectleider</span><b>${esc(p.leider || '')}</b><span>Start</span><b>${p.projStart ? fmtDatum(p.projStart) : ''}</b><span>Einde</span><b>${p.projEind ? fmtDatum(p.projEind) : ''}</b>${p.team.length ? `<span>Team</span><b>${esc(p.team.join(', '))}</b>` : ''}</div>
@@ -9212,6 +9272,7 @@ async function wisselWindows(){
 /* ================= Wat is er nieuw (releasenotes) =================
    Per versie in gewone taal wat je merkt. 'groot' = na de update één keer een kaartje; kleine verbeteringen alleen in het overzicht. */
 const RELEASES = [
+  {v: 'v8.35', d: '20-11-2026', p: ['Projecten: per project een mapje naar de projectmap op Werksite › Staf › ICT › 10. Projecten. SubmIT gebruikt het AFAS-veld Projectmap, anders de map die met het projectnummer begint.', 'Staat de map in een andere submap dan de status (lopend, on hold, afgerond), dan krijgt het mapje een oranje stip. Geen map gevonden: het mapje is grijs.']},
   {v: 'v8.34', d: '20-11-2026', p: ['Nieuwe iconen voor Meldingen, Nieuwe melding en Team in de linkerbalk, in dezelfde stijl als SharePoint, Outlook en Power BI.']},
   {v: 'v8.33', d: '20-11-2026', p: ['Wisselen tussen schermen gaat met een korte, zachte overgang.', 'Microsoft-koppeling (To-do, Kennisbank, ICT-mailbox) blijft werken na een herstart: verloopt de inlog (na 24 uur), dan verbindt SubmIT onzichtbaar opnieuw met je bestaande Microsoft-sessie.', 'Nieuwe iconen: Power BI bij Rapportage, Copilot overal waar AI meedoet.']},
   {v: 'v8.32', d: '19-11-2026', p: ['Projectvenster: bij elke update en reactie staat nu wie hem schreef (uit Omschrijving_2), met profielfoto.']},
